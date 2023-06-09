@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "934314493421",
+    "project_id": "paliz-flutter-firstproject",
+    "storage_bucket": "paliz-flutter-firstproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934314493421:android:be74dd5dd977b9a0fad3e4",
+        "android_client_info": {
+          "package_name": "com.example.flutter_projects"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "934314493421-8atvr11f2bqummu8r858ft315g7dncad.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEqXDeRif7ZoJ3O8maXLgJxUuIWRoYdlw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "934314493421-8atvr11f2bqummu8r858ft315g7dncad.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

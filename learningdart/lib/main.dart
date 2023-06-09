@@ -77,6 +77,8 @@ Map<String, dynamic> createJsonMap(String name, int age) {
   return json;
 }
 
+
+
 enum AnimalType { cat, dog, bunny }
 
 void comparingWithSwitch(AnimalType animalType) {
