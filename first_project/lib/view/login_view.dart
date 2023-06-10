@@ -5,20 +5,6 @@ import 'package:flutter/material.dart';
 
 import '../firebase_options.dart';
 
-class LoginView extends StatefulWidget {
-  const LoginView({super.key});
-
-  @override
-  State<LoginView> createState() => _LoginView();
-}
-
-class _LoginView extends State<LoginView> {
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
-
 // ======= LOGIN =========
 
 class LoginViewState extends StatefulWidget {
