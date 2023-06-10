@@ -17,7 +17,10 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -25,7 +28,10 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -43,18 +49,9 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD0WXNpDyshev5wprb0rl8_--my108qNXA',
-    appId: '1:934314493421:web:7d8571707e88bfbdfad3e4',
-    messagingSenderId: '934314493421',
-    projectId: 'paliz-flutter-firstproject',
-    authDomain: 'paliz-flutter-firstproject.firebaseapp.com',
-    storageBucket: 'paliz-flutter-firstproject.appspot.com',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCEqXDeRif7ZoJ3O8maXLgJxUuIWRoYdlw',
-    appId: '1:934314493421:android:be74dd5dd977b9a0fad3e4',
+    appId: '1:934314493421:android:3057d6f7204e138afad3e4',
     messagingSenderId: '934314493421',
     projectId: 'paliz-flutter-firstproject',
     storageBucket: 'paliz-flutter-firstproject.appspot.com',
@@ -62,21 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDs0mp8j8IKpTUw5WqjynU_ITZcbfssYaI',
-    appId: '1:934314493421:ios:94142e3b34272c37fad3e4',
+    appId: '1:934314493421:ios:0872a3f433eae20afad3e4',
     messagingSenderId: '934314493421',
     projectId: 'paliz-flutter-firstproject',
     storageBucket: 'paliz-flutter-firstproject.appspot.com',
-    iosClientId: '934314493421-g8jurltt4g0ussihof5n69ads7m8hsbe.apps.googleusercontent.com',
-    iosBundleId: 'com.example.flutterProjects',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDs0mp8j8IKpTUw5WqjynU_ITZcbfssYaI',
-    appId: '1:934314493421:ios:70b3629ce78e984bfad3e4',
-    messagingSenderId: '934314493421',
-    projectId: 'paliz-flutter-firstproject',
-    storageBucket: 'paliz-flutter-firstproject.appspot.com',
-    iosClientId: '934314493421-92oq0nd3i2qejob6qhal7qu2c6dn8ql2.apps.googleusercontent.com',
-    iosBundleId: 'com.example.flutterProjects.RunnerTests',
+    iosClientId: '934314493421-hsqulb4s250kanh0gue716chm6jm9i68.apps.googleusercontent.com',
+    iosBundleId: 'com.example.firstProject',
   );
 }
