@@ -11,42 +11,18 @@ void main() {
     theme: ThemeData(
       primarySwatch: Colors.blue,
     ),
-    home: const RegisterView(),
+    home: const HomePage(),
   ));
 }
 
-// ======= REGISTER =========
-
-class RegisterView extends StatefulWidget {
-  const RegisterView({Key? key}) : super(key: key);
-
-  @override
-  _RegisterViewState createState() => _RegisterViewState();
-}
-
-class _RegisterViewState extends State<RegisterView> {
-  late final TextEditingController _email;
-  late final TextEditingController _password;
-
-  @override
-  void initState() {
-    super.initState();
-    _email = TextEditingController();
-    _password = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _email.dispose();
-    _password.dispose();
-    super.dispose();
-  }
+class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text('HOME PAGE'),
         backgroundColor: const Color.fromARGB(113, 21, 109, 190),
       ),
       body: FutureBuilder(
@@ -56,52 +32,50 @@ class _RegisterViewState extends State<RegisterView> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              return Column(
-                children: [
-                  TextField(
-                    controller: _email,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your email here',
-                    ),
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  TextField(
-                    controller: _password,
-                    decoration:
-                        const InputDecoration(hintText: 'Enter your password'),
-                    obscureText: true,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final email = _email.text;
-                      final password = _password.text;
-                      try {
-                        // The await keyword is used to wait for the registration process to complete before proceeding.
-                        final userCredential = await FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                                email: email, password: password);
-                      } on FirebaseAuthException catch (user) {
-                        if (user == 'weak-password') {
-                          print('weak password');
-                        }
-                        print(user);
-                      }
-                    },
-                    child: const Text('Register'),
-                  ),
-                ],
-              );
+              final currentUser = FirebaseAuth.instance.currentUser;
+              final emailVerified = currentUser?.emailVerified ?? false;
+              if (emailVerified) {
+                return Container(); // Placeholder container when email is verified
+              } else {
+                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const VerifyEmailView()));
+                });
+                return const SizedBox(); // Placeholder SizedBox while waiting for navigation
+              }
             default:
               return const Text('Loading ...');
           }
         },
       ),
-      backgroundColor: const Color.fromARGB(
-          255, 180, 189, 197), // Set the background color for the Register page
+      backgroundColor: const Color.fromARGB(255, 180, 189, 197),
+    );
+  }
+}
+
+
+class VerifyEmailView extends StatefulWidget {
+  const VerifyEmailView({super.key});
+
+  @override
+  State<VerifyEmailView> createState() => _VerifyEmailView();
+}
+
+class _VerifyEmailView extends State<VerifyEmailView> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Verify Email')),
+      body: Column(
+        children: [
+          const Text('Please verify your email'),
+          TextButton(
+              onPressed: () async {
+                final currentUser = FirebaseAuth.instance.currentUser;
+                await currentUser?.sendEmailVerification();
+
+              }, child: const Text('Send email verification'))
+        ],
+      ),
     );
   }
 }

@@ -1,20 +1,20 @@
-// ----THIS IS NEW -----
+// ======= REGISTER =========
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../firebase_options.dart';
 
-// ======= LOGIN =========
-
-class LoginViewState extends StatefulWidget {
-  const LoginViewState({Key? key}) : super(key: key);
+class RegisterView extends StatefulWidget {
+  const RegisterView({Key? key}) : super(key: key);
 
   @override
-  State<LoginViewState> createState() => _LoginViewState();
+  _RegisterViewState createState() => _RegisterViewState();
 }
 
-class _LoginViewState extends State<LoginViewState> {
+class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
 
@@ -36,7 +36,7 @@ class _LoginViewState extends State<LoginViewState> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('Register'),
         backgroundColor: const Color.fromARGB(113, 21, 109, 190),
       ),
       body: FutureBuilder(
@@ -69,22 +69,23 @@ class _LoginViewState extends State<LoginViewState> {
                     onPressed: () async {
                       final email = _email.text;
                       final password = _password.text;
-                      // FirebaseAuth.instance.signInWithEmailAndPassword(
-                      //     email: email, password: password);
-                      //Handling user not found
                       try {
+                        // The await keyword is used to wait for the registration process to complete before proceeding.
                         final userCredential = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
+                            .createUserWithEmailAndPassword(
                                 email: email, password: password);
                       } on FirebaseAuthException catch (user) {
-                        if (user.code == 'user-not-found') {
-                          print('User not found');
-                        } else if (user.code == 'wrong-password') {
-                          print('Wrong password');
+                        if (user.code == 'weak-password') {
+                          print('weak password');
+                        } else if (user.code ==
+                            'firebase_auth/email-already-in-use') {
+                          print('Email already in use');
+                        }else if (user.code == 'invalid-email'){
+                          print('Email not well formatted');
                         }
                       }
                     },
-                    child: const Text('Login'),
+                    child: const Text('Register'),
                   ),
                 ],
               );
