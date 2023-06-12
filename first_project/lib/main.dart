@@ -6,19 +6,31 @@ import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MaterialApp(
-    title: 'Flutter Demo',
-    theme: ThemeData(
-      primarySwatch: Colors.blue,
-    ),
-    home: const HomePage(),
-    routes:{
-      "/login/": (context) => const LoginViewState(),
-      "/register/": (context) => const RegisterView(),
-    },
-  ));
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomePage(),
+      routes: {
+        "/login/": (context) => const LoginViewState(),
+        "/register/": (context) => const RegisterView(),
+      },
+    );
+  }
 }
 
 class HomePage extends StatelessWidget {
@@ -26,60 +38,51 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              // final currentUser = FirebaseAuth.instance.currentUser;
-              // final emailVerified = currentUser?.emailVerified ?? false;
-              // if (emailVerified) {
-              //   return const Text(
-              //       'Done'); // Placeholder container when email is verified
-              // } else {
-              //   // return const VerifyEmailView();
-              //   WidgetsBinding.instance.addPostFrameCallback((_) {
-              //     Navigator.of(context).push(MaterialPageRoute(
-              //         builder: (_) => const VerifyEmailView()));
-              //   });
-              // }
-              return  const LoginViewState();
-            default:
-              return const Text('Loading ...');
-          }
-        },
-      ),
-      backgroundColor: const Color.fromARGB(255, 180, 189, 197),
-    );
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final emailVerified = currentUser.emailVerified;
+      print("Is verified? $emailVerified");
+      return const NotesView();
+
+      // if (emailVerified) {
+      //   return const NotesView();
+      // } else {
+      //   return const VerifyEmailView();
+      // }
+    } else {
+      return const LoginViewState();
+    }
   }
 }
 
-class VerifyEmailView extends StatefulWidget {
-  const VerifyEmailView({super.key});
+enum MenuAction { logout }
+
+class NotesView extends StatefulWidget {
+  const NotesView({super.key});
 
   @override
-  State<VerifyEmailView> createState() => _VerifyEmailView();
+  State<NotesView> createState() => NotesViewState();
 }
 
-class _VerifyEmailView extends State<VerifyEmailView> {
+class NotesViewState extends State<NotesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify Email')),
-      body: Column(
-        children: [
-          const Text('Please verify your email'),
-          TextButton(
-              onPressed: () async {
-                final currentUser = FirebaseAuth.instance.currentUser;
-                await currentUser?.sendEmailVerification();
-              },
-              child: const Text('Send email verification'))
+      appBar: AppBar(
+        title: const Text('MAIN UI'),
+        actions: [
+          PopupMenuButton<MenuAction>(
+            onSelected: (value) {},
+            itemBuilder: (context) {
+              return const [
+                PopupMenuItem<MenuAction>(
+                    value: MenuAction.logout, child: Text('Log out'))
+              ];
+            },
+          )
         ],
       ),
+      body: const Text('HELLO'),
     );
   }
 }
