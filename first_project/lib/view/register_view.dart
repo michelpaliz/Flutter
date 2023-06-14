@@ -1,9 +1,9 @@
 // ======= REGISTER =========
 
 import 'dart:developer' as devtools show log;
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:first_project/constants/routes.dart';
+import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/utiliies/show_error_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -63,26 +63,20 @@ class _RegisterViewState extends State<RegisterView> {
               final password = _password.text;
               try {
                 // The await keyword is used to wait for the registration process to complete before proceeding.
-                await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                    email: email, password: password);
-                final user = FirebaseAuth.instance.currentUser;
-                await user?.sendEmailVerification();
+                AuthService.firebase()
+                    .createUser(email: email, password: password);
+                AuthService.firebase().sendEmailVerification;
                 //We're not gonna replace the registration page we only push.
                 Navigator.of(context).pushNamed(verifyEmailRoute);
-              } on FirebaseAuthException catch (user) {
-                if (user.code == 'weak-password') {
-                  await showErrorDialog(context, 'weak password');
-                } else if (user.code == 'firebase_auth/email-already-in-use') {
-                  await showErrorDialog(context, 'Email already in use');
-                } else if (user.code == 'invalid-email') {
-                  await showErrorDialog(
-                      context, 'This is an invalid email address');
-                } else {
-                  await showErrorDialog(context, 'Error: ${user.code}');
-                }
-              } catch (notDefined) {
+              } on WeakPasswordException {
+                await showErrorDialog(context, 'weak password');
+              } on EmailAlreadyUseAuthException {
+                await showErrorDialog(context, 'Email already in use');
+              } on InvalidEmailAuthException {
                 await showErrorDialog(
-                    context, 'Error: ${notDefined.toString()}');
+                    context, 'This is an invalid email address');
+              } on GenericAuthException {
+                await showErrorDialog(context, 'Registration error');
               }
             },
             child: const Text('Register'),
