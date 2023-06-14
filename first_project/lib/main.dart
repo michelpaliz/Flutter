@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/view/login_view.dart';
 import 'package:first_project/view/register_view.dart';
+import 'package:first_project/view/verify_email_view.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
@@ -29,9 +30,10 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomePage(),
       routes: {
-        loginRoute : (context) => const LoginViewState(),
-        registerRoute : (context) => const RegisterView(),
-        notesRoute : (context) => const NotesView()
+        loginRoute: (context) => const LoginViewState(),
+        registerRoute: (context) => const RegisterView(),
+        notesRoute: (context) => const NotesView(),
+        verifyEmailRoute: (context) => const VerifyEmailView()
       },
     );
   }
@@ -45,14 +47,13 @@ class HomePage extends StatelessWidget {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       final emailVerified = currentUser.emailVerified;
-      devtools.log('$emailVerified');
-      return const NotesView();
-
-      // if (emailVerified) {
-      //   return const NotesView();
-      // } else {r
-      //   return const VerifyEmailView();
-      // }
+      devtools.log('Is verified ? $emailVerified');
+      // return const NotesView();
+      if (emailVerified) {
+        return const NotesView();
+      } else {
+        return const VerifyEmailView();
+      }
     } else {
       return const LoginViewState();
     }
@@ -85,7 +86,7 @@ class NotesViewState extends State<NotesView> {
                   if (shouldLogout) {
                     await FirebaseAuth.instance.signOut();
                     Navigator.of(context)
-                        .pushNamedAndRemoveUntil('/login/', (_) => false);
+                        .pushNamedAndRemoveUntil(loginRoute, (_) => false);
                   }
                   break;
                 default:

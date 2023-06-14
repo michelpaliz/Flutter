@@ -1,9 +1,9 @@
 // ----THIS IS NEW -----
-import 'dart:developer' as devtools show log;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as devtools show log;
+import '../utiliies/show_error_dialog.dart';
 
 // ======= LOGIN =========
 class LoginViewState extends StatefulWidget {
@@ -65,16 +65,33 @@ class _LoginViewState extends State<LoginViewState> {
                   email: email,
                   password: password,
                 );
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  notesRoute,
-                  (route) => false,
-                );
+
+                final user = FirebaseAuth.instance.currentUser;
+                bool emailVerified = user?.emailVerified ?? false;
+                devtools.log(emailVerified.toString());
+                if (emailVerified) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    notesRoute,
+                    (route) => false,
+                  );
+                } else {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    verifyEmailRoute,
+                    (route) => false,
+                  );
+                }
               } on FirebaseAuthException catch (user) {
                 if (user.code == 'user-not-found') {
-                  devtools.log('User not found');
+                  // devtools.log('User not found');
+                  await showErrorDialog(context, 'User not found');
                 } else if (user.code == 'wrong-password') {
-                  devtools.log('Wrong password');
+                  // devtools.log('Wrong password');
+                  await showErrorDialog(context, 'Wrong credentials');
+                } else {
+                  await showErrorDialog(context, 'Error: ${user.code}');
                 }
+              } catch (notDefined) {
+                await showErrorDialog(context, notDefined.toString());
               }
             },
             child: const Text('Login'),
@@ -82,7 +99,7 @@ class _LoginViewState extends State<LoginViewState> {
           TextButton(
               onPressed: () {
                 Navigator.of(context)
-                    .pushNamedAndRemoveUntil( registerRoute, (route) => false);
+                    .pushNamedAndRemoveUntil(registerRoute, (route) => false);
               },
               child: const Text('Not registered yet ? Register here.')),
         ],
