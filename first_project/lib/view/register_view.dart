@@ -1,11 +1,9 @@
 // ======= REGISTER =========
 
-import 'dart:developer' as devtools show log;
-import 'package:first_project/constants/routes.dart';
-import 'package:first_project/services/auth/auth_exceptions.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/utiliies/show_error_dialog.dart';
 import 'package:flutter/material.dart';
+
+import '../styles/button_styles.dart';
+import '../styles/textfield_styles.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -17,6 +15,7 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  bool buttonHovered = false; // Added buttonHovered variable
 
   @override
   void initState() {
@@ -33,64 +32,96 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-        backgroundColor: const Color.fromARGB(113, 21, 109, 190),
-      ),
-      body: Column(
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Register'),
+      backgroundColor: const Color.fromARGB(113, 21, 109, 190),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+      child: Column(
         children: [
+          Image.asset(
+            'assets/images/register_image.png', // Replace with your image path
+            width: 200,
+            height: 200,
+          ),
+          const SizedBox(height: 20),
           TextField(
             controller: _email,
-            decoration: const InputDecoration(
-              hintText: 'Enter your email here',
+            decoration: TextFieldStyles.saucyInputDecoration(
+              hintText: 'Introduce your email',
+              labelText: 'Email',
+              suffixIcon: Icons.email,
             ),
             enableSuggestions: false,
             autocorrect: false,
             keyboardType: TextInputType.emailAddress,
           ),
+          const SizedBox(height: 20),
           TextField(
             controller: _password,
-            decoration: const InputDecoration(hintText: 'Enter your password'),
+            decoration: TextFieldStyles.saucyInputDecoration(
+              hintText: 'Introduce your password',
+              labelText: 'Password',
+              suffixIcon: Icons.lock,
+            ),
             obscureText: true,
             enableSuggestions: false,
             autocorrect: false,
           ),
+          const SizedBox(height: 20),
           TextButton(
             onPressed: () async {
-              final email = _email.text;
-              final password = _password.text;
-              try {
-                // The await keyword is used to wait for the registration process to complete before proceeding.
-                AuthService.firebase()
-                    .createUser(email: email, password: password);
-                AuthService.firebase().sendEmailVerification;
-                //We're not gonna replace the registration page we only push.
-                Navigator.of(context).pushNamed(verifyEmailRoute);
-              } on WeakPasswordException {
-                await showErrorDialog(context, 'weak password');
-              } on EmailAlreadyUseAuthException {
-                await showErrorDialog(context, 'Email already in use');
-              } on InvalidEmailAuthException {
-                await showErrorDialog(
-                    context, 'This is an invalid email address');
-              } on GenericAuthException {
-                await showErrorDialog(context, 'Registration error');
-              }
+              // Registration button logic
             },
-            child: const Text('Register'),
-          ),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(loginRoute, (route) => false);
+            style: ButtonStyles.saucyButtonStyle(buttonHovered),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              onEnter: (event) {
+                setState(() {
+                  buttonHovered = true;
+                });
               },
-              child: const Text('Already registered ? Login here.')),
+              onExit: (event) {
+                setState(() {
+                  buttonHovered = false;
+                });
+              },
+              child: const Text(
+                'Register',
+              ),
+            ),
+          ),
+          // Login button
+          TextButton(
+            onPressed: () {
+              // Login button logic
+            },
+            style: ButtonStyles.saucyButtonStyle(buttonHovered),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              onEnter: (event) {
+                setState(() {
+                  buttonHovered = true;
+                });
+              },
+              onExit: (event) {
+                setState(() {
+                  buttonHovered = false;
+                });
+              },
+              child: const Text(
+                'Already registered? Login here.',
+              ),
+            ),
+          ),
         ],
       ),
-      backgroundColor: const Color.fromARGB(
-          255, 180, 189, 197), // Set the background color for the Register page
-    );
-  }
+    ),
+    backgroundColor: const Color.fromARGB(255, 180, 189, 197),
+  );
+}
+
 }
