@@ -45,4 +45,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/register_image.png
+    - assets/images/login_image.png
+  fonts:
+    - family: bagel
+      fonts:
+        - asset: assets/fonts/bagel_fat_one.ttf
+

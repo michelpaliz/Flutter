@@ -20,6 +20,8 @@ class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   bool buttonHovered = false; // Added buttonHovered variable
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _ageController = TextEditingController();
 
   @override
   void initState() {
@@ -39,48 +41,91 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
-        backgroundColor: const Color.fromARGB(113, 21, 109, 190),
+        title: Text("SCHEDULE"),
+        titleTextStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+          fontFamily: 'bagel',
+        ),
+        backgroundColor: Color.fromARGB(178, 0, 131, 253),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+          padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 5.0),
           child: Column(
             children: [
               Image.asset(
-                'assets/images/register_image.png', // Replace with your image path
+                'assets/images/login_image.png', // Replace with your image path
                 width: 200,
-                height: 200,
+                height: 150,
               ),
-              const SizedBox(height: 5),
-              TextField(
-                controller: _email,
-                decoration: TextFieldStyles.saucyInputDecoration(
-                  hintText: 'Introduce your email',
-                  labelText: 'Email',
-                  suffixIcon: Icons.email,
+              Text(
+                'REGISTER HERE',
+                style: TextStyle(
+                  fontSize: 37,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(202, 34, 108, 192),
+                  fontFamily: 'bagel',
                 ),
-                enableSuggestions: false,
-                autocorrect: false,
-                keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _password,
-                decoration: TextFieldStyles.saucyInputDecoration(
-                  hintText: 'Introduce your password',
-                  labelText: 'Password',
-                  suffixIcon: Icons.lock,
-                ),
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
+              ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                children: [
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _nameController,
+                    decoration: TextFieldStyles.saucyInputDecoration(
+                      hintText: 'Enter your name',
+                      labelText: 'Name',
+                      suffixIcon: Icons.person,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _ageController,
+                    decoration: TextFieldStyles.saucyInputDecoration(
+                      hintText: 'yyyy-mm-dd',
+                      labelText: 'Age',
+                      suffixIcon: Icons.calendar_today,
+                    ),
+                    keyboardType: TextInputType.datetime,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _email,
+                    decoration: TextFieldStyles.saucyInputDecoration(
+                      hintText: 'Introduce your email',
+                      labelText: 'Email',
+                      suffixIcon: Icons.email,
+                    ),
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _password,
+                    decoration: TextFieldStyles.saucyInputDecoration(
+                      hintText: 'Introduce your password',
+                      labelText: 'Password',
+                      suffixIcon: Icons.lock,
+                    ),
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                  ),
+                ],
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 10),
               TextButton(
                 onPressed: () async {
                   final email = _email.text;
                   final password = _password.text;
+                  //TODO use these variables below to create an user object
+                  final name = _nameController.text;
+                  final age = _ageController.text;
                   try {
                     // The await keyword is used to wait for the registration process to complete before proceeding.
                     await AuthService.firebase()
@@ -117,13 +162,11 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                 ),
               ),
-              // Login button
               TextButton(
                 onPressed: () async {
                   Navigator.of(context)
                       .pushNamedAndRemoveUntil(loginRoute, (route) => false);
                 },
-                style: ButtonStyles.saucyButtonStyle(buttonHovered),
                 child: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   onEnter: (event) {
@@ -136,8 +179,26 @@ class _RegisterViewState extends State<RegisterView> {
                       buttonHovered = false;
                     });
                   },
-                  child: const Text(
-                    'Already registered? Login here.',
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                            text: 'Already registered? ',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            )),
+                        TextSpan(
+                          text: 'Login here.',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            // decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
