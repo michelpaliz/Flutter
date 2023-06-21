@@ -15,6 +15,8 @@ class ButtonStyles {
         (states) {
           if (states.contains(MaterialState.pressed)) {
             return Colors.grey.withOpacity(0.8); // Apply opacity when button is pressed
+          } else if (states.contains(MaterialState.hovered) && buttonHovered) {
+            return Color.fromARGB(100, 131, 205, 216); // Apply a different background color when button is hovered
           }
           return Color.fromARGB(75, 131, 205, 216); // Default background color
         },
@@ -32,3 +34,4 @@ class ButtonStyles {
     );
   }
 }
+

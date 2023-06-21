@@ -1,9 +1,15 @@
 // ----THIS IS NEW -----
+import 'dart:developer' as devtools show log;
+
 import 'package:first_project/constants/routes.dart';
+import 'package:first_project/costume_widgets/text_field_widget.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
+
+import '../styles/button_styles.dart';
+import '../styles/textfield_styles.dart';
 import '../utiliies/show_error_dialog.dart';
 
 // ======= LOGIN =========
@@ -17,6 +23,7 @@ class LoginViewState extends StatefulWidget {
 class _LoginViewState extends State<LoginViewState> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  bool buttonHovered = false; // Added buttonHovered variable
 
   @override
   void initState() {
@@ -34,70 +41,112 @@ class _LoginViewState extends State<LoginViewState> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        backgroundColor: const Color.fromARGB(113, 21, 109, 190),
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _email,
-            decoration: const InputDecoration(
-              hintText: 'Enter your email here',
+    return Theme(
+      data: AppBarStyles.themeData,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("SCHEDULE"),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 5.0),
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              children: [
+                Image.asset(
+                  'assets/images/beach_image.png', // Replace with your image path
+                  width: 100,
+                  height: 100,
+                ),
+                const SizedBox(height: 30),
+                Center(
+                  child: Text(
+                    'LOGIN',
+                    style: TextStyle(
+                      fontSize: 37,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(202, 34, 108, 192),
+                      fontFamily: 'rigtheous',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                TextFieldWidget(
+                  controller: _email,
+                  decoration: TextFieldStyles.saucyInputDecoration(
+                    hintText: 'Introduce your email',
+                    labelText: 'Email',
+                    suffixIcon: Icons.email,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 10),
+                TextFieldWidget(
+                  controller: _password,
+                  decoration: TextFieldStyles.saucyInputDecoration(
+                      hintText: 'Introduce your password',
+                      labelText: 'Password',
+                      suffixIcon: Icons.lock),
+                  keyboardType: TextInputType.text,
+                  obscureText: true,
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final email = _email.text;
+                    final password = _password.text;
+                    try {
+                      await AuthService.firebase()
+                          .logIn(email: email, password: password);
+                      final user = AuthService.firebase().currentUser;
+                      bool emailVerified = user?.isEmailVerified ?? false;
+                      devtools.log(emailVerified.toString());
+                      if (emailVerified) {
+                        Navigator.of(context).pushReplacementNamed(
+                          notesRoute,
+                        );
+                      } else {
+                        Navigator.of(context)
+                            .pushReplacementNamed(verifyEmailRoute);
+                      }
+                    } on UserNotFoundAuthException {
+                      await showErrorDialog(context, 'User not found');
+                    } on WrongPasswordAuthException {
+                      await showErrorDialog(context, 'Wrong credentials');
+                    } on GenericAuthException {
+                      await showErrorDialog(context, 'Authentication error');
+                    }
+                  },
+                  style: ButtonStyles.saucyButtonStyle(buttonHovered),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    onEnter: (event) {
+                      setState(() {
+                        buttonHovered = true;
+                      });
+                    },
+                    onExit: (event) {
+                      setState(() {
+                        buttonHovered = false;
+                      });
+                    },
+                    child: const Text(
+                      'Register',
+                    ),
+                  ),
+                ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, registerRoute);
+                    },
+                    child: const Text('Not registered yet ? Register here.')),
+              ],
             ),
-            enableSuggestions: false,
-            autocorrect: false,
-            keyboardType: TextInputType.emailAddress,
           ),
-          TextField(
-            controller: _password,
-            decoration: const InputDecoration(hintText: 'Enter your password'),
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-          ),
-          TextButton(
-            onPressed: () async {
-              final email = _email.text;
-              final password = _password.text;
-              try {
-                await AuthService.firebase()
-                    .logIn(email: email, password: password);
-                final user = AuthService.firebase().currentUser;
-                bool emailVerified = user?.isEmailVerified ?? false;
-                devtools.log(emailVerified.toString());
-                if (emailVerified) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    notesRoute,
-                    (route) => false,
-                  );
-                } else {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    verifyEmailRoute,
-                    (route) => false,
-                  );
-                }
-              } on UserNotFoundAuthException {
-                await showErrorDialog(context, 'User not found');
-              } on WrongPasswordAuthException {
-                await showErrorDialog(context, 'Wrong credentials');
-              } on GenericAuthException {
-                await showErrorDialog(context, 'Authentication error');
-              }
-            },
-            child: const Text('Login'),
-          ),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(registerRoute, (route) => false);
-              },
-              child: const Text('Not registered yet ? Register here.')),
-        ],
+        ),
+        // backgroundColor: const Color.fromARGB(255, 180, 189,
+        //     197), // Set the background color for the Register page
       ),
-      backgroundColor: const Color.fromARGB(
-          255, 180, 189, 197), // Set the background color for the Register page
     );
   }
 }
