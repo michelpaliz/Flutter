@@ -91,47 +91,52 @@ class _LoginViewState extends State<LoginViewState> {
                   keyboardType: TextInputType.text,
                   obscureText: true,
                 ),
-                TextButton(
-                  onPressed: () async {
-                    final email = _email.text;
-                    final password = _password.text;
-                    try {
-                      await AuthService.firebase()
-                          .logIn(email: email, password: password);
-                      final user = AuthService.firebase().currentUser;
-                      bool emailVerified = user?.isEmailVerified ?? false;
-                      devtools.log(emailVerified.toString());
-                      if (emailVerified) {
-                        Navigator.of(context).pushReplacementNamed(
-                          notesRoute,
-                        );
-                      } else {
-                        Navigator.of(context)
-                            .pushReplacementNamed(verifyEmailRoute);
+                const SizedBox(height: 15),
+                Container(
+                  width: 0,
+                  height: 50,
+                  child: TextButton(
+                    onPressed: () async {
+                      final email = _email.text;
+                      final password = _password.text;
+                      try {
+                        await AuthService.firebase()
+                            .logIn(email: email, password: password);
+                        final user = AuthService.firebase().currentUser;
+                        bool emailVerified = user?.isEmailVerified ?? false;
+                        devtools.log(emailVerified.toString());
+                        if (emailVerified) {
+                          Navigator.of(context).pushReplacementNamed(
+                            notesRoute,
+                          );
+                        } else {
+                          Navigator.of(context)
+                              .pushReplacementNamed(verifyEmailRoute);
+                        }
+                      } on UserNotFoundAuthException {
+                        await showErrorDialog(context, 'User not found');
+                      } on WrongPasswordAuthException {
+                        await showErrorDialog(context, 'Wrong credentials');
+                      } on GenericAuthException {
+                        await showErrorDialog(context, 'Authentication error');
                       }
-                    } on UserNotFoundAuthException {
-                      await showErrorDialog(context, 'User not found');
-                    } on WrongPasswordAuthException {
-                      await showErrorDialog(context, 'Wrong credentials');
-                    } on GenericAuthException {
-                      await showErrorDialog(context, 'Authentication error');
-                    }
-                  },
-                  style: ButtonStyles.saucyButtonStyle(buttonHovered),
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    onEnter: (event) {
-                      setState(() {
-                        buttonHovered = true;
-                      });
                     },
-                    onExit: (event) {
-                      setState(() {
-                        buttonHovered = false;
-                      });
-                    },
-                    child: const Text(
-                      'Register',
+                    style: ButtonStyles.saucyButtonStyle(buttonHovered),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (event) {
+                        setState(() {
+                          buttonHovered = true;
+                        });
+                      },
+                      onExit: (event) {
+                        setState(() {
+                          buttonHovered = false;
+                        });
+                      },
+                      child: const Text(
+                        'LOGIN',
+                      ),
                     ),
                   ),
                 ),

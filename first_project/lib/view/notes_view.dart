@@ -45,7 +45,9 @@ class NotesViewState extends State<NotesView> {
           )
         ],
       ),
-      body: const Text('HELLO'),
+      body: Container(
+        
+      ),
     );
   }
 }
