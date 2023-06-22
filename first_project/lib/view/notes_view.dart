@@ -1,20 +1,12 @@
 import 'dart:developer' as devtools show log;
+
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../constants/routes.dart';
 import '../enums/menu_action.dart';
-
-class Event {
-  final DateTime date;
-  // Add other properties as needed
-
-  Event({
-    required this.date,
-    // Initialize other properties as needed
-  });
-}
+import '../models/event.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -25,10 +17,12 @@ class NotesView extends StatefulWidget {
 
 class NotesViewState extends State<NotesView> {
   List<Event> eventsList = [
-    Event(date: DateTime(2023, 6, 1)),
-    Event(date: DateTime(2023, 6, 15)),
-    // Add more events with different dates
+    Event(date: DateTime(2023, 6, 1), note: "Note 1"),
+    Event(date: DateTime(2023, 6, 15), note: "Note 2"),
   ];
+
+  DateTime? selectedDate;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,20 +54,55 @@ class NotesViewState extends State<NotesView> {
           )
         ],
       ),
-      body: Container(
-        child: TableCalendar(
-          eventLoader: (date) {
-            // Implement your logic to load events or notes for the specified date
-            // Return a list of events/notes for the date
-            return getEventsForDate(
-                date); // Replace this with your implementation
-          },
-          firstDay: DateTime.utc(2023, 1, 1),
-          focusedDay: DateTime.now(),
-          lastDay: DateTime.utc(2023, 12, 31),
-          // Add other customization options as needed
-          // ...
-        ),
+      body: Column(
+        children: [
+          TableCalendar<Event>(
+            eventLoader: (date) {
+              return getEventsForDate(date); //
+            },
+            firstDay: DateTime.utc(2023, 1, 1),
+            focusedDay: DateTime.now(),
+            lastDay: DateTime.utc(2023, 12, 31),
+            // Add other customization options as needed
+            calendarBuilders: CalendarBuilders(
+              // Customize the day cell appearance
+              defaultBuilder: (context, date, _) {
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedDate = date;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.transparent),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(date.day.toString()), // Display the day
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          if (selectedDate != null)
+            // Expanded(...): This widget is used to make the container take up the available vertical space. It allows the container to expand and occupy the remaining space below the calendar.
+            Expanded(
+              child: Container(
+                color: Colors.grey[200],
+                child: Center(
+                  child: Text(
+                    // The selectedDate! syntax is known as the null assertion operator (!). It is used to assert that a value is not null.
+                    getNotesForDate(selectedDate!),
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -104,12 +133,9 @@ class NotesViewState extends State<NotesView> {
     ).then((value) => value ?? false);
   }
 
+  /**this method filters a list of events (eventsList) to find only those events that match the year, month, and day of the provided date. It returns a new list (eventsForDate) containing the filtered events. */
   List<Event> getEventsForDate(DateTime date) {
-    // Implement your logic to retrieve events or notes for the specified date
-    // Return a list of events/notes for the date
-
-    // Example implementation:
-    // Filter the events based on the date and return the matching events
+    // The where method filters the list based on a condition defined by the provided anonymous function.
     final eventsForDate = eventsList.where((event) {
       return event.date.year == date.year &&
           event.date.month == date.month &&
@@ -117,5 +143,14 @@ class NotesViewState extends State<NotesView> {
     }).toList();
 
     return eventsForDate;
+  }
+
+  /**This method retrieves the events or notes for the specified date, extracts the notes from the events, and concatenates them into a single string with each note separated by a newline character. */
+  String getNotesForDate(DateTime date) {
+    // Retrieve notes for the specified date
+    final eventsForDate = getEventsForDate(date);
+
+    // Concatenate the notes into a single string
+    return eventsForDate.map((event) => event.note).join('\n');
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/routes.dart';
 import '../costume_widgets/text_field_widget.dart';
+import '../models/person.dart';
 import '../services/auth/auth_exceptions.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
@@ -106,8 +107,8 @@ class _RegisterViewState extends State<RegisterView> {
                     onPressed: () async {
                       final email = _email.text;
                       final password = _password.text;
-                      //TODO use these variables below to create an user object
                       final name = _nameController.text;
+                      Person person = Person(name, email, null);
                       try {
                         // The await keyword is used to wait for the registration process to complete before proceeding.
                         await AuthService.firebase()

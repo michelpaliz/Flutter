@@ -1,9 +1,11 @@
 class Event {
   final DateTime date;
-  // Add other properties as needed
+  final String note;
 
   Event({
     required this.date,
-    // Initialize other properties as needed
+    required this.note,
   });
+
+  
 }
