@@ -51,57 +51,96 @@ class NotesViewState extends State<NotesView> {
                     value: MenuAction.logout, child: Text('Log out'))
               ];
             },
-          )
+          ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          TableCalendar<Event>(
-            eventLoader: (date) {
-              return getEventsForDate(date); //
-            },
-            firstDay: DateTime.utc(2023, 1, 1),
-            focusedDay: DateTime.now(),
-            lastDay: DateTime.utc(2023, 12, 31),
-            // Add other customization options as needed
-            calendarBuilders: CalendarBuilders(
-              // Customize the day cell appearance
-              defaultBuilder: (context, date, _) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedDate = date;
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.transparent),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(date.day.toString()), // Display the day
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          if (selectedDate != null)
-            // Expanded(...): This widget is used to make the container take up the available vertical space. It allows the container to expand and occupy the remaining space below the calendar.
-            Expanded(
-              child: Container(
-                color: Colors.grey[200],
+          Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.all(20),
                 child: Center(
                   child: Text(
-                    // The selectedDate! syntax is known as the null assertion operator (!). It is used to assert that a value is not null.
-                    getNotesForDate(selectedDate!),
-                    style: TextStyle(fontSize: 18),
+                    'CALENDAR',
+                    style: TextStyle(
+                      fontFamily: 'lato',
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
+              TableCalendar<Event>(
+                eventLoader: (date) {
+                  return getEventsForDate(date); //
+                },
+                firstDay: DateTime.utc(2023, 1, 1),
+                focusedDay: DateTime.now(),
+                lastDay: DateTime.utc(2023, 12, 31),
+                // Add other customization options as needed
+                calendarBuilders: CalendarBuilders(
+                  // Customize the day cell appearance
+                  defaultBuilder: (context, date, _) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedDate = date;
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.transparent),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(date.day.toString()), // Display the day
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (selectedDate != null)
+                // Expanded(...): This widget is used to make the container take up the available vertical space. It allows the container to expand and occupy the remaining space below the calendar.
+                Expanded(
+                  child: Container(
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: Text(
+                        // The selectedDate! syntax is known as the null assertion operator (!). It is used to assert that a value is not null.
+                        getNotesForDate(selectedDate!),
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: EdgeInsets.all(1),
+              child: IconButton(
+                icon: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 25,
+                ),
+                onPressed: () {
+                  
+                },
+              ),
             ),
+          ),
         ],
       ),
     );

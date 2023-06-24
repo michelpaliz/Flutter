@@ -7,8 +7,6 @@ import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
-
-import '../models/person.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utiliies/show_error_dialog.dart';

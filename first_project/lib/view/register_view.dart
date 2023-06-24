@@ -1,5 +1,8 @@
 // ======= REGISTER =========
 
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +14,8 @@ import '../services/auth/auth_exceptions.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utiliies/show_error_dialog.dart';
+
+import 'dart:developer' as devtools show log;
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -108,13 +113,21 @@ class _RegisterViewState extends State<RegisterView> {
                       final email = _email.text;
                       final password = _password.text;
                       final name = _nameController.text;
-                      Person person = Person(name, email, null);
+                      String? registrationStatus;
                       try {
                         // The await keyword is used to wait for the registration process to complete before proceeding.
                         await AuthService.firebase()
                             .createUser(email: email, password: password);
+                        // Sign in the user after successful registration
+                        await AuthService.firebase()
+                            .logIn(email: email, password: password);
                         AuthService.firebase().sendEmailVerification;
-                        //We're not gonna replace the registration page we only push.
+                        // Add the user to the database
+                        Person person = Person(name, email, null);
+                        registrationStatus =
+                            await uploadPersonToFirestore(person: person);
+
+                        //We're not gonna replace tthe previous state with the new one
                         Navigator.of(context).pushNamedAndRemoveUntil(
                             verifyEmailRoute, (route) => false);
                       } on WeakPasswordException {
@@ -127,6 +140,21 @@ class _RegisterViewState extends State<RegisterView> {
                       } on GenericAuthException {
                         await showErrorDialog(context, 'Registration error');
                       }
+                      ;
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Registration Status'),
+                              content: Text(registrationStatus!),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: const Text('OK'),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ],
+                            );
+                          });
                     },
                     style: ButtonStyles.saucyButtonStyle(buttonHovered),
                     child: MouseRegion(
@@ -196,3 +224,20 @@ class _RegisterViewState extends State<RegisterView> {
   }
 }
 
+/**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
+
+Future<String> uploadPersonToFirestore({required Person person}) {
+  // A Completer<String> is created to handle the completion of the future.
+  Completer<String> completer = Completer<String>();
+
+  FirebaseFirestore.instance
+      .collection('people')
+      .add(person.toMap())
+      .then((value) {
+    completer.complete('Person registered successfully');
+  }).catchError((error) {
+    completer.completeError('Failed to upload person: $error');
+  });
+
+  return completer.future;
+}
