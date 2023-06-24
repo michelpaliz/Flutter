@@ -22,8 +22,8 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
               "If you haven't recieved your verification email yet, press the button below"),
           TextButton(
             onPressed: () async {
-              AuthService.firebase()
-                  .sendEmailVerification; // Navigate to another screen after sending the verification email
+              await AuthService.firebase()
+                  .sendEmailVerification(); // Navigate to another screen after sending the verification email
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => const EmailSentView(),
               ));
