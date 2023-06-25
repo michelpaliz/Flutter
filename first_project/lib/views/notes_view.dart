@@ -136,7 +136,7 @@ class NotesViewState extends State<NotesView> {
                   size: 25,
                 ),
                 onPressed: () {
-                  
+                  Navigator.pushNamed(context, addNote);
                 },
               ),
             ),
