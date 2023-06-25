@@ -17,8 +17,8 @@ class NotesView extends StatefulWidget {
 
 class NotesViewState extends State<NotesView> {
   List<Event> eventsList = [
-    Event(date: DateTime(2023, 6, 1), note: "Note 1"),
-    Event(date: DateTime(2023, 6, 15), note: "Note 2"),
+    Event(id: '1',startDate: DateTime(2023, 6, 1), endDate:  DateTime(2023, 6, 2), note: "Note 1"),
+    Event(id: '2',startDate: DateTime(2023, 6, 15), endDate: DateTime (2023,6,16), note: "Note 2"),
   ];
 
   DateTime? selectedDate;
@@ -176,9 +176,9 @@ class NotesViewState extends State<NotesView> {
   List<Event> getEventsForDate(DateTime date) {
     // The where method filters the list based on a condition defined by the provided anonymous function.
     final eventsForDate = eventsList.where((event) {
-      return event.date.year == date.year &&
-          event.date.month == date.month &&
-          event.date.day == date.day;
+      return event.startDate.year == date.year &&
+          event.startDate.month == date.month &&
+          event.startDate.day == date.day;
     }).toList();
 
     return eventsForDate;

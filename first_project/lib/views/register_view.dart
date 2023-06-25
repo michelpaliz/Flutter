@@ -129,7 +129,6 @@ class _RegisterViewState extends State<RegisterView> {
                             context, 'Passwords do not match');
                         return;
                       }
-
                       try {
                         // The await keyword is used to wait for the registration process to complete before proceeding.
                         await AuthService.firebase()
@@ -141,14 +140,12 @@ class _RegisterViewState extends State<RegisterView> {
 
                         // Add the user to the database
                         Person person = Person(name, email, null);
-
                         registrationStatus = await StoreService.firebase()
                             .uploadPersonToFirestore(person: person);
 
                         //We're gonna replace the previous state with the new one
                         Navigator.of(context).pushNamedAndRemoveUntil(
                             verifyEmailRoute, (route) => false);
-
                       } on WeakPasswordException {
                         await showErrorDialog(context, 'weak password');
                       } on EmailAlreadyUseAuthException {
@@ -160,22 +157,25 @@ class _RegisterViewState extends State<RegisterView> {
                         await showErrorDialog(context, 'Registration error');
                       }
                       ;
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Registration Status'),
-                              content: registrationStatus != null
-                                  ? Text(registrationStatus)
-                                  : const Text('Registration failed'),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
-                            );
-                          });
+                      if (registrationStatus != null) {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Registration Status'),
+                                content: registrationStatus != null
+                                    ? Text(registrationStatus)
+                                    : const Text('Registration failed'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text('OK'),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              );
+                            });
+                      }
                     },
                     style: ButtonStyles.saucyButtonStyle(buttonHovered),
                     child: MouseRegion(

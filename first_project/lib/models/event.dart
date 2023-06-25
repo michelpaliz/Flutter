@@ -1,11 +1,13 @@
 class Event {
-  final DateTime date;
+  final String id;
+  final DateTime startDate;
+  final DateTime endDate;
   final String note;
 
   Event({
-    required this.date,
+    required this.id,
+    required this.startDate,
+    required this.endDate,
     required this.note,
   });
-
-  
 }
