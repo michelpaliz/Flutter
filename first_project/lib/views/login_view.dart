@@ -108,26 +108,6 @@ class _LoginViewState extends State<LoginViewState> {
                         bool emailVerified = user?.isEmailVerified ?? false;
                         devtools.log(emailVerified.toString());
                         if (emailVerified) {
-                          // Query Firestore to retrieve the user document based on email
-                          final querySnapshot = await FirebaseFirestore.instance
-                              .collection('users')
-                              .where('email', isEqualTo: email)
-                              .get();
-
-                          if (querySnapshot.docs.isNotEmpty) {
-                            // Assuming there is only one user with the provided email
-                            final userDoc = querySnapshot.docs.first;
-
-                            // Create a User object from the retrieved Firestore data
-                            final userData = userDoc.data();
-                            final name = userData['name'];
-                            final events = userData['events'];
-                            final groupId = userData['groupId'];
-                            User user =
-                                User(name, email, events, groupId: groupId);
-                            // Do something with the User object
-                            SharedPrefsUtils.storeUser(user);
-                          }
                           Navigator.of(context)
                               .pushReplacementNamed(notesRoute);
                         } else {
@@ -175,6 +155,4 @@ class _LoginViewState extends State<LoginViewState> {
       ),
     );
   }
-
-
 }

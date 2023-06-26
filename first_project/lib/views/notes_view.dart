@@ -1,12 +1,14 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/utiliies/userUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../constants/routes.dart';
 import '../enums/menu_action.dart';
 import '../models/event.dart';
+import '../models/user.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -16,12 +18,21 @@ class NotesView extends StatefulWidget {
 }
 
 class NotesViewState extends State<NotesView> {
-  List<Event> eventsList = [
-    Event(id: '1',startDate: DateTime(2023, 6, 1), endDate:  DateTime(2023, 6, 2), note: "Note 1"),
-    Event(id: '2',startDate: DateTime(2023, 6, 15), endDate: DateTime (2023,6,16), note: "Note 2"),
-  ];
-
+  List<Event> eventsList = [];
   DateTime? selectedDate;
+
+  /**The getListFromUser method retrieves the current user using the getCurrentUser method. It then assigns the events list from the user object to the eventsList variable. If the user or the events list is null, it assigns an empty list to eventsList as a fallback. Finally, it returns the eventsList as the result of the method. */
+  Future<void> _getListFromUser() async {
+    User? user = await getCurrentUser();
+    eventsList = user?.events ?? [];
+    setState(() {}); // Refresh the UI with the updated eventsList
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getListFromUser();
+  }
 
   @override
   Widget build(BuildContext context) {

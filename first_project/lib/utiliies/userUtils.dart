@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:first_project/models/event.dart';
 import 'package:first_project/utiliies/sharedprefs.dart';
 
 import '../models/user.dart' as app_user;
@@ -26,23 +27,37 @@ Future<app_user.User?> main() async {
   // Rest of your code
 }
 
-class UserUtils {
-  // ...
+Future<void> updateUserInFirestore(User user) async {
+  // Update the user object with the event added to their list of events
+  List<Event>? eventList;
+  user.events = eventList;
+  user.groupId = null;
 
-  static Future<void> updateUser(User user) async {
-    // Update the user object in shared preferences
-    await SharedPrefsUtils.storeUser(user);
+  // Store the updated user object
+  await SharedPrefsUtils.storeUser(user);
 
-    // Get the user document reference in Firestore
-    DocumentReference userRef = FirebaseFirestore.instance.collection('users').doc(user.email);
+  // Get the user collection reference in Firestore
+  CollectionReference userCollection = FirebaseFirestore.instance.collection('users');
 
-    // Update the user document with the new data
+  // Query the user collection for the document with a specific condition (e.g., matching user email)
+  QuerySnapshot userQuerySnapshot = await userCollection
+      .where('email', isEqualTo: user.email)
+      .limit(1)
+      .get();
+
+  if (userQuerySnapshot.docs.isNotEmpty) {
+    // Get the document reference of the first matching document
+    DocumentReference userRef = userQuerySnapshot.docs.first.reference;
+
+    // Update the user document with the event added to their list of events
     await userRef.update({
-      'events': user.events?.map((event) => event.toMap()).toList(),
-      'groupId': user.groupId,
+      'events': eventList!.map((event) => event.toMap()).toList(),
+      'groupId': null,
     });
+
+    // Display a success message
+    // scaffoldKey.currentState?.showSnackBar(
+    //   SnackBar(content: Text('User updated successfully!')),
+    // );
   }
-
-  // ...
 }
-
