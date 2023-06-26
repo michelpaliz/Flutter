@@ -1,12 +1,15 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/text_field_widget.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
+import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:flutter/material.dart';
+import '../models/user.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utiliies/show_error_dialog.dart';
@@ -105,9 +108,28 @@ class _LoginViewState extends State<LoginViewState> {
                         bool emailVerified = user?.isEmailVerified ?? false;
                         devtools.log(emailVerified.toString());
                         if (emailVerified) {
-                          Navigator.of(context).pushReplacementNamed(
-                            notesRoute,
-                          );
+                          // Query Firestore to retrieve the user document based on email
+                          final querySnapshot = await FirebaseFirestore.instance
+                              .collection('users')
+                              .where('email', isEqualTo: email)
+                              .get();
+
+                          if (querySnapshot.docs.isNotEmpty) {
+                            // Assuming there is only one user with the provided email
+                            final userDoc = querySnapshot.docs.first;
+
+                            // Create a User object from the retrieved Firestore data
+                            final userData = userDoc.data();
+                            final name = userData['name'];
+                            final events = userData['events'];
+                            final groupId = userData['groupId'];
+                            User user =
+                                User(name, email, events, groupId: groupId);
+                            // Do something with the User object
+                            SharedPrefsUtils.storeUser(user);
+                          }
+                          Navigator.of(context)
+                              .pushReplacementNamed(notesRoute);
                         } else {
                           Navigator.of(context)
                               .pushReplacementNamed(verifyEmailRoute);
@@ -153,4 +175,6 @@ class _LoginViewState extends State<LoginViewState> {
       ),
     );
   }
+
+
 }

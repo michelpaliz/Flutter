@@ -1,4 +1,4 @@
-import 'package:first_project/models/person.dart';
+import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firestore/implements/fire_store_provider.dart';
 
 import '../store_provider.dart';
@@ -12,6 +12,6 @@ class StoreService extends StoreProvider {
   factory StoreService.firebase() => StoreService(FireStoreProvider());
 
   @override
-  Future<String> uploadPersonToFirestore({required Person person}) =>
+  Future<String> uploadPersonToFirestore({required User person}) =>
       provider.uploadPersonToFirestore(person: person);
 }

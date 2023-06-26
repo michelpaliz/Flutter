@@ -4,7 +4,7 @@ import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import '../constants/routes.dart';
 import '../costume_widgets/text_field_widget.dart';
-import '../models/person.dart';
+import '../models/user.dart';
 import '../services/auth/auth_exceptions.dart';
 import '../services/auth/implements/auth_service.dart';
 import '../styles/button_styles.dart';
@@ -139,7 +139,7 @@ class _RegisterViewState extends State<RegisterView> {
                             .logIn(email: email, password: password);
 
                         // Add the user to the database
-                        Person person = Person(name, email, null);
+                        User person = User(name, email, null);
                         registrationStatus = await StoreService.firebase()
                             .uploadPersonToFirestore(person: person);
 

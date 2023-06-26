@@ -1,7 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/event.dart';
+import '../models/user.dart';
+import '../utiliies/sharedprefs.dart';
+import '../utiliies/userUtils.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -74,7 +78,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
-  void _addEvent() {
+// The _addEvent method is marked as async, and await is used to retrieve the user object from preferences. This allows you to await the Future<User?> result and access the actual user object. Then, you can update the user object with the new event list and other modifications.
+  void _addEvent() async {
     String eventNote = _eventController.text;
     String eventId = Uuid().v4();
     Event event = Event(
@@ -82,6 +87,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       startDate: _selectedStartDate,
       endDate: _selectedEndDate,
       note: eventNote,
+      groupId: null,
     );
 
     // Check if the start date already exists in the eventList
@@ -93,8 +99,62 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         eventList.add(event);
       });
 
-      // Clear the text field
-      _eventController.clear();
+      // Get the user object from preferences
+      // var user = await SharedPrefsUtils.getUserFromPreferences();
+      User? user = await getCurrentUser();
+
+      if (user != null) {
+        // Update the user object with the event added to their list of events
+        user.events = eventList;
+        user.groupId = null;
+
+        // Store the updated user object
+        await SharedPrefsUtils.storeUser(user);
+
+        // Get the user collection reference in Firestore
+        CollectionReference userCollection =
+            FirebaseFirestore.instance.collection('users');
+
+        // Query the user collection for the document with a specific condition (e.g., matching user email)
+        QuerySnapshot userQuerySnapshot = await userCollection
+            .where('email', isEqualTo: user.email)
+            .limit(1)
+            .get();
+
+        if (userQuerySnapshot.docs.isNotEmpty) {
+          // Get the document reference of the first matching document
+          DocumentReference userRef = userQuerySnapshot.docs.first.reference;
+
+          // Update the user document with the event added to their list of events
+          await userRef.update({
+            'events': eventList.map((event) => event.toMap()).toList(),
+            'groupId': null,
+          });
+
+          // Display a success message
+          // scaffoldKey.currentState?.showSnackBar(
+          //   SnackBar(content: Text('User updated successfully!')),
+          // );
+        }
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('User Not Found'),
+              content: Text('Unable to retrieve user information.'),
+              actions: [
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     } else {
       showDialog(
         context: context,
@@ -235,4 +295,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       ),
     );
   }
+
+  // Retrieving the User object from shared preferences
 }
