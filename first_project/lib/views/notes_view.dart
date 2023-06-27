@@ -18,10 +18,10 @@ class NotesView extends StatefulWidget {
 }
 
 class NotesViewState extends State<NotesView> {
-  List<Event> eventsList = [];
+  List<Event>? eventsList;
   DateTime? selectedDate;
 
-  /**The getListFromUser method retrieves the current user using the getCurrentUser method. It then assigns the events list from the user object to the eventsList variable. If the user or the events list is null, it assigns an empty list to eventsList as a fallback. Finally, it returns the eventsList as the result of the method. */
+
   Future<void> _getListFromUser() async {
     User? user = await getCurrentUser();
     eventsList = user?.events ?? [];
@@ -34,7 +34,7 @@ class NotesViewState extends State<NotesView> {
     _getListFromUser();
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -183,10 +183,8 @@ class NotesViewState extends State<NotesView> {
     ).then((value) => value ?? false);
   }
 
-  /**this method filters a list of events (eventsList) to find only those events that match the year, month, and day of the provided date. It returns a new list (eventsForDate) containing the filtered events. */
   List<Event> getEventsForDate(DateTime date) {
-    // The where method filters the list based on a condition defined by the provided anonymous function.
-    final eventsForDate = eventsList.where((event) {
+    final eventsForDate = eventsList!.where((event) {
       return event.startDate.year == date.year &&
           event.startDate.month == date.month &&
           event.startDate.day == date.day;
@@ -195,12 +193,9 @@ class NotesViewState extends State<NotesView> {
     return eventsForDate;
   }
 
-  /**This method retrieves the events or notes for the specified date, extracts the notes from the events, and concatenates them into a single string with each note separated by a newline character. */
-  String getNotesForDate(DateTime date) {
-    // Retrieve notes for the specified date
-    final eventsForDate = getEventsForDate(date);
 
-    // Concatenate the notes into a single string
+  String getNotesForDate(DateTime date) {
+    final eventsForDate = getEventsForDate(date);
     return eventsForDate.map((event) => event.note).join('\n');
   }
 }
