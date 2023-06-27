@@ -1,5 +1,6 @@
-import 'package:first_project/models/event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:first_project/models/event.dart';
 
 class User {
   String _name;
@@ -47,12 +48,42 @@ class User {
     );
   }
 
-  factory User.fromFirebaseUser(firebase_auth.User firebaseUser) {
-    return User(
-      firebaseUser.displayName ?? '',
-      firebaseUser.email ?? '',
-      null, // Set events to null or initialize it accordingly
-      groupId: null, // Set groupId to null or initialize it accordingly
-    );
+  static Future<User> getUserByEmail(String email) async {
+    final firestore = FirebaseFirestore.instance;
+
+    // Fetch the user document from Firestore using the email
+    final userSnapshot = await firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (userSnapshot.docs.isNotEmpty) {
+      // User document found, retrieve the user data
+      final userDocument = userSnapshot.docs.first;
+      final userData = userDocument.data();
+
+      // Create the User instance
+      return User(
+        userData['name'] ?? '',
+        email,
+        (userData['events'] as List<dynamic>?)
+            ?.map((eventJson) => Event.fromJson(eventJson))
+            .toList(),
+        groupId: userData['groupId'], // Initialize groupId based on fetched user data
+      );
+    } else {
+      // User document not found, return a default User instance
+      return User(
+        '',
+        email,
+        [], // Set events to an empty list or initialize it accordingly
+        groupId: null, // Set groupId to null or initialize it accordingly
+      );
+    }
+  }
+
+  static Future<User> fromFirebaseUser(firebase_auth.User firebaseUser) {
+    return getUserByEmail(firebaseUser.email!);
   }
 }

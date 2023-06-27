@@ -20,11 +20,11 @@ class NotesView extends StatefulWidget {
 class NotesViewState extends State<NotesView> {
   List<Event>? eventsList;
   DateTime? selectedDate;
-
+  DateTime focusedDay = DateTime.now();
 
   Future<void> _getListFromUser() async {
     User? user = await getCurrentUser();
-    eventsList = user?.events ?? [];
+    eventsList = user?.events;
     setState(() {}); // Refresh the UI with the updated eventsList
   }
 
@@ -34,7 +34,7 @@ class NotesViewState extends State<NotesView> {
     _getListFromUser();
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -85,15 +85,15 @@ class NotesViewState extends State<NotesView> {
               ),
               TableCalendar<Event>(
                 eventLoader: (date) {
-                  return getEventsForDate(date); //
+                  return getEventsForDate(date);
                 },
                 firstDay: DateTime.utc(2023, 1, 1),
                 focusedDay: DateTime.now(),
                 lastDay: DateTime.utc(2023, 12, 31),
-                // Add other customization options as needed
                 calendarBuilders: CalendarBuilders(
-                  // Customize the day cell appearance
                   defaultBuilder: (context, date, _) {
+                    final isFocusedDay = isSameDay(date, focusedDay);
+
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -102,12 +102,81 @@ class NotesViewState extends State<NotesView> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.transparent),
+                          border: Border.all(
+                            color:
+                                isFocusedDay ? Colors.blue : Colors.transparent,
+                          ),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(date.day.toString()), // Display the day
+                            Text(
+                              date.day.toString(),
+                              style: TextStyle(
+                                color:
+                                    isFocusedDay ? Colors.blue : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  todayBuilder: (context, date, _) {
+                    final isFocusedDay = isSameDay(date, focusedDay);
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedDate = date;
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color:
+                                isFocusedDay ? Colors.blue : Colors.transparent,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              date.day.toString(),
+                              style: TextStyle(
+                                color:
+                                    isFocusedDay ? Colors.blue : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  selectedBuilder: (context, date, _) {
+                    final isFocusedDay = isSameDay(date, focusedDay);
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedDate = date;
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              date.day.toString(),
+                              style: TextStyle(
+                                color:
+                                    isFocusedDay ? Colors.white : Colors.black,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -184,18 +253,23 @@ class NotesViewState extends State<NotesView> {
   }
 
   List<Event> getEventsForDate(DateTime date) {
-    final eventsForDate = eventsList!.where((event) {
-      return event.startDate.year == date.year &&
-          event.startDate.month == date.month &&
-          event.startDate.day == date.day;
-    }).toList();
+    final eventsForDate = eventsList?.where((event) {
+          return event.startDate.year == date.year &&
+              event.startDate.month == date.month &&
+              event.startDate.day == date.day;
+        }).toList() ??
+        [];
 
     return eventsForDate;
   }
 
-
   String getNotesForDate(DateTime date) {
     final eventsForDate = getEventsForDate(date);
     return eventsForDate.map((event) => event.note).join('\n');
+  }
+
+  List<Event> getEventsForFocusedDay() {
+    final eventsForFocusedDay = getEventsForDate(focusedDay);
+    return eventsForFocusedDay;
   }
 }
