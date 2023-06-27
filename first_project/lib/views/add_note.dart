@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/event.dart';
 import '../models/user.dart';
 import '../utiliies/sharedprefs.dart';
@@ -100,7 +101,8 @@ void _addEvent() async {
     });
 
     // Get the user object from preferences
-    User? user = await getCurrentUser();
+    // User? user = await getCurrentUser();
+    User? user = await SharedPrefsUtils.getUserFromPreferences();
 
     if (user != null) {
       // Fetch the user's existing events and add the new event

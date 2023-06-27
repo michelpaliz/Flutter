@@ -1,6 +1,7 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:first_project/utiliies/userUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -25,6 +26,7 @@ class NotesViewState extends State<NotesView> {
   Future<void> _getListFromUser() async {
     User? user = await getCurrentUser();
     eventsList = user?.events;
+    SharedPrefsUtils.storeUser(user!);
     setState(() {}); // Refresh the UI with the updated eventsList
   }
 
@@ -153,7 +155,7 @@ class NotesViewState extends State<NotesView> {
                       ),
                     );
                   },
-                  selectedBuilder: (context, date, _) {
+                  selectedBuilder: (context, date, events) {
                     final isFocusedDay = isSameDay(date, focusedDay);
 
                     return GestureDetector(
@@ -164,9 +166,12 @@ class NotesViewState extends State<NotesView> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(10),
+                          shape: BoxShape.circle,
+                          color:
+                              isFocusedDay ? Colors.blue : Colors.transparent,
                         ),
+                        margin: EdgeInsets.all(4),
+                        padding: EdgeInsets.all(8),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -175,6 +180,18 @@ class NotesViewState extends State<NotesView> {
                               style: TextStyle(
                                 color:
                                     isFocusedDay ? Colors.white : Colors.black,
+                                fontWeight: isFocusedDay
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Custom Layout', // Your custom content for the focused day
+                              style: TextStyle(
+                                color:
+                                    isFocusedDay ? Colors.white : Colors.black,
+                                fontSize: 12,
                               ),
                             ),
                           ],
