@@ -4,6 +4,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:first_project/utiliies/userUtils.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../constants/routes.dart';
@@ -72,8 +73,8 @@ class NotesViewState extends State<NotesView> {
           Column(
             children: [
               Container(
-                padding: EdgeInsets.all(20),
-                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.all(10),
+                margin: EdgeInsets.all(5),
                 child: Center(
                   child: Text(
                     'CALENDAR',
@@ -202,16 +203,11 @@ class NotesViewState extends State<NotesView> {
                 ),
               ),
               if (selectedDate != null)
-                // Expanded(...): This widget is used to make the container take up the available vertical space. It allows the container to expand and occupy the remaining space below the calendar.
                 Expanded(
                   child: Container(
-                    color: Colors.grey[200],
+                    color: const Color.fromARGB(255, 255, 255, 255),
                     child: Center(
-                      child: Text(
-                        // The selectedDate! syntax is known as the null assertion operator (!). It is used to assert that a value is not null.
-                        getNotesForDate(selectedDate!),
-                        style: TextStyle(fontSize: 18),
-                      ),
+                      child: getNotesForDate(selectedDate!),
                     ),
                   ),
                 ),
@@ -280,10 +276,66 @@ class NotesViewState extends State<NotesView> {
     return eventsForDate;
   }
 
-  String getNotesForDate(DateTime date) {
-    final eventsForDate = getEventsForDate(date);
-    return eventsForDate.map((event) => event.note).join('\n');
-  }
+Widget getNotesForDate(DateTime date) {
+  final eventsForDate = getEventsForDate(date);
+
+  eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
+
+  final formattedDate = DateFormat('MMMM d, yyyy').format(date);
+
+  return Column(
+    children: [
+      SizedBox(height: 16), // Add spacing above the title
+      Container(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(
+          'NOTES FOR $formattedDate'.toUpperCase(),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 22, 53, 139),
+            fontFamily: 'righteous'
+          ),
+        ),
+      ),
+      Expanded(
+        child: ListView.separated(
+          itemCount: eventsForDate.length,
+          separatorBuilder: (context, index) => Divider(),
+          itemBuilder: (context, index) {
+            final event = eventsForDate[index];
+            final startTime = event.startDate;
+            final endTime = event.endDate;
+
+            final timeText =
+                '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
+            final timeColor = Colors.blue;
+            final eventColor = Colors.black;
+
+            return ListTile(
+              title: Text(
+                timeText.toUpperCase(),
+                style: TextStyle(
+                  color: timeColor,
+                ),
+              ),
+              subtitle: Text(
+                event.note,
+                style: TextStyle(
+                  color: eventColor,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+
 
   List<Event> getEventsForFocusedDay() {
     final eventsForFocusedDay = getEventsForDate(focusedDay);

@@ -81,89 +81,90 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 // The _addEvent method is marked as async, and await is used to retrieve the user object from preferences. This allows you to await the Future<User?> result and access the actual user object. Then, you can update the user object with the new event list and other modifications.
 
 // The _addEvent method is marked as async, and await is used to retrieve the user object from preferences. This allows you to await the Future<User?> result and access the actual user object. Then, you can update the user object with the new event list and other modifications.
-void _addEvent() async {
-  String eventNote = _eventController.text;
-  String eventId = Uuid().v4();
-  Event event = Event(
-    id: eventId,
-    startDate: _selectedStartDate,
-    endDate: _selectedEndDate,
-    note: eventNote,
-    groupId: null,
-  );
-
-  // Check if the start date already exists in the eventList
-  bool isStartDateUnique = eventList.every((e) => e.startDate != event.startDate);
-
-  if (isStartDateUnique) {
-    setState(() {
-      eventList.add(event);
-    });
-
-    // Get the user object from preferences
-    // User? user = await getCurrentUser();
-    User? user = await SharedPrefsUtils.getUserFromPreferences();
-
-    if (user != null) {
-      // Fetch the user's existing events and add the new event
-      List<Event> userEvents = user.events ?? [];
-      userEvents.add(event);
-
-      // Update the user object with the updated events list
-      user.events = userEvents;
-
-      // Store the updated user object
-      await SharedPrefsUtils.storeUser(user);
-
-      // Get the user collection reference in Firestore
-      CollectionReference userCollection =
-          FirebaseFirestore.instance.collection('users');
-
-      // Query the user collection for the document with a specific condition (e.g., matching user email)
-      QuerySnapshot userQuerySnapshot = await userCollection
-          .where('email', isEqualTo: user.email)
-          .limit(1)
-          .get();
-
-      if (userQuerySnapshot.docs.isNotEmpty) {
-        // Get the document reference of the first matching document
-        DocumentReference userRef = userQuerySnapshot.docs.first.reference;
-
-        // Update the user document with the updated events list
-        await userRef.update({
-          'events': userEvents.map((event) => event.toMap()).toList(),
-        });
-
-        // Display a success message
-        // scaffoldKey.currentState?.showSnackBar(
-        //   SnackBar(content: Text('User updated successfully!')),
-        // );
-      }
-    }
-
-    // Clear the text field
-    _eventController.clear();
-  } else {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Duplicate Start Date'),
-          content: Text('An event with the same start date already exists.'),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
-        );
-      },
+  void _addEvent() async {
+    String eventNote = _eventController.text;
+    String eventId = Uuid().v4();
+    Event event = Event(
+      id: eventId,
+      startDate: _selectedStartDate,
+      endDate: _selectedEndDate,
+      note: eventNote,
+      groupId: null,
     );
-  }
-}
 
+    // Check if the start date already exists in the eventList
+    // Check if the start hour already exists in the eventList
+    bool isStartHourUnique =
+        eventList.every((e) => e.startDate.hour != event.startDate.hour);
+
+    if (isStartHourUnique) {
+      setState(() {
+        eventList.add(event);
+      });
+
+      // Get the user object from preferences
+      // User? user = await getCurrentUser();
+      User? user = await SharedPrefsUtils.getUserFromPreferences();
+
+      if (user != null) {
+        // Fetch the user's existing events and add the new event
+        List<Event> userEvents = user.events ?? [];
+        userEvents.add(event);
+
+        // Update the user object with the updated events list
+        user.events = userEvents;
+
+        // Store the updated user object
+        await SharedPrefsUtils.storeUser(user);
+
+        // Get the user collection reference in Firestore
+        CollectionReference userCollection =
+            FirebaseFirestore.instance.collection('users');
+
+        // Query the user collection for the document with a specific condition (e.g., matching user email)
+        QuerySnapshot userQuerySnapshot = await userCollection
+            .where('email', isEqualTo: user.email)
+            .limit(1)
+            .get();
+
+        if (userQuerySnapshot.docs.isNotEmpty) {
+          // Get the document reference of the first matching document
+          DocumentReference userRef = userQuerySnapshot.docs.first.reference;
+
+          // Update the user document with the updated events list
+          await userRef.update({
+            'events': userEvents.map((event) => event.toMap()).toList(),
+          });
+
+          // Display a success message
+          // scaffoldKey.currentState?.showSnackBar(
+          //   SnackBar(content: Text('User updated successfully!')),
+          // );
+        }
+      }
+
+      // Clear the text field
+      _eventController.clear();
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Duplicate Start Date'),
+            content: Text('An event with the same start hour already exists.'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   Future<void> _removeEvent(String eventId) async {
     setState(() {
