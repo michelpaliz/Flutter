@@ -4,8 +4,8 @@ import 'package:uuid/uuid.dart';
 
 import '../models/event.dart';
 import '../models/user.dart';
+import '../services/firestore/implements/firestore_service.dart';
 import '../utiliies/sharedprefs.dart';
-import '../utiliies/userUtils.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -23,6 +23,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   late DateTime _selectedEndDate;
   late TextEditingController _eventController;
   List<Event> eventList = [];
+  StoreService storeService = StoreService.firebase();
 
   @override
   void initState() {
@@ -30,6 +31,16 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventController = TextEditingController();
+    loadEvents(); // Load events from shared preferences
+  }
+
+  Future<void> loadEvents() async {
+    User? user = await SharedPrefsUtils.getUserFromPreferences();
+    if (user != null) {
+      setState(() {
+        eventList = user.events ?? [];
+      });
+    }
   }
 
   @override
@@ -79,8 +90,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   }
 
 // The _addEvent method is marked as async, and await is used to retrieve the user object from preferences. This allows you to await the Future<User?> result and access the actual user object. Then, you can update the user object with the new event list and other modifications.
-
-// The _addEvent method is marked as async, and await is used to retrieve the user object from preferences. This allows you to await the Future<User?> result and access the actual user object. Then, you can update the user object with the new event list and other modifications.
   void _addEvent() async {
     String eventNote = _eventController.text;
     String eventId = Uuid().v4();
@@ -102,48 +111,22 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         eventList.add(event);
       });
 
-      // Get the user object from preferences
-      // User? user = await getCurrentUser();
       User? user = await SharedPrefsUtils.getUserFromPreferences();
 
       if (user != null) {
-        // Fetch the user's existing events and add the new event
         List<Event> userEvents = user.events ?? [];
         userEvents.add(event);
-
-        // Update the user object with the updated events list
         user.events = userEvents;
 
-        // Store the updated user object
         await SharedPrefsUtils.storeUser(user);
+        await storeService.updateUser(user);
 
-        // Get the user collection reference in Firestore
-        CollectionReference userCollection =
-            FirebaseFirestore.instance.collection('users');
-
-        // Query the user collection for the document with a specific condition (e.g., matching user email)
-        QuerySnapshot userQuerySnapshot = await userCollection
-            .where('email', isEqualTo: user.email)
-            .limit(1)
-            .get();
-
-        if (userQuerySnapshot.docs.isNotEmpty) {
-          // Get the document reference of the first matching document
-          DocumentReference userRef = userQuerySnapshot.docs.first.reference;
-
-          // Update the user document with the updated events list
-          await userRef.update({
-            'events': userEvents.map((event) => event.toMap()).toList(),
-          });
-
-          // Display a success message
-          // scaffoldKey.currentState?.showSnackBar(
-          //   SnackBar(content: Text('User updated successfully!')),
-          // );
-        }
+        // Display a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Event added successfully!')),
+        );
       }
 
-      // Clear the text field
       _eventController.clear();
     } else {
       showDialog(
@@ -166,39 +149,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
-  Future<void> _removeEvent(String eventId) async {
-    setState(() {
-      eventList.removeWhere((event) => event.id == eventId);
-    });
-
-    User? user = await getCurrentUser();
-
-    // Get the user collection reference in Firestore
-    CollectionReference userCollection =
-        FirebaseFirestore.instance.collection('users');
-
-    // Query the user collection for the document with a specific condition (e.g., matching user email)
-    QuerySnapshot userQuerySnapshot = await userCollection
-        .where('email', isEqualTo: user?.email)
-        .limit(1)
-        .get();
-
-    if (userQuerySnapshot.docs.isNotEmpty) {
-      // Get the document reference of the first matching document
-      DocumentReference userRef = userQuerySnapshot.docs.first.reference;
-
-      // Update the user document with the updated event list
-      await userRef.update({
-        'events': eventList.map((event) => event.toMap()).toList(),
-      });
-
-      // Display a success message
-      // scaffoldKey.currentState?.showSnackBar(
-      //   SnackBar(content: Text('Event removed successfully!')),
-      // );
-    }
-  }
-
+  // Modify the _showRemoveConfirmationDialog method to call removeEvent correctly
   void _showRemoveConfirmationDialog(String eventId) {
     showDialog(
       context: context,
@@ -215,8 +166,12 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             ),
             TextButton(
               child: Text('Remove'),
-              onPressed: () {
-                _removeEvent(eventId);
+              onPressed: () async {
+                List<Event> updatedEvents =
+                    await storeService.removeEvent(eventId);
+                setState(() {
+                  eventList = updatedEvents;
+                });
                 Navigator.of(context).pop(); // Close the dialog
               },
             ),

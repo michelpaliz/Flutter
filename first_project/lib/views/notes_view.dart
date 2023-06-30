@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/utiliies/sharedprefs.dart';
-import 'package:first_project/utiliies/userUtils.dart';
+import 'package:first_project/services/user/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -276,66 +276,69 @@ class NotesViewState extends State<NotesView> {
     return eventsForDate;
   }
 
-Widget getNotesForDate(DateTime date) {
-  final eventsForDate = getEventsForDate(date);
+  Widget getNotesForDate(DateTime date) {
+    final eventsForDate = getEventsForDate(date);
 
-  eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
+    eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
 
-  final formattedDate = DateFormat('MMMM d, yyyy').format(date);
+    final formattedDate = DateFormat('MMMM d, yyyy').format(date);
 
-  return Column(
-    children: [
-      SizedBox(height: 16), // Add spacing above the title
-      Container(
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          'NOTES FOR $formattedDate'.toUpperCase(),
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 22, 53, 139),
-            fontFamily: 'righteous'
+    return Column(
+      children: [
+        SizedBox(height: 16), // Add spacing above the title
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'NOTES FOR $formattedDate'.toUpperCase(),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 32, 116, 165),
+              fontFamily: 'righteous',
+            ),
           ),
         ),
-      ),
-      Expanded(
-        child: ListView.separated(
-          itemCount: eventsForDate.length,
-          separatorBuilder: (context, index) => Divider(),
-          itemBuilder: (context, index) {
-            final event = eventsForDate[index];
-            final startTime = event.startDate;
-            final endTime = event.endDate;
+        Expanded(
+          child: ListView.separated(
+            itemCount: eventsForDate.length,
+            separatorBuilder: (context, index) => Divider(),
+            itemBuilder: (context, index) {
+              final event = eventsForDate[index];
+              final startTime = event.startDate;
+              final endTime = event.endDate;
 
-            final timeText =
-                '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
-            final timeColor = Colors.blue;
-            final eventColor = Colors.black;
+              final timeText =
+                  '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
+              final timeColor = const Color.fromARGB(202, 33, 149, 243);
+              final eventColor = Colors.black;
 
-            return ListTile(
-              title: Text(
-                timeText.toUpperCase(),
-                style: TextStyle(
-                  color: timeColor,
+              return ListTile(
+                title: Text(
+                  timeText.toUpperCase(),
+                  style: TextStyle(
+                    color: timeColor,
+                  ),
                 ),
-              ),
-              subtitle: Text(
-                event.note,
-                style: TextStyle(
-                  color: eventColor,
+                subtitle: Text(
+                  event.note,
+                  style: TextStyle(
+                    color: eventColor,
+                  ),
                 ),
-              ),
-            );
-          },
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    // Implement the logic to remove the event
+                    // _removeEvent(event);
+                  },
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    ],
-  );
-}
-
-
-
-
+      ],
+    );
+  }
 
   List<Event> getEventsForFocusedDay() {
     final eventsForFocusedDay = getEventsForDate(focusedDay);

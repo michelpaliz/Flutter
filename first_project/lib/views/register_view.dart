@@ -1,5 +1,5 @@
 // ======= REGISTER =========
-import 'package:first_project/services/firestore/implements/store_service.dart';
+import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import '../constants/routes.dart';
