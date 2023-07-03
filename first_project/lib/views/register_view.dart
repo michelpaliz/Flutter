@@ -1,16 +1,13 @@
 // ======= REGISTER =========
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import '../constants/routes.dart';
 import '../costume_widgets/text_field_widget.dart';
-import '../models/user.dart';
 import '../services/auth/auth_exceptions.dart';
 import '../services/auth/implements/auth_service.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utiliies/show_error_dialog.dart';
-
 import 'dart:developer' as devtools show log;
 
 class RegisterView extends StatefulWidget {
@@ -131,19 +128,12 @@ class _RegisterViewState extends State<RegisterView> {
                       }
                       try {
                         // The await keyword is used to wait for the registration process to complete before proceeding.
-                        await AuthService.firebase()
-                            .createUser(email: email, password: password);
-
+                        registrationStatus = await AuthService.firebase()
+                            .createUser(
+                                name: name, email: email, password: password);
                         // Sign in the user after successful registration
                         await AuthService.firebase()
                             .logIn(email: email, password: password);
-
-                        // Add the user to the database
-                        User person = User(name, email, null);
-                        registrationStatus = await StoreService.firebase()
-                            .uploadPersonToFirestore(person: person);
-
-                        //We're gonna replace the previous state with the new one
                         Navigator.of(context).pushNamedAndRemoveUntil(
                             verifyEmailRoute, (route) => false);
                       } on WeakPasswordException {

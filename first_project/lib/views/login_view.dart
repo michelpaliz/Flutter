@@ -1,15 +1,11 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/text_field_widget.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
-import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:flutter/material.dart';
-import '../models/user.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utiliies/show_error_dialog.dart';

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
@@ -7,20 +8,44 @@ import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/auth_user.dart';
 
 import '../../../firebase_options.dart';
+import '../../../models/user.dart';
+import '../../firestore/implements/firestore_service.dart';
 import '../auth_provider.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
-  Future<AuthUser> createUser({
+  Future<String> createUser({
+    required String name,
     required String email,
     required String password,
   }) async {
     try {
-      await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-      final user = currentUser;
+      final customId = generateCustomId(); // Generate a custom ID
+
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        return user;
+        // Set the custom ID as the user's display name in Firebase Auth
+        await user.updateProfile(displayName: customId);
+
+        // Create a User object using the custom ID
+        User person = User(
+          customId,
+          name, // Replace with the user's name or retrieve it from the appropriate source
+          user.email!,
+          null, // Set the events property as needed
+          groupId: null, // Set the groupId property as needed
+        );
+
+        // Upload the user object to Firestore using the custom ID as the document ID
+        return await StoreService.firebase().uploadPersonToFirestore(
+          person: person,
+          documentId: customId,
+        );
       } else {
         throw UserNotLoggedInAuthException();
       }
@@ -37,6 +62,19 @@ class FirebaseAuthProvider implements AuthProvider {
     } catch (_) {
       throw GenericAuthException();
     }
+  }
+
+  String generateCustomId() {
+    String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    Random random = Random();
+    String id = '';
+
+    for (int i = 0; i < 10; i++) {
+      int randomIndex = random.nextInt(chars.length);
+      id += chars[randomIndex];
+    }
+
+    return id;
   }
 
   @override
@@ -102,5 +140,4 @@ class FirebaseAuthProvider implements AuthProvider {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  
 }

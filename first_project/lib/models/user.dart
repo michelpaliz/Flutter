@@ -3,13 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_project/models/event.dart';
 
 class User {
+  String _id;
   String _name;
   final String _email;
   List<Event>? _events;
   String? _groupId; // Optional group ID field
 
-  User(this._name, this._email, this._events, {String? groupId})
+  User(this._id, this._name, this._email, this._events, {String? groupId})
       : _groupId = groupId;
+
+  String get id => _id;
 
   String get name => _name;
   set name(String name) {
@@ -30,6 +33,7 @@ class User {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': _id,
       'name': _name,
       'email': _email,
       'events': _events?.map((event) => event.toMap()).toList(),
@@ -39,6 +43,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      json['id'],
       json['name'],
       json['email'],
       (json['events'] as List<dynamic>?)
@@ -65,6 +70,7 @@ class User {
 
       // Create the User instance
       return User(
+        userDocument.id,
         userData['name'] ?? '',
         email,
         (userData['events'] as List<dynamic>?)
@@ -75,6 +81,7 @@ class User {
     } else {
       // User document not found, return a default User instance
       return User(
+        '',
         '',
         email,
         [], // Set events to an empty list or initialize it accordingly

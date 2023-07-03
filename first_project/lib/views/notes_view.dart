@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:developer' as devtools show log;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:first_project/services/user/user_provider.dart';
+import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -11,6 +13,7 @@ import '../constants/routes.dart';
 import '../enums/menu_action.dart';
 import '../models/event.dart';
 import '../models/user.dart';
+import '../services/firestore/implements/firestore_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -23,19 +26,90 @@ class NotesViewState extends State<NotesView> {
   List<Event>? eventsList;
   DateTime? selectedDate;
   DateTime focusedDay = DateTime.now();
+  Stream<List<Event>> eventsStream = Stream.empty();
+  StoreService storeService = StoreService.firebase();
 
-  Future<void> _getListFromUser() async {
-    User? user = await getCurrentUser();
-    eventsList = user?.events;
-    SharedPrefsUtils.storeUser(user!);
-    setState(() {}); // Refresh the UI with the updated eventsList
-  }
+  StreamController<List<Event>> eventsStreamController = StreamController<List<Event>>();
 
-  @override
-  void initState() {
-    super.initState();
-    _getListFromUser();
-  }
+Future<void> _getEventsListFromUser() async {
+  User? user = await getCurrentUser();
+  eventsList = user?.events;
+  SharedPrefsUtils.storeUser(user!);
+  setState(() {});
+
+  getEventsStream(user).listen((List<Event> events) {
+    setState(() {
+      eventsList = events;
+    });
+  });
+}
+
+@override
+void initState() {
+  super.initState();
+  _getEventsListFromUser();
+}
+
+Stream<List<Event>> getEventsStream(User user) {
+  CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+
+  // Query the users collection based on the user's email
+  Query query = usersCollection.where('email', isEqualTo: user.email);
+
+  // Create a stream transformer to map the query snapshots to event lists
+  StreamTransformer<QuerySnapshot, List<Event>> transformer =
+      StreamTransformer.fromHandlers(handleData: (snapshot, sink) async {
+    List<Event> events = [];
+    if (snapshot.docs.isNotEmpty) {
+      // Get the first document from the snapshot
+      DocumentSnapshot userDoc = snapshot.docs.first;
+
+      // Retrieve the events and groupId fields from the user document
+      List<dynamic> eventIds = userDoc.get('events');
+      String groupId = userDoc.get('groupId');
+
+      // Query the events collection using the retrieved eventIds
+      CollectionReference eventsCollection = FirebaseFirestore.instance.collection('events');
+      Query eventsQuery = eventsCollection.where(FieldPath.documentId, whereIn: eventIds);
+
+      Stream<QuerySnapshot> eventsSnapshotStream = eventsQuery.snapshots();
+      await for (QuerySnapshot eventsSnapshot in eventsSnapshotStream) {
+        events = [];
+        eventsSnapshot.docs.forEach((eventDoc) {
+          // Create an Event object directly from the event document data
+          Event event = Event(
+            id: eventDoc.id,
+            // Populate other properties based on your document structure
+            startDate: eventDoc['startDate'].toDate(),
+            endDate: eventDoc['endDate'].toDate(),
+            note: eventDoc['note'],
+            groupId: groupId,
+          );
+          events.add(event);
+        });
+
+        sink.add(events);
+      }
+    } else {
+      sink.add(events);
+    }
+  });
+
+  // Return the transformed stream
+  return query.snapshots().transform(transformer);
+}
+
+void _reloadScreen() {
+  Navigator.of(context).pop();
+  Navigator.of(context).pushReplacementNamed('/your_screen_name'); // Replace with your actual screen name
+}
+
+@override
+void dispose() {
+  eventsStreamController.close(); // Close the stream controller when it's no longer needed
+  super.dispose();
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -338,10 +412,5 @@ class NotesViewState extends State<NotesView> {
         ),
       ],
     );
-  }
-
-  List<Event> getEventsForFocusedDay() {
-    final eventsForFocusedDay = getEventsForDate(focusedDay);
-    return eventsForFocusedDay;
   }
 }

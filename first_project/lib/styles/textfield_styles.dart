@@ -4,7 +4,7 @@ class TextFieldStyles {
   static InputDecoration saucyInputDecoration({
     required String hintText,
     required String labelText,
-    required IconData suffixIcon,
+    required IconData? suffixIcon
   }) {
     return InputDecoration(
       hintText: hintText,

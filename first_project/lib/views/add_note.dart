@@ -1,10 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-
 import '../models/event.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
+import '../services/user/user_provider.dart';
 import '../utiliies/sharedprefs.dart';
 
 void main() {
@@ -26,6 +25,12 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   StoreService storeService = StoreService.firebase();
 
   @override
+  void dispose() {
+    _eventController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _selectedStartDate = DateTime.now();
@@ -35,18 +40,23 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   }
 
   Future<void> loadEvents() async {
-    User? user = await SharedPrefsUtils.getUserFromPreferences();
+    User? user = await getCurrentUser();
     if (user != null) {
       setState(() {
         eventList = user.events ?? [];
       });
     }
+    SharedPrefsUtils.storeUser(user!);
   }
 
-  @override
-  void dispose() {
-    _eventController.dispose();
-    super.dispose();
+  void _reloadScreen() {
+    setState(() {
+      // Reset the necessary state variables if needed
+      _selectedStartDate = DateTime.now();
+      _selectedEndDate = DateTime.now();
+      _eventController.clear();
+    });
+    loadEvents(); // Reload events from shared preferences
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -93,60 +103,70 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   void _addEvent() async {
     String eventNote = _eventController.text;
     String eventId = Uuid().v4();
-    Event event = Event(
-      id: eventId,
-      startDate: _selectedStartDate,
-      endDate: _selectedEndDate,
-      note: eventNote,
-      groupId: null,
-    );
 
-    // Check if the start date already exists in the eventList
-    // Check if the start hour already exists in the eventList
-    bool isStartHourUnique =
-        eventList.every((e) => e.startDate.hour != event.startDate.hour);
+    if (eventNote.trim().isNotEmpty) {
+      Event event = Event(
+        id: eventId,
+        startDate: _selectedStartDate,
+        endDate: _selectedEndDate,
+        note: eventNote,
+        groupId: null,
+      );
 
-    if (isStartHourUnique) {
-      setState(() {
-        eventList.add(event);
-      });
+      // Check if an event with the same start hour and day already exists in the eventList
+      bool isStartHourUnique = eventList.every((e) =>
+          e.startDate.hour != event.startDate.hour ||
+          e.startDate.day != event.startDate.day);
 
-      User? user = await SharedPrefsUtils.getUserFromPreferences();
+      if (isStartHourUnique) {
+        setState(() {
+          eventList.add(event);
+        });
 
-      if (user != null) {
-        List<Event> userEvents = user.events ?? [];
-        userEvents.add(event);
-        user.events = userEvents;
+        User? user = await SharedPrefsUtils.getUserFromPreferences();
 
-        await SharedPrefsUtils.storeUser(user);
-        await storeService.updateUser(user);
+        if (user != null) {
+          List<Event> userEvents = user.events ?? [];
+          userEvents.add(event);
+          user.events = userEvents;
 
-        // Display a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Event added successfully!')),
+          await SharedPrefsUtils.storeUser(user);
+          await storeService.updateUser(user);
+
+          // Display a success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Event added successfully!')),
+          );
+        }
+
+        _eventController.clear();
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Duplicate Start Date'),
+              content: Text(
+                  'An event with the same start hour and day already exists.'),
+              actions: [
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
         );
       }
-
-      _eventController.clear();
     } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Duplicate Start Date'),
-            content: Text('An event with the same start hour already exists.'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-              ),
-            ],
-          );
-        },
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Event note cannot be empty!')),
       );
     }
+
+    _reloadScreen();
   }
 
   // Modify the _showRemoveConfirmationDialog method to call removeEvent correctly
@@ -179,6 +199,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         );
       },
     );
+    _reloadScreen();
   }
 
   @override
@@ -233,7 +254,11 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: _addEvent,
+                onPressed: () {
+                  _addEvent();
+                  _reloadScreen();
+                },
+                // onPressed: _addEvent,
                 child: Text('Add Event'),
               ),
             ),
@@ -267,6 +292,4 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       ),
     );
   }
-
-  // Retrieving the User object from shared preferences
 }
