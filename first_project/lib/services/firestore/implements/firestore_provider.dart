@@ -86,54 +86,5 @@ class FireStoreProvider implements StoreProvider {
     return []; // Return an empty list if no update was performed
   }
 
-  @override
-  Stream<List<Event>> getEventsStream(User user) {
-    CollectionReference usersCollection =
-        FirebaseFirestore.instance.collection('users');
 
-    // Query the users collection based on the user's email
-    Query query = usersCollection.where('email', isEqualTo: user.email);
-
-    // Create a stream transformer to map the query snapshots to event lists
-    StreamTransformer<QuerySnapshot, List<Event>> transformer =
-        StreamTransformer.fromHandlers(handleData: (snapshot, sink) {
-      List<Event> events = [];
-      if (snapshot.docs.isNotEmpty) {
-        // Get the first document from the snapshot
-        DocumentSnapshot userDoc = snapshot.docs.first;
-
-        // Retrieve the events and groupId fields from the user document
-        List<dynamic> eventIds = userDoc.get('events');
-        String groupId = userDoc.get('groupId');
-
-        // Query the events collection using the retrieved eventIds
-        CollectionReference eventsCollection =
-            FirebaseFirestore.instance.collection('events');
-        Query eventsQuery =
-            eventsCollection.where(FieldPath.documentId, whereIn: eventIds);
-
-        eventsQuery.get().then((eventsSnapshot) {
-          eventsSnapshot.docs.forEach((eventDoc) {
-            // Create an Event object directly from the event document data
-            Event event = Event(
-              id: eventDoc.id,
-              // Populate other properties based on your document structure
-              startDate: eventDoc['startDate'].toDate(),
-              endDate: eventDoc['endDate'].toDate(),
-              note: eventDoc['note'],
-              groupId: groupId,
-            );
-            events.add(event);
-          });
-
-          sink.add(events);
-        });
-      } else {
-        sink.add(events);
-      }
-    });
-
-    // Return the transformed stream
-    return query.snapshots().transform(transformer);
-  }
 }

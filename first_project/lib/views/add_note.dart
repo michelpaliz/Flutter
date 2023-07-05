@@ -39,14 +39,20 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     loadEvents(); // Load events from shared preferences
   }
 
+/**
+ * the userEvents list is obtained from the user object. Then, the list is reversed using .reversed and the last 100 events are taken using .take(100)
+ */
   Future<void> loadEvents() async {
     User? user = await getCurrentUser();
     if (user != null) {
-      setState(() {
-        eventList = user.events ?? [];
-      });
+      List<Event>? userEvents = user.events;
+      if (userEvents != null) {
+        setState(() {
+          eventList = userEvents.reversed.take(100).toList();
+        });
+      }
     }
-    SharedPrefsUtils.storeUser(user!);
+    // SharedPrefsUtils.storeUser(user!);
   }
 
   void _reloadScreen() {
@@ -123,7 +129,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           eventList.add(event);
         });
 
-        User? user = await SharedPrefsUtils.getUserFromPreferences();
+        // User? user = await SharedPrefsUtils.getUserFromPreferences();
+        User? user = await getCurrentUser();
 
         if (user != null) {
           List<Event> userEvents = user.events ?? [];
@@ -187,12 +194,21 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             TextButton(
               child: Text('Remove'),
               onPressed: () async {
-                List<Event> updatedEvents =
-                    await storeService.removeEvent(eventId);
+                // Remove the event from Firestore
+                await storeService.removeEvent(eventId);
+                // Update the events for the user in Firestore
+                User? user = await getCurrentUser();
+                if (user != null) {
+                  user.events =
+                      eventList.where((event) => event.id != eventId).toList();
+                  await storeService.updateUser(user);
+                }
+                // Remove the event from the eventList
                 setState(() {
-                  eventList = updatedEvents;
+                  eventList.removeWhere((event) => event.id == eventId);
                 });
-                Navigator.of(context).pop(); // Close the dialog
+
+                Navigator.of(context).pop();
               },
             ),
           ],

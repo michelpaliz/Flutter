@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/utiliies/sharedprefs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 import '../constants/routes.dart';
 import '../enums/menu_action.dart';
 import '../models/event.dart';
@@ -29,87 +27,35 @@ class NotesViewState extends State<NotesView> {
   Stream<List<Event>> eventsStream = Stream.empty();
   StoreService storeService = StoreService.firebase();
 
-  StreamController<List<Event>> eventsStreamController = StreamController<List<Event>>();
+  StreamController<List<Event>> eventsStreamController =
+      StreamController<List<Event>>();
 
-Future<void> _getEventsListFromUser() async {
-  User? user = await getCurrentUser();
-  eventsList = user?.events;
-  SharedPrefsUtils.storeUser(user!);
-  setState(() {});
-
-  getEventsStream(user).listen((List<Event> events) {
+  Future<void> _getEventsListFromUser() async {
+    User? user = await getCurrentUser();
+    eventsList = user?.events;
+    SharedPrefsUtils.storeUser(user!);
     setState(() {
-      eventsList = events;
+      eventsList = user.events;
     });
-  });
-}
+  }
 
-@override
-void initState() {
-  super.initState();
-  _getEventsListFromUser();
-}
+  @override
+  void initState() {
+    super.initState();
+    _getEventsListFromUser();
+  }
 
-Stream<List<Event>> getEventsStream(User user) {
-  CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+  Future<void> _reloadScreen() async {
+    // Navigator.of(context).pop();
+    await _getEventsListFromUser();
+    // Navigator.of(context).pushReplacementNamed(notesRoute); // Replace with your actual screen name
+  }
 
-  // Query the users collection based on the user's email
-  Query query = usersCollection.where('email', isEqualTo: user.email);
-
-  // Create a stream transformer to map the query snapshots to event lists
-  StreamTransformer<QuerySnapshot, List<Event>> transformer =
-      StreamTransformer.fromHandlers(handleData: (snapshot, sink) async {
-    List<Event> events = [];
-    if (snapshot.docs.isNotEmpty) {
-      // Get the first document from the snapshot
-      DocumentSnapshot userDoc = snapshot.docs.first;
-
-      // Retrieve the events and groupId fields from the user document
-      List<dynamic> eventIds = userDoc.get('events');
-      String groupId = userDoc.get('groupId');
-
-      // Query the events collection using the retrieved eventIds
-      CollectionReference eventsCollection = FirebaseFirestore.instance.collection('events');
-      Query eventsQuery = eventsCollection.where(FieldPath.documentId, whereIn: eventIds);
-
-      Stream<QuerySnapshot> eventsSnapshotStream = eventsQuery.snapshots();
-      await for (QuerySnapshot eventsSnapshot in eventsSnapshotStream) {
-        events = [];
-        eventsSnapshot.docs.forEach((eventDoc) {
-          // Create an Event object directly from the event document data
-          Event event = Event(
-            id: eventDoc.id,
-            // Populate other properties based on your document structure
-            startDate: eventDoc['startDate'].toDate(),
-            endDate: eventDoc['endDate'].toDate(),
-            note: eventDoc['note'],
-            groupId: groupId,
-          );
-          events.add(event);
-        });
-
-        sink.add(events);
-      }
-    } else {
-      sink.add(events);
-    }
-  });
-
-  // Return the transformed stream
-  return query.snapshots().transform(transformer);
-}
-
-void _reloadScreen() {
-  Navigator.of(context).pop();
-  Navigator.of(context).pushReplacementNamed('/your_screen_name'); // Replace with your actual screen name
-}
-
-@override
-void dispose() {
-  eventsStreamController.close(); // Close the stream controller when it's no longer needed
-  super.dispose();
-}
-
+  @override
+  void dispose() {
+    // Close the stream controller when it's no longer needed
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +63,12 @@ void dispose() {
       appBar: AppBar(
         title: const Text('MAIN UI'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              _reloadScreen();
+            },
+          ),
           PopupMenuButton<MenuAction>(
             onSelected: (value) async {
               // devtools.log(value.toString());
@@ -147,8 +99,8 @@ void dispose() {
           Column(
             children: [
               Container(
-                padding: EdgeInsets.all(10),
-                margin: EdgeInsets.all(5),
+                padding: EdgeInsets.all(8),
+                margin: EdgeInsets.all(2),
                 child: Center(
                   child: Text(
                     'CALENDAR',
@@ -245,8 +197,8 @@ void dispose() {
                           color:
                               isFocusedDay ? Colors.blue : Colors.transparent,
                         ),
-                        margin: EdgeInsets.all(4),
-                        padding: EdgeInsets.all(8),
+                        margin: EdgeInsets.all(2),
+                        padding: EdgeInsets.all(2),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -260,7 +212,7 @@ void dispose() {
                                     : FontWeight.normal,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            SizedBox(height: 2),
                             Text(
                               'Custom Layout', // Your custom content for the focused day
                               style: TextStyle(
@@ -403,7 +355,7 @@ void dispose() {
                   icon: Icon(Icons.delete),
                   onPressed: () {
                     // Implement the logic to remove the event
-                    // _removeEvent(event);
+                    _showRemoveConfirmationDialog(event);
                   },
                 ),
               );
@@ -411,6 +363,48 @@ void dispose() {
           ),
         ),
       ],
+    );
+  }
+
+  void _showRemoveConfirmationDialog(Event event) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Removal'),
+          content: Text('Are you sure you want to remove this event?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: Text('Remove'),
+              onPressed: () async {
+                // Remove the event from Firestore
+                await storeService.removeEvent(event.id);
+
+                // Update the events for the user in Firestore
+                User? user = await getCurrentUser();
+                if (user != null) {
+                  user.events =
+                      eventsList?.where((e) => e.id != event.id).toList();
+                  await storeService.updateUser(user);
+                }
+
+                // Remove the event from the eventList
+                setState(() {
+                  eventsList?.removeWhere((e) => e.id == event.id);
+                });
+
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

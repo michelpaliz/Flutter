@@ -5,5 +5,4 @@ abstract class StoreProvider {
   Future<String> uploadPersonToFirestore({required User person, required String documentId});
   Future<List<Event>> removeEvent(String eventId);
   Future<String> updateUser(User user);
-  Stream<List<Event>> getEventsStream(User user);
 }
