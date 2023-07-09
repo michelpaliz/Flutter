@@ -4,6 +4,7 @@ import '../models/event.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
 import '../services/user/user_provider.dart';
+import '../styles/app_bar_styles.dart';
 import '../utiliies/sharedprefs.dart';
 
 void main() {
@@ -220,92 +221,94 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Event Note Widget'),
-      ),
-      body: Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () {
-                _selectDate(context, true);
-              },
-              child: Row(
-                children: [
-                  Icon(Icons.calendar_today),
-                  SizedBox(width: 10),
-                  Text(
-                    'Start Date: ${_selectedStartDate.toString()}',
-                    style: TextStyle(fontSize: 16),
+    return Theme(
+        data: AppBarStyles.themeData,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('Event Note Widget'),
+          ),
+          body: Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _selectDate(context, true);
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today),
+                      SizedBox(width: 10),
+                      Text(
+                        'Start Date: ${_selectedStartDate.toString()}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            GestureDetector(
-              onTap: () {
-                _selectDate(context, false);
-              },
-              child: Row(
-                children: [
-                  Icon(Icons.calendar_today),
-                  SizedBox(width: 10),
-                  Text(
-                    'End Date: ${_selectedEndDate.toString()}',
-                    style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {
+                    _selectDate(context, false);
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today),
+                      SizedBox(width: 10),
+                      Text(
+                        'End Date: ${_selectedEndDate.toString()}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: _eventController,
+                  decoration: InputDecoration(
+                    labelText: 'Event/Note',
+                  ),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _addEvent();
+                      _reloadScreen();
+                    },
+                    // onPressed: _addEvent,
+                    child: Text('Add Event'),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Event List:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: eventList.length,
+                    itemBuilder: (context, index) {
+                      Event event = eventList[index];
+                      return ListTile(
+                        title: Text('Note: ${event.note}'),
+                        subtitle: Text(
+                            'Start: ${event.startDate.toString()}\nEnd: ${event.endDate.toString()}'),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _showRemoveConfirmationDialog(event.id);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _eventController,
-              decoration: InputDecoration(
-                labelText: 'Event/Note',
-              ),
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  _addEvent();
-                  _reloadScreen();
-                },
-                // onPressed: _addEvent,
-                child: Text('Add Event'),
-              ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Event List:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: eventList.length,
-                itemBuilder: (context, index) {
-                  Event event = eventList[index];
-                  return ListTile(
-                    title: Text('Note: ${event.note}'),
-                    subtitle: Text(
-                        'Start: ${event.startDate.toString()}\nEnd: ${event.endDate.toString()}'),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        _showRemoveConfirmationDialog(event.id);
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }

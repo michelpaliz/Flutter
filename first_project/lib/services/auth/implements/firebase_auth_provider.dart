@@ -13,6 +13,7 @@ import '../../firestore/implements/firestore_service.dart';
 import '../auth_provider.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
+
   @override
   Future<String> createUser({
     required String name,
@@ -20,8 +21,6 @@ class FirebaseAuthProvider implements AuthProvider {
     required String password,
   }) async {
     try {
-      final customId = generateCustomId(); // Generate a custom ID
-
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -30,21 +29,21 @@ class FirebaseAuthProvider implements AuthProvider {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Set the custom ID as the user's display name in Firebase Auth
-        await user.updateProfile(displayName: customId);
+        await user.updateProfile(displayName: user.uid);
 
-        // Create a User object using the custom ID
+        // Create a User object using the UID as the user ID
         User person = User(
-          customId,
-          name, // Replace with the user's name or retrieve it from the appropriate source
+          user.uid,
+          name,
           user.email!,
-          null, // Set the events property as needed
-          groupId: null, // Set the groupId property as needed
+          null,
+          groupId: null,
         );
 
-        // Upload the user object to Firestore using the custom ID as the document ID
+        // Upload the user object to Firestore using the UID as the document ID
         return await StoreService.firebase().uploadPersonToFirestore(
           person: person,
-          documentId: customId,
+          documentId: user.uid,
         );
       } else {
         throw UserNotLoggedInAuthException();

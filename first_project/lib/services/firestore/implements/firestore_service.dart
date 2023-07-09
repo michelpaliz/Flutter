@@ -23,4 +23,7 @@ class StoreService extends StoreProvider {
 
   @override
   Future<String> updateUser(User user) => provider.updateUser(user);
+
+  @override
+  Future<void> updateEvent(Event event) => provider.updateEvent(event);
 }

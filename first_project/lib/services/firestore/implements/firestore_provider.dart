@@ -3,6 +3,9 @@ import 'dart:developer' as devtools show log;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/firestore/firestore_exceptions.dart';
+import 'package:first_project/services/user/user_provider.dart';
 
 import '../../../models/event.dart';
 import '../../../utiliies/sharedprefs.dart';
@@ -51,6 +54,56 @@ class FireStoreProvider implements StoreProvider {
     }
   }
 
+  @override
+  Future<void> updateEvent(Event event) async {
+  try {
+    User? currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw UserNotFoundAuthException();
+    }
+
+    String userId = currentUser.id;
+
+    CollectionReference userCollection =
+        FirebaseFirestore.instance.collection('users');
+
+    DocumentReference userRef = userCollection.doc(userId);
+
+    DocumentSnapshot userSnapshot = await userRef.get();
+
+    if (userSnapshot.exists) {
+      Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+
+      List<dynamic>? events = userData['events'];
+
+      if (events != null) {
+        // Find the event with the matching ID
+        int eventIndex = events.indexWhere((e) => e['id'] == event.id);
+
+        if (eventIndex != -1) {
+          // Update the event object in the list
+          events[eventIndex] = event.toMap();
+
+          // Update the events field in the user document
+          await userRef.update({'events': events});
+
+          return;
+        } else {
+          throw EventNotFoundException();
+        }
+      } else {
+        throw EventNotFoundException();
+      }
+    } else {
+      throw UserNotFoundException();
+    }
+  } catch (error) {
+    print('Firestore update error: $error');
+    throw Exception('Error updating event in Firestore: $error');
+  }
+}
+
+
 /** the removeEvent method fetches the user's document from Firestore, removes the event from the updatedEvents list, and then updates the events field in the Firestore document with the updated event list. */
   @override
   Future<List<Event>> removeEvent(String eventId) async {
@@ -85,6 +138,4 @@ class FireStoreProvider implements StoreProvider {
 
     return []; // Return an empty list if no update was performed
   }
-
-
 }
