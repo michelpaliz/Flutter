@@ -63,7 +63,13 @@ class NotesViewState extends State<NotesView> {
         data: AppBarStyles.themeData,
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('CALENDAR'),
+            title: Text(
+              'CALENDAR',
+              style: TextStyle(
+                color: const Color.fromARGB(255, 255, 255, 255), // Set the title color to black
+                fontSize: 20,
+              ),
+            ),
             actions: [
               IconButton(
                 icon: Icon(Icons.refresh),
@@ -104,15 +110,15 @@ class NotesViewState extends State<NotesView> {
                     padding: EdgeInsets.all(8),
                     margin: EdgeInsets.all(4),
                     child: Center(
-                      child: Text(
-                        'CALENDAR',
-                        style: TextStyle(
-                          fontFamily: 'lato',
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                        // child: Text(
+                        //   'CALENDAR',
+                        //   style: TextStyle(
+                        //     fontFamily: 'lato',
+                        //     fontSize: 24,
+                        //     fontWeight: FontWeight.bold,
+                        //   ),
+                        // ),
                         ),
-                      ),
-                    ),
                   ),
                   TableCalendar<Event>(
                     eventLoader: (date) {
@@ -249,8 +255,8 @@ class NotesViewState extends State<NotesView> {
                 ],
               ),
               Positioned(
-                bottom: 20,
-                right: 20,
+                bottom: 10,
+                right: 10,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.blue,
@@ -428,25 +434,21 @@ class NotesViewState extends State<NotesView> {
     );
   }
 
-void _editEvent(Event event, BuildContext context) {
-  Navigator.pushNamed(
-    context,
-    editNote,
-    arguments: event,
-  ).then((result) {
-    if (result != null && result is Event) {
-      // Update the event in the eventsList
-      final index = eventsList?.indexWhere((e) => e.id == result.id);
-      if (index != null && index >= 0) {
-        setState(() {
-          eventsList?[index] = result;
-        });
+  void _editEvent(Event event, BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      editNote,
+      arguments: event,
+    ).then((result) {
+      if (result != null && result is Event) {
+        // Update the event in the eventsList
+        final index = eventsList?.indexWhere((e) => e.id == result.id);
+        if (index != null && index >= 0) {
+          setState(() {
+            eventsList?[index] = result;
+          });
+        }
       }
-    }
-  });
+    });
+  }
 }
-
-}
-
-
-

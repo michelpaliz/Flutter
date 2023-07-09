@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
-
 import '../../../models/event.dart';
 import '../../../utiliies/sharedprefs.dart';
 import '../Ifirestore_provider.dart';
@@ -98,7 +96,6 @@ class FireStoreProvider implements StoreProvider {
       throw UserNotFoundException();
     }
   } catch (error) {
-    print('Firestore update error: $error');
     throw Exception('Error updating event in Firestore: $error');
   }
 }

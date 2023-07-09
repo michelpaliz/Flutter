@@ -1,6 +1,7 @@
 import 'dart:developer' as devtools show log;
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_note.dart';
 import 'package:first_project/views/edit_note_screen.dart';
@@ -19,8 +20,8 @@ void main() async {
   try {
     currentUser = await getCurrentUser(); // Initialize Firebase
   } catch (error) {
-    print('Error getting current user: $error');
     currentUser = null;
+    throw UserNotFoundException();
   }
   runApp(const MyApp());
 }
@@ -31,23 +32,40 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = currentUser != null;
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: isLoggedIn ? HomePage() : LoginViewState(),
       routes: {
         loginRoute: (context) => const LoginViewState(),
         registerRoute: (context) => const RegisterView(),
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
         addNote: (context) => EventNoteWidget(),
-        editNote: (context) => EditNoteScreen()
+        editNote: (context) => EditNoteScreen(),
       },
+      home: isLoggedIn
+          ? Scaffold(
+              appBar: AppBar(
+                title: Text("MICHEL'S SCHEDULE"),
+              ),
+              drawer: Drawer(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: <Widget>[
+                    // Drawer header and menu items...
+                  ],
+                ),
+              ),
+              body: HomePage(),
+            )
+          : LoginViewState(),
     );
   }
 }
+
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);

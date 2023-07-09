@@ -6,9 +6,9 @@ class AppBarStyles {
       titleTextStyle: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 22,
-        fontFamily: 'bagel',
+        fontFamily: 'Lato',
       ),
-      backgroundColor: Color.fromARGB(178, 0, 131, 253),
+      backgroundColor: Color.fromARGB(255, 60, 185, 238),
       centerTitle: true,
     ),
     // Add more theme configurations here if needed

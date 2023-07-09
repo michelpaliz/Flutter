@@ -293,7 +293,33 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                     itemBuilder: (context, index) {
                       Event event = eventList[index];
                       return ListTile(
-                        title: Text('Note: ${event.note}'),
+                        title: RichText(
+                          text: TextSpan(
+                            style: DefaultTextStyle.of(context).style,
+                            children: [
+                              TextSpan(
+                                text: 'Note : '.toUpperCase(),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Lato',
+                                  fontSize: 16,
+                                  fontStyle: FontStyle.italic,
+                                  color: Color.fromARGB(255, 14, 103, 133)
+                                ),
+                              ),
+                              TextSpan(
+                                text: event.note,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'lato',
+                                  fontSize: 16,
+                                  fontStyle: FontStyle.normal,
+                                  color: const Color.fromARGB(255, 0, 0, 0),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         subtitle: Text(
                             'Start: ${event.startDate.toString()}\nEnd: ${event.endDate.toString()}'),
                         trailing: IconButton(
