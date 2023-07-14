@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/event.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
@@ -9,8 +10,23 @@ import '../utiliies/sharedprefs.dart';
 
 void main() {
   runApp(MaterialApp(
-    home: EventNoteWidget(),
+    home: EventNoteApp(),
   ));
+}
+
+class EventNoteApp extends StatelessWidget {
+  const EventNoteApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Event Note Widget',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: EventNoteWidget(),
+    );
+  }
 }
 
 class EventNoteWidget extends StatefulWidget {

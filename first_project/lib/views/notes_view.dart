@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
-import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:first_project/utiliies/sharedprefs.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../constants/routes.dart';
-import '../enums/menu_action.dart';
 import '../models/event.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
@@ -30,6 +28,25 @@ class NotesViewState extends State<NotesView> {
   StreamController<List<Event>> eventsStreamController =
       StreamController<List<Event>>();
 
+  @override
+  void initState() {
+    super.initState();
+      //** The addPostFrameCallback function is used to schedule a callback after the current frame has been drawn on the screen. The callback is triggered once the layout and rendering are complete. */
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getEventsListFromUser();
+    });
+  }
+
+  Future<void> _reloadScreen() async {
+    await _getEventsListFromUser();
+  }
+
+  @override
+  void dispose() {
+    // Close the stream controller when it's no longer needed
+    super.dispose();
+  }
+
   Future<void> _getEventsListFromUser() async {
     User? user = await getCurrentUser();
     eventsList = user?.events;
@@ -39,24 +56,36 @@ class NotesViewState extends State<NotesView> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _getEventsListFromUser();
+  List<Event> getEventsForDate(DateTime date) {
+    final eventsForDate = eventsList?.where((event) {
+          return event.startDate.year == date.year &&
+              event.startDate.month == date.month &&
+              event.startDate.day == date.day;
+        }).toList() ??
+        [];
+
+    return eventsForDate;
   }
 
-  Future<void> _reloadScreen() async {
-    // Navigator.of(context).pop();
-    await _getEventsListFromUser();
-    // Navigator.of(context).pushReplacementNamed(notesRoute); // Replace with your actual screen name
+  void _editEvent(Event event, BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      editNote,
+      arguments: event,
+    ).then((result) {
+      if (result != null && result is Event) {
+        // Update the event in the eventsList
+        final index = eventsList?.indexWhere((e) => e.id == result.id);
+        if (index != null && index >= 0) {
+          setState(() {
+            eventsList?[index] = result;
+          });
+        }
+      }
+    });
   }
 
-  @override
-  void dispose() {
-    // Close the stream controller when it's no longer needed
-    super.dispose();
-  }
-
+  //**Building the UI for the view*/
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -66,7 +95,8 @@ class NotesViewState extends State<NotesView> {
             title: Text(
               'CALENDAR',
               style: TextStyle(
-                color: const Color.fromARGB(255, 255, 255, 255), // Set the title color to black
+                color: const Color.fromARGB(
+                    255, 255, 255, 255), // Set the title color to black
                 fontSize: 20,
               ),
             ),
@@ -75,29 +105,6 @@ class NotesViewState extends State<NotesView> {
                 icon: Icon(Icons.refresh),
                 onPressed: () {
                   _reloadScreen();
-                },
-              ),
-              PopupMenuButton<MenuAction>(
-                onSelected: (value) async {
-                  // devtools.log(value.toString());
-                  switch (value) {
-                    case MenuAction.logout:
-                      final shouldLogout = await showLogOutDialog(context);
-                      devtools.log(shouldLogout.toString());
-                      if (shouldLogout) {
-                        await AuthService.firebase().logOut();
-                        Navigator.of(context)
-                            .pushNamedAndRemoveUntil(loginRoute, (_) => false);
-                      }
-                      break;
-                    default:
-                  }
-                },
-                itemBuilder: (context) {
-                  return const [
-                    PopupMenuItem<MenuAction>(
-                        value: MenuAction.logout, child: Text('Log out'))
-                  ];
                 },
               ),
             ],
@@ -280,43 +287,6 @@ class NotesViewState extends State<NotesView> {
         ));
   }
 
-  Future<bool> showLogOutDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Sign out'),
-          content: const Text('Are you sure you want to sign out?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Log out'),
-            )
-          ],
-        );
-      },
-    ).then((value) => value ?? false);
-  }
-
-  List<Event> getEventsForDate(DateTime date) {
-    final eventsForDate = eventsList?.where((event) {
-          return event.startDate.year == date.year &&
-              event.startDate.month == date.month &&
-              event.startDate.day == date.day;
-        }).toList() ??
-        [];
-
-    return eventsForDate;
-  }
-
   Widget getNotesForDate(DateTime date) {
     final eventsForDate = getEventsForDate(date);
 
@@ -432,23 +402,5 @@ class NotesViewState extends State<NotesView> {
         );
       },
     );
-  }
-
-  void _editEvent(Event event, BuildContext context) {
-    Navigator.pushNamed(
-      context,
-      editNote,
-      arguments: event,
-    ).then((result) {
-      if (result != null && result is Event) {
-        // Update the event in the eventsList
-        final index = eventsList?.indexWhere((e) => e.id == result.id);
-        if (index != null && index >= 0) {
-          setState(() {
-            eventsList?[index] = result;
-          });
-        }
-      }
-    });
   }
 }

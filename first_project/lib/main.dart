@@ -11,7 +11,15 @@ import 'package:first_project/views/register_view.dart';
 import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
 
-// Rest of your code...
+import 'costume_widgets/my_drawer_header.dart';
+import 'enums/menu_action.dart';
+
+enum DrawerSections {
+  dashboard,
+  notes_view,
+  settings,
+}
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +32,64 @@ void main() async {
     throw UserNotFoundException();
   }
   runApp(const MyApp());
+}
+
+Widget MyDrawerList(BuildContext context) {
+  return Container(
+    padding: EdgeInsets.only(
+      top: 15,
+    ),
+    child: Column(
+      children: [
+        menuItem(context, DrawerSections.dashboard, 'Dashboard', Icons.dashboard, true),
+        menuItem(context, DrawerSections.notes_view, 'Notes View', Icons.notes, false),
+        menuItem(context, DrawerSections.settings, 'Logout', Icons.logout, false),
+      ],
+    ),
+  );
+}
+
+Widget menuItem(BuildContext context, DrawerSections section, String name, IconData iconData, bool selected) {
+  return Material(
+    child: InkWell(
+      onTap: () {
+        switch (section) {
+          case DrawerSections.dashboard:
+            // Handle dashboard section tap
+            break;
+          case DrawerSections.notes_view:
+            // Handle notes view section tap
+            Navigator.pushNamed(context, notesRoute);
+            break;
+          case DrawerSections.settings:
+            // Handle logout section tap
+            // Perform logout actions...
+            break;
+        }
+      },
+      child: Padding(
+        padding: EdgeInsets.all(5.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: Icon(
+                iconData,
+                size: 20,
+                color: Colors.black,
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                name,
+                style: TextStyle(color: Colors.black, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -46,57 +112,106 @@ class MyApp extends StatelessWidget {
         addNote: (context) => EventNoteWidget(),
         editNote: (context) => EditNoteScreen(),
       },
-      home: isLoggedIn
-          ? Scaffold(
-              appBar: AppBar(
-                title: Text("MICHEL'S SCHEDULE"),
-              ),
-              drawer: Drawer(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: <Widget>[
-                    // Drawer header and menu items...
-                  ],
-                ),
-              ),
-              body: HomePage(),
-            )
-          : LoginViewState(),
+      home: isLoggedIn ? const HomePage() : const LoginViewState(),
     );
   }
 }
-
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: AuthService.firebase().initialize(),
-      builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.done:
-            final currentUser = AuthService.firebase().currentUser;
-            if (currentUser != null) {
-              final emailVerified = currentUser.isEmailVerified;
-              devtools.log('Is verified ? $emailVerified');
-              if (emailVerified) {
-                return const NotesView();
-              } else {
-                return const VerifyEmailView();
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        title: const Text("MICHEL'S SCHEDULE"),
+        actions: [
+          PopupMenuButton<MenuAction>(
+            onSelected: (value) async {
+              switch (value) {
+                case MenuAction.logout:
+                  final shouldLogout = await showLogOutDialog(context);
+                  if (shouldLogout) {
+                    await AuthService.firebase().logOut();
+                    Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
+                  }
+                  break;
+                default:
               }
-            } else {
-              return const LoginViewState();
-            }
-          default:
-            return const Scaffold(
-              body: Center(
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<MenuAction>(
+                  value: MenuAction.logout,
+                  child: Text('Logout'),
+                ),
+              ];
+            },
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: SingleChildScrollView(
+          child: Container(
+            child: Column(
+              children: [MyHeaderDrawer(), MyDrawerList(context)],
+            ),
+          ),
+        ),
+      ),
+      body: FutureBuilder(
+        future: AuthService.firebase().initialize(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              final currentUser = AuthService.firebase().currentUser;
+              if (currentUser != null) {
+                final emailVerified = currentUser.isEmailVerified;
+                devtools.log('Is verified ? $emailVerified');
+                if (emailVerified) {
+                  return const NotesView();
+                } else {
+                  return const VerifyEmailView();
+                }
+              } else {
+                return const LoginViewState();
+              }
+            default:
+              return const Center(
                 child: CircularProgressIndicator(),
-              ),
-            );
-        }
-      },
+              );
+          }
+        },
+      ),
     );
   }
+
+  Future<bool> showLogOutDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Sign out'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Log out'),
+            ),
+          ],
+        );
+      },
+    ).then((value) => value ?? false);
+  }
 }
+
+
