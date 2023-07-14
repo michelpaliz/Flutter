@@ -19,24 +19,23 @@ class NotesView extends StatefulWidget {
 }
 
 class NotesViewState extends State<NotesView> {
+  //**Global variables */
   List<Event>? eventsList;
   DateTime? selectedDate;
   DateTime focusedDay = DateTime.now();
   Stream<List<Event>> eventsStream = Stream.empty();
   StoreService storeService = StoreService.firebase();
 
-  StreamController<List<Event>> eventsStreamController =
-      StreamController<List<Event>>();
-
   @override
   void initState() {
     super.initState();
-      //** The addPostFrameCallback function is used to schedule a callback after the current frame has been drawn on the screen. The callback is triggered once the layout and rendering are complete. */
+    //** The addPostFrameCallback function is used to schedule a callback after the current frame has been drawn on the screen. The callback is triggered once the layout and rendering are complete. */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getEventsListFromUser();
     });
   }
 
+  //** Logic for my view */
   Future<void> _reloadScreen() async {
     await _getEventsListFromUser();
   }

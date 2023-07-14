@@ -20,11 +20,10 @@ enum DrawerSections {
   settings,
 }
 
-
+//**Logic for my view */
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AuthService.firebase().initialize();
-
   try {
     currentUser = await getCurrentUser(); // Initialize Firebase
   } catch (error) {
@@ -92,6 +91,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name, IconD
   );
 }
 
+//** UI for my view */
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -134,7 +134,8 @@ class HomePage extends StatelessWidget {
                   final shouldLogout = await showLogOutDialog(context);
                   if (shouldLogout) {
                     await AuthService.firebase().logOut();
-                    Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil(loginRoute, (_) => false);
                   }
                   break;
                 default:
