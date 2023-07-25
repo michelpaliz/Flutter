@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../constants/routes.dart';
+import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
@@ -38,12 +39,6 @@ class NotesViewState extends State<NotesView> {
   //** Logic for my view */
   Future<void> _reloadScreen() async {
     await _getEventsListFromUser();
-  }
-
-  @override
-  void dispose() {
-    // Close the stream controller when it's no longer needed
-    super.dispose();
   }
 
   Future<void> _getEventsListFromUser() async {
@@ -108,6 +103,7 @@ class NotesViewState extends State<NotesView> {
               ),
             ],
           ),
+          drawer: MyDrawer(),
           body: Stack(
             children: [
               Column(

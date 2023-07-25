@@ -6,11 +6,14 @@ class User {
   String _id;
   String _name;
   final String _email;
+  String? _photoUrl;
   List<Event>? _events;
-  String? _groupId; // Optional group ID field
+  List<String>? _groupIds; // List of group IDs
 
-  User(this._id, this._name, this._email, this._events, {String? groupId})
-      : _groupId = groupId;
+  User(this._id, this._name, this._email, this._events,
+      {List<String>? groupIds, String? photoUrl})
+      : _groupIds = groupIds,
+        _photoUrl = photoUrl;
 
   String get id => _id;
 
@@ -26,9 +29,14 @@ class User {
     _events = events;
   }
 
-  String? get groupId => _groupId;
-  set groupId(String? groupId) {
-    _groupId = groupId;
+  List<String>? get groupIds => _groupIds;
+  set groupIds(List<String>? groupIds) {
+    _groupIds = groupIds;
+  }
+
+  get photoUrl => _photoUrl;
+  set photoUrl(photoUrl) {
+    _photoUrl = photoUrl;
   }
 
   Map<String, dynamic> toJson() {
@@ -36,8 +44,10 @@ class User {
       'id': _id,
       'name': _name,
       'email': _email,
+      'photoUrl': _photoUrl,
       'events': _events?.map((event) => event.toMap()).toList(),
-      'groupId': _groupId,
+      'groupIds':
+          _groupIds, // Save the list of group IDs in the JSON representation
     };
   }
 
@@ -49,7 +59,11 @@ class User {
       (json['events'] as List<dynamic>?)
           ?.map((eventJson) => Event.fromJson(eventJson))
           .toList(),
-      groupId: json['groupId'],
+      groupIds: json['groupIds'] != null
+          ? List<String>.from(
+              json['groupIds']) // Parse groupIds as a list of strings
+          : null,
+      photoUrl: json['photoUrl'],
     );
   }
 
@@ -76,7 +90,8 @@ class User {
         (userData['events'] as List<dynamic>?)
             ?.map((eventJson) => Event.fromJson(eventJson))
             .toList(),
-        groupId: userData['groupId'], // Initialize groupId based on fetched user data
+        groupIds: userData[
+            'groupIds'], // Initialize groupIds based on fetched user data
       );
     } else {
       // User document not found, return a default User instance
@@ -85,7 +100,7 @@ class User {
         '',
         email,
         [], // Set events to an empty list or initialize it accordingly
-        groupId: null, // Set groupId to null or initialize it accordingly
+        groupIds: null, // Set groupIds to null or initialize it accordingly
       );
     }
   }

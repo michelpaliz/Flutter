@@ -29,12 +29,15 @@ class EventNoteApp extends StatelessWidget {
   }
 }
 
+//---- NOTE WIDGET ----
+
 class EventNoteWidget extends StatefulWidget {
   @override
   _EventNoteWidgetState createState() => _EventNoteWidgetState();
 }
 
 class _EventNoteWidgetState extends State<EventNoteWidget> {
+  //late: Indicates that the variable will be initialized later before it is accessed or used.
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
   late TextEditingController _eventController;
@@ -122,7 +125,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
-// The _addEvent method is marked as async, and await is used to retrieve the user object from preferences. This allows you to await the Future<User?> result and access the actual user object. Then, you can update the user object with the new event list and other modifications.
+  /*** We retrieve the current user object. Then we can update the user object with the new event list and other modifications.*/
   void _addEvent() async {
     String eventNote = _eventController.text;
     String eventId = Uuid().v4();
@@ -193,7 +196,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     _reloadScreen();
   }
 
-  // Modify the _showRemoveConfirmationDialog method to call removeEvent correctly
+  
   void _showRemoveConfirmationDialog(String eventId) {
     showDialog(
       context: context,
@@ -316,12 +319,11 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                               TextSpan(
                                 text: 'Note : '.toUpperCase(),
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Lato',
-                                  fontSize: 16,
-                                  fontStyle: FontStyle.italic,
-                                  color: Color.fromARGB(255, 14, 103, 133)
-                                ),
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Lato',
+                                    fontSize: 16,
+                                    fontStyle: FontStyle.italic,
+                                    color: Color.fromARGB(255, 14, 103, 133)),
                               ),
                               TextSpan(
                                 text: event.note,

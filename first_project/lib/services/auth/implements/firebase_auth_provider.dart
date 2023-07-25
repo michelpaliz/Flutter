@@ -37,7 +37,7 @@ class FirebaseAuthProvider implements AuthProvider {
           name,
           user.email!,
           null,
-          groupId: null,
+          groupIds: null,
         );
 
         // Upload the user object to Firestore using the UID as the document ID

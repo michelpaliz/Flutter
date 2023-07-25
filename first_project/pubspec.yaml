@@ -55,6 +55,7 @@ flutter:
     - assets/images/login_image.png
     - assets/images/beach_image.png
     - assets/images/person_profile.png
+    - assets/images/profile.jpg
   fonts:
     - family: bagel
       fonts:
