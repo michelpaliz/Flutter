@@ -5,3 +5,4 @@ const verifyEmailRoute = '/verify-emai;';
 const addNote = '/add-note';
 const editNote = '/edit-note';
 const dashboard = '/dashboard';
+const searcher = '/searcher';

@@ -9,6 +9,7 @@ import 'package:first_project/views/edit_note_screen.dart';
 import 'package:first_project/views/login_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:first_project/views/register_view.dart';
+import 'package:first_project/views/searcher.dart';
 import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
 import 'costume_widgets/drawer/my_drawer.dart';
@@ -46,7 +47,8 @@ class MyApp extends StatelessWidget {
         verifyEmailRoute: (context) => const VerifyEmailView(),
         addNote: (context) => EventNoteWidget(),
         editNote: (context) => EditNoteScreen(),
-        dashboard:(context) => Dashboard()
+        dashboard:(context) => Dashboard(),
+        searcher: (context) => Searcher()
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),
     );
