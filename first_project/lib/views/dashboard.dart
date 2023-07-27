@@ -86,6 +86,7 @@ class _DashboardState extends State<Dashboard> {
     // Implement the create group functionality similar to the previous example.
     // Add the newly created group ID to the currentUser's groupIds list, and then update the userGroups list.
     // Don't forget to call setState() after updating the userGroups list.
+    
     Navigator.pushNamed(context, searcher);
   }
 
