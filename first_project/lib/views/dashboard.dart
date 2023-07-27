@@ -17,10 +17,70 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   User? currentUser;
-
   List<Group>? userGroups =
       []; // List to store the groups that the current user has
 
+  //** UI FOR THE VIEW */
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon(Icons.dashboard), // Icon next to "Dashboard" text
+              // SizedBox(width: 8), // Adding some space between icon and text
+              Text(
+                "Dashboard",
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.message), // Icon for the new button
+            onPressed: () {
+              // Add your onPressed logic here
+            },
+          ),
+        ],
+      ),
+      drawer: MyDrawer(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 20),
+          if (userGroups == null || userGroups!.isEmpty)
+            Center(child: Text("There are no groups available"))
+          else
+            Expanded(
+              child: ListView.builder(
+                itemCount: userGroups!.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(userGroups![index].groupName),
+                  );
+                },
+              ),
+            ),
+          SizedBox(height: 20),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                _createGroup();
+              },
+              child: Text("Create Group"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //*LOGIC FOR THE VIEW //
   Future<void> _getCurrentUser() async {
     currentUser = await getCurrentUser();
     if (currentUser != null) {
@@ -39,54 +99,11 @@ class _DashboardState extends State<Dashboard> {
     userGroups = fetchUserGroups(currentUser?.groupIds);
   }
 
-  //** UI FOR THE VIEW */
-
-  @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: AppBarStyles.themeData,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("Dashboard"),
-        ),
-        drawer: MyDrawer(),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            if (userGroups == null || userGroups!.isEmpty)
-              Center(child: Text("There are no groups available"))
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: userGroups!.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(userGroups![index].groupName),
-                    );
-                  },
-                ),
-              ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  _createGroup();
-                },
-                child: Text("Create Group"),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _createGroup() {
     // Implement the create group functionality similar to the previous example.
     // Add the newly created group ID to the currentUser's groupIds list, and then update the userGroups list.
     // Don't forget to call setState() after updating the userGroups list.
-    
+
     Navigator.pushNamed(context, searcher);
   }
 
