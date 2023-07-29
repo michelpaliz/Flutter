@@ -15,6 +15,7 @@ class _SearcherState extends State<Searcher> {
   String groupName = '';
   List<String> selectedUsers = [];
   List<User> userInGroup = []; // List to store selected users
+  String? clickedUser;
 
   void searchUser(String username) async {
     try {
@@ -82,6 +83,88 @@ class _SearcherState extends State<Searcher> {
     print('Selected users: $selectedUsers');
   }
 
+  // Add this method to display the question and the horizontal list of selected users.
+  Widget buildSelectedUsersList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            "Who is going to share the calendar for the group?",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue, // Change the text color to blue
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+        Container(
+          height: 80,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: selectedUsers.length,
+            itemBuilder: (context, index) {
+              final user = selectedUsers[index];
+              return GestureDetector(
+                onTap: () {
+                  // Update the clickedUser when a user is clicked
+                  setState(() {
+                    clickedUser = user;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircleAvatar(
+                    backgroundImage: AssetImage(
+                        'path/to/avatar.png'), // Replace with the actual avatar image
+                    radius: 30,
+                    child: Text(
+                      user,
+                      style: TextStyle(
+                        color: clickedUser == user ? Color.fromARGB(255, 22, 245, 252) : Color.fromARGB(255, 49, 45, 255),
+                        fontWeight: clickedUser == user
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: 20),
+        if (clickedUser != null) ...[
+          // Display the clicked user below the list
+          Center(
+            child: Column(
+              children: [
+                // Display the clicked user below the list
+                Text(
+                  "This is the one you chose: $clickedUser",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 15),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     // You can perform some action related to the clicked user here if needed
+                //   },
+                //   child: Text("Do something with $clickedUser"),
+                // ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,14 +218,22 @@ class _SearcherState extends State<Searcher> {
               },
             ),
           ),
+
+          // Display the selected users in the horizontal list
+          buildSelectedUsersList(),
+
           Center(
-            child: ElevatedButton(
-              onPressed: () {
-                creatingGroup();
-              },
-              child: Text("Create Group"),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ElevatedButton(
+                onPressed: () {
+                  creatingGroup();
+                },
+                child: Text("Create Group"),
+              ),
             ),
           ),
+          SizedBox(height: 10),
         ],
       ),
     );
