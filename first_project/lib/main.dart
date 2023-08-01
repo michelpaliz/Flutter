@@ -1,4 +1,5 @@
 import 'dart:developer' as devtools show log;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
@@ -17,7 +18,8 @@ import 'costume_widgets/drawer/my_drawer.dart';
 //** Logic for my view */
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AuthService.firebase().initialize();
+  // await AuthService.firebase().initialize();
+   await Firebase.initializeApp();
   try {
     currentUser = await getCurrentUser(); // Initialize Firebase
   } catch (error) {

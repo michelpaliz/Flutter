@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
@@ -13,7 +14,9 @@ import '../../firestore/implements/firestore_service.dart';
 import '../auth_provider.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
-
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  // Private variable to store the current user
+  User? _currentUser;
   @override
   Future<String> createUser({
     required String name,
@@ -139,4 +142,25 @@ class FirebaseAuthProvider implements AuthProvider {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
+  
+  @override
+Future<User?> getCurrentUserAsCustomeModel() async {
+  final firebaseUser = _firebaseAuth.currentUser;
+  if (firebaseUser != null) {
+    DocumentSnapshot userSnapshot =
+        await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).get();
+    if (userSnapshot.exists) {
+      return User.fromJson(userSnapshot.data() as Map<String, dynamic>); // Explicit cast to Map<String, dynamic>
+    }
+  }
+  return null;
+}
+
+  @override
+  User? get costumeUser {
+    // Use the stored _currentUser if available,
+    // otherwise, return null
+    return _currentUser;
+  }
+
 }

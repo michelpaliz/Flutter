@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../models/calendar.dart';
+import '../models/group.dart';
 import '../models/user.dart';
+import '../services/auth/implements/auth_service.dart';
 
 class Searcher extends StatefulWidget {
   const Searcher({Key? key}) : super(key: key);
@@ -15,6 +18,10 @@ class _SearcherState extends State<Searcher> {
   String groupName = '';
   List<String> selectedUsers = [];
   List<User> userInGroup = []; // List to store selected users
+  // Assuming you have a Firestore collection named 'users' containing user documents with 'name' field.
+  final CollectionReference usersCollection =
+      FirebaseFirestore.instance.collection('users');
+
   String? clickedUser;
 
   void searchUser(String username) async {
@@ -74,13 +81,81 @@ class _SearcherState extends State<Searcher> {
     print('Remove user: $user');
   }
 
-  void creatingGroup() {
-    // Implement the logic to create the group with the appropriate attributes
-    // using the groupName and selectedUsers list.
+  void creatingGroup() async {
+    if (groupName.trim().isEmpty) {
+      // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Group name cannot be empty'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
-    // For this example, we will just print the group name and selected users to the console.
-    print('Creating group: $groupName');
-    print('Selected users: $selectedUsers');
+    // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
+    String groupId = UniqueKey().toString();
+
+    // Create an instance of the Calendar class or any other logic required to initialize the calendar.
+    // Calendar calendar = Calendar(); // Assuming Calendar is defined elsewhere.
+
+    // Get the current user
+    User? user = AuthService.firebase().costumeUser;
+
+    String? ownerId = user?.id;
+
+    // Create the userRoles map and assign the group owner to the 'owner' role
+    Map<String, String> userRoles = {};
+
+    // Assign other selected users to the 'member' role in the userRoles map
+    for (String userId in selectedUsers) {
+      userRoles[userId] = 'member';
+    }
+
+    // Search for the user document in Firestore using their name (selectedUser)
+    // Search for the user document in Firestore using their name (selectedUser)
+    DocumentSnapshot? userSnapshot = await getUserFromName(clickedUser!);
+
+// Make sure the user with the given name exists in the Firestore database
+    if (!userSnapshot!.exists) {
+      // Show a SnackBar with an error message indicating the user was not found
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Selected user not found in the database'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Get the user data from the userSnapshot and convert it to the desired object
+    Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+
+    // Example: Create a User object with the retrieved data
+    User selectedUser = User.fromJson(userData);
+
+    print('Creating group: ${selectedUser.toString()}');
+
+    // Create the group object with the appropriate attributes
+    // Group group = Group(
+    //   id: groupId,
+    //   groupName: groupName,
+    //   ownerId: ownerId,
+    //   userRoles: userRoles,
+    //   calendar: calendar,
+    // );
+  }
+
+  // Helper function to get the user document based on their name from Firestore`
+  Future<DocumentSnapshot?> getUserFromName(String userName) async {
+    QuerySnapshot querySnapshot =
+        await usersCollection.where('name', isEqualTo: userName).get();
+    if (querySnapshot.docs.isNotEmpty) {
+      // Assuming there is only one user with the given name, so we return the first document.
+      return querySnapshot.docs.first;
+    } else {
+      return null;
+    }
   }
 
   // Add this method to display the question and the horizontal list of selected users.
@@ -118,13 +193,15 @@ class _SearcherState extends State<Searcher> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: CircleAvatar(
-                    backgroundImage: AssetImage(
-                        'path/to/avatar.png'), // Replace with the actual avatar image
+                    // backgroundImage: AssetImage(
+                    //     'path/to/avatar.png'), // Replace with the actual avatar image
                     radius: 30,
                     child: Text(
                       user,
                       style: TextStyle(
-                        color: clickedUser == user ? Color.fromARGB(255, 22, 245, 252) : Color.fromARGB(255, 49, 45, 255),
+                        color: clickedUser == user
+                            ? Color.fromARGB(255, 22, 245, 252)
+                            : Color.fromARGB(255, 49, 45, 255),
                         fontWeight: clickedUser == user
                             ? FontWeight.bold
                             : FontWeight.normal,

@@ -56,5 +56,11 @@ class AuthService implements AuthProvider {
     }
     return null;
   }
+  
+  @override
+  Future<User?> getCurrentUserAsCustomeModel() => provider.getCurrentUserAsCustomeModel();
+  
+  @override
+  User? get costumeUser => provider.costumeUser;
 }
-  // 
+  

@@ -51,19 +51,35 @@ class User {
     };
   }
 
+  // factory User.fromJson(Map<String, dynamic> json) {
+  //   return User(
+  //     json['id'],
+  //     json['name'],
+  //     json['email'],
+  //     (json['events'] as List<dynamic>?)
+  //         ?.map((eventJson) => Event.fromJson(eventJson))
+  //         .toList(),
+  //     groupIds: json['groupIds'] != null
+  //         ? List<String>.from(
+  //             json['groupIds']) // Parse groupIds as a list of strings
+  //         : null,
+  //     photoUrl: json['photoUrl'],
+  //   );
+  // }
+
+  // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      json['id'],
-      json['name'],
-      json['email'],
+      json['id'] as String,
+      json['name'] as String,
+      json['email'] as String,
       (json['events'] as List<dynamic>?)
           ?.map((eventJson) => Event.fromJson(eventJson))
           .toList(),
-      groupIds: json['groupIds'] != null
-          ? List<String>.from(
-              json['groupIds']) // Parse groupIds as a list of strings
-          : null,
-      photoUrl: json['photoUrl'],
+      groupIds: (json['groupIds'] as List<dynamic>?)
+          ?.map((groupId) => groupId.toString())
+          .toList(),
+      photoUrl: json['photoUrl'] as String?,
     );
   }
 
@@ -107,5 +123,16 @@ class User {
 
   static Future<User> fromFirebaseUser(firebase_auth.User firebaseUser) {
     return getUserByEmail(firebaseUser.email!);
+  }
+
+  @override
+  String toString() {
+    return 'User('
+        'id: $_id, '
+        'name: $_name, '
+        'email: $_email, '
+        'photoUrl: $_photoUrl, '
+        'events: $_events, '
+        'groupIds: $_groupIds)';
   }
 }
