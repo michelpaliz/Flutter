@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_project/models/event.dart';
+import 'package:first_project/models/notification_user.dart';
 
 class User {
   String _id;
@@ -8,12 +9,21 @@ class User {
   final String _email;
   String? _photoUrl;
   List<Event>? _events;
-  List<String>? _groupIds; // List of group IDs
+  List<String>? _groupIds;
+  List<NotificationUser>? _notifications;
 
   User(this._id, this._name, this._email, this._events,
-      {List<String>? groupIds, String? photoUrl})
+      {List<String>? groupIds, String? photoUrl, List<NotificationUser>? notifications})
       : _groupIds = groupIds,
-        _photoUrl = photoUrl;
+        _photoUrl = photoUrl,
+        _notifications = notifications;
+
+  // Method to add a notification to the user's list of notifications
+  void addNotification(NotificationUser notification) {
+    _notifications ??=
+        []; // Initialize _notifications to an empty list if it is null
+    _notifications?.add(notification);
+  }
 
   String get id => _id;
 
@@ -39,6 +49,13 @@ class User {
     _photoUrl = photoUrl;
   }
 
+  get notifications => _notifications;
+  set notifications(notifications) {
+    _notifications = notifications;
+  }
+
+
+
   Map<String, dynamic> toJson() {
     return {
       'id': _id,
@@ -48,24 +65,10 @@ class User {
       'events': _events?.map((event) => event.toMap()).toList(),
       'groupIds':
           _groupIds, // Save the list of group IDs in the JSON representation
+      '_notifications':
+          _notifications?.map((notification) => notification.toJson()).toList(),
     };
   }
-
-  // factory User.fromJson(Map<String, dynamic> json) {
-  //   return User(
-  //     json['id'],
-  //     json['name'],
-  //     json['email'],
-  //     (json['events'] as List<dynamic>?)
-  //         ?.map((eventJson) => Event.fromJson(eventJson))
-  //         .toList(),
-  //     groupIds: json['groupIds'] != null
-  //         ? List<String>.from(
-  //             json['groupIds']) // Parse groupIds as a list of strings
-  //         : null,
-  //     photoUrl: json['photoUrl'],
-  //   );
-  // }
 
   // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
@@ -133,6 +136,7 @@ class User {
         'email: $_email, '
         'photoUrl: $_photoUrl, '
         'events: $_events, '
-        'groupIds: $_groupIds)';
+        'groupIds: $_groupIds'
+        'notifications: $_notifications )';
   }
 }

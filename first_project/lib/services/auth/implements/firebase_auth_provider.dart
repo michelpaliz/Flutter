@@ -41,6 +41,7 @@ class FirebaseAuthProvider implements AuthProvider {
           user.email!,
           null,
           groupIds: null,
+          notifications: null
         );
 
         // Upload the user object to Firestore using the UID as the document ID
@@ -158,8 +159,6 @@ Future<User?> getCurrentUserAsCustomeModel() async {
 
   @override
   User? get costumeUser {
-    // Use the stored _currentUser if available,
-    // otherwise, return null
     return _currentUser;
   }
 

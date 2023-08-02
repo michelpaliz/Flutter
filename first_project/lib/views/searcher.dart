@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import '../models/calendar.dart';
 import '../models/group.dart';
+import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
 
@@ -23,6 +23,8 @@ class _SearcherState extends State<Searcher> {
       FirebaseFirestore.instance.collection('users');
 
   String? clickedUser;
+
+  //** LOGIC FOR THE VIEW */
 
   void searchUser(String username) async {
     try {
@@ -56,8 +58,9 @@ class _SearcherState extends State<Searcher> {
         final user = User.fromJson(userData);
 
         setState(() {
-          selectedUsers.add(
-              user.name); // Store the user object in the selectedUsers list
+          selectedUsers.add(user.name);
+          userInGroup.add(
+              user); // Store the complete User object in the userInGroup list
         });
 
         print('User added: $user');
@@ -71,14 +74,18 @@ class _SearcherState extends State<Searcher> {
   }
 
   void removeUser(String user) {
-    // Implement the logic to remove the user from the selectedUsers list
-    // For this example, we will just print the username to the console.
+    // Find the index of the User object in the userInGroup list that matches the username
+    int indexToRemove = userInGroup.indexWhere((u) => u.name == user);
 
-    setState(() {
-      selectedUsers.remove(user);
-    });
-
-    print('Remove user: $user');
+    if (indexToRemove != -1) {
+      setState(() {
+        userInGroup.removeAt(indexToRemove);
+        selectedUsers.remove(user);
+      });
+      print('Remove user: $user');
+    } else {
+      print('User not found in the group: $user');
+    }
   }
 
   void creatingGroup() async {
@@ -97,7 +104,7 @@ class _SearcherState extends State<Searcher> {
     String groupId = UniqueKey().toString();
 
     // Create an instance of the Calendar class or any other logic required to initialize the calendar.
-    // Calendar calendar = Calendar(); // Assuming Calendar is defined elsewhere.
+    Calendar calendar; // Assuming Calendar is defined elsewhere.
 
     // Get the current user
     User? user = AuthService.firebase().costumeUser;
@@ -113,10 +120,9 @@ class _SearcherState extends State<Searcher> {
     }
 
     // Search for the user document in Firestore using their name (selectedUser)
-    // Search for the user document in Firestore using their name (selectedUser)
     DocumentSnapshot? userSnapshot = await getUserFromName(clickedUser!);
 
-// Make sure the user with the given name exists in the Firestore database
+    // Make sure the user with the given name exists in the Firestore database
     if (!userSnapshot!.exists) {
       // Show a SnackBar with an error message indicating the user was not found
       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,15 +143,36 @@ class _SearcherState extends State<Searcher> {
     print('Creating group: ${selectedUser.toString()}');
 
     // Create the group object with the appropriate attributes
-    // Group group = Group(
-    //   id: groupId,
-    //   groupName: groupName,
-    //   ownerId: ownerId,
-    //   userRoles: userRoles,
-    //   calendar: calendar,
-    // );
+    Group group = Group(
+      id: groupId,
+      groupName: groupName,
+      ownerId: ownerId,
+      userRoles: userRoles,
+      calendar: null,
+      users: userInGroup, // Include the list of users in the group
+    );
+
+    // Create the notification message for the group
+    String notificationMessage =
+        'You have been added to the group ${group.groupName} (ID: ${group.id})';
+
+    // Add a new notification for each user in the group
+
+    for (User user in userInGroup) {
+      NotificationUser notification = NotificationUser(
+        id: UniqueKey().toString(), // Generate a unique ID for the notification
+        message: notificationMessage,
+        timestamp:
+            DateTime.now(), // Use the current timestamp for the notification
+      );
+
+      user.addNotification(
+          notification); // Add the notification to the user's notifications list
+    }
+    print('Creating group: ${userInGroup.toString()}');
   }
 
+  //TODO: Move this function to the server side
   // Helper function to get the user document based on their name from Firestore`
   Future<DocumentSnapshot?> getUserFromName(String userName) async {
     QuerySnapshot querySnapshot =
@@ -157,6 +184,8 @@ class _SearcherState extends State<Searcher> {
       return null;
     }
   }
+
+  //* UI FOR THE VIEW /
 
   // Add this method to display the question and the horizontal list of selected users.
   Widget buildSelectedUsersList() {
