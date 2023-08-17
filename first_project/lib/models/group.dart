@@ -8,7 +8,7 @@ class Group {
   final String groupName;
   final String? ownerId; // ID of the group owner
   final Map<String, String> userRoles; // Map of user IDs to their roles
-  final Calendar? calendar; // Shared calendar for the group
+final Calendar? calendar; // Shared calendar for the group
   List<User> users;
    // List of users in the group
 

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer' as devtools show log;
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
-import 'package:first_project/utiliies/sharedprefs.dart';
+import 'package:first_project/utilities/sharedprefs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';

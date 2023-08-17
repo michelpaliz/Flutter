@@ -8,7 +8,7 @@ import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
-import '../utiliies/show_error_dialog.dart';
+import '../utilities/show_error_dialog.dart';
 
 // ======= LOGIN =========
 class LoginViewState extends StatefulWidget {

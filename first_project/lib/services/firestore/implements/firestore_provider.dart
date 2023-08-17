@@ -8,7 +8,7 @@ import 'package:first_project/services/user/user_provider.dart';
 import '../../../models/event.dart';
 import '../../../models/notification_user.dart';
 import '../../../models/user.dart';
-import '../../../utiliies/sharedprefs.dart';
+import '../../../utilities/sharedprefs.dart';
 import '../Ifirestore_provider.dart';
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */

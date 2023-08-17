@@ -6,7 +6,7 @@ import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
 import '../services/user/user_provider.dart';
 import '../styles/app_bar_styles.dart';
-import '../utiliies/sharedprefs.dart';
+import '../utilities/sharedprefs.dart';
 
 void main() {
   runApp(MaterialApp(
