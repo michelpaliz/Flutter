@@ -110,12 +110,12 @@ class _SearcherState extends State<Searcher> {
     String groupId = UniqueKey().toString();
 
     // Create an instance of the Calendar class or any other logic required to initialize the calendar.
-    Calendar calendar; // Assuming Calendar is defined elsewhere.
+    Calendar? calendar = null;  // Assuming Calendar is defined elsewhere.
     
     // Call getCurrentUserAsCustomeModel to populate _currentUser
-    User? user = await AuthService.firebase().getCurrentUserAsCustomeModel();
+    User? currentUser = await AuthService.firebase().getCurrentUserAsCustomeModel();
 
-    String? ownerId = user?.id;
+    String? ownerId = currentUser?.id;
 
     // Create the userRoles map and assign the group owner to the 'owner' role
     Map<String, String> userRoles = {};
@@ -154,14 +154,14 @@ class _SearcherState extends State<Searcher> {
       groupName: groupName,
       ownerId: ownerId,
       userRoles: userRoles,
-      calendar: null,
+      calendar: calendar,
       users: userInGroup, // Include the list of users in the group
     );
 
     // Create the notification message for the group
     String notificationMessage =
-        'Group Created: ${group.groupName} (ID: ${group.id})';
-
+        '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
+    
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
       NotificationUser notification = NotificationUser(

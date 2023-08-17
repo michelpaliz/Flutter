@@ -9,7 +9,8 @@ class Group {
   final String? ownerId; // ID of the group owner
   final Map<String, String> userRoles; // Map of user IDs to their roles
   final Calendar? calendar; // Shared calendar for the group
-  List<User> users; // List of users in the group
+  List<User> users;
+   // List of users in the group
 
   Group({
     required this.id,
@@ -47,7 +48,7 @@ class Group {
       'groupName': groupName,
       'ownerId': ownerId,
       'userRoles': userRoles,
-      'calendar': calendar?.toJson(),
+      // 'calendar': calendar?.toJson(),
       'users': usersJson,
     };
   }
