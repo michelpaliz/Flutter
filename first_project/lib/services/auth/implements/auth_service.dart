@@ -12,6 +12,7 @@ class AuthService implements AuthProvider {
 
   factory AuthService.firebase() => AuthService(FirebaseAuthProvider());
 
+// The .instance property is a static property that returns a single, globally accessible instance of the FirebaseAuth class. This ensures that you're working with the same instance of FirebaseAuth throughout your application.
   static firebase_auth.FirebaseAuth _firebaseAuth =
       firebase_auth.FirebaseAuth.instance;
 

@@ -17,6 +17,7 @@ class FirebaseAuthProvider implements AuthProvider {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   // Private variable to store the current user
   User? _currentUser;
+
   @override
   Future<String> createUser({
     required String name,
@@ -35,14 +36,8 @@ class FirebaseAuthProvider implements AuthProvider {
         await user.updateProfile(displayName: user.uid);
 
         // Create a User object using the UID as the user ID
-        User person = User(
-          user.uid,
-          name,
-          user.email!,
-          null,
-          groupIds: null,
-          notifications: null
-        );
+        User person = User(user.uid, name, user.email!, null,
+            groupIds: null, notifications: null);
 
         // Upload the user object to Firestore using the UID as the document ID
         return await StoreService.firebase().uploadPersonToFirestore(
@@ -143,23 +138,29 @@ class FirebaseAuthProvider implements AuthProvider {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  
+
   @override
-Future<User?> getCurrentUserAsCustomeModel() async {
-  final firebaseUser = _firebaseAuth.currentUser;
-  if (firebaseUser != null) {
-    DocumentSnapshot userSnapshot =
-        await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).get();
-    if (userSnapshot.exists) {
-      return User.fromJson(userSnapshot.data() as Map<String, dynamic>); // Explicit cast to Map<String, dynamic>
+  Future<User?> getCurrentUserAsCustomeModel() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+      if (userSnapshot.exists) {
+        _currentUser = User.fromJson(userSnapshot.data()
+            as Map<String, dynamic>); // Explicit cast to Map<String, dynamic>
+        return _currentUser; // Return the populated user object
+      }
     }
+    return null; // Return null only if the user is not found
   }
-  return null;
-}
 
   @override
   User? get costumeUser {
+    if (_currentUser == null) {
+      throw UserNotFoundAuthException();
+    }
     return _currentUser;
   }
-
 }

@@ -1,3 +1,4 @@
+import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firestore/implements/firestore_provider.dart';
 
@@ -26,4 +27,7 @@ class StoreService extends StoreProvider {
 
   @override
   Future<void> updateEvent(Event event) => provider.updateEvent(event);
+
+  @override
+  Future<void> addNotification(User user, NotificationUser notification) => provider.addNotification(user, notification);
 }

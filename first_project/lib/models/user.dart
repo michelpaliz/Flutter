@@ -18,13 +18,6 @@ class User {
         _photoUrl = photoUrl,
         _notifications = notifications;
 
-  // Method to add a notification to the user's list of notifications
-  void addNotification(NotificationUser notification) {
-    _notifications ??=
-        []; // Initialize _notifications to an empty list if it is null
-    _notifications?.add(notification);
-  }
-
   String get id => _id;
 
   String get name => _name;
@@ -53,8 +46,6 @@ class User {
   set notifications(notifications) {
     _notifications = notifications;
   }
-
-
 
   Map<String, dynamic> toJson() {
     return {

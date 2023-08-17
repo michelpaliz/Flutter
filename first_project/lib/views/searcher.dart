@@ -5,6 +5,7 @@ import '../models/group.dart';
 import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
+import '../services/firestore/implements/firestore_service.dart';
 
 class Searcher extends StatefulWidget {
   const Searcher({Key? key}) : super(key: key);
@@ -14,18 +15,20 @@ class Searcher extends StatefulWidget {
 }
 
 class _SearcherState extends State<Searcher> {
+  // ** Variables ** //
   List<String> searchResults = [];
   String groupName = '';
   List<String> selectedUsers = [];
   List<User> userInGroup = []; // List to store selected users
-  // Assuming you have a Firestore collection named 'users' containing user documents with 'name' field.
+  // There is a Firestore collection named 'users' containing user documents with 'name' field.
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
-
   String? clickedUser;
+  StoreService storeService =
+      StoreService.firebase(); // Create an instance of StoreService
 
   //** LOGIC FOR THE VIEW */
-
+  /** Search a user by inserting his name */
   void searchUser(String username) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
@@ -44,6 +47,7 @@ class _SearcherState extends State<Searcher> {
     }
   }
 
+  /** Add an user using the selectedUsers list */
   void addUser(String username) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
@@ -73,6 +77,7 @@ class _SearcherState extends State<Searcher> {
     }
   }
 
+  /** Remove the user using the index of the list  */
   void removeUser(String user) {
     // Find the index of the User object in the userInGroup list that matches the username
     int indexToRemove = userInGroup.indexWhere((u) => u.name == user);
@@ -88,6 +93,7 @@ class _SearcherState extends State<Searcher> {
     }
   }
 
+  /** Create the group, just insert the name for the group */
   void creatingGroup() async {
     if (groupName.trim().isEmpty) {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
@@ -105,9 +111,9 @@ class _SearcherState extends State<Searcher> {
 
     // Create an instance of the Calendar class or any other logic required to initialize the calendar.
     Calendar calendar; // Assuming Calendar is defined elsewhere.
-
-    // Get the current user
-    User? user = AuthService.firebase().costumeUser;
+    
+    // Call getCurrentUserAsCustomeModel to populate _currentUser
+    User? user = await AuthService.firebase().getCurrentUserAsCustomeModel();
 
     String? ownerId = user?.id;
 
@@ -137,10 +143,10 @@ class _SearcherState extends State<Searcher> {
     // Get the user data from the userSnapshot and convert it to the desired object
     Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
 
-    // Example: Create a User object with the retrieved data
+    // Create a User object with the retrieved data
     User selectedUser = User.fromJson(userData);
 
-    print('Creating group: ${selectedUser.toString()}');
+    print('SelectedUser: ${selectedUser.toString()}');
 
     // Create the group object with the appropriate attributes
     Group group = Group(
@@ -154,10 +160,9 @@ class _SearcherState extends State<Searcher> {
 
     // Create the notification message for the group
     String notificationMessage =
-        'You have been added to the group ${group.groupName} (ID: ${group.id})';
+        'Group Created: ${group.groupName} (ID: ${group.id})';
 
     // Add a new notification for each user in the group
-
     for (User user in userInGroup) {
       NotificationUser notification = NotificationUser(
         id: UniqueKey().toString(), // Generate a unique ID for the notification
@@ -166,9 +171,12 @@ class _SearcherState extends State<Searcher> {
             DateTime.now(), // Use the current timestamp for the notification
       );
 
-      user.addNotification(
+      storeService.addNotification(user,
           notification); // Add the notification to the user's notifications list
+        
+      // await storeService.updateUser(user);
     }
+
     print('Creating group: ${userInGroup.toString()}');
   }
 

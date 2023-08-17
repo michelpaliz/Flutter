@@ -43,7 +43,8 @@ class NotesViewState extends State<NotesView> {
 
   Future<void> _getEventsListFromUser() async {
     User? user = await getCurrentUser();
-    eventsList = user?.events;
+    eventsList = 
+    user?.events;
     SharedPrefsUtils.storeUser(user!);
     setState(() {
       eventsList = user.events;

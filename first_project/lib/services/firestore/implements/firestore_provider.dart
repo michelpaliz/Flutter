@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/models/user.dart';
+
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import '../../../models/event.dart';
+import '../../../models/notification_user.dart';
+import '../../../models/user.dart';
 import '../../../utiliies/sharedprefs.dart';
 import '../Ifirestore_provider.dart';
 
@@ -54,52 +56,52 @@ class FireStoreProvider implements StoreProvider {
 
   @override
   Future<void> updateEvent(Event event) async {
-  try {
-    User? currentUser = await getCurrentUser();
-    if (currentUser == null) {
-      throw UserNotFoundAuthException();
-    }
+    try {
+      User? currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        throw UserNotFoundAuthException();
+      }
 
-    String userId = currentUser.id;
+      String userId = currentUser.id;
 
-    CollectionReference userCollection =
-        FirebaseFirestore.instance.collection('users');
+      CollectionReference userCollection =
+          FirebaseFirestore.instance.collection('users');
 
-    DocumentReference userRef = userCollection.doc(userId);
+      DocumentReference userRef = userCollection.doc(userId);
 
-    DocumentSnapshot userSnapshot = await userRef.get();
+      DocumentSnapshot userSnapshot = await userRef.get();
 
-    if (userSnapshot.exists) {
-      Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+      if (userSnapshot.exists) {
+        Map<String, dynamic> userData =
+            userSnapshot.data() as Map<String, dynamic>;
 
-      List<dynamic>? events = userData['events'];
+        List<dynamic>? events = userData['events'];
 
-      if (events != null) {
-        // Find the event with the matching ID
-        int eventIndex = events.indexWhere((e) => e['id'] == event.id);
+        if (events != null) {
+          // Find the event with the matching ID
+          int eventIndex = events.indexWhere((e) => e['id'] == event.id);
 
-        if (eventIndex != -1) {
-          // Update the event object in the list
-          events[eventIndex] = event.toMap();
+          if (eventIndex != -1) {
+            // Update the event object in the list
+            events[eventIndex] = event.toMap();
 
-          // Update the events field in the user document
-          await userRef.update({'events': events});
+            // Update the events field in the user document
+            await userRef.update({'events': events});
 
-          return;
+            return;
+          } else {
+            throw EventNotFoundException();
+          }
         } else {
           throw EventNotFoundException();
         }
       } else {
-        throw EventNotFoundException();
+        throw UserNotFoundException();
       }
-    } else {
-      throw UserNotFoundException();
+    } catch (error) {
+      throw Exception('Error updating event in Firestore: $error');
     }
-  } catch (error) {
-    throw Exception('Error updating event in Firestore: $error');
   }
-}
-
 
 /** the removeEvent method fetches the user's document from Firestore, removes the event from the updatedEvents list, and then updates the events field in the Firestore document with the updated event list. */
   @override
@@ -134,5 +136,31 @@ class FireStoreProvider implements StoreProvider {
     }
 
     return []; // Return an empty list if no update was performed
+  }
+
+  @override
+  Future<void> addNotification(User user, NotificationUser notification) async {
+    try {
+      CollectionReference userCollection =
+          FirebaseFirestore.instance.collection('users');
+
+      QuerySnapshot userQuerySnapshot =
+          await userCollection.where('id', isEqualTo: user.id).limit(1).get();
+
+      if (userQuerySnapshot.docs.isNotEmpty) {
+        DocumentReference userRef = userQuerySnapshot.docs.first.reference;
+
+        // Update the user's notifications field
+        await userRef.update({
+          '_notifications': FieldValue.arrayUnion([notification.toJson()])
+        });
+
+        print('Notification added successfully');
+      } else {
+        print('User not found');
+      }
+    } catch (e) {
+      print('Error adding notification: $e');
+    }
   }
 }
