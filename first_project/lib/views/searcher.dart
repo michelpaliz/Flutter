@@ -21,12 +21,17 @@ class _SearcherState extends State<Searcher> {
   String groupName = '';
   List<String> selectedUsers = [];
   List<User> userInGroup = []; // List to store selected users
-  // There is a Firestore collection named 'users' containing user documents with 'name' field.
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
   String? clickedUser;
   StoreService storeService =
       StoreService.firebase(); // Create an instance of StoreService
+
+  void main() {
+    runApp(MaterialApp(
+      home: Searcher(),
+    ));
+  }
 
   //** LOGIC FOR THE VIEW */
   /** Search a user by inserting his name */
@@ -63,9 +68,10 @@ class _SearcherState extends State<Searcher> {
         final user = User.fromJson(userData);
 
         setState(() {
-          selectedUsers.add(user.name);
-          userInGroup.add(
-              user); // Store the complete User object in the userInGroup list
+          if (!selectedUsers.contains(user.name)) {
+            selectedUsers.add(user.name);
+            userInGroup.add(user);
+          }
         });
 
         print('User added: $user');
@@ -370,10 +376,4 @@ class _SearcherState extends State<Searcher> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: Searcher(),
-  ));
 }
