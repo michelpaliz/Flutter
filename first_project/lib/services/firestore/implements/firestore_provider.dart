@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_project/models/group.dart';
 
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
@@ -13,6 +14,8 @@ import '../Ifirestore_provider.dart';
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FireStoreProvider implements StoreProvider {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
   @override
   Future<String> uploadPersonToFirestore({
     required User person,
@@ -163,4 +166,18 @@ class FireStoreProvider implements StoreProvider {
       print('Error adding notification: $e');
     }
   }
+
+@override
+Future<void> addGroup(Group group) async {
+  final groupData = {
+    'groupName': group.groupName,
+    'ownerId': group.ownerId,
+    'userRoles': group.userRoles,
+    'calendar': group.calendar?.toJson(), // Serialize Calendar to JSON
+    'users': group.users.map((user) => user.toJson()).toList(), // Serialize each user to JSON
+  };
+
+  await _firestore.collection('groups').doc(group.id).set(groupData);
+}
+
 }

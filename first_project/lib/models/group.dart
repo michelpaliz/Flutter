@@ -1,4 +1,3 @@
-
 import 'package:first_project/models/user.dart';
 
 import 'calendar.dart';
@@ -8,9 +7,9 @@ class Group {
   final String groupName;
   final String? ownerId; // ID of the group owner
   final Map<String, String> userRoles; // Map of user IDs to their roles
-final Calendar? calendar; // Shared calendar for the group
+  final Calendar? calendar; // Shared calendar for the group
   List<User> users;
-   // List of users in the group
+  // List of users in the group
 
   Group({
     required this.id,
@@ -48,8 +47,14 @@ final Calendar? calendar; // Shared calendar for the group
       'groupName': groupName,
       'ownerId': ownerId,
       'userRoles': userRoles,
-      // 'calendar': calendar?.toJson(),
+      'calendar': calendar?.toJson(),
       'users': usersJson,
     };
+  }
+
+  @override
+  String toString() {
+    final userNames = users.map((user) => user.name).join(', ');
+    return 'Group(groupName: $groupName, users: $userNames)';
   }
 }

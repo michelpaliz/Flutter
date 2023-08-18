@@ -1,3 +1,4 @@
+import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firestore/implements/firestore_provider.dart';
@@ -30,4 +31,7 @@ class StoreService extends StoreProvider {
 
   @override
   Future<void> addNotification(User user, NotificationUser notification) => provider.addNotification(user, notification);
+
+  @override
+  Future<void> addGroup(Group group) => provider.addGroup(group);
 }

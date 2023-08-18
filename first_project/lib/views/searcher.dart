@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../models/calendar.dart';
 import '../models/group.dart';
 import '../models/notification_user.dart';
@@ -106,14 +107,21 @@ class _SearcherState extends State<Searcher> {
       return;
     }
 
+    //** CREATING THE GROUP FOR THE MEMBERS */
     // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
     String groupId = UniqueKey().toString();
 
+    // Generate a random ID using Firestore
+    final uuid = Uuid();
+    final randomId = uuid.v4();
+
     // Create an instance of the Calendar class or any other logic required to initialize the calendar.
-    Calendar? calendar = null;  // Assuming Calendar is defined elsewhere.
-    
+    Calendar? calendar = new Calendar(randomId, groupName,
+        events: null); // Assuming Calendar is defined elsewhere.
+
     // Call getCurrentUserAsCustomeModel to populate _currentUser
-    User? currentUser = await AuthService.firebase().getCurrentUserAsCustomeModel();
+    User? currentUser =
+        await AuthService.firebase().getCurrentUserAsCustomeModel();
 
     String? ownerId = currentUser?.id;
 
@@ -125,28 +133,30 @@ class _SearcherState extends State<Searcher> {
       userRoles[userId] = 'member';
     }
 
+    //** THIS WAS FOR THE PREVIOUS LOGIC WHEN WE WANTED TO SELECT AN SPECIFIC USER FOR THE CALENDAR */
+
     // Search for the user document in Firestore using their name (selectedUser)
-    DocumentSnapshot? userSnapshot = await getUserFromName(clickedUser!);
+    // DocumentSnapshot? userSnapshot = await getUserFromName(clickedUser!);
 
-    // Make sure the user with the given name exists in the Firestore database
-    if (!userSnapshot!.exists) {
-      // Show a SnackBar with an error message indicating the user was not found
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Selected user not found in the database'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
+    // // Make sure the user with the given name exists in the Firestore database
+    // if (!userSnapshot!.exists) {
+    //   // Show a SnackBar with an error message indicating the user was not found
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Selected user not found in the database'),
+    //       duration: Duration(seconds: 2),
+    //     ),
+    //   );
+    //   return;
+    // }
 
-    // Get the user data from the userSnapshot and convert it to the desired object
-    Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+    // // Get the user data from the userSnapshot and convert it to the desired object
+    // Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
 
-    // Create a User object with the retrieved data
-    User selectedUser = User.fromJson(userData);
+    // // Create a User object with the retrieved data
+    // User selectedUser = User.fromJson(userData);
 
-    print('SelectedUser: ${selectedUser.toString()}');
+    // print('SelectedUser: ${selectedUser.toString()}');
 
     // Create the group object with the appropriate attributes
     Group group = Group(
@@ -161,7 +171,7 @@ class _SearcherState extends State<Searcher> {
     // Create the notification message for the group
     String notificationMessage =
         '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
-    
+
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
       NotificationUser notification = NotificationUser(
@@ -173,9 +183,14 @@ class _SearcherState extends State<Searcher> {
 
       storeService.addNotification(user,
           notification); // Add the notification to the user's notifications list
-        
-      // await storeService.updateUser(user);
     }
+
+    //** UPLOAD THE GROUP CREATED TO FIRESTORE */
+    storeService.addGroup(group);
+    // Show a success message using a SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Group created successfully!')),
+    );
 
     print('Creating group: ${userInGroup.toString()}');
   }
@@ -200,19 +215,19 @@ class _SearcherState extends State<Searcher> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text(
-            "Who is going to share the calendar for the group?",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue, // Change the text color to blue
-            ),
-          ),
-        ),
-        SizedBox(height: 10),
+        // Padding(
+        //   padding: const EdgeInsets.all(20.0),
+        //   child: Text(
+        //     "Who is going to share the calendar for the group?",
+        //     textAlign: TextAlign.center,
+        //     style: TextStyle(
+        //       fontSize: 16,
+        //       fontWeight: FontWeight.bold,
+        //       color: Colors.blue, // Change the text color to blue
+        //     ),
+        //   ),
+        // ),
+        // SizedBox(height: 10),
         Container(
           height: 80,
           child: ListView.builder(
@@ -236,12 +251,14 @@ class _SearcherState extends State<Searcher> {
                     child: Text(
                       user,
                       style: TextStyle(
-                        color: clickedUser == user
-                            ? Color.fromARGB(255, 22, 245, 252)
-                            : Color.fromARGB(255, 49, 45, 255),
-                        fontWeight: clickedUser == user
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                        color: Color.fromARGB(255, 22, 245, 252),
+                        fontWeight: FontWeight.bold,
+                        // color: clickedUser == user
+                        //     ? Color.fromARGB(255, 22, 245, 252)
+                        //     : Color.fromARGB(255, 49, 45, 255),
+                        // fontWeight: clickedUser == user
+                        //     ? FontWeight.bold
+                        //     : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -250,31 +267,31 @@ class _SearcherState extends State<Searcher> {
             },
           ),
         ),
-        SizedBox(height: 20),
-        if (clickedUser != null) ...[
-          // Display the clicked user below the list
-          Center(
-            child: Column(
-              children: [
-                // Display the clicked user below the list
-                Text(
-                  "This is the one you chose: $clickedUser",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 15),
-                // ElevatedButton(
-                //   onPressed: () {
-                //     // You can perform some action related to the clicked user here if needed
-                //   },
-                //   child: Text("Do something with $clickedUser"),
-                // ),
-              ],
-            ),
-          ),
-        ],
+        // SizedBox(height: 20),
+        // if (clickedUser != null) ...[
+        //   // Display the clicked user below the list
+        //   Center(
+        //     child: Column(
+        //       children: [
+        //         // Display the clicked user below the list
+        //         Text(
+        //           "This is the one you chose: $clickedUser",
+        //           style: TextStyle(
+        //             fontSize: 16,
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //         ),
+        //         SizedBox(height: 15),
+        //         // ElevatedButton(
+        //         //   onPressed: () {
+        //         //     // You can perform some action related to the clicked user here if needed
+        //         //   },
+        //         //   child: Text("Do something with $clickedUser"),
+        //         // ),
+        //       ],
+        //     ),
+        //   ),
+        // ],
       ],
     );
   }
@@ -335,6 +352,7 @@ class _SearcherState extends State<Searcher> {
 
           // Display the selected users in the horizontal list
           buildSelectedUsersList(),
+          SizedBox(height: 15),
 
           Center(
             child: Padding(
