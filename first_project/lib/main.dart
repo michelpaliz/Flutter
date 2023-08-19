@@ -5,6 +5,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_note.dart';
+import 'package:first_project/views/create_group.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_note_screen.dart';
 import 'package:first_project/views/login_view.dart';
@@ -50,7 +51,8 @@ class MyApp extends StatelessWidget {
         addNote: (context) => EventNoteWidget(),
         editNote: (context) => EditNoteScreen(),
         dashboard:(context) => Dashboard(),
-        searcher: (context) => Searcher()
+        searcher: (context) => Searcher(),
+        // createGroup: (context) => CreateGroup(groupMembers: [],)
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),
     );

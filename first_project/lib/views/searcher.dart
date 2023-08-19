@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_project/views/create_group.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/calendar.dart';
@@ -26,6 +27,8 @@ class _SearcherState extends State<Searcher> {
   String? clickedUser;
   StoreService storeService =
       StoreService.firebase(); // Create an instance of StoreService
+  String? selectedPickerRule;
+  Map<String, String> userRoles = {}; // Map to store user roles
 
   void main() {
     runApp(MaterialApp(
@@ -139,31 +142,6 @@ class _SearcherState extends State<Searcher> {
       userRoles[userId] = 'member';
     }
 
-    //** THIS WAS FOR THE PREVIOUS LOGIC WHEN WE WANTED TO SELECT AN SPECIFIC USER FOR THE CALENDAR */
-
-    // Search for the user document in Firestore using their name (selectedUser)
-    // DocumentSnapshot? userSnapshot = await getUserFromName(clickedUser!);
-
-    // // Make sure the user with the given name exists in the Firestore database
-    // if (!userSnapshot!.exists) {
-    //   // Show a SnackBar with an error message indicating the user was not found
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text('Selected user not found in the database'),
-    //       duration: Duration(seconds: 2),
-    //     ),
-    //   );
-    //   return;
-    // }
-
-    // // Get the user data from the userSnapshot and convert it to the desired object
-    // Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
-
-    // // Create a User object with the retrieved data
-    // User selectedUser = User.fromJson(userData);
-
-    // print('SelectedUser: ${selectedUser.toString()}');
-
     // Create the group object with the appropriate attributes
     Group group = Group(
       id: groupId,
@@ -221,158 +199,171 @@ class _SearcherState extends State<Searcher> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Padding(
-        //   padding: const EdgeInsets.all(20.0),
-        //   child: Text(
-        //     "Who is going to share the calendar for the group?",
-        //     textAlign: TextAlign.center,
-        //     style: TextStyle(
-        //       fontSize: 16,
-        //       fontWeight: FontWeight.bold,
-        //       color: Colors.blue, // Change the text color to blue
-        //     ),
-        //   ),
-        // ),
-        // SizedBox(height: 10),
-        Container(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: selectedUsers.length,
-            itemBuilder: (context, index) {
-              final user = selectedUsers[index];
-              return GestureDetector(
-                onTap: () {
-                  // Update the clickedUser when a user is clicked
-                  setState(() {
-                    clickedUser = user;
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CircleAvatar(
-                    // backgroundImage: AssetImage(
-                    //     'path/to/avatar.png'), // Replace with the actual avatar image
-                    radius: 30,
-                    child: Text(
-                      user,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 22, 245, 252),
-                        fontWeight: FontWeight.bold,
-                        // color: clickedUser == user
-                        //     ? Color.fromARGB(255, 22, 245, 252)
-                        //     : Color.fromARGB(255, 49, 45, 255),
-                        // fontWeight: clickedUser == user
-                        //     ? FontWeight.bold
-                        //     : FontWeight.normal,
-                      ),
-                    ),
+        if (selectedUsers.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 5),
+              Center(
+                child: Text(
+                  "THESE ARE THE USERS SELECTED",
+                  style: TextStyle(
+                    fontSize: 16,
                   ),
                 ),
-              );
-            },
+              ),
+              SizedBox(height: 5),
+              Padding(
+                padding:
+                    const EdgeInsets.all(8.0), // Add padding around the list
+                child: ListView.builder(
+                  shrinkWrap: true, // Set shrinkWrap to true
+                  itemCount: selectedUsers.length,
+                  itemBuilder: (context, index) {
+                    final selectedUser = selectedUsers[index];
+                    final userRole = userRoles[selectedUser] ?? 'member';
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedUser,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          DropdownButton<String>(
+                            value: userRole,
+                            items: <DropdownMenuItem<String>>[
+                              DropdownMenuItem<String>(
+                                value: 'administrator',
+                                child: Text('Administrator'),
+                              ),
+                              DropdownMenuItem<String>(
+                                value: 'co-administrator',
+                                child: Text('Co-Administrator'),
+                              ),
+                              DropdownMenuItem<String>(
+                                value: 'member',
+                                child: Text('Member'),
+                              ),
+                            ],
+                            onChanged: (newValue) {
+                              setState(() {
+                                userRoles[selectedUser] = newValue!;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          )
+        else
+          Center(
+            child: Text(
+              "No users selected.",
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
           ),
-        ),
-        // SizedBox(height: 20),
-        // if (clickedUser != null) ...[
-        //   // Display the clicked user below the list
-        //   Center(
-        //     child: Column(
-        //       children: [
-        //         // Display the clicked user below the list
-        //         Text(
-        //           "This is the one you chose: $clickedUser",
-        //           style: TextStyle(
-        //             fontSize: 16,
-        //             fontWeight: FontWeight.bold,
-        //           ),
-        //         ),
-        //         SizedBox(height: 15),
-        //         // ElevatedButton(
-        //         //   onPressed: () {
-        //         //     // You can perform some action related to the clicked user here if needed
-        //         //   },
-        //         //   child: Text("Do something with $clickedUser"),
-        //         // ),
-        //       ],
-        //     ),
-        //   ),
-        // ],
       ],
     );
   }
 
+  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('User Search'),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              onChanged: (value) => groupName = value,
-              decoration: InputDecoration(
-                labelText: 'Enter group name',
-                border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        // Wrap the content in a SingleChildScrollView
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                onChanged: (value) => groupName = value,
+                decoration: InputDecoration(
+                  labelText: 'Enter group name',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              onChanged: (value) => searchUser(value),
-              decoration: InputDecoration(
-                labelText: 'Search for a person',
-                border: OutlineInputBorder(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                onChanged: (value) => searchUser(value),
+                decoration: InputDecoration(
+                  labelText: 'Search for a person',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: searchResults.length,
-              itemBuilder: (context, index) {
-                final user = searchResults[index];
-                return ListTile(
-                  title: Text(user),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: searchResults.map((user) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
                     children: [
+                      Expanded(
+                        child: Text(user),
+                      ),
                       IconButton(
-                        onPressed: () => addUser(user),
+                        onPressed: () {
+                          setState(() {
+                            clickedUser = user;
+                          });
+                          addUser(user); // Call the addUser function here
+                        },
                         icon: Icon(Icons.add),
                       ),
                       IconButton(
-                        onPressed: () => removeUser(user),
+                        onPressed: () {
+                          setState(() {
+                            clickedUser =
+                                null; // Reset clickedUser when removing the user
+                          });
+                          removeUser(user); // Call the removeUser function here
+                        },
                         icon: Icon(Icons.remove),
                       ),
                     ],
                   ),
                 );
-              },
+              }).toList(),
             ),
-          ),
 
-          // Display the selected users in the horizontal list
-          buildSelectedUsersList(),
-          SizedBox(height: 15),
+            // Display the selected users in the horizontal list
+            buildSelectedUsersList(),
+            SizedBox(height: 5),
 
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ElevatedButton(
-                onPressed: () {
-                  creatingGroup();
-                },
-                child: Text("Create Group"),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ElevatedButton(
+                  onPressed: () {
+                    creatingGroup();
+                    // navigateToNextView(userInGroup);
+                  },
+                  child: Text("Create Group"),
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -6,3 +6,4 @@ const addNote = '/add-note';
 const editNote = '/edit-note';
 const dashboard = '/dashboard';
 const searcher = '/searcher';
+const createGroup= '/create-group';
