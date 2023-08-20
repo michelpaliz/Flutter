@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/views/create_group.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/calendar.dart';
@@ -29,11 +28,32 @@ class _SearcherState extends State<Searcher> {
       StoreService.firebase(); // Create an instance of StoreService
   String? selectedPickerRule;
   Map<String, String> userRoles = {}; // Map to store user roles
+  List<String> newGroupIds = [];
+  User? currentUser = null;
 
   void main() {
     runApp(MaterialApp(
       home: Searcher(),
     ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Call getCurrentUserAsCustomeModel to populate currentUser
+    AuthService.firebase()
+        .getCurrentUserAsCustomeModel()
+        .then((User? fetchedUser) {
+      if (fetchedUser != null) {
+        setState(() {
+          currentUser = fetchedUser; // Populate the currentUser variable
+          userInGroup = [currentUser!]; // Add the current user to the list
+          selectedUsers = [
+            currentUser!.name
+          ]; // Add the current user name to the list view
+        });
+      }
+    });
   }
 
   //** LOGIC FOR THE VIEW */
@@ -53,6 +73,35 @@ class _SearcherState extends State<Searcher> {
       });
     } catch (e) {
       print('Error searching for users: $e');
+    }
+  }
+
+  /** Remove the user using the index of the list  */
+  void removeUser(String user) {
+    // Check if the user is the current user before attempting to remove
+    if (user == currentUser?.name) {
+      print('Cannot remove current user: $user');
+      // Show a message to the user that they cannot remove themselves
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You cannot remove yourself from the group.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Find the index of the User object in the userInGroup list that matches the username
+    int indexToRemove = userInGroup.indexWhere((u) => u.name == user);
+
+    if (indexToRemove != -1) {
+      setState(() {
+        userInGroup.removeAt(indexToRemove);
+        selectedUsers.remove(user);
+      });
+      print('Remove user: $user');
+    } else {
+      print('User not found in the group: $user');
     }
   }
 
@@ -87,22 +136,6 @@ class _SearcherState extends State<Searcher> {
     }
   }
 
-  /** Remove the user using the index of the list  */
-  void removeUser(String user) {
-    // Find the index of the User object in the userInGroup list that matches the username
-    int indexToRemove = userInGroup.indexWhere((u) => u.name == user);
-
-    if (indexToRemove != -1) {
-      setState(() {
-        userInGroup.removeAt(indexToRemove);
-        selectedUsers.remove(user);
-      });
-      print('Remove user: $user');
-    } else {
-      print('User not found in the group: $user');
-    }
-  }
-
   /** Create the group, just insert the name for the group */
   void creatingGroup() async {
     if (groupName.trim().isEmpty) {
@@ -128,29 +161,18 @@ class _SearcherState extends State<Searcher> {
     Calendar? calendar = new Calendar(randomId, groupName,
         events: null); // Assuming Calendar is defined elsewhere.
 
-    // Call getCurrentUserAsCustomeModel to populate _currentUser
-    User? currentUser =
-        await AuthService.firebase().getCurrentUserAsCustomeModel();
-
-    String? ownerId = currentUser?.id;
-
-    // Create the userRoles map and assign the group owner to the 'owner' role
-    Map<String, String> userRoles = {};
-
-    // Assign other selected users to the 'member' role in the userRoles map
-    for (String userId in selectedUsers) {
-      userRoles[userId] = 'member';
-    }
-
     // Create the group object with the appropriate attributes
     Group group = Group(
       id: groupId,
       groupName: groupName,
-      ownerId: ownerId,
+      ownerId: currentUser?.id,
       userRoles: userRoles,
       calendar: calendar,
       users: userInGroup, // Include the list of users in the group
     );
+
+    //We add the group ID to the user list of ids
+    newGroupIds.add(group.id);
 
     // Create the notification message for the group
     String notificationMessage =
@@ -164,7 +186,7 @@ class _SearcherState extends State<Searcher> {
         timestamp:
             DateTime.now(), // Use the current timestamp for the notification
       );
-
+      user.groupIds = newGroupIds;
       storeService.addNotification(user,
           notification); // Add the notification to the user's notifications list
     }
@@ -175,8 +197,6 @@ class _SearcherState extends State<Searcher> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Group created successfully!')),
     );
-
-    print('Creating group: ${userInGroup.toString()}');
   }
 
   //TODO: Move this function to the server side
@@ -350,16 +370,16 @@ class _SearcherState extends State<Searcher> {
             buildSelectedUsersList(),
             SizedBox(height: 5),
 
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ElevatedButton(
-                  onPressed: () {
-                    creatingGroup();
-                    // navigateToNextView(userInGroup);
-                  },
-                  child: Text("Create Group"),
-                ),
+            // "Create Group" button centered at the bottom
+            Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: ElevatedButton(
+                onPressed: () {
+                  creatingGroup();
+                  // navigateToNextView(userInGroup);
+                },
+                child: Text("Create Group"),
               ),
             ),
           ],
