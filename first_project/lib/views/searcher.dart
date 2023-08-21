@@ -192,7 +192,7 @@ class _SearcherState extends State<Searcher> {
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
       NotificationUser notification = NotificationUser(
-        id: UniqueKey().toString(),
+        id: groupId,
         message: notificationMessage,
         timestamp: DateTime.now(),
       );
