@@ -13,4 +13,7 @@ abstract class StoreProvider {
   Future<void> updateEvent(Event event);
   Future<void> addNotification(User user, NotificationUser notification);
   Future<void> addGroup(Group group);
+  Future<void> updateGroup(Group group);
+  Future<void> getGroupFromId(String groupId);
+  Future<void> updateUserInGroups(User user);
 }

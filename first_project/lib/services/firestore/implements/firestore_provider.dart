@@ -15,7 +15,7 @@ import '../Ifirestore_provider.dart';
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FireStoreProvider implements StoreProvider {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   @override
   Future<String> uploadPersonToFirestore({
     required User person,
@@ -47,6 +47,11 @@ class FireStoreProvider implements StoreProvider {
         DocumentReference userRef = userQuerySnapshot.docs.first.reference;
 
         await userRef.update(user.toJson()); // Update the user document
+
+        //We update the user in his groups
+        if (user.groupIds != null && user.groupIds!.isNotEmpty) {
+          updateUserInGroups(user);
+        }
 
         return 'User has been updated';
       }
@@ -147,37 +152,93 @@ class FireStoreProvider implements StoreProvider {
       CollectionReference userCollection =
           FirebaseFirestore.instance.collection('users');
 
-      QuerySnapshot userQuerySnapshot =
-          await userCollection.where('id', isEqualTo: user.id).limit(1).get();
+      DocumentReference userRef =
+          userCollection.doc(user.id); // Use the user's ID directly
 
-      if (userQuerySnapshot.docs.isNotEmpty) {
-        DocumentReference userRef = userQuerySnapshot.docs.first.reference;
+      // Update the user's notifications field
+      await userRef.update({
+        '_notifications': FieldValue.arrayUnion([notification.toJson()])
+      });
 
-        // Update the user's notifications field
-        await userRef.update({
-          '_notifications': FieldValue.arrayUnion([notification.toJson()])
-        });
+      print('Notification added successfully');
 
-        print('Notification added successfully');
-      } else {
-        print('User not found');
-      }
+      //We update the user in his groups
+      updateUserInGroups(user);
     } catch (e) {
       print('Error adding notification: $e');
     }
   }
 
-@override
-Future<void> addGroup(Group group) async {
-  final groupData = {
-    'groupName': group.groupName,
-    'ownerId': group.ownerId,
-    'userRoles': group.userRoles,
-    'calendar': group.calendar?.toJson(), // Serialize Calendar to JSON
-    'users': group.users.map((user) => user.toJson()).toList(), // Serialize each user to JSON
-  };
+  @override
+  Future<void> addGroup(Group group) async {
+    final groupData = {
+      'id': group.id,
+      'groupName': group.groupName,
+      'ownerId': group.ownerId,
+      'userRoles': group.userRoles,
+      'calendar': group.calendar?.toJson(), // Serialize Calendar to JSON
+      'users': group.users
+          .map((user) => user.toJson())
+          .toList(), // Serialize each user to JSON
+    };
 
-  await _firestore.collection('groups').doc(group.id).set(groupData);
-}
+    await _firestore.collection('groups').doc(group.id).set(groupData);
+  }
 
+  @override
+  Future<void> updateGroup(Group group) async {
+    final groupData = {
+      'groupName': group.groupName,
+      'ownerId': group.ownerId,
+      'userRoles': group.userRoles,
+      'calendar': group.calendar?.toJson(), // Serialize Calendar to JSON
+      'users': group.users
+          .map((user) => user.toJson())
+          .toList(), // Serialize each user to JSON
+    };
+
+    // Get a reference to the document you want to update
+    final groupReference = _firestore.collection('groups').doc(group.id);
+
+    // Update the document with the new data
+    await groupReference.update(groupData);
+  }
+
+  @override
+  Future<Group?> getGroupFromId(String groupId) async {
+    try {
+      DocumentSnapshot groupSnapshot = await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .get();
+
+      if (groupSnapshot.exists) {
+        return Group.fromJson(groupSnapshot.data()! as Map<String, dynamic>);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching group: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> updateUserInGroups(User user) async {
+    // Iterate through the user's group IDs and update each group's user list
+    if (user.groupIds != null) {
+      for (String groupId in user.groupIds!) {
+        Group? group = await getGroupFromId(
+            groupId); // Replace with your logic to fetch the group
+        if (group != null) {
+          int userIndex = group.users.indexWhere((u) => u.id == user.id);
+          if (userIndex != -1) {
+            group.users[userIndex] = user;
+            await updateGroup(
+                group); // Replace with your logic to update the group
+          }
+        }
+      }
+    }
+  }
 }

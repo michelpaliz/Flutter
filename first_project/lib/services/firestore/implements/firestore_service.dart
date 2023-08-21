@@ -34,4 +34,15 @@ class StoreService extends StoreProvider {
 
   @override
   Future<void> addGroup(Group group) => provider.addGroup(group);
+  
+  @override
+  Future<void> updateGroup(Group group) => provider.updateGroup(group);
+  
+  @override
+  Future<void> getGroupFromId(String groupId) => provider.getGroupFromId(groupId);
+  
+  @override
+  Future<void> updateUserInGroups(User user) => provider.updateUserInGroups(user);
+
+  
 }

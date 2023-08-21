@@ -26,9 +26,7 @@ class _SearcherState extends State<Searcher> {
   String? clickedUser;
   StoreService storeService =
       StoreService.firebase(); // Create an instance of StoreService
-  String? selectedPickerRule;
   Map<String, String> userRoles = {}; // Map to store user roles
-  List<String> newGroupIds = [];
   User? currentUser = null;
 
   void main() {
@@ -46,11 +44,11 @@ class _SearcherState extends State<Searcher> {
         .then((User? fetchedUser) {
       if (fetchedUser != null) {
         setState(() {
-          currentUser = fetchedUser; // Populate the currentUser variable
-          userInGroup = [currentUser!]; // Add the current user to the list
-          selectedUsers = [
-            currentUser!.name
-          ]; // Add the current user name to the list view
+          currentUser = fetchedUser;
+          userInGroup = [currentUser!];
+          selectedUsers = [currentUser!.name];
+          // Set the default role to administrator for the current user
+          userRoles[currentUser!.name] = 'Administrator';
         });
       }
     });
@@ -171,32 +169,36 @@ class _SearcherState extends State<Searcher> {
       users: userInGroup, // Include the list of users in the group
     );
 
-    //We add the group ID to the user list of ids
-    newGroupIds.add(group.id);
-
-    // Create the notification message for the group
-    String notificationMessage =
-        '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
-
-    // Add a new notification for each user in the group
-    for (User user in userInGroup) {
-      NotificationUser notification = NotificationUser(
-        id: UniqueKey().toString(), // Generate a unique ID for the notification
-        message: notificationMessage,
-        timestamp:
-            DateTime.now(), // Use the current timestamp for the notification
-      );
-      user.groupIds = newGroupIds;
-      storeService.addNotification(user,
-          notification); // Add the notification to the user's notifications list
-    }
-
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
     storeService.addGroup(group);
     // Show a success message using a SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Group created successfully!')),
     );
+
+    //** AFTER CREATING THE GROUP WE PROCEED TO MAKE THE FOLLOWING UPDATES */
+
+    // Create the notification message for the group
+    String notificationMessage =
+        '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
+
+    // We update first the groupsId that the user has joined
+
+    for (User user in userInGroup) {
+      user.groupIds?.add(groupId);
+      await storeService.updateUser(user);
+    }
+
+    // Add a new notification for each user in the group
+    for (User user in userInGroup) {
+      NotificationUser notification = NotificationUser(
+        id: UniqueKey().toString(),
+        message: notificationMessage,
+        timestamp: DateTime.now(),
+      );
+      user.notifications.add(notification);
+      await storeService.updateUser(user);
+    }
   }
 
   //TODO: Move this function to the server side
@@ -234,10 +236,9 @@ class _SearcherState extends State<Searcher> {
               ),
               SizedBox(height: 5),
               Padding(
-                padding:
-                    const EdgeInsets.all(8.0), // Add padding around the list
+                padding: const EdgeInsets.all(8.0),
                 child: ListView.builder(
-                  shrinkWrap: true, // Set shrinkWrap to true
+                  shrinkWrap: true,
                   itemCount: selectedUsers.length,
                   itemBuilder: (context, index) {
                     final selectedUser = selectedUsers[index];
@@ -255,28 +256,85 @@ class _SearcherState extends State<Searcher> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          DropdownButton<String>(
-                            value: userRole,
-                            items: <DropdownMenuItem<String>>[
-                              DropdownMenuItem<String>(
-                                value: 'administrator',
-                                child: Text('Administrator'),
+                          if (selectedUser == currentUser!.name)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              margin: EdgeInsets.only(right: 15),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(5),
                               ),
-                              DropdownMenuItem<String>(
-                                value: 'co-administrator',
-                                child: Text('Co-Administrator'),
+                              child: Text(
+                                userRole,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              DropdownMenuItem<String>(
-                                value: 'member',
-                                child: Text('Member'),
+                            )
+                          else
+                            DropdownButton<String>(
+                              value: userRole,
+                              icon: Icon(
+                                  Icons.arrow_drop_down), // Adjust the icon
+                              iconSize: 24,
+                              elevation: 16,
+                              style: TextStyle(color: Colors.black),
+                              underline: Container(
+                                height: 2,
+                                color: Colors.black,
                               ),
-                            ],
-                            onChanged: (newValue) {
-                              setState(() {
-                                userRoles[selectedUser] = newValue!;
-                              });
-                            },
-                          ),
+                              items: [
+                                DropdownMenuItem<String>(
+                                  value: 'Administrator',
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                          right: 10), // Add right margin
+                                      child: Text(
+                                        'Administrator',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'co-administrator',
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                          right: 10), // Add right margin
+                                      child: Text(
+                                        'Co-Administrator',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                DropdownMenuItem<String>(
+                                  value: 'member',
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                          right: 10), // Add right margin
+                                      child: Text(
+                                        'Member',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (newValue) {
+                                setState(() {
+                                  userRoles[selectedUser] = newValue!;
+                                });
+                              },
+                            ),
                         ],
                       ),
                     );
@@ -298,7 +356,6 @@ class _SearcherState extends State<Searcher> {
     );
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
