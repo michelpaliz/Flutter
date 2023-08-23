@@ -1,4 +1,4 @@
-# first_project
+# AUTHOR NAME:
 
 CALENDAR BY MICHAEL PALIZ MORALES.
 
