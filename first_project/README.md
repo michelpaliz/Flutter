@@ -19,3 +19,17 @@ The calendar shows the events that the user wants to create
 ### Key features
 A person can have multiple calendars associated but it can be notified by one calendar
 
+## INITIAL VERSION OF THE CALENDAR APPLICATION  
+### 1. introduction (Date: 2023-08-01 to 2023-08-23)  
+The calendar itself has been created using a library from flutter and include Firestore to store the data of the calendar in this case we are talking about the events that a calendar posses. The events contains a time which is related of the time creation of the event.
+
+### 2. Menu features (Date: 2023-08-01 to 2023-08-23)
+The menu features are implemented in the calendar application, it contains a list of items, which are the following ones; Dashboard, NotesView, Settings and Log out.
+
+- **Dashboard**: It will display a list of the Groups created by the user and also provide the functionality to create a group. There is an icon in the right corner of the view that will provide notifications.
+- **NotesView**: This view display the default calendar that the user posses.
+- **Settings**: This view will provide a sets of settings for the user, it's not yet finished.
+- **Log out**: This view will provide a log out for the user.
+
+### 3. Functionality for creating a group  (Date: 2023-08-01 to 2023-08-23)
+This view will provide the functionality to create a group, to create a group, the user will need to put a name for the group, select the members for the group and specify the roles types for the group.
