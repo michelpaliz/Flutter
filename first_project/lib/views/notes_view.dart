@@ -382,7 +382,7 @@ class NotesViewState extends State<NotesView> {
                 User? user = await getCurrentUser();
                 if (user != null) {
                   user.events =
-                      eventsList?.where((e) => e.id != event.id).toList();
+                      eventsList!.where((e) => e.id != event.id).toList();
                   await storeService.updateUser(user);
                 }
 

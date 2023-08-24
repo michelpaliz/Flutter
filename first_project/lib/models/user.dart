@@ -8,15 +8,25 @@ class User {
   String _name;
   final String _email;
   String? _photoUrl;
-  List<Event>? _events;
-  List<String>? _groupIds;
+  List<Event> _events;
+  List<String> _groupIds;
   List<NotificationUser>? _notifications;
 
-  User(this._id, this._name, this._email, this._events,
-      {List<String>? groupIds, String? photoUrl, List<NotificationUser>? notifications})
-      : _groupIds = groupIds,
+  User({
+    required String id,
+    required String name,
+    required String email,
+    required List<Event> events,
+    required List<String> groupIds,
+    String? photoUrl,
+    List<NotificationUser>? notifications,
+  })  : _id = id,
+        _name = name,
+        _email = email,
+        _events = events,
+        _groupIds = groupIds,
         _photoUrl = photoUrl,
-        _notifications = notifications ?? []; // Initialize with an empty list if notifications is null
+        _notifications = notifications;
 
   String get id => _id;
 
@@ -27,13 +37,13 @@ class User {
 
   String get email => _email;
 
-  List<Event>? get events => _events;
-  set events(List<Event>? events) {
+  List<Event> get events => _events;
+  set events(List<Event> events) {
     _events = events;
   }
 
-  List<String>? get groupIds => _groupIds;
-  set groupIds(List<String>? groupIds) {
+  List<String> get groupIds => _groupIds;
+  set groupIds(List<String> groupIds) {
     _groupIds = groupIds;
   }
 
@@ -53,10 +63,10 @@ class User {
       'name': _name,
       'email': _email,
       'photoUrl': _photoUrl,
-      'events': _events?.map((event) => event.toMap()).toList(),
+      'events': _events.map((event) => event.toMap()).toList(),
       'groupIds':
           _groupIds, // Save the list of group IDs in the JSON representation
-      '_notifications':
+      'notifications':
           _notifications?.map((notification) => notification.toJson()).toList(),
     };
   }
@@ -64,61 +74,66 @@ class User {
   // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      json['id'] as String,
-      json['name'] as String,
-      json['email'] as String,
-      (json['events'] as List<dynamic>?)
-          ?.map((eventJson) => Event.fromJson(eventJson))
+      id: json['id'] as String,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      events: (json['events'] as List<dynamic>?)!
+          .map((eventJson) => Event.fromJson(eventJson))
           .toList(),
-      groupIds: (json['groupIds'] as List<dynamic>?)
-          ?.map((groupId) => groupId.toString())
+      groupIds: (json['groupIds'] as List<dynamic>?)!
+          .map((groupId) => groupId.toString())
           .toList(),
       photoUrl: json['photoUrl'] as String?,
+      notifications: (json['notifications'] as List<dynamic>?)
+          ?.map(
+              (notificationUser) => NotificationUser.fromJson(notificationUser))
+          .toList(),
     );
   }
 
   static Future<User> getUserByEmail(String email) async {
-  final firestore = FirebaseFirestore.instance;
+    final firestore = FirebaseFirestore.instance;
 
-  // Fetch the user document from Firestore using the email
-  final userSnapshot = await firestore
-      .collection('users')
-      .where('email', isEqualTo: email)
-      .limit(1)
-      .get();
+    final userSnapshot = await firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
 
-  if (userSnapshot.docs.isNotEmpty) {
-    // User document found, retrieve the user data
-    final userDocument = userSnapshot.docs.first;
-    final userData = userDocument.data();
+    if (userSnapshot.docs.isNotEmpty) {
+      final userDocument = userSnapshot.docs.first;
+      final userData = userDocument.data();
 
-    // Extract groupIds as List<String> from userData
-    final groupIds = (userData['groupIds'] as List<dynamic>)
-        ?.map((dynamic id) => id.toString())
-        .toList();
+      final groupIds = (userData['groupIds'] as List<dynamic>)
+          .map((dynamic id) => id.toString())
+          .toList();
 
-    // Create the User instance
-    return User(
-      userDocument.id,
-      userData['name'] ?? '',
-      email,
-      (userData['events'] as List<dynamic>?)
-          ?.map((eventJson) => Event.fromJson(eventJson))
-          .toList(),
-      groupIds: groupIds,
-    );
-  } else {
-    // User document not found, return a default User instance
-    return User(
-      '',
-      '',
-      email,
-      [], // Set events to an empty list or initialize it accordingly
-      groupIds: null, // Set groupIds to null or initialize it accordingly
-    );
+      final notifications = (userData['notifications'] as List<dynamic>?)
+          ?.map(
+              (notificationJson) => NotificationUser.fromJson(notificationJson))
+          .toList();
+
+      return User(
+        id: userDocument.id,
+        name: userData['name'] ?? '',
+        email: email,
+        events: (userData['events'] as List<dynamic>?)!
+            .map((eventJson) => Event.fromJson(eventJson))
+            .toList(),
+        groupIds: groupIds ?? [],
+        notifications: notifications,
+      );
+    } else {
+      return User(
+        id: '',
+        name: '',
+        email: email,
+        events: [],
+        groupIds: [],
+        notifications: [],
+      );
+    }
   }
-}
-
 
   static Future<User> fromFirebaseUser(firebase_auth.User firebaseUser) {
     return getUserByEmail(firebaseUser.email!);

@@ -36,8 +36,8 @@ class FirebaseAuthProvider implements AuthProvider {
         await user.updateProfile(displayName: user.uid);
 
         // Create a User object using the UID as the user ID
-        User person = User(user.uid, name, user.email!, null,
-            groupIds: null, notifications: null);
+        User person = User(id: user.uid, name: name, email: user.email!, photoUrl: '',
+            groupIds: [],events: [], notifications: []);
 
         // Upload the user object to Firestore using the UID as the document ID
         return await StoreService.firebase().uploadPersonToFirestore(

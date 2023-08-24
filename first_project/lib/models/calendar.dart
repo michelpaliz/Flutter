@@ -33,7 +33,7 @@ class Calendar {
       json['id'],
       json['name'],
       events: (json['events'] as List<dynamic>?)
-          !.map((eventJson) => Event.fromJson(eventJson))
+          ?.map((eventJson) => Event.fromJson(eventJson))
           .toList(),
     );
   }
