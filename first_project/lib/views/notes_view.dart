@@ -10,6 +10,7 @@ import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
 import '../models/user.dart';
+import '../services/auth/implements/auth_service.dart';
 import '../services/firestore/implements/firestore_service.dart';
 
 class NotesView extends StatefulWidget {
@@ -42,12 +43,16 @@ class NotesViewState extends State<NotesView> {
   }
 
   Future<void> _getEventsListFromUser() async {
-    User? user = await getCurrentUser();
-    eventsList = 
-    user?.events;
-    SharedPrefsUtils.storeUser(user!);
-    setState(() {
-      eventsList = user.events;
+    // User? user = await getCurrentUser();
+    AuthService.firebase()
+        .getCurrentUserAsCustomeModel()
+        .then((User? fetchedUser) {
+      if (fetchedUser != null) {
+        setState(() {
+          currentUser = fetchedUser;
+          eventsList = currentUser!.events;
+        });
+      }
     });
   }
 
