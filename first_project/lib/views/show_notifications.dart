@@ -74,23 +74,20 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   //** UI FOR THE VIEW */
 
+  DateTime parseTimestamp(String timestampString) {
+    return DateTime.parse(timestampString);
+  }
+
   @override
   Widget build(BuildContext context) {
     getCurrentUser();
-    currentUser?.notifications.sort((a, b) {
-      if (a.timestamp == null && b.timestamp == null) {
-        return 0; // Both are null, consider them equal
-      } else if (a.timestamp == null) {
-        return 1; // "a" is null, so "b" should come before
-      } else if (b.timestamp == null) {
-        return -1; // "b" is null, so "a" should come before
-      }
+    currentUser?.notifications
+      .sort((a, b) {
+        DateTime aTime = parseTimestamp(a.timestamp!.toString());
+        DateTime bTime = parseTimestamp(b.timestamp!.toString());
 
-      DateTime aTime = DateTime.parse(a.timestamp!);
-      DateTime bTime = DateTime.parse(b.timestamp!);
-
-      return bTime.compareTo(aTime);
-    });
+        return bTime.compareTo(aTime); // Compare DateTime objects
+      });
 
     return Scaffold(
       appBar: AppBar(

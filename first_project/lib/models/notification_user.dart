@@ -2,7 +2,7 @@ class NotificationUser {
   final String id;
   final String title;
   final String message;
-  final DateTime timestamp;
+  final DateTime _timestamp;
   final bool hasQuestion;
   final String question;
   bool isAnswered; // Add this field for storing whether the user answered
@@ -11,13 +11,19 @@ class NotificationUser {
     required this.id,
     required this.title,
     required this.message,
-    required this.timestamp,
+    required DateTime timestamp,
     this.hasQuestion = false,
     this.question = '',
     this.isAnswered = false, // Initialize the isAnswered field
-  });
+  }) : _timestamp = timestamp;
 
+  DateTime parseTimestamp(String timestampString) {
+    return DateTime.parse(timestampString);
+  }
 
+// Define a getter for timestamp
+  DateTime get timestamp => _timestamp;
+  
   factory NotificationUser.fromJson(Map<String, dynamic> json) {
     return NotificationUser(
       id: json['id'] ?? '',
@@ -35,7 +41,7 @@ class NotificationUser {
       'id': id,
       'title': title,
       'message': message,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': _timestamp.toIso8601String(),
       'hasQuestion': hasQuestion,
       'question': question,
       'isAnswered': isAnswered,
@@ -48,7 +54,7 @@ class NotificationUser {
         'id: $id, '
         'title: $title, '
         'message: $message, '
-        'timestamp: $timestamp, '
+        'timestamp: $_timestamp, '
         'hasQuestion: $hasQuestion, '
         'question: $question, '
         'isAnswered: $isAnswered)';
