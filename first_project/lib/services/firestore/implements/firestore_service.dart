@@ -43,6 +43,9 @@ class StoreService extends StoreProvider {
   
   @override
   Future<void> updateUserInGroups(User user) => provider.updateUserInGroups(user);
+  
+  @override
+  Future<void> addUserToGroup(User user, NotificationUser notification) => provider.addUserToGroup(user,notification);
 
   
 }

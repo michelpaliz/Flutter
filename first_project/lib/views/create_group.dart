@@ -147,7 +147,7 @@ class _CreateGroupState extends State<CreateGroup> {
       return;
     }
 
-    //** CREATING THE GROUP FOR THE MEMBERS */
+    //** CREATING THE GROUP*/
     // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
     String groupId = UniqueKey().toString();
 
@@ -159,6 +159,11 @@ class _CreateGroupState extends State<CreateGroup> {
     Calendar? calendar = new Calendar(randomId, groupName,
         events: null); // Assuming Calendar is defined elsewhere.
 
+    // We are gonna only add the current user to the group, the others would need to accept the group's notification.
+
+    List<User> users = [];
+    users.add(currentUser!);
+
     // Create the group object with the appropriate attributes
     Group group = Group(
       id: groupId,
@@ -166,7 +171,8 @@ class _CreateGroupState extends State<CreateGroup> {
       ownerId: currentUser?.id,
       userRoles: userRoles,
       calendar: calendar,
-      users: userInGroup, // Include the list of users in the group
+      // users: userInGroup, // Include the list of users in the group
+      users: users
     );
 
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
@@ -176,7 +182,7 @@ class _CreateGroupState extends State<CreateGroup> {
       SnackBar(content: Text('Group created successfully!')),
     );
 
-    //** AFTER CREATING THE GROUP WE PROCEED TO MAKE THE FOLLOWING UPDATES */
+    //** AFTER CREATING THE GROUP WE PROCEED TO CREATE THE NOTIFICATION */
 
     //Create the title message of the notification
     String notificationTitle =
@@ -186,12 +192,7 @@ class _CreateGroupState extends State<CreateGroup> {
 
     String notificationQuestion = 'Would you like to join to this group ?';
 
-    // We update first the groupsId that the user has joined
-
-    for (User user in userInGroup) {
-      user.groupIds?.add(groupId);
-      await storeService.updateUser(user);
-    }
+  
 
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
@@ -202,6 +203,7 @@ class _CreateGroupState extends State<CreateGroup> {
         timestamp: DateTime.now(),
         hasQuestion: true,
         question: notificationQuestion,
+        isAnswered: false
       );
       user.notifications.add(notification);
       await storeService.updateUser(user);

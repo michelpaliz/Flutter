@@ -32,6 +32,7 @@ class FireStoreProvider implements StoreProvider {
     }
   }
 
+  /** Here I update the user and also if he is in groups  */
   @override
   Future<String> updateUser(User user) async {
     try {
@@ -49,7 +50,7 @@ class FireStoreProvider implements StoreProvider {
         await userRef.update(user.toJson()); // Update the user document
 
         //We update the user in his groups
-        if (user.groupIds != null && user.groupIds!.isNotEmpty) {
+        if (user.groupIds.isNotEmpty) {
           updateUserInGroups(user);
         }
 
@@ -117,7 +118,7 @@ class FireStoreProvider implements StoreProvider {
     User? user = await SharedPrefsUtils.getUserFromPreferences();
 
     if (user != null) {
-      List<Event> updatedEvents = user.events ?? [];
+      List<Event> updatedEvents = user.events;
       updatedEvents.removeWhere((event) => event.id == eventId);
 
       user.events = updatedEvents;
@@ -226,19 +227,30 @@ class FireStoreProvider implements StoreProvider {
   @override
   Future<void> updateUserInGroups(User user) async {
     // Iterate through the user's group IDs and update each group's user list
-    if (user.groupIds != null) {
-      for (String groupId in user.groupIds!) {
-        Group? group = await getGroupFromId(
-            groupId); // Replace with your logic to fetch the group
-        if (group != null) {
-          int userIndex = group.users.indexWhere((u) => u.id == user.id);
-          if (userIndex != -1) {
-            group.users[userIndex] = user;
-            await updateGroup(
-                group); // Replace with your logic to update the group
-          }
+    for (String groupId in user.groupIds) {
+      Group? group = await getGroupFromId(
+          groupId); // Replace with your logic to fetch the group
+      if (group != null) {
+        int userIndex = group.users.indexWhere((u) => u.id == user.id);
+        if (userIndex != -1) {
+          group.users[userIndex] = user;
+          await updateGroup(
+              group); // Replace with your logic to update the group
         }
       }
     }
+  }
+  
+  @override
+  Future<void> addUserToGroup(User user, NotificationUser notificationUser) async {
+    // We update first the groupsId that the user has joined
+      user.groupIds.add(notificationUser.id);
+    //Here I update the user in firestore
+      await updateUser(user);
+    //Here I update the group in firestore because this user will be added.
+    Group groupFetched; 
+    groupFetched = (await getGroupFromId(notificationUser.id))!;
+    groupFetched.users.add(user);
+    await updateGroup(groupFetched);
   }
 }

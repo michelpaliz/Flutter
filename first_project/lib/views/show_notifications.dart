@@ -1,7 +1,10 @@
+import 'package:first_project/services/firestore/implements/firestore_provider.dart';
 import 'package:flutter/material.dart';
 
+import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
+import '../services/firestore/implements/firestore_service.dart';
 import '../services/user/user_provider.dart';
 
 class ShowNotifications extends StatefulWidget {
@@ -12,9 +15,17 @@ class ShowNotifications extends StatefulWidget {
 }
 
 class _ShowNotificationsState extends State<ShowNotifications> {
-  AuthService authService = new AuthService
-      .firebase(); // Replace with your AuthService implementation
+  AuthService authService = new AuthService.firebase();
+  StoreService storeService = StoreService.firebase();
   User? currentUser;
+
+  //** LOGIC FOR THE VIEW */
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
 
   void getCurrentUser() {
     AuthService.firebase()
@@ -27,6 +38,41 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       }
     });
   }
+
+  void addUserToGroup(NotificationUser notification) {
+    //Here we add the user to the group
+    storeService.addUserToGroup(currentUser!, notification);
+  }
+
+  void handleConfirmation(int index) async {
+    if (currentUser != null &&
+        index >= 0 &&
+        index < currentUser!.notifications.length) {
+      NotificationUser notification = currentUser!.notifications[index];
+      if (!notification.isAnswered && notification.question.isNotEmpty) {
+        currentUser!.notifications[index].isAnswered = true;
+        await storeService.updateUser(currentUser!);
+        addUserToGroup(notification); // Fixed this line
+        setState(() {});
+      }
+    }
+  }
+
+  void handleNegation(int index) async {
+    if (currentUser != null &&
+        index >= 0 &&
+        index < currentUser!.notifications.length) {
+      NotificationUser notification = currentUser!.notifications[index];
+      if (!notification.isAnswered && notification.question.isNotEmpty) {
+        currentUser!.notifications[index].isAnswered = false;
+        await storeService.updateUser(currentUser!);
+        addUserToGroup(notification); // Fixed this line
+        setState(() {});
+      }
+    }
+  }
+
+  //** UI FOR THE VIEW */
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +104,40 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               itemCount: currentUser?.notifications.length,
               itemBuilder: (context, index) {
                 final notification = currentUser!.notifications[index];
+                bool hasConfirmed = notification.isAnswered &&
+                    notification.question.isNotEmpty &&
+                    notification.isAnswered;
+
                 return ListTile(
                   title: Text(notification.title ?? ''),
                   subtitle: Text(notification.message ?? ''),
-                  trailing: Text(
-                    '${notification.timestamp!.day}/${notification.timestamp!.month}/${notification.timestamp!.year} '
-                    '${notification.timestamp!.hour}:${notification.timestamp!.minute}',
-                  ),
+                  trailing: notification.hasQuestion
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: hasConfirmed
+                                  ? null
+                                  : () {
+                                      // Handle confirmation
+                                      // Set the 'isAnswered' field of the notification
+                                      handleConfirmation(index);
+                                    },
+                              child: Text("Confirm"),
+                            ),
+                            TextButton(
+                              onPressed: hasConfirmed
+                                  ? null
+                                  : () {
+                                      // Handle negation
+                                      // Set the 'isAnswered' field of the notification
+                                      handleConfirmation(index);
+                                    },
+                              child: Text("Negate"),
+                            ),
+                          ],
+                        )
+                      : null, // Hide buttons if there's no question
                 );
               },
             ),

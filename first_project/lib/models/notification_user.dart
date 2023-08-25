@@ -4,7 +4,8 @@ class NotificationUser {
   final String message;
   final DateTime timestamp;
   final bool hasQuestion;
-  final String? question;
+  final String question;
+  bool isAnswered; // Add this field for storing whether the user answered
 
   NotificationUser({
     required this.id,
@@ -12,10 +13,11 @@ class NotificationUser {
     required this.message,
     required this.timestamp,
     this.hasQuestion = false,
-    this.question,
+    this.question = '',
+    this.isAnswered = false, // Initialize the isAnswered field
   });
 
-  // Factory constructor to convert JSON data into a NotificationUser object
+
   factory NotificationUser.fromJson(Map<String, dynamic> json) {
     return NotificationUser(
       id: json['id'] ?? '',
@@ -24,10 +26,10 @@ class NotificationUser {
       timestamp: DateTime.parse(json['timestamp'] ?? ''),
       hasQuestion: json['hasQuestion'] ?? false,
       question: json['question'] ?? '',
+      isAnswered: json['isAnswered'] ?? false,
     );
   }
 
-  // Method to convert the NotificationUser object into JSON data
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -36,6 +38,7 @@ class NotificationUser {
       'timestamp': timestamp.toIso8601String(),
       'hasQuestion': hasQuestion,
       'question': question,
+      'isAnswered': isAnswered,
     };
   }
 
@@ -47,6 +50,7 @@ class NotificationUser {
         'message: $message, '
         'timestamp: $timestamp, '
         'hasQuestion: $hasQuestion, '
-        'question: $question)';
+        'question: $question, '
+        'isAnswered: $isAnswered)';
   }
 }

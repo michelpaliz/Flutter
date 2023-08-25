@@ -318,7 +318,6 @@ class NotesViewState extends State<NotesView> {
               final event = eventsForDate[index];
               final startTime = event.startDate;
               final endTime = event.endDate;
-
               final timeText =
                   '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
               final timeColor = const Color.fromARGB(202, 33, 149, 243);
