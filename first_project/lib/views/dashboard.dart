@@ -28,7 +28,7 @@ class _DashboardState extends State<Dashboard> {
   Future<void> _getCurrentUser() async {
     currentUser = await getCurrentUser();
     if (currentUser != null) {
-      userGroups = fetchUserGroups(currentUser!.groupIds);
+      userGroups = await fetchUserGroups(currentUser!.groupIds);
     } else {
       userGroups = null;
     }
@@ -39,27 +39,30 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     _getCurrentUser();
-    // Fetch and update the user groups based on the groupIds from the currentUser
-    userGroups = fetchUserGroups(currentUser?.groupIds);
   }
 
   void _createGroup() {
     // Implement the create group functionality similar to the previous example.
     // Add the newly created group ID to the currentUser's groupIds list, and then update the userGroups list.
     // Don't forget to call setState() after updating the userGroups list.
-
     Navigator.pushNamed(context, createGroup);
+    // Call setState to trigger a UI update
+    setState(() {});
   }
 
-  List<Group>? fetchUserGroups(List<String>? groupIds) {
-    // Implement a method to fetch the groups based on the groupIds of the current user.
-    // This method should fetch the group details from your database or data source and return a list of Group objects.
-    // For this example, we'll return a mock list of groups.
-    return null;
-    // return [
-    //   Group(id: 'group_1', groupName: 'Group 1', ownerId: 'user_id_1'),
-    //   Group(id: 'group_2', groupName: 'Group 2', ownerId: 'user_id_2'),
-    // ];
+  Future<List<Group>> fetchUserGroups(List<String>? groupIds) async {
+    List<Group> groups = [];
+
+    if (groupIds != null) {
+      for (String groupId in groupIds) {
+        Group? group = await storeService.getGroupFromId(groupId);
+        if (group != null) {
+          groups.add(group);
+        }
+      }
+    }
+
+    return groups;
   }
 
   //** UI FOR THE VIEW */

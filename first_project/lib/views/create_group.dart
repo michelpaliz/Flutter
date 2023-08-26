@@ -164,16 +164,18 @@ class _CreateGroupState extends State<CreateGroup> {
     List<User> users = [];
     users.add(currentUser!);
 
+    //We assign the groupId to the current user
+    currentUser!.groupIds.add(groupId);
+
     // Create the group object with the appropriate attributes
     Group group = Group(
-      id: groupId,
-      groupName: groupName,
-      ownerId: currentUser?.id,
-      userRoles: userRoles,
-      calendar: calendar,
-      // users: userInGroup, // Include the list of users in the group
-      users: users
-    );
+        id: groupId,
+        groupName: groupName,
+        ownerId: currentUser?.id,
+        userRoles: userRoles,
+        calendar: calendar,
+        // users: userInGroup, // Include the list of users in the group
+        users: users);
 
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
     storeService.addGroup(group);
@@ -188,24 +190,26 @@ class _CreateGroupState extends State<CreateGroup> {
     String notificationTitle =
         '${currentUser?.name.toUpperCase()} invited you to a group';
     // Create the notification message for the group
-    String notificationMessage = '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
+    String notificationMessage =
+        '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
 
     String notificationQuestion = 'Would you like to join to this group ?';
-
-  
 
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
       NotificationUser notification = NotificationUser(
-        id: groupId,
-        title: notificationTitle,
-        message: notificationMessage,
-        timestamp: DateTime.now(),
-        hasQuestion: true,
-        question: notificationQuestion,
-        isAnswered: false
-      );
-      user.notifications.add(notification);
+          id: groupId,
+          ownerId: currentUser!.id,
+          title: notificationTitle,
+          message: notificationMessage,
+          timestamp: DateTime.now(),
+          hasQuestion: true,
+          question: notificationQuestion,
+          isAnswered: false);
+      //we won't add the notification to the current user because he is the owner of the group.
+      if (user.name != currentUser!.name) {
+        user.notifications.add(notification);
+      }
       await storeService.updateUser(user);
     }
   }

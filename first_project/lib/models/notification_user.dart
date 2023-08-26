@@ -1,32 +1,35 @@
 class NotificationUser {
   final String id;
+  final String ownerId; // Add this field to reference the owner's ID
   final String title;
   final String message;
   final DateTime _timestamp;
   final bool hasQuestion;
   final String question;
-  bool isAnswered; // Add this field for storing whether the user answered
+  bool isAnswered;
 
   NotificationUser({
     required this.id,
+    required this.ownerId, // Initialize the ownerId field
     required this.title,
     required this.message,
     required DateTime timestamp,
+    // These attributes are set with default values and won't be required during initial creation.
     this.hasQuestion = false,
     this.question = '',
-    this.isAnswered = false, // Initialize the isAnswered field
+    this.isAnswered = false,
   }) : _timestamp = timestamp;
 
   DateTime parseTimestamp(String timestampString) {
     return DateTime.parse(timestampString);
   }
 
-// Define a getter for timestamp
   DateTime get timestamp => _timestamp;
-  
+
   factory NotificationUser.fromJson(Map<String, dynamic> json) {
     return NotificationUser(
       id: json['id'] ?? '',
+      ownerId: json['ownerId'] ?? '', // Parse the owner's ID
       title: json['title'] ?? '',
       message: json['message'] ?? '',
       timestamp: DateTime.parse(json['timestamp'] ?? ''),
@@ -39,6 +42,7 @@ class NotificationUser {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'ownerId': ownerId, // Include ownerId in the JSON representation
       'title': title,
       'message': message,
       'timestamp': _timestamp.toIso8601String(),
@@ -52,6 +56,7 @@ class NotificationUser {
   String toString() {
     return 'NotificationUser('
         'id: $id, '
+        'ownerId: $ownerId, ' // Include ownerId in the string representation
         'title: $title, '
         'message: $message, '
         'timestamp: $_timestamp, '

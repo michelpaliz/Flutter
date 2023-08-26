@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_provider.dart';
 import 'package:first_project/services/auth/auth_user.dart';
@@ -63,5 +64,6 @@ class AuthService implements AuthProvider {
   
   @override
   User? get costumeUser => provider.costumeUser;
+  
 }
   

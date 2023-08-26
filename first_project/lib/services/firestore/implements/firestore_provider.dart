@@ -253,4 +253,33 @@ class FireStoreProvider implements StoreProvider {
     groupFetched.users.add(user);
     await updateGroup(groupFetched);
   }
+  
+@override
+Future<User?> getUserById(String userId) async {
+  try {
+    DocumentSnapshot userSnapshot = await _firestore.collection('users').doc(userId).get();
+    if (userSnapshot.exists) {
+      // Parse the data from the snapshot
+      Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+      return User(
+        id: userData['id'],
+        name: userData['name'],
+        email: userData['email'],
+        events: userData['events'],
+        groupIds: userData['groupIds'],
+        notifications: userData['notifications'],
+        photoUrl: userData['photoUrl']
+      );
+    } else {
+      // User not found
+      return null;
+    }
+  } catch (error) {
+    print('Error fetching user: $error');
+    return null;
+  }
+}
+
+
+  
 }

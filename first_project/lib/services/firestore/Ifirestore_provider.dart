@@ -1,5 +1,3 @@
-
-
 import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/notification_user.dart';
@@ -14,7 +12,8 @@ abstract class StoreProvider {
   Future<void> addNotification(User user, NotificationUser notification);
   Future<void> addGroup(Group group);
   Future<void> updateGroup(Group group);
-  Future<void> getGroupFromId(String groupId);
+  Future<Group?> getGroupFromId(String groupId);
   Future<void> updateUserInGroups(User user);
-  Future<void> addUserToGroup(User user,NotificationUser notification);
+  Future<void> addUserToGroup(User user, NotificationUser notification);
+  Future<User?> getUserById(String userId);
 }
