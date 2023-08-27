@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../models/user.dart';
+import '../../services/auth/implements/auth_service.dart';
+import '../../services/firestore/implements/firestore_service.dart';
+
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
 
@@ -8,6 +12,28 @@ class MyHeaderDrawer extends StatefulWidget {
 }
 
 class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
+  AuthService authService = new AuthService.firebase();
+  StoreService storeService = StoreService.firebase();
+  User? currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() {
+    AuthService.firebase()
+        .getCurrentUserAsCustomeModel()
+        .then((User? fetchedUser) {
+      if (fetchedUser != null) {
+        setState(() {
+          currentUser = fetchedUser;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -20,19 +46,28 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
         children: [
           Container(
             margin: EdgeInsets.only(bottom: 10),
+            width: 80, // Adjust this value to control the container's width
+            height: 80, // Adjust this value to control the container's height
             decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage('assets/images/profile.jpg'),
-                )),
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: AssetImage(
+                  'assets/images/default_profile.png', // Replace with your image path
+                ),
+                fit: BoxFit.cover, // Set the fit mode for the image
+              ),
+            ),
           ),
+          SizedBox(height: 5), // Add spacing between image and name
           Text(
-            'MICHAEL',
+            currentUser?.name ?? 'Guest',
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
+          SizedBox(height: 5), // Add spacing between name and email
           Text(
-            'email',
-            style: TextStyle(color: Colors.grey, fontSize: 14),
+            currentUser?.email ?? '',
+            style:
+                TextStyle(color: Color.fromARGB(255, 2, 31, 72), fontSize: 14),
           ),
         ],
       ),
