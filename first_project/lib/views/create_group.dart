@@ -179,6 +179,8 @@ class _CreateGroupState extends State<CreateGroup> {
 
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
     storeService.addGroup(group);
+    //let's update the current user and add the new group id in his list.
+    storeService.updateUser(currentUser!);
     // Show a success message using a SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Group created successfully!')),
@@ -197,20 +199,21 @@ class _CreateGroupState extends State<CreateGroup> {
 
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
-      NotificationUser notification = NotificationUser(
-          id: groupId,
-          ownerId: currentUser!.id,
-          title: notificationTitle,
-          message: notificationMessage,
-          timestamp: DateTime.now(),
-          hasQuestion: true,
-          question: notificationQuestion,
-          isAnswered: false);
-      //we won't add the notification to the current user because he is the owner of the group.
-      if (user.name != currentUser!.name) {
+      if (user.id != currentUser!.id) {
+        // Compare using user IDs
+        NotificationUser notification = NotificationUser(
+            id: groupId,
+            ownerId: currentUser!.id,
+            title: notificationTitle,
+            message: notificationMessage,
+            timestamp: DateTime.now(),
+            hasQuestion: true,
+            question: notificationQuestion,
+            isAnswered: false);
+
         user.notifications.add(notification);
+        await storeService.updateUser(user);
       }
-      await storeService.updateUser(user);
     }
   }
 

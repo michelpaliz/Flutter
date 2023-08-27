@@ -15,7 +15,7 @@ class ShowNotifications extends StatefulWidget {
 class _ShowNotificationsState extends State<ShowNotifications> {
   AuthService authService = new AuthService.firebase();
   StoreService storeService = StoreService.firebase();
-  User? currentUser, user;
+  User? currentUser;
 
   //** LOGIC FOR THE VIEW */
 
@@ -48,17 +48,18 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         id: notification.id,
         ownerId: notification.ownerId,
         title: notification.title,
-        message: notification.message,
+        message: '${currentUser!.name} has accepted your invitation to join the group',
         timestamp: DateTime.now());
-
+    
+    User? user = null;
     //Now we look up for the owner who created the group and assign him this notification.
-    user = await storeService.getUserById(notification.id);
+    user = await storeService.getUserById(notification.ownerId);
 
     //We add the notification to the user
     user!.notifications.add(ntOwner);
 
     //Now we proceed to update the user
-    storeService.updateUser(user!);
+    storeService.updateUser(user);
   }
 
   void handleConfirmation(int index) async {
@@ -115,7 +116,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   @override
   Widget build(BuildContext context) {
-    getCurrentUser();
+    // getCurrentUser();
     currentUser?.notifications.sort((a, b) {
       DateTime aTime = parseTimestamp(a.timestamp!.toString());
       DateTime bTime = parseTimestamp(b.timestamp!.toString());

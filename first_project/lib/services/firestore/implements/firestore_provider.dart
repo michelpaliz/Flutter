@@ -227,59 +227,56 @@ class FireStoreProvider implements StoreProvider {
   @override
   Future<void> updateUserInGroups(User user) async {
     // Iterate through the user's group IDs and update each group's user list
-    for (String groupId in user.groupIds) {
+    for (String groupId in user.groupIds.toList()) {
       Group? group = await getGroupFromId(
           groupId); // Replace with your logic to fetch the group
       if (group != null) {
         int userIndex = group.users.indexWhere((u) => u.id == user.id);
         if (userIndex != -1) {
-          group.users[userIndex] = user;
+          List<User> updatedUsers = List.from(group.users);
+          updatedUsers[userIndex] = user;
+
+          group.users = updatedUsers;
+
           await updateGroup(
               group); // Replace with your logic to update the group
         }
       }
     }
   }
-  
+
   @override
-  Future<void> addUserToGroup(User user, NotificationUser notificationUser) async {
+  Future<void> addUserToGroup(
+      User user, NotificationUser notificationUser) async {
     // We update first the groupsId that the user has joined
-      user.groupIds.add(notificationUser.id);
+    user.groupIds.add(notificationUser.id);
     //Here I update the user in firestore
-      await updateUser(user);
+    await updateUser(user);
     //Here I update the group in firestore because this user will be added.
-    Group groupFetched; 
+    Group groupFetched;
     groupFetched = (await getGroupFromId(notificationUser.id))!;
     groupFetched.users.add(user);
     await updateGroup(groupFetched);
   }
-  
-@override
-Future<User?> getUserById(String userId) async {
-  try {
-    DocumentSnapshot userSnapshot = await _firestore.collection('users').doc(userId).get();
-    if (userSnapshot.exists) {
-      // Parse the data from the snapshot
-      Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
-      return User(
-        id: userData['id'],
-        name: userData['name'],
-        email: userData['email'],
-        events: userData['events'],
-        groupIds: userData['groupIds'],
-        notifications: userData['notifications'],
-        photoUrl: userData['photoUrl']
-      );
-    } else {
-      // User not found
+
+  @override
+  @override
+  Future<User?> getUserById(String userId) async {
+    try {
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('users').doc(userId).get();
+      if (userSnapshot.exists) {
+        // Parse the data from the snapshot
+        Map<String, dynamic> userData =
+            userSnapshot.data() as Map<String, dynamic>;
+        return User.fromJson(userData); // Use the fromJson factory method
+      } else {
+        // User not found
+        return null;
+      }
+    } catch (error) {
+      print('Error fetching user: $error');
       return null;
     }
-  } catch (error) {
-    print('Error fetching user: $error');
-    return null;
   }
-}
-
-
-  
 }
