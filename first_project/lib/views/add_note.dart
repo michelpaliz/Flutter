@@ -66,11 +66,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     User? user = await getCurrentUser();
     if (user != null) {
       List<Event>? userEvents = user.events;
-      if (userEvents != null) {
-        setState(() {
-          eventList = userEvents.reversed.take(100).toList();
-        });
-      }
+      setState(() {
+        eventList = userEvents.reversed.take(100).toList();
+      });
     }
     // SharedPrefsUtils.storeUser(user!);
   }

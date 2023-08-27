@@ -108,6 +108,14 @@ class _DashboardState extends State<Dashboard> {
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(userGroups![index].groupName),
+                    onTap: () {
+                      Group selectedGroup = userGroups![index];
+                      Navigator.pushNamed(
+                        context,
+                        groupDetails, // Replace with the route name for group details page
+                        arguments: selectedGroup,
+                      );
+                    },
                   );
                 },
               ),

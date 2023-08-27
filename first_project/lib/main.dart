@@ -1,10 +1,12 @@
 import 'dart:developer' as devtools show log;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
+import 'package:first_project/models/event.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_note.dart';
+import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_note_screen.dart';
@@ -15,6 +17,7 @@ import 'package:first_project/views/create_group.dart';
 import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
 import 'costume_widgets/drawer/my_drawer.dart';
+import 'models/group.dart';
 
 //** Logic for my view */
 void main() async {
@@ -49,10 +52,30 @@ class MyApp extends StatelessWidget {
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
         addNote: (context) => EventNoteWidget(),
+
+        //   addNote: (context) {
+        //   final events = ModalRoute.of(context)?.settings.arguments as List<Event>?;
+        //   if (events != null) {
+        //     return EventNoteWidget(events: events  );
+        //   }
+        //   // Handle the case when no group is passed
+        //   return SizedBox
+        //       .shrink(); // Return an empty widget or handle the error
+        // },
+        
         editNote: (context) => EditNoteScreen(),
         dashboard: (context) => Dashboard(),
         createGroup: (context) => CreateGroup(),
-        showNotifications: (context) => ShowNotifications()
+        showNotifications: (context) => ShowNotifications(),
+        groupDetails: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return GroupDetails(group: group);
+          }
+          // Handle the case when no group is passed
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
         // createGroup: (context) => CreateGroup(groupMembers: [],)
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),

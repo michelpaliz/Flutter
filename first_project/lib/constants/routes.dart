@@ -7,3 +7,4 @@ const editNote = '/edit-note';
 const dashboard = '/dashboard';
 const createGroup= '/create-group';
 const showNotifications= '/show-notifications';
+const groupDetails = '/group-details';
