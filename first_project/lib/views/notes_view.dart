@@ -27,6 +27,7 @@ class NotesViewState extends State<NotesView> {
   DateTime focusedDay = DateTime.now();
   Stream<List<Event>> eventsStream = Stream.empty();
   StoreService storeService = StoreService.firebase();
+  var userOrGroupObject;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class NotesViewState extends State<NotesView> {
         setState(() {
           currentUser = fetchedUser;
           eventsList = currentUser!.events;
+          userOrGroupObject = currentUser;
         });
       }
     });
@@ -278,7 +280,8 @@ class NotesViewState extends State<NotesView> {
                       size: 25,
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, addNote);
+                      Navigator.pushNamed(context, addNote,
+                          arguments: userOrGroupObject);
                     },
                   ),
                 ),

@@ -175,7 +175,8 @@ class _CreateGroupState extends State<CreateGroup> {
         userRoles: userRoles,
         calendar: calendar,
         // users: userInGroup, // Include the list of users in the group
-        users: users);
+        users: users,
+        createdTime: DateTime.now());
 
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
     storeService.addGroup(group);

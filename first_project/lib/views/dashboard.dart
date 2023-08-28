@@ -2,6 +2,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/group.dart';
@@ -106,14 +107,19 @@ class _DashboardState extends State<Dashboard> {
               child: ListView.builder(
                 itemCount: userGroups!.length,
                 itemBuilder: (context, index) {
+                  Group group = userGroups![index];
+
+                  // Format the timestamp to display the date
+                  String formattedDate =
+                      DateFormat('yyyy-MM-dd').format(group.createdTime);
+
                   return ListTile(
-                    title: Text(userGroups![index].groupName),
+                    title: Text("${group.groupName} - $formattedDate"),
                     onTap: () {
-                      Group selectedGroup = userGroups![index];
                       Navigator.pushNamed(
                         context,
-                        groupDetails, // Replace with the route name for group details page
-                        arguments: selectedGroup,
+                        groupDetails,
+                        arguments: group,
                       );
                     },
                   );

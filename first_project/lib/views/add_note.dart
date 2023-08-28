@@ -2,47 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/event.dart';
+import '../models/group.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
 import '../services/user/user_provider.dart';
 import '../styles/app_bar_styles.dart';
 import '../utilities/sharedprefs.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: EventNoteApp(),
-  ));
-}
+// void main() {
+//   runApp(MaterialApp(
+//     home: EventNoteApp(),
+//   ));
+// }
 
-class EventNoteApp extends StatelessWidget {
-  const EventNoteApp({Key? key}) : super(key: key);
+// class EventNoteApp extends StatelessWidget {
+//   const EventNoteApp({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Event Note Widget',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: EventNoteWidget(),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Event Note Widget',
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//       ),
+//       home: EventNoteWidget(initialEvents: [],),
+//     );
+//   }
+// }
 
 //---- NOTE WIDGET ----
 
 class EventNoteWidget extends StatefulWidget {
+  final User? user;
+  final Group? group;
+
+  EventNoteWidget({Key? key, this.user, this.group}) : super(key: key);
+
   @override
-  _EventNoteWidgetState createState() => _EventNoteWidgetState();
+  _EventNoteWidgetState createState() =>
+      _EventNoteWidgetState(user: user, group: group);
 }
 
 class _EventNoteWidgetState extends State<EventNoteWidget> {
-  //late: Indicates that the variable will be initialized later before it is accessed or used.
+  final User? user;
+  final Group? group;
+
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
   late TextEditingController _eventController;
   List<Event> eventList = [];
   StoreService storeService = StoreService.firebase();
+
+  _EventNoteWidgetState({this.user, this.group}) {
+    if (user != null) {
+      // Initialize eventList based on user
+      eventList = user!.events; // Example: user.events if User has events list
+    } else if (group != null) {
+      // Initialize eventList based on group
+      eventList = group!
+          .calendar.events; // Example: group.events if Group has events list
+    }
+  }
+
 
   @override
   void dispose() {
@@ -53,24 +74,23 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   @override
   void initState() {
     super.initState();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+        
+    });
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventController = TextEditingController();
-    loadEvents(); // Load events from shared preferences
+    loadEvents(); // Load events from shared preferences or other source
   }
 
 /**
  * the userEvents list is obtained from the user object. Then, the list is reversed using .reversed and the last 100 events are taken using .take(100)
  */
   Future<void> loadEvents() async {
-    User? user = await getCurrentUser();
-    if (user != null) {
-      List<Event>? userEvents = user.events;
-      setState(() {
-        eventList = userEvents.reversed.take(100).toList();
-      });
-    }
-    // SharedPrefsUtils.storeUser(user!);
+    setState(() {
+      eventList = eventList.reversed.take(100).toList();
+    });
+ // SharedPrefsUtils.storeUser(user!);
   }
 
   void _reloadScreen() {
@@ -81,6 +101,27 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       _eventController.clear();
     });
     loadEvents(); // Reload events from shared preferences
+  }
+
+  void _removeEvents(String eventId) async {
+    if (user != null) {
+      // Remove the event from the eventList
+      setState(() {
+        eventList.removeWhere((event) => event.id == eventId);
+      });
+
+      Navigator.of(context).pop();
+    } else if (group != null) {
+      setState(() {
+        eventList.removeWhere((event) => event.id == eventId);
+      });
+
+      // Update the group's events list and store it
+      group!.calendar.events = eventList;
+      await storeService.updateGroup(group!);
+
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -134,10 +175,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
         note: eventNote,
-        groupId: null,
+        groupId: group?.id, // Set the groupId if adding to a group's events
       );
 
-      // Check if an event with the same start hour and day already exists in the eventList
       bool isStartHourUnique = eventList.every((e) =>
           e.startDate.hour != event.startDate.hour ||
           e.startDate.day != event.startDate.day);
@@ -147,20 +187,26 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           eventList.add(event);
         });
 
-        // User? user = await SharedPrefsUtils.getUserFromPreferences();
-        User? user = await getCurrentUser();
-
         if (user != null) {
-          List<Event> userEvents = user.events ?? [];
+          List<Event> userEvents = user!.events;
           userEvents.add(event);
-          user.events = userEvents;
+          user!.events = userEvents;
 
-          await SharedPrefsUtils.storeUser(user);
-          await storeService.updateUser(user);
+          await SharedPrefsUtils.storeUser(user!);
+          await storeService.updateUser(user!);
 
-          // Display a success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Event added successfully!')),
+          );
+        } else if (group != null) {
+          List<Event> groupEvents = group!.calendar.events;
+          groupEvents.add(event);
+          group?.calendar.events = groupEvents;
+
+          await storeService.updateGroup(group!);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Event added to group successfully!')),
           );
         }
 
@@ -194,7 +240,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     _reloadScreen();
   }
 
-  
   void _showRemoveConfirmationDialog(String eventId) {
     showDialog(
       context: context,
@@ -212,21 +257,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             TextButton(
               child: Text('Remove'),
               onPressed: () async {
-                // Remove the event from Firestore
-                await storeService.removeEvent(eventId);
-                // Update the events for the user in Firestore
-                User? user = await getCurrentUser();
-                if (user != null) {
-                  user.events =
-                      eventList.where((event) => event.id != eventId).toList();
-                  await storeService.updateUser(user);
-                }
-                // Remove the event from the eventList
-                setState(() {
-                  eventList.removeWhere((event) => event.id == eventId);
-                });
-
-                Navigator.of(context).pop();
+                _removeEvents(eventId);
               },
             ),
           ],

@@ -25,16 +25,27 @@ class _GroupDetailsState extends State<GroupDetails> {
   DateTime? selectedDate;
   StoreService storeService = new StoreService.firebase();
   AuthService authService = new AuthService.firebase();
+  var userOrGroupObject;
 
   @override
   void initState() {
     super.initState();
-    _getEventsListFromUser();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getEventsListFromGroup();
+    });
   }
 
-  void _getEventsListFromUser() {
+  //** Logic for my view */
+  Future<void> _reloadScreen() async {
+    events = group.calendar.events.cast<Event>(); //
+    userOrGroupObject = group;
+  }
+
+  Future<void> _getEventsListFromGroup() async {
     group = widget.group; // Access the passed group
-    events = group.calendar!.events?.cast<Event>(); //
+    events = group.calendar.events.cast<Event>(); //
+    userOrGroupObject = group;
   }
 
   List<Event> getEventsForDate(DateTime date) {
@@ -67,12 +78,12 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Future<void> _removeGroupEvents(Event event) async {
-// Remove the event from Firestore
+    // Remove the event from Firestore
     await storeService.removeEvent(event.id);
 
     // Update the events for the user in Firestore
 
-    group.calendar?.events = events!.where((e) => e.id != event.id).toList();
+    group.calendar.events = events!.where((e) => e.id != event.id).toList();
     await storeService.updateGroup(group);
 
     // Remove the event from the eventList
@@ -83,8 +94,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     Navigator.of(context).pop(); // Close the dialog
   }
 
-
-    void _showRemoveConfirmationDialog(Event event, BuildContext context) {
+  void _showRemoveConfirmationDialog(Event event, BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -130,7 +140,7 @@ class _GroupDetailsState extends State<GroupDetails> {
               IconButton(
                 icon: Icon(Icons.refresh),
                 onPressed: () {
-                  _getEventsListFromUser();
+                  _reloadScreen();
                 },
               ),
             ],
@@ -304,7 +314,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                       size: 25,
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, addNote);
+                      Navigator.pushNamed(context, addNote,
+                          arguments: userOrGroupObject);
                     },
                   ),
                 ),
@@ -387,6 +398,4 @@ class _GroupDetailsState extends State<GroupDetails> {
       ],
     );
   }
-
-
 }

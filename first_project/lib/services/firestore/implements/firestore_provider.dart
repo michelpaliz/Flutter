@@ -172,31 +172,14 @@ class FireStoreProvider implements StoreProvider {
 
   @override
   Future<void> addGroup(Group group) async {
-    final groupData = {
-      'id': group.id,
-      'groupName': group.groupName,
-      'ownerId': group.ownerId,
-      'userRoles': group.userRoles,
-      'calendar': group.calendar?.toJson(), // Serialize Calendar to JSON
-      'users': group.users
-          .map((user) => user.toJson())
-          .toList(), // Serialize each user to JSON
-    };
+    final groupData = group.toJson(); // Serialize the entire Group object
 
     await _firestore.collection('groups').doc(group.id).set(groupData);
   }
 
   @override
   Future<void> updateGroup(Group group) async {
-    final groupData = {
-      'groupName': group.groupName,
-      'ownerId': group.ownerId,
-      'userRoles': group.userRoles,
-      'calendar': group.calendar?.toJson(), // Serialize Calendar to JSON
-      'users': group.users
-          .map((user) => user.toJson())
-          .toList(), // Serialize each user to JSON
-    };
+    final groupData = group.toJson(); // Serialize the entire Group object
 
     // Get a reference to the document you want to update
     final groupReference = _firestore.collection('groups').doc(group.id);
@@ -259,7 +242,6 @@ class FireStoreProvider implements StoreProvider {
     await updateGroup(groupFetched);
   }
 
-  @override
   @override
   Future<User?> getUserById(String userId) async {
     try {

@@ -18,6 +18,7 @@ import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
 import 'costume_widgets/drawer/my_drawer.dart';
 import 'models/group.dart';
+import 'models/user.dart';
 
 //** Logic for my view */
 void main() async {
@@ -51,18 +52,21 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
-        addNote: (context) => EventNoteWidget(),
+        addNote: (context) {
+          final dynamic arg = ModalRoute.of(context)?.settings.arguments;
 
-        //   addNote: (context) {
-        //   final events = ModalRoute.of(context)?.settings.arguments as List<Event>?;
-        //   if (events != null) {
-        //     return EventNoteWidget(events: events  );
-        //   }
-        //   // Handle the case when no group is passed
-        //   return SizedBox
-        //       .shrink(); // Return an empty widget or handle the error
-        // },
-        
+          User? user;
+          Group? group;
+
+          if (arg is User) {
+            user = arg;
+          } else if (arg is Group) {
+            group = arg;
+          }
+
+          return EventNoteWidget(user: user, group: group);
+        },
+
         editNote: (context) => EditNoteScreen(),
         dashboard: (context) => Dashboard(),
         createGroup: (context) => CreateGroup(),
