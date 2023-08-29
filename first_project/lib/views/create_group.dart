@@ -213,6 +213,7 @@ class _CreateGroupState extends State<CreateGroup> {
             isAnswered: false);
 
         user.notifications.add(notification);
+        user.hasNewNotifications = true;
         await storeService.updateUser(user);
       }
     }

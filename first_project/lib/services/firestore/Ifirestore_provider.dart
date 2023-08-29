@@ -16,4 +16,6 @@ abstract class StoreProvider {
   Future<void> updateUserInGroups(User user);
   Future<void> addUserToGroup(User user, NotificationUser notification);
   Future<User?> getUserById(String userId);
+  Future<List<Group>> fetchUserGroups(List<String>? groupIds);
+  Future<void> deleteGroup(String groupId);
 }

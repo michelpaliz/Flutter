@@ -9,6 +9,7 @@ class EditNoteScreen extends StatefulWidget {
 }
 
 class _EditNoteScreenState extends State<EditNoteScreen> {
+  StoreService storeService = StoreService.firebase();
   late Event event;
   TextEditingController _noteController = TextEditingController();
 
@@ -65,11 +66,11 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       startDate: event.startDate,
       endDate: event.endDate,
       note: updatedNote,
+      groupId: event.groupId,
     );
 
     try {
-      await StoreService.firebase()
-          .updateEvent(updatedEvent); // Call the updateEvent method
+      storeService.updateEvent(updatedEvent); // Call the updateEvent method
 
       Navigator.pop(context, updatedEvent);
     } catch (error) {

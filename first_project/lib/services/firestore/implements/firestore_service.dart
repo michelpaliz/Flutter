@@ -50,4 +50,10 @@ class StoreService extends StoreProvider {
   @override
   Future<User?> getUserById(String userId) => provider.getUserById(userId);
   
+  @override
+  Future<List<Group>> fetchUserGroups(List<String>? groupIds) => provider.fetchUserGroups(groupIds);
+  
+  @override
+  Future<void> deleteGroup(String groupId) => provider.deleteGroup(groupId);
+  
 }

@@ -58,6 +58,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     //We add the notification to the user
     user!.notifications.add(ntOwner);
 
+    //We update the hasNotification field
+    user.hasNewNotifications = true;
+
     //Now we proceed to update the user
     storeService.updateUser(user);
   }

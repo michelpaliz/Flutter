@@ -66,46 +66,73 @@ class FireStoreProvider implements StoreProvider {
   @override
   Future<void> updateEvent(Event event) async {
     try {
-      User? currentUser = await getCurrentUser();
-      if (currentUser == null) {
-        throw UserNotFoundAuthException();
-      }
+      if (event.groupId!.isNotEmpty) {
+        CollectionReference groupEventCollections =
+            FirebaseFirestore.instance.collection('groups');
 
-      String userId = currentUser.id;
+        QuerySnapshot groupEventsSnapshot = await groupEventCollections
+            .doc(event.groupId)
+            .collection('events')
+            .where('id', isEqualTo: event.id)
+            .limit(1)
+            .get();
 
-      CollectionReference userCollection =
-          FirebaseFirestore.instance.collection('users');
+        if (groupEventsSnapshot.docs.isNotEmpty) {
+          DocumentSnapshot eventSnapshot = groupEventsSnapshot.docs.first;
+          String eventId = eventSnapshot.id;
 
-      DocumentReference userRef = userCollection.doc(userId);
+          // Update the event data in the group events collection
+          await groupEventCollections
+              .doc(event.groupId)
+              .collection('events')
+              .doc(eventId)
+              .update(event
+                  .toMap()); // Assuming toMap() function exists in the Event model
 
-      DocumentSnapshot userSnapshot = await userRef.get();
+          return;
+        }
+      } else if (event.groupId!.isEmpty) {
+        User? currentUser = await getCurrentUser();
+        if (currentUser == null) {
+          throw UserNotFoundAuthException();
+        }
 
-      if (userSnapshot.exists) {
-        Map<String, dynamic> userData =
-            userSnapshot.data() as Map<String, dynamic>;
+        String userId = currentUser.id;
 
-        List<dynamic>? events = userData['events'];
+        CollectionReference userCollection =
+            FirebaseFirestore.instance.collection('users');
 
-        if (events != null) {
-          // Find the event with the matching ID
-          int eventIndex = events.indexWhere((e) => e['id'] == event.id);
+        DocumentReference userRef = userCollection.doc(userId);
 
-          if (eventIndex != -1) {
-            // Update the event object in the list
-            events[eventIndex] = event.toMap();
+        DocumentSnapshot userSnapshot = await userRef.get();
 
-            // Update the events field in the user document
-            await userRef.update({'events': events});
+        if (userSnapshot.exists) {
+          Map<String, dynamic> userData =
+              userSnapshot.data() as Map<String, dynamic>;
 
-            return;
+          List<dynamic>? events = userData['events'];
+
+          if (events != null) {
+            // Find the event with the matching ID
+            int eventIndex = events.indexWhere((e) => e['id'] == event.id);
+
+            if (eventIndex != -1) {
+              // Update the event object in the list
+              events[eventIndex] = event.toMap();
+
+              // Update the events field in the user document
+              await userRef.update({'events': events});
+
+              return;
+            } else {
+              throw EventNotFoundException();
+            }
           } else {
             throw EventNotFoundException();
           }
         } else {
-          throw EventNotFoundException();
+          throw UserNotFoundException();
         }
-      } else {
-        throw UserNotFoundException();
       }
     } catch (error) {
       throw Exception('Error updating event in Firestore: $error');
@@ -261,4 +288,58 @@ class FireStoreProvider implements StoreProvider {
       return null;
     }
   }
+  
+  @override
+  Future<List<Group>> fetchUserGroups(List<String>? groupIds) async {
+    List<Group> groups = [];
+
+    if (groupIds != null) {
+      for (String groupId in groupIds) {
+        Group? group = await getGroupFromId(groupId);
+        if (group != null) {
+          groups.add(group);
+        }
+      }
+    }
+
+    return groups;
+  }
+  
+  @override
+Future<void> deleteGroup(String groupId) async {
+  try {
+    CollectionReference groupEventCollections =
+        FirebaseFirestore.instance.collection('groups');
+
+    // Fetch the list of users from the group
+    DocumentSnapshot groupSnapshot =
+        await groupEventCollections.doc(groupId).get();
+    List<String> groupUserIds = List<String>.from(groupSnapshot['users']);
+
+    // Update groupIds of each user in the group
+    for (String userId in groupUserIds) {
+      User? user = await getUserById(userId);
+      user!.groupIds.remove(groupId);
+      await updateUser(user);
+    }
+
+    // Delete the group's events collection
+    await groupEventCollections.doc(groupId).collection('events').get().then(
+          (snapshot) {
+        for (DocumentSnapshot doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+      },
+    );
+
+    // Delete the group document
+    await groupEventCollections.doc(groupId).delete();
+
+  } catch (error) {
+    // Handle the error
+    print("Error deleting group: $error");
+  }
+}
+
+
 }

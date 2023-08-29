@@ -29,13 +29,16 @@ class Group {
         : [];
 
     return Group(
-      id: json['id'],
-      groupName: json['groupName'],
-      ownerId: json['ownerId'],
-      userRoles: Map<String, String>.from(json['userRoles']),
-      calendar: Calendar.fromJson(json['calendar']),
+      id: json['id'] ??
+          '', // Use an empty string as a default value if id is null
+      groupName: json['groupName'] ?? '',
+      ownerId: json['ownerId'] ?? '',
+      userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
+      calendar: Calendar.fromJson(json['calendar'] ?? {}),
       users: users,
-      createdTime: DateTime.parse(json['createdTime']), // Parse createdTime from JSON
+      createdTime: json['createdTime'] != null
+          ? DateTime.parse(json['createdTime'])
+          : DateTime.now(),
     );
   }
 
@@ -51,7 +54,9 @@ class Group {
       'userRoles': userRoles,
       'calendar': calendar.toJson(),
       'users': usersJson,
-      'createdTime': createdTime.toIso8601String(), // Convert createdTime to ISO8601 string
+      'createdTime': createdTime
+          .toIso8601String(), // Convert createdTime to ISO8601 string
+          
     };
   }
 

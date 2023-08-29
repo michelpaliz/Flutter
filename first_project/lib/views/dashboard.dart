@@ -1,13 +1,11 @@
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/services/user/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/group.dart';
 import '../models/user.dart';
-import '../styles/app_bar_styles.dart';
 
 //---------------------------------------------------------------- I would like to add 1 button to create a group so the user can add ppl to share a calendar, and above the button there will be a list of groups that the current user has and if there is no groups there will be a message saying "There is no groups available"
 
@@ -27,13 +25,13 @@ class _DashboardState extends State<Dashboard> {
 
   //*LOGIC FOR THE VIEW //
   Future<void> _getCurrentUser() async {
-    currentUser = await getCurrentUser();
+    currentUser = await authService.getCurrentUserAsCustomeModel();
     if (currentUser != null) {
-      userGroups = await fetchUserGroups(currentUser!.groupIds);
+      userGroups = await storeService.fetchUserGroups(currentUser!.groupIds);
     } else {
       userGroups = null;
     }
-    setState(() {}); // Trigger a rebuild after getting the currentUser
+    setState(() {}); // Refresh the user data and userGroups
   }
 
   @override
@@ -51,19 +49,36 @@ class _DashboardState extends State<Dashboard> {
     setState(() {});
   }
 
-  Future<List<Group>> fetchUserGroups(List<String>? groupIds) async {
-    List<Group> groups = [];
+  Future<void> _showDeleteConfirmationDialog(Group group) async {
+    bool deleteConfirmed = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Delete"),
+          content: Text("Are you sure you want to delete this group?"),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop(false); // Cancel the deletion
+              },
+            ),
+            TextButton(
+              child: Text("Delete"),
+              onPressed: () {
+                Navigator.of(context).pop(true); // Confirm the deletion
+              },
+            ),
+          ],
+        );
+      },
+    );
 
-    if (groupIds != null) {
-      for (String groupId in groupIds) {
-        Group? group = await storeService.getGroupFromId(groupId);
-        if (group != null) {
-          groups.add(group);
-        }
-      }
+    if (deleteConfirmed == true) {
+      // Perform the group removal logic here
+      // Call setState to update the UI
+      storeService.deleteGroup(group.id);
     }
-
-    return groups;
   }
 
   //** UI FOR THE VIEW */
@@ -87,12 +102,36 @@ class _DashboardState extends State<Dashboard> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.message), // Icon for the new button
-            onPressed: () {
-              // Add your onPressed logic here
-              Navigator.pushNamed(context, showNotifications);
+            icon: Icon(Icons.refresh), // Add refresh icon
+            onPressed: () async {
+              await _getCurrentUser();
             },
           ),
+          if (currentUser?.hasNewNotifications == true)
+            IconButton(
+              icon: Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  Icon(Icons.notifications),
+                  Icon(Icons.brightness_1, size: 10, color: Colors.red),
+                ],
+              ),
+              onPressed: () {
+                // Open notifications screen
+                currentUser?.hasNewNotifications = false;
+                storeService.updateUser(currentUser!);
+                setState(() {}); // Trigger UI update
+                Navigator.pushNamed(context, showNotifications);
+              },
+            )
+          else
+            IconButton(
+              icon: Icon(Icons.notifications),
+              onPressed: () {
+                // Open notifications screen
+                Navigator.pushNamed(context, showNotifications);
+              },
+            ),
         ],
       ),
       drawer: MyDrawer(),
@@ -104,28 +143,31 @@ class _DashboardState extends State<Dashboard> {
             Center(child: Text("There are no groups available"))
           else
             Expanded(
-              child: ListView.builder(
-                itemCount: userGroups!.length,
-                itemBuilder: (context, index) {
-                  Group group = userGroups![index];
+                child: ListView.builder(
+              itemCount: userGroups!.length,
+              itemBuilder: (context, index) {
+                Group group = userGroups![index];
+                String formattedDate =
+                    DateFormat('yyyy-MM-dd').format(group.createdTime);
 
-                  // Format the timestamp to display the date
-                  String formattedDate =
-                      DateFormat('yyyy-MM-dd').format(group.createdTime);
-
-                  return ListTile(
-                    title: Text("${group.groupName} - $formattedDate"),
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        groupDetails,
-                        arguments: group,
-                      );
+                return ListTile(
+                  title: Text("${group.groupName} - $formattedDate"),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      groupDetails,
+                      arguments: group,
+                    );
+                  },
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      _showDeleteConfirmationDialog(group);
                     },
-                  );
-                },
-              ),
-            ),
+                  ),
+                );
+              },
+            )),
           SizedBox(height: 20),
           Center(
             child: ElevatedButton(

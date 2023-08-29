@@ -11,6 +11,7 @@ class User {
   List<Event> _events;
   List<String> _groupIds;
   List<NotificationUser>? _notifications;
+  bool hasNewNotifications;
 
   User({
     required String id,
@@ -20,6 +21,7 @@ class User {
     required List<String> groupIds,
     String? photoUrl,
     List<NotificationUser>? notifications,
+    this.hasNewNotifications = false,
   })  : _id = id,
         _name = name,
         _email = email,
@@ -64,10 +66,10 @@ class User {
       'email': _email,
       'photoUrl': _photoUrl,
       'events': _events.map((event) => event.toMap()).toList(),
-      'groupIds':
-          _groupIds, // Save the list of group IDs in the JSON representation
+      'groupIds': _groupIds,
       'notifications':
           _notifications?.map((notification) => notification.toJson()).toList(),
+      'hasNewNotifications': hasNewNotifications, // Include the field
     };
   }
 
@@ -88,6 +90,8 @@ class User {
           ?.map(
               (notificationUser) => NotificationUser.fromJson(notificationUser))
           .toList(),
+      hasNewNotifications:
+          json['hasNewNotifications'] as bool, // Include this line
     );
   }
 
@@ -113,6 +117,9 @@ class User {
               (notificationJson) => NotificationUser.fromJson(notificationJson))
           .toList();
 
+      final hasNewNotifications =
+          userData['hasNewNotifications'] as bool; // Add this line
+
       return User(
         id: userDocument.id,
         name: userData['name'] ?? '',
@@ -120,8 +127,9 @@ class User {
         events: (userData['events'] as List<dynamic>?)!
             .map((eventJson) => Event.fromJson(eventJson))
             .toList(),
-        groupIds: groupIds ?? [],
+        groupIds: groupIds,
         notifications: notifications,
+        hasNewNotifications: hasNewNotifications, // Add this line
       );
     } else {
       return User(
@@ -131,6 +139,7 @@ class User {
         events: [],
         groupIds: [],
         notifications: [],
+        hasNewNotifications: false, // Set default value
       );
     }
   }
@@ -147,7 +156,9 @@ class User {
         'email: $_email, '
         'photoUrl: $_photoUrl, '
         'events: $_events, '
-        'groupIds: $_groupIds'
-        'notifications: $_notifications )';
+        'groupIds: $_groupIds, '
+        'notifications: $_notifications, '
+        'hasNewNotifications: $hasNewNotifications' // Updated line
+        ')';
   }
 }
