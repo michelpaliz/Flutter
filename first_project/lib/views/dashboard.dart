@@ -50,6 +50,7 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Future<void> _showDeleteConfirmationDialog(Group group) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     bool deleteConfirmed = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -75,9 +76,27 @@ class _DashboardState extends State<Dashboard> {
     );
 
     if (deleteConfirmed == true) {
-      // Perform the group removal logic here
-      // Call setState to update the UI
-      storeService.deleteGroup(group.id);
+      try {
+        // Perform the group removal logic here
+        await storeService.deleteGroup(group.id);
+
+        // Show a success message using a SnackBar
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text("Group deleted successfully!"),
+          ),
+        );
+
+        // Call setState to update the UI
+        setState(() {});
+      } catch (error) {
+        // Handle the error
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text("Error deleting group: $error"),
+          ),
+        );
+      }
     }
   }
 
@@ -138,6 +157,18 @@ class _DashboardState extends State<Dashboard> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0),
+            child: Center(
+              child: Text(
+                "Groups", // Add your desired title here
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           SizedBox(height: 20),
           if (userGroups == null || userGroups!.isEmpty)
             Center(child: Text("There are no groups available"))
@@ -150,20 +181,24 @@ class _DashboardState extends State<Dashboard> {
                 String formattedDate =
                     DateFormat('yyyy-MM-dd').format(group.createdTime);
 
-                return ListTile(
-                  title: Text("${group.groupName} - $formattedDate"),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      groupDetails,
-                      arguments: group,
-                    );
-                  },
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      _showDeleteConfirmationDialog(group);
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  elevation: 2,
+                  child: ListTile(
+                    title: Text("${group.groupName} - $formattedDate"),
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        groupDetails,
+                        arguments: group,
+                      );
                     },
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        _showDeleteConfirmationDialog(group);
+                      },
+                    ),
                   ),
                 );
               },

@@ -288,7 +288,7 @@ class FireStoreProvider implements StoreProvider {
       return null;
     }
   }
-  
+
   @override
   Future<List<Group>> fetchUserGroups(List<String>? groupIds) async {
     List<Group> groups = [];
@@ -304,42 +304,52 @@ class FireStoreProvider implements StoreProvider {
 
     return groups;
   }
-  
+
   @override
-Future<void> deleteGroup(String groupId) async {
-  try {
-    CollectionReference groupEventCollections =
-        FirebaseFirestore.instance.collection('groups');
+  Future<void> deleteGroup(String groupId) async {
+    try {
+      //Fetch the list of groups from the database
+      CollectionReference groupEventCollections =
+          FirebaseFirestore.instance.collection('groups');
 
-    // Fetch the list of users from the group
-    DocumentSnapshot groupSnapshot =
-        await groupEventCollections.doc(groupId).get();
-    List<String> groupUserIds = List<String>.from(groupSnapshot['users']);
+      // Fetch the list of users from the group
+      DocumentSnapshot groupSnapshot =
+          await groupEventCollections.doc(groupId).get();
+      
+      //The id of the users
+      List<String> groupUserIds = [];
 
-    // Update groupIds of each user in the group
-    for (String userId in groupUserIds) {
-      User? user = await getUserById(userId);
-      user!.groupIds.remove(groupId);
-      await updateUser(user);
-    }
+      //This is the list of users
+      List<dynamic> usersList = groupSnapshot['users'];
 
-    // Delete the group's events collection
-    await groupEventCollections.doc(groupId).collection('events').get().then(
-          (snapshot) {
-        for (DocumentSnapshot doc in snapshot.docs) {
-          doc.reference.delete();
+      for (var userObj in usersList) {
+        String userId = userObj['id'];
+        groupUserIds.add(userId);
+      }
+
+      //Update the user's groups Id in the database
+      for (String userId in groupUserIds) {
+        User? user = await getUserById(userId);
+        if (user != null) {
+          user.groupIds.remove(groupId);
+          await updateUser(user);
         }
-      },
-    );
+      }
 
-    // Delete the group document
-    await groupEventCollections.doc(groupId).delete();
+      // Delete the group's events collection
+      await groupEventCollections.doc(groupId).collection('events').get().then(
+        (snapshot) {
+          for (DocumentSnapshot doc in snapshot.docs) {
+            doc.reference.delete();
+          }
+        },
+      );
 
-  } catch (error) {
-    // Handle the error
-    print("Error deleting group: $error");
+      // Delete the group document
+      await groupEventCollections.doc(groupId).delete();
+    } catch (error) {
+      // Handle the error
+      print("Error deleting group: $error");
+    }
   }
-}
-
-
 }
