@@ -315,7 +315,7 @@ class FireStoreProvider implements StoreProvider {
       // Fetch the list of users from the group
       DocumentSnapshot groupSnapshot =
           await groupEventCollections.doc(groupId).get();
-      
+
       //The id of the users
       List<String> groupUserIds = [];
 
@@ -350,6 +350,49 @@ class FireStoreProvider implements StoreProvider {
     } catch (error) {
       // Handle the error
       print("Error deleting group: $error");
+    }
+  }
+
+  @override
+  Future<User?> getUserByName(String userName) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: userName)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Assuming you want to return the first user found with the given username
+        DocumentSnapshot userSnapshot = querySnapshot.docs.first;
+        Map<String, dynamic> userData =
+            userSnapshot.data() as Map<String, dynamic>;
+        return User.fromJson(userData);
+      } else {
+        // User not found
+        return null;
+      }
+    } catch (error) {
+      print('Error fetching user by name: $error');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> removeAll(User user, Group group) async {
+    try {
+      // Remove the user from the group's list
+      List<User> updatedUsers =
+          group.users.where((u) => u.name != user.name).toList();
+      group.users = updatedUsers;
+
+      // Remove the group ID from the user's data
+      user.groupIds.remove(group.id);
+
+      // Update both the user and the group in Firestore
+      await updateUser(user);
+      await updateGroup(group);
+    } catch (error) {
+      print('Error removing user from group: $error');
     }
   }
 }

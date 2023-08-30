@@ -18,4 +18,6 @@ abstract class StoreProvider {
   Future<User?> getUserById(String userId);
   Future<List<Group>> fetchUserGroups(List<String>? groupIds);
   Future<void> deleteGroup(String groupId);
+  Future<User?> getUserByName(String userName); 
+  Future<void> removeAll(User user, Group group);
 }

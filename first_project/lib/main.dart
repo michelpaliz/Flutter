@@ -6,6 +6,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_note.dart';
+import 'package:first_project/views/edit_group.dart';
 import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/dashboard.dart';
@@ -52,6 +53,29 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
+        editNote: (context) => EditNoteScreen(),
+        dashboard: (context) => Dashboard(),
+        createGroup: (context) => CreateGroup(),
+        showNotifications: (context) => ShowNotifications(),
+        editGroup: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return EditGroup(
+                group: group);
+          }
+          // Handle the case when no group is passed
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        groupDetails: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return GroupDetails(group: group);
+          }
+          // Handle the case when no group is passed
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
         addNote: (context) {
           final dynamic arg = ModalRoute.of(context)?.settings.arguments;
 
@@ -66,21 +90,6 @@ class MyApp extends StatelessWidget {
 
           return EventNoteWidget(user: user, group: group);
         },
-
-        editNote: (context) => EditNoteScreen(),
-        dashboard: (context) => Dashboard(),
-        createGroup: (context) => CreateGroup(),
-        showNotifications: (context) => ShowNotifications(),
-        groupDetails: (context) {
-          final group = ModalRoute.of(context)?.settings.arguments as Group?;
-          if (group != null) {
-            return GroupDetails(group: group);
-          }
-          // Handle the case when no group is passed
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
-        },
-        // createGroup: (context) => CreateGroup(groupMembers: [],)
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),
     );

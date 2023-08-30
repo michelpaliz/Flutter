@@ -56,4 +56,10 @@ class StoreService extends StoreProvider {
   @override
   Future<void> deleteGroup(String groupId) => provider.deleteGroup(groupId);
   
+  @override
+  Future<User?> getUserByName(String userName)=> provider.getUserByName(userName);
+  
+  @override
+  Future<void> removeAll(User user, Group group) => provider.removeAll(user, group);
+  
 }

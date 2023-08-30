@@ -193,11 +193,24 @@ class _DashboardState extends State<Dashboard> {
                         arguments: group,
                       );
                     },
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        _showDeleteConfirmationDialog(group);
-                      },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit), // Add the edit icon
+                          onPressed: () {
+                            // Navigate to the editGroup view
+                            Navigator.pushNamed(context, editGroup,
+                                arguments: group);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _showDeleteConfirmationDialog(group);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 );
