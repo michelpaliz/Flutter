@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:flutter/material.dart';
 
+import '../models/notification_user.dart';
 import '../models/user.dart';
+import '../services/auth/implements/auth_service.dart';
 import '../services/firestore/implements/firestore_service.dart';
 
 class EditGroup extends StatefulWidget {
@@ -17,12 +19,15 @@ class EditGroup extends StatefulWidget {
 
 class _EditGroupState extends State<EditGroup> {
   StoreService storeService = new StoreService.firebase();
+  AuthService authService = new AuthService.firebase();
   late TextEditingController _groupNameController;
   late List<User> _selectedUsers;
+  User? currentUser;
 
   @override
   void initState() {
     super.initState();
+    _getCurrentUser();
     _groupNameController = TextEditingController(text: widget.group.groupName);
     _selectedUsers = List.from(widget.group.users);
   }
@@ -33,15 +38,23 @@ class _EditGroupState extends State<EditGroup> {
     super.dispose();
   }
 
+  Future<void> _getCurrentUser() async {
+    currentUser = await authService.getCurrentUserAsCustomeModel();
+    setState(() {}); // Refresh the user data and userGroups
+  }
+
   /** By using widget.group, you're accessing the group variable that you passed to the EditGroup widget when you created it. This way, you can access the same group object that's used in the stateful widget */
   Future<void> updateRemovalUser(User user) async {
     // Remove user from the group's list
     List<User> updatedUsers =
         widget.group.users.where((u) => u.name != user.name).toList();
 
-    // Update the user's group IDs and the group's user list
-    user.groupIds.removeWhere((groupId) => widget.group.id == groupId);
-    widget.group.users = updatedUsers;
+    // Remove the user's role from the group
+    widget.group.userRoles.remove(user.id);
+
+    setState(() {
+      _selectedUsers = updatedUsers;
+    });
 
     await storeService.removeAll(user, widget.group);
 
@@ -104,6 +117,9 @@ class _EditGroupState extends State<EditGroup> {
         final userData = querySnapshot.docs.first.data();
         final user = User.fromJson(userData);
 
+        // Set the default role to "Member" when adding a new user
+        widget.group.userRoles[user.id] = "Member";
+
         setState(() {
           if (!_selectedUsers.contains(user)) {
             _selectedUsers.add(user);
@@ -141,10 +157,33 @@ class _EditGroupState extends State<EditGroup> {
   }
 
   void updateGroup(String newName, List<User> newUsers) {
-    setState(() {
-      widget.group.groupName = newName;
-      widget.group.users = newUsers;
+    Group group = widget.group;
+
+    // We create a notification for the new users of the group
+    NotificationUser notification = NotificationUser(
+      id: group.id,
+      ownerId: group.ownerId,
+      title: 'INVITATION TO A GROUP',
+      message: 'You have received an invite to a group by ' + currentUser!.name,
+      timestamp: DateTime.now(),
+      hasQuestion: true,
+      question: 'Would you like to join this group?',
+      isAnswered: false,
+    );
+
+    // Iterate through the new users and add them to the group
+    newUsers.forEach((user) {
+      storeService.addUserToGroup(user, notification);
     });
+
+    // Update the group's name and users
+    setState(() {
+      group.groupName = newName;
+      group.users = newUsers;
+    });
+
+    storeService.updateGroup(group);
+
     // Perform further logic to save the changes to your data source
   }
 
@@ -169,13 +208,49 @@ class _EditGroupState extends State<EditGroup> {
                 itemCount: _selectedUsers.length,
                 itemBuilder: (context, index) {
                   User user = _selectedUsers[index];
+
+                  // Get the user's current role from the group's userRoles map
+                  String currentRole =
+                      widget.group.userRoles[user.name] ?? "Member";
+
+                  // Check if the user is an administrator
+                  bool isAdministrator = currentRole == "Administrator";
+
                   return ListTile(
                     title: Text(user.name),
-                    trailing: IconButton(
-                      icon: Icon(Icons.remove),
-                      onPressed: () {
-                        _showConfirmationDialog('remove', user.name);
-                      },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DropdownButton<String>(
+                          value:
+                              currentRole, // Use the user's current role as the initial value
+                          items: ["Administrator", "Co-Administrator", "Member"]
+                              .map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: isAdministrator
+                              ? null // Set onChanged to null if the user is an administrator
+                              : (newValue) {
+                                  setState(() {
+                                    widget.group.userRoles[user.name] =
+                                        newValue!;
+                                  });
+                                },
+                          disabledHint: Text(
+                              currentRole), // Show the current role as a hint
+                        ),
+                        SizedBox(width: 20), // Adjust the width as needed
+                        if (!isAdministrator)
+                          IconButton(
+                            icon: Icon(Icons.remove),
+                            onPressed: () {
+                              _showConfirmationDialog('remove', user.name);
+                            },
+                          ),
+                      ],
                     ),
                   );
                 },

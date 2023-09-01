@@ -255,18 +255,32 @@ class FireStoreProvider implements StoreProvider {
     }
   }
 
+  /**Adds the user to the group introduced and it adds the groupId of the group in the user's groupsID */
   @override
   Future<void> addUserToGroup(
       User user, NotificationUser notificationUser) async {
-    // We update first the groupsId that the user has joined
-    user.groupIds.add(notificationUser.id);
-    //Here I update the user in firestore
-    await updateUser(user);
-    //Here I update the group in firestore because this user will be added.
-    Group groupFetched;
-    groupFetched = (await getGroupFromId(notificationUser.id))!;
-    groupFetched.users.add(user);
-    await updateGroup(groupFetched);
+    // Check if the group ID already exists in the user's groupIds list
+    if (!user.groupIds.contains(notificationUser.id)) {
+      // The group ID is not already in the list, so we add it
+      user.groupIds.add(notificationUser.id);
+
+      // Update the user in Firestore
+      await updateUser(user);
+    }
+
+    // Fetch the group
+    Group groupFetched = (await getGroupFromId(notificationUser.id))!;
+
+    // Check if the user is not already in the group (based on their ID)
+    if (!groupFetched.users.any((groupUser) => groupUser.id == user.id)) {
+      // The user is not in the group, so we add them
+      groupFetched.users.add(user);
+
+      // Perform any additional logic to update the group role for the new user
+
+      // Update the group in Firestore
+      await updateGroup(groupFetched);
+    }
   }
 
   @override

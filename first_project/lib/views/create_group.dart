@@ -171,7 +171,7 @@ class _CreateGroupState extends State<CreateGroup> {
     Group group = Group(
         id: groupId,
         groupName: groupName,
-        ownerId: currentUser?.id,
+        ownerId: currentUser!.id,
         userRoles: userRoles,
         calendar: calendar,
         // users: userInGroup, // Include the list of users in the group
@@ -194,7 +194,7 @@ class _CreateGroupState extends State<CreateGroup> {
         '${currentUser?.name.toUpperCase()} invited you to a group';
     // Create the notification message for the group
     String notificationMessage =
-        '${currentUser?.name.toUpperCase()} invited you to this Group: ${group}.}';
+        '${currentUser?.name.toUpperCase()} invited you to this Group: ${group.groupName}}';
 
     String notificationQuestion = 'Would you like to join to this group ?';
 
@@ -294,8 +294,7 @@ class _CreateGroupState extends State<CreateGroup> {
                           else
                             DropdownButton<String>(
                               value: userRole,
-                              icon: Icon(
-                                  Icons.arrow_drop_down), // Adjust the icon
+                              icon: Icon(Icons.arrow_drop_down),
                               iconSize: 24,
                               elevation: 16,
                               style: TextStyle(color: Colors.black),
@@ -306,45 +305,18 @@ class _CreateGroupState extends State<CreateGroup> {
                               items: [
                                 DropdownMenuItem<String>(
                                   value: 'Administrator',
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                          right: 10), // Add right margin
-                                      child: Text(
-                                        'Administrator',
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ),
-                                  ),
+                                  child: Text('Administrator',
+                                      style: TextStyle(fontSize: 14)),
                                 ),
                                 DropdownMenuItem<String>(
-                                  value: 'co-administrator',
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                          right: 10), // Add right margin
-                                      child: Text(
-                                        'Co-Administrator',
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ),
-                                  ),
+                                  value: 'Co-Administrator',
+                                  child: Text('Co-Administrator',
+                                      style: TextStyle(fontSize: 14)),
                                 ),
                                 DropdownMenuItem<String>(
                                   value: 'member',
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                          right: 10), // Add right margin
-                                      child: Text(
-                                        'Member',
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ),
-                                  ),
+                                  child: Text('Member',
+                                      style: TextStyle(fontSize: 14)),
                                 ),
                               ],
                               onChanged: (newValue) {

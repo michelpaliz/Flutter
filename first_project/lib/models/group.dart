@@ -5,7 +5,7 @@ import 'calendar.dart';
 class Group {
   final String id;
   String groupName;
-  final String? ownerId; // ID of the group owner
+  final String ownerId; // ID of the group owner
   final Map<String, String> userRoles; // Map of user IDs to their roles
   final Calendar calendar; // Shared calendar for the group
   List<User> users;
@@ -20,6 +20,9 @@ class Group {
     required this.users,
     required this.createdTime, // Include the new field here
   });
+
+  get _ownerId => ownerId;
+
 
   factory Group.fromJson(Map<String, dynamic> json) {
     // Parse the list of users from the JSON data
@@ -63,6 +66,6 @@ class Group {
   @override
   String toString() {
     final userNames = users.map((user) => user.name).join(', ');
-    return 'Group(groupName: $groupName, users: $userNames)';
+    return 'Group information (groupName: $groupName, users: $userNames)';
   }
 }
