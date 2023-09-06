@@ -142,7 +142,8 @@ class _EditGroupState extends State<EditGroup> {
       });
 
       // Check if any found user is an administrator
-      bool isAdmin = filteredUsers.any((user) => user.hasNewNotifications);
+      bool isAdmin = foundUsers
+          .any((user) => currentGroupUserRoles[user.name] == 'Administrator');
 
       if (isAdmin) {
         // User is an administrator, display an informative message
