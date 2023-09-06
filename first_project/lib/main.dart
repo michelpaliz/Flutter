@@ -1,7 +1,6 @@
 import 'dart:developer' as devtools show log;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
-import 'package:first_project/models/event.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
@@ -24,20 +23,32 @@ import 'models/user.dart';
 //** Logic for my view */
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await AuthService.firebase().initialize();
-  await Firebase.initializeApp();
+
+  // Initialize Firebase
   try {
-    currentUser = await getCurrentUser(); // Initialize Firebase
+    await Firebase.initializeApp();
+  } catch (error) {
+    print('Error initializing Firebase: $error');
+  }
+
+  // Check the current user's authentication status
+  User? currentUser;
+  try {
+    currentUser =
+        await getCurrentUser(); // Replace with your authentication method
   } catch (error) {
     currentUser = null;
-    throw UserNotFoundException();
+    UserNotFoundException();
   }
-  runApp(const MyApp());
+
+  runApp(MyApp(currentUser: currentUser));
 }
 
 //** UI for my view */
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final User? currentUser;
+
+  const MyApp({Key? key, this.currentUser}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +71,7 @@ class MyApp extends StatelessWidget {
         editGroup: (context) {
           final group = ModalRoute.of(context)?.settings.arguments as Group?;
           if (group != null) {
-            return EditGroup(
-                group: group);
+            return EditGroup(group: group);
           }
           // Handle the case when no group is passed
           return SizedBox

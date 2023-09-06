@@ -198,6 +198,8 @@ class _CreateGroupState extends State<CreateGroup> {
 
     String notificationQuestion = 'Would you like to join to this group ?';
 
+    print(userInGroup);
+
     // Add a new notification for each user in the group
     for (User user in userInGroup) {
       if (user.id != currentUser!.id) {

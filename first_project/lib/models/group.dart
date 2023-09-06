@@ -21,9 +21,6 @@ class Group {
     required this.createdTime, // Include the new field here
   });
 
-  get _ownerId => ownerId;
-
-
   factory Group.fromJson(Map<String, dynamic> json) {
     // Parse the list of users from the JSON data
     List<dynamic>? usersJson = json['users'];

@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -49,21 +43,41 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDUS4521eV6lMdZZxWk1I5UaOv81K0dnkE',
+    appId: '1:962743140116:web:f5d27c7f002e397638cc01',
+    messagingSenderId: '962743140116',
+    projectId: 'firstapp-75986',
+    authDomain: 'firstapp-75986.firebaseapp.com',
+    storageBucket: 'firstapp-75986.appspot.com',
+    measurementId: 'G-53WW18P3TK',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCEqXDeRif7ZoJ3O8maXLgJxUuIWRoYdlw',
-    appId: '1:934314493421:android:3057d6f7204e138afad3e4',
-    messagingSenderId: '934314493421',
-    projectId: 'paliz-flutter-firstproject',
-    storageBucket: 'paliz-flutter-firstproject.appspot.com',
+    apiKey: 'AIzaSyC_m74g7gEl4z_eYMK5DabndBhRcSr8TUo',
+    appId: '1:962743140116:android:c257229235ebc51438cc01',
+    messagingSenderId: '962743140116',
+    projectId: 'firstapp-75986',
+    storageBucket: 'firstapp-75986.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDs0mp8j8IKpTUw5WqjynU_ITZcbfssYaI',
-    appId: '1:934314493421:ios:0872a3f433eae20afad3e4',
-    messagingSenderId: '934314493421',
-    projectId: 'paliz-flutter-firstproject',
-    storageBucket: 'paliz-flutter-firstproject.appspot.com',
-    iosClientId: '934314493421-hsqulb4s250kanh0gue716chm6jm9i68.apps.googleusercontent.com',
+    apiKey: 'AIzaSyB3rR24YNtysqmgOK_wPIGW01vYtC0lG2I',
+    appId: '1:962743140116:ios:12484b79bff38ca238cc01',
+    messagingSenderId: '962743140116',
+    projectId: 'firstapp-75986',
+    storageBucket: 'firstapp-75986.appspot.com',
+    iosClientId: '962743140116-5odm8dspv9052oc3c7m61vqijfeh8g2b.apps.googleusercontent.com',
     iosBundleId: 'com.example.firstProject',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyB3rR24YNtysqmgOK_wPIGW01vYtC0lG2I',
+    appId: '1:962743140116:ios:210076729609154338cc01',
+    messagingSenderId: '962743140116',
+    projectId: 'firstapp-75986',
+    storageBucket: 'firstapp-75986.appspot.com',
+    iosClientId: '962743140116-4ovu5hgi54ibuuke8qbgk9ba3fcbg2i3.apps.googleusercontent.com',
+    iosBundleId: 'com.example.firstProject.RunnerTests',
   );
 }

@@ -11,6 +11,21 @@ class VerifyEmailView extends StatefulWidget {
 
 class _VerifyEmailViewState extends State<VerifyEmailView> {
   @override
+  void initState() {
+    super.initState();
+    _sendEmailVerification();
+  }
+
+  // Function to send the email verification
+  Future<void> _sendEmailVerification() async {
+    try {
+      await AuthService.firebase().sendEmailVerification();
+    } catch (error) {
+      print('Error sending email verification: $error');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Verify Email')),
@@ -18,23 +33,11 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
         children: [
           const Text(
               "We've sent you an email verification, Please open it to verify your account."),
-          const Text(
-              "If you haven't recieved your verification email yet, press the button below"),
-          TextButton(
-            onPressed: () async {
-              await AuthService.firebase()
-                  .sendEmailVerification(); // Navigate to another screen after sending the verification email
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const EmailSentView(),
-              ));
-            },
-            child: const Text('Send email verification'),
-          ),
           TextButton(
               onPressed: () async {
                 await AuthService.firebase().logOut();
                 Navigator.of(context)
-                    .pushNamedAndRemoveUntil(registerRoute, (route) => false);
+                    .pushNamedAndRemoveUntil(loginRoute, (route) => false);
               },
               child: const Text('Restart'))
         ],

@@ -185,7 +185,7 @@ class FireStoreProvider implements StoreProvider {
 
       // Update the user's notifications field
       await userRef.update({
-        '_notifications': FieldValue.arrayUnion([notification.toJson()])
+        'notifications': FieldValue.arrayUnion([notification.toJson()])
       });
 
       print('Notification added successfully');

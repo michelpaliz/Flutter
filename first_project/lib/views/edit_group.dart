@@ -23,6 +23,9 @@ class _EditGroupState extends State<EditGroup> {
   late TextEditingController _groupNameController;
   late List<User> _selectedUsers;
   User? currentUser;
+  List<String> searchResults = [];
+  String? clickedUser;
+  String administrator = '';
 
   @override
   void initState() {
@@ -101,8 +104,69 @@ class _EditGroupState extends State<EditGroup> {
       } else {
         User userToRemove =
             _selectedUsers.firstWhere((user) => user.name == username);
-        removeUser(userToRemove);
+        removeUser(userToRemove.name);
       }
+    }
+  }
+
+  //** LOGIC FOR THE VIEW */
+/** Search a user by inserting his name */
+  void searchUser(String username) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('name', isEqualTo: username)
+          .get();
+
+      final List<User> foundUsers = querySnapshot.docs.map((doc) {
+        final userData = doc.data();
+        return User.fromJson(userData);
+      }).toList();
+
+      // Assuming you have access to the current group's userRoles map
+      final Map<String, String> currentGroupUserRoles = widget.group.userRoles;
+
+      // Filter out users who are administrators of the current group
+      final List<User> filteredUsers = foundUsers.where((user) {
+        // Check if the user is an administrator of the current group
+        return !currentGroupUserRoles.containsKey(user.name) ||
+            currentGroupUserRoles[user.name] != 'Administrator';
+      }).toList();
+
+      // Get the names of filtered users and store them in searchResults
+      final List<String> filteredUserNames =
+          filteredUsers.map((user) => user.name).toList();
+
+      setState(() {
+        searchResults = filteredUserNames;
+      });
+
+      // Check if any found user is an administrator
+      bool isAdmin = filteredUsers.any((user) => user.hasNewNotifications);
+
+      if (isAdmin) {
+        // User is an administrator, display an informative message
+        showDialog(
+          context: context, // Replace with your context
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Administrator User'),
+              content: Text(
+                  'The selected user is an administrator and cannot be selected.'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print('Error searching for users: $e');
     }
   }
 
@@ -118,10 +182,21 @@ class _EditGroupState extends State<EditGroup> {
         final user = User.fromJson(userData);
 
         // Set the default role to "Member" when adding a new user
-        widget.group.userRoles[user.id] = "Member";
-
+        widget.group.userRoles[user.name] = "Member";
         setState(() {
-          if (!_selectedUsers.contains(user)) {
+          // Check if a user with the same name already exists in _selectedUsers
+          bool userExists = _selectedUsers
+              .any((existingUser) => existingUser.name == user.name);
+
+          // Check if the user is the current user (administrator)
+          bool isCurrentUserAdmin =
+              widget.group.userRoles[user.name] == "Administrator";
+
+          // Check if the user is already in _selectedUsers or is an administrator
+
+          if (!userExists &&
+              !isCurrentUserAdmin &&
+              user.name != currentUser?.name) {
             _selectedUsers.add(user);
           }
         });
@@ -150,7 +225,8 @@ class _EditGroupState extends State<EditGroup> {
     }
   }
 
-  void removeUser(User user) {
+  Future<void> removeUser(String userName) async {
+    User? user = await storeService.getUserByName(userName);
     setState(() {
       _selectedUsers.remove(user);
     });
@@ -197,23 +273,46 @@ class _EditGroupState extends State<EditGroup> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: _groupNameController,
-              decoration: InputDecoration(labelText: "Group Name"),
+            Card(
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  onChanged: (value) => searchUser(value),
+                  decoration: InputDecoration(
+                    labelText: 'Add a person',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 16),
-            Text("Select Users:"),
+            SizedBox(height: 15),
+            Card(
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _groupNameController,
+                      decoration: InputDecoration(labelText: "Group Name"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 15),
+            Text("Members of the group: "),
+            SizedBox(height: 15),
             Expanded(
               child: ListView.builder(
                 itemCount: _selectedUsers.length,
                 itemBuilder: (context, index) {
                   User user = _selectedUsers[index];
 
-                  // Get the user's current role from the group's userRoles map
                   String currentRole =
                       widget.group.userRoles[user.name] ?? "Member";
 
-                  // Check if the user is an administrator
                   bool isAdministrator = currentRole == "Administrator";
 
                   return ListTile(
@@ -222,8 +321,7 @@ class _EditGroupState extends State<EditGroup> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         DropdownButton<String>(
-                          value:
-                              currentRole, // Use the user's current role as the initial value
+                          value: currentRole,
                           items: ["Administrator", "Co-Administrator", "Member"]
                               .map((String value) {
                             return DropdownMenuItem<String>(
@@ -232,17 +330,16 @@ class _EditGroupState extends State<EditGroup> {
                             );
                           }).toList(),
                           onChanged: isAdministrator
-                              ? null // Set onChanged to null if the user is an administrator
+                              ? null
                               : (newValue) {
                                   setState(() {
                                     widget.group.userRoles[user.name] =
                                         newValue!;
                                   });
                                 },
-                          disabledHint: Text(
-                              currentRole), // Show the current role as a hint
+                          disabledHint: Text(currentRole),
                         ),
-                        SizedBox(width: 20), // Adjust the width as needed
+                        SizedBox(width: 20),
                         if (!isAdministrator)
                           IconButton(
                             icon: Icon(Icons.remove),
@@ -256,36 +353,30 @@ class _EditGroupState extends State<EditGroup> {
                 },
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Text("Add User"),
-                      content: TextField(
-                        controller: TextEditingController(),
-                        decoration: InputDecoration(labelText: "Username"),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: searchResults.map((user) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(user),
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text("Cancel"),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            String username = TextEditingController().text;
-                            _showConfirmationDialog('add', username);
-                            Navigator.pop(context);
-                          },
-                          child: Text("Add"),
-                        ),
-                      ],
-                    );
-                  },
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            clickedUser = user;
+                          });
+                          addUser(user);
+                        },
+                        icon: Icon(Icons.add),
+                      ),
+                    ],
+                  ),
                 );
-              },
-              child: Text("Add User"),
+              }).toList(),
             ),
             ElevatedButton(
               onPressed: () {
