@@ -3,8 +3,6 @@ import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
 import '../services/firestore/implements/firestore_service.dart';
-import '../services/user/user_provider.dart';
-
 class ShowNotifications extends StatefulWidget {
   const ShowNotifications({super.key});
 
@@ -159,7 +157,6 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                 if (hasConfirmed) {
                   return Container(); // Return an empty container for answered notifications
                 }
-
                 return Dismissible(
                   key: Key(notification.id
                       .toString()), // Unique key for each notification
@@ -221,22 +218,26 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                     child: ListTile(
                       title: Text(notification.title ?? ''),
                       subtitle: Text(notification.message ?? ''),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              handleConfirmation(index);
-                            },
-                            child: Text("Confirm"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              handleNegation(index);
-                            },
-                            child: Text("Negate"),
-                          ),
-                        ],
+                      trailing: Visibility(
+                        visible: notification.hasQuestion ==
+                            true, // Show buttons if hasQuestion is true
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                handleConfirmation(index);
+                              },
+                              child: Text("Confirm"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                handleNegation(index);
+                              },
+                              child: Text("Negate"),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
