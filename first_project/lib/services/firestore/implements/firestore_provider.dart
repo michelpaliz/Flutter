@@ -63,81 +63,74 @@ class FireStoreProvider implements StoreProvider {
     }
   }
 
-  @override
   Future<void> updateEvent(Event event) async {
-    try {
-      if (event.groupId!.isNotEmpty) {
-        CollectionReference groupEventCollections =
-            FirebaseFirestore.instance.collection('groups');
+  try {
+    if (event.groupId != null && event.groupId!.isNotEmpty) {
+      // Retrieve the group object based on event.groupId
+      Group? group = await getGroupFromId(event.groupId!);
 
-        QuerySnapshot groupEventsSnapshot = await groupEventCollections
-            .doc(event.groupId)
-            .collection('events')
-            .where('id', isEqualTo: event.id)
-            .limit(1)
-            .get();
+      // Update the event data in the group's calendar
+      // You can access the group's calendar using group.calendar
+      // Update the event within the calendar as needed
 
-        if (groupEventsSnapshot.docs.isNotEmpty) {
-          DocumentSnapshot eventSnapshot = groupEventsSnapshot.docs.first;
-          String eventId = eventSnapshot.id;
+      // Example: Update event in the calendar's events list
+      int eventIndex = group!.calendar.events.indexWhere((e) => e.id == event.id);
+      if (eventIndex != -1) {
+        group.calendar.events[eventIndex] = event;
+      }
 
-          // Update the event data in the group events collection
-          await groupEventCollections
-              .doc(event.groupId)
-              .collection('events')
-              .doc(eventId)
-              .update(event
-                  .toMap()); // Assuming toMap() function exists in the Event model
+      // Save the updated group object back to Firestore
+      CollectionReference groupsCollection =
+          FirebaseFirestore.instance.collection('groups');
+      await groupsCollection.doc(group.id).update(group.toJson());
+    } else {
+      User? currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        throw UserNotFoundAuthException();
+      }
 
-          return;
-        }
-      } else if (event.groupId!.isEmpty) {
-        User? currentUser = await getCurrentUser();
-        if (currentUser == null) {
-          throw UserNotFoundAuthException();
-        }
+      String userId = currentUser.id;
 
-        String userId = currentUser.id;
+      CollectionReference userCollection =
+          FirebaseFirestore.instance.collection('users');
 
-        CollectionReference userCollection =
-            FirebaseFirestore.instance.collection('users');
+      DocumentReference userRef = userCollection.doc(userId);
 
-        DocumentReference userRef = userCollection.doc(userId);
+      DocumentSnapshot userSnapshot = await userRef.get();
 
-        DocumentSnapshot userSnapshot = await userRef.get();
+      if (userSnapshot.exists) {
+        Map<String, dynamic> userData =
+            userSnapshot.data() as Map<String, dynamic>;
 
-        if (userSnapshot.exists) {
-          Map<String, dynamic> userData =
-              userSnapshot.data() as Map<String, dynamic>;
+        List<dynamic>? events = userData['events'];
 
-          List<dynamic>? events = userData['events'];
+        if (events != null) {
+          // Find the event with the matching ID
+          int eventIndex = events.indexWhere((e) => e['id'] == event.id);
 
-          if (events != null) {
-            // Find the event with the matching ID
-            int eventIndex = events.indexWhere((e) => e['id'] == event.id);
+          if (eventIndex != -1) {
+            // Update the event object in the list
+            events[eventIndex] = event.toMap();
 
-            if (eventIndex != -1) {
-              // Update the event object in the list
-              events[eventIndex] = event.toMap();
+            // Update the events field in the user document
+            await userRef.update({'events': events});
 
-              // Update the events field in the user document
-              await userRef.update({'events': events});
-
-              return;
-            } else {
-              throw EventNotFoundException();
-            }
+            return;
           } else {
             throw EventNotFoundException();
           }
         } else {
-          throw UserNotFoundException();
+          throw EventNotFoundException();
         }
+      } else {
+        throw UserNotFoundException();
       }
-    } catch (error) {
-      throw Exception('Error updating event in Firestore: $error');
     }
+  } catch (error) {
+    throw Exception('Error updating event in Firestore: $error');
   }
+}
+
 
 /** the removeEvent method fetches the user's document from Firestore, removes the event from the updatedEvents list, and then updates the events field in the Firestore document with the updated event list. */
   @override
@@ -409,5 +402,4 @@ class FireStoreProvider implements StoreProvider {
       print('Error removing user from group: $error');
     }
   }
-
 }
