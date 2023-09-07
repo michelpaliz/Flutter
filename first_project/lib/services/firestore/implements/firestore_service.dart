@@ -61,5 +61,6 @@ class StoreService extends StoreProvider {
   
   @override
   Future<void> removeAll(User user, Group group) => provider.removeAll(user, group);
+
   
 }

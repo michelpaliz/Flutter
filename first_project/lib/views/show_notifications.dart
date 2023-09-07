@@ -42,15 +42,27 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     storeService.addUserToGroup(currentUser!, notification);
   }
 
+  // Function to remove a notification at a given index
+  void removeNotification(int index) async {
+    if (currentUser != null &&
+        index >= 0 &&
+        index < currentUser!.notifications.length) {
+      currentUser!.notifications.removeAt(index);
+      await storeService.updateUser(currentUser!);
+      setState(() {});
+    }
+  }
+
   void sendNotificationToOwner(NotificationUser notification) async {
     //We create a notification for the owner to inform him that a guest has accepted the petition to join the group.
     NotificationUser ntOwner = NotificationUser(
         id: notification.id,
         ownerId: notification.ownerId,
         title: notification.title,
-        message: '${currentUser!.name} has accepted your invitation to join the group',
+        message:
+            '${currentUser!.name} has accepted your invitation to join the group',
         timestamp: DateTime.now());
-    
+
     User? user = null;
     //Now we look up for the owner who created the group and assign him this notification.
     user = await storeService.getUserById(notification.ownerId);
@@ -148,28 +160,86 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                   return Container(); // Return an empty container for answered notifications
                 }
 
-                return ListTile(
-                  title: Text(notification.title ?? ''),
-                  subtitle: Text(notification.message ?? ''),
-                  trailing: notification.hasQuestion
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+                return Dismissible(
+                  key: Key(notification.id
+                      .toString()), // Unique key for each notification
+                  background: Container(
+                    color:
+                        Colors.red, // Background color when swiping to delete
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                  ),
+                  secondaryBackground: Container(
+                    color: Colors
+                        .red, // Background color when swiping in the opposite direction
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                  ),
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Confirm Removal"),
+                          content: Text(
+                              "Are you sure you want to remove this notification?"),
+                          actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                handleConfirmation(index);
+                                Navigator.of(context).pop(
+                                    true); // Dismiss the dialog and confirm removal
                               },
-                              child: Text("Confirm"),
+                              child: Text("Yes"),
                             ),
                             TextButton(
                               onPressed: () {
-                                handleNegation(index);
+                                Navigator.of(context).pop(
+                                    false); // Dismiss the dialog and cancel removal
                               },
-                              child: Text("Negate"),
+                              child: Text("No"),
                             ),
                           ],
-                        )
-                      : null, // Hide buttons if there's no question
+                        );
+                      },
+                    );
+                  },
+                  onDismissed: (direction) {
+                    // Remove the notification only if confirmed
+                    if (direction == DismissDirection.endToStart) {
+                      removeNotification(index);
+                    }
+                  },
+                  child: Card(
+                    elevation: 2.0, // Adjust elevation as needed
+                    margin: EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 16.0), // Adjust margins as needed
+                    child: ListTile(
+                      title: Text(notification.title ?? ''),
+                      subtitle: Text(notification.message ?? ''),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              handleConfirmation(index);
+                            },
+                            child: Text("Confirm"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              handleNegation(index);
+                            },
+                            child: Text("Negate"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               },
             ),

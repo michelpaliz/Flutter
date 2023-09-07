@@ -409,4 +409,5 @@ class FireStoreProvider implements StoreProvider {
       print('Error removing user from group: $error');
     }
   }
+
 }
