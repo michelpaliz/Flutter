@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer' as devtools show log;
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
-import 'package:first_project/utilities/sharedprefs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -32,9 +31,13 @@ class NotesViewState extends State<NotesView> {
   @override
   void initState() {
     super.initState();
-    //** The addPostFrameCallback function is used to schedule a callback after the current frame has been drawn on the screen. The callback is triggered once the layout and rendering are complete. */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getEventsListFromUser();
+      // Set a default selectedDate when the screen loads
+      setState(() {
+        selectedDate = DateTime
+            .now(); // Set it to the current date or any default date you prefer
+      });
     });
   }
 

@@ -26,13 +26,23 @@ class _GroupDetailsState extends State<GroupDetails> {
   StoreService storeService = new StoreService.firebase();
   AuthService authService = new AuthService.firebase();
   var userOrGroupObject;
+  List<Event> selectedEvents = [];
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _getEventsListFromGroup();
+    _getEventsListFromGroup();
+
+    // Initialize selectedEvents with events for the current date
+    selectedEvents = getEventsForDate(DateTime.now());
+  }
+
+  // Update the onTap handler to call _onDateSelected
+  void _onDateSelected(DateTime date) {
+    setState(() {
+      selectedDate = date;
+      selectedEvents = getEventsForDate(date);
     });
   }
 
@@ -125,204 +135,194 @@ class _GroupDetailsState extends State<GroupDetails> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-        data: AppBarStyles.themeData,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              'CALENDAR',
-              style: TextStyle(
-                color: const Color.fromARGB(
-                    255, 255, 255, 255), // Set the title color to black
-                fontSize: 20,
-              ),
+      data: AppBarStyles.themeData,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'CALENDAR',
+            style: TextStyle(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              fontSize: 20,
             ),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.refresh),
-                onPressed: () {
-                  _reloadScreen();
-                },
-              ),
-            ],
           ),
-          drawer: MyDrawer(),
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    margin: EdgeInsets.all(4),
-                    child: Center(
-                        // child: Text(
-                        //   'CALENDAR',
-                        //   style: TextStyle(
-                        //     fontFamily: 'lato',
-                        //     fontSize: 24,
-                        //     fontWeight: FontWeight.bold,
-                        //   ),
-                        // ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                _reloadScreen();
+              },
+            ),
+          ],
+        ),
+        drawer: MyDrawer(),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  margin: EdgeInsets.all(4),
+                  child: Center(
+                      // child: Text(
+                      //   'CALENDAR',
+                      //   style: TextStyle(
+                      //     fontFamily: 'lato',
+                      //     fontSize: 24,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      ),
+                ),
+                TableCalendar<Event>(
+                  eventLoader: (date) {
+                    return getEventsForDate(date);
+                  },
+                  firstDay: DateTime.utc(2023, 1, 1),
+                  focusedDay: DateTime.now(),
+                  lastDay: DateTime.utc(2023, 12, 31),
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, date, _) {
+                      return GestureDetector(
+                        onTap: () {
+                          _onDateSelected(date);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                date.day.toString(),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                  ),
-                  TableCalendar<Event>(
-                    eventLoader: (date) {
-                      return getEventsForDate(date);
+                      );
                     },
-                    firstDay: DateTime.utc(2023, 1, 1),
-                    focusedDay: DateTime.now(),
-                    lastDay: DateTime.utc(2023, 12, 31),
-                    calendarBuilders: CalendarBuilders(
-                      defaultBuilder: (context, date, _) {
-                        final isFocusedDay = isSameDay(date, focusedDay);
+                    todayBuilder: (context, date, _) {
+                      final isFocusedDay = isSameDay(date, focusedDay);
 
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedDate = date;
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isFocusedDay
-                                    ? Colors.blue
-                                    : Colors.transparent,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  date.day.toString(),
-                                  style: TextStyle(
-                                    color: isFocusedDay
-                                        ? Colors.blue
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      todayBuilder: (context, date, _) {
-                        final isFocusedDay = isSameDay(date, focusedDay);
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedDate = date;
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isFocusedDay
-                                    ? Colors.blue
-                                    : Colors.transparent,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  date.day.toString(),
-                                  style: TextStyle(
-                                    color: isFocusedDay
-                                        ? Colors.blue
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      selectedBuilder: (context, date, events) {
-                        final isFocusedDay = isSameDay(date, focusedDay);
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedDate = date;
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
+                      return GestureDetector(
+                        onTap: () {
+                          if (isSameDay(date, DateTime.now())) {
+                            _onDateSelected(date);
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
                               color: isFocusedDay
                                   ? Colors.blue
                                   : Colors.transparent,
                             ),
-                            margin: EdgeInsets.all(2),
-                            padding: EdgeInsets.all(2),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  date.day.toString(),
-                                  style: TextStyle(
-                                    color: isFocusedDay
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontWeight: isFocusedDay
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  'Custom Layout', // Your custom content for the focused day
-                                  style: TextStyle(
-                                    color: isFocusedDay
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  if (selectedDate != null)
-                    Expanded(
-                      child: Container(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        child: Center(
-                          child: getNotesForDate(selectedDate!),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                date.day.toString(),
+                                style: TextStyle(
+                                  color:
+                                      isFocusedDay ? Colors.blue : Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                ],
-              ),
-              Positioned(
-                bottom: 10,
-                right: 10,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.all(1),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 25,
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, addNote,
-                          arguments: userOrGroupObject);
+                      );
+                    },
+                    selectedBuilder: (context, date, events) {
+                      final isFocusedDay = isSameDay(date, focusedDay);
+
+                      return GestureDetector(
+                        onTap: () {
+                          if (isSameDay(date, DateTime.now())) {
+                            _onDateSelected(date);
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color:
+                                isFocusedDay ? Colors.blue : Colors.transparent,
+                          ),
+                          margin: EdgeInsets.all(2),
+                          padding: EdgeInsets.all(2),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                date.day.toString(),
+                                style: TextStyle(
+                                  color: isFocusedDay
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: isFocusedDay
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Custom Layout', // Your custom content for the focused day
+                                style: TextStyle(
+                                  color: isFocusedDay
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
+                if (selectedDate != null)
+                  Expanded(
+                    child: Container(
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      child: Center(
+                        child: getNotesForDate(selectedDate!),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.all(1),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 25,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, addNote,
+                        arguments: userOrGroupObject);
+                  },
+                ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget getNotesForDate(DateTime date) {
