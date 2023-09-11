@@ -90,6 +90,10 @@ class NotesViewState extends State<NotesView> {
     });
   }
 
+  Future<void> _updateEvent(Event event) async {
+    await storeService.updateEvent(event);
+  }
+
   //**Building the UI for the view*/
   @override
   Widget build(BuildContext context) {
@@ -317,53 +321,44 @@ class NotesViewState extends State<NotesView> {
           ),
         ),
         Expanded(
-          child: ListView.separated(
-            itemCount: eventsForDate.length,
-            separatorBuilder: (context, index) => Divider(),
-            itemBuilder: (context, index) {
-              final event = eventsForDate[index];
-              final startTime = event.startDate;
-              final endTime = event.endDate;
-              final timeText =
-                  '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
-              final timeColor = const Color.fromARGB(202, 33, 149, 243);
-              final eventColor = Colors.black;
+            child: ListView.separated(
+          itemCount: eventsForDate.length,
+          separatorBuilder: (context, index) => Divider(),
+          itemBuilder: (context, index) {
+            final event = eventsForDate[index];
+            final startTime = event.startDate;
+            final endTime = event.endDate;
+            final timeText =
+                '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
+            final timeColor = const Color.fromARGB(202, 33, 149, 243);
+            final eventColor = Colors.black;
 
-              return ListTile(
-                title: Text(
-                  timeText.toUpperCase(),
-                  style: TextStyle(
-                    color: timeColor,
-                  ),
+            return ListTile(
+              title: Text(
+                timeText.toUpperCase(),
+                style: TextStyle(
+                  color: timeColor,
                 ),
-                subtitle: Text(
-                  event.note,
-                  style: TextStyle(
-                    color: eventColor,
-                  ),
+              ),
+              subtitle: Text(
+                event.note,
+                style: TextStyle(
+                  color: eventColor,
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        _editEvent(event, context);
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        // Implement the logic to remove the event
-                        _showRemoveConfirmationDialog(event, context);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
+              ),
+              trailing: Checkbox(
+                value: event.done, // Reflects the event.done field
+                onChanged: (newValue) {
+                  // Update the 'done' field in your data model
+                  setState(() {
+                    event.done = newValue!;
+                    _updateEvent(event);
+                  });
+                },
+              ),
+            );
+          },
+        )),
       ],
     );
   }

@@ -4,6 +4,7 @@ class Event {
   final DateTime endDate;
   final String note;
   final String? groupId; // Optional property for the group ID
+  bool done;
 
   Event({
     required this.id,
@@ -11,6 +12,7 @@ class Event {
     required this.endDate,
     required this.note,
     this.groupId,
+    this.done = false, 
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class Event {
       'endDate': endDate.toIso8601String(),
       'note': note,
       'groupId': groupId,
+      'done': done, // Added 'done' field to the map
     };
   }
 
@@ -30,6 +33,7 @@ class Event {
       endDate: DateTime.parse(json['endDate']),
       note: json['note'],
       groupId: json['groupId'],
+      done: json['done'] ?? false, // Added 'done' field
     );
   }
 }

@@ -104,6 +104,10 @@ class _GroupDetailsState extends State<GroupDetails> {
     Navigator.of(context).pop(); // Close the dialog
   }
 
+  Future<void> _updateEvent(Event event) async {
+    await storeService.updateEvent(event);
+  }
+
   void _showRemoveConfirmationDialog(Event event, BuildContext context) {
     showDialog(
       context: context,
@@ -162,16 +166,56 @@ class _GroupDetailsState extends State<GroupDetails> {
                 Container(
                   padding: EdgeInsets.all(8),
                   margin: EdgeInsets.all(4),
-                  child: Center(
-                      // child: Text(
-                      //   'CALENDAR',
-                      //   style: TextStyle(
-                      //     fontFamily: 'lato',
-                      //     fontSize: 24,
-                      //     fontWeight: FontWeight.bold,
-                      //   ),
-                      // ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          'Group Members',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
+                      SizedBox(
+                          height:
+                              3), // Add some spacing between the title and member list.
+                      Container(
+                        height:
+                            65, // Set the height of the horizontal member list.
+                        child: ListView.builder(
+                          scrollDirection: Axis
+                              .horizontal, // Set the scroll direction to horizontal.
+                          itemCount: group.users
+                              .length, // Replace with the actual count of group members.
+                          itemBuilder: (BuildContext context, int index) {
+                            final member = group.users[
+                                index]; // Replace with your data structure.
+
+                            return Container(
+                              margin: EdgeInsets.all(
+                                  8), // Add spacing between members.
+                              child: Column(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 15, // Adjust the size as needed.
+                                    backgroundImage: NetworkImage(member
+                                        .photoUrl), // Replace with member's avatar.
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    member
+                                        .name, // Replace with the member's name or other relevant information.
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 TableCalendar<Event>(
                   eventLoader: (date) {
@@ -334,13 +378,13 @@ class _GroupDetailsState extends State<GroupDetails> {
 
     return Column(
       children: [
-        SizedBox(height: 16), // Add spacing above the title
+        SizedBox(height: 8), // Add spacing above the title
         Container(
           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'NOTES FOR $formattedDate'.toUpperCase(),
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: Color.fromARGB(255, 32, 116, 165),
               fontFamily: 'righteous',
@@ -374,7 +418,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                   ),
                 ),
                 trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize: MainAxisSize
+                      .min, // Ensure that the row takes up minimum space.
                   children: [
                     IconButton(
                       icon: Icon(Icons.edit),
@@ -389,12 +434,21 @@ class _GroupDetailsState extends State<GroupDetails> {
                         _showRemoveConfirmationDialog(event, context);
                       },
                     ),
+                    Checkbox(
+                      value: event.done,
+                      onChanged: (newValue) {
+                        setState(() {
+                          event.done = newValue!;
+                          _updateEvent(event);
+                        });
+                      },
+                    ),
                   ],
                 ),
               );
             },
           ),
-        ),
+        )
       ],
     );
   }
