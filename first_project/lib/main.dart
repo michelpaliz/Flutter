@@ -7,6 +7,7 @@ import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_note.dart';
 import 'package:first_project/views/edit_group.dart';
 import 'package:first_project/views/group_details.dart';
+import 'package:first_project/views/group_settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_note_screen.dart';
@@ -68,6 +69,15 @@ class MyApp extends StatelessWidget {
         dashboard: (context) => Dashboard(),
         createGroup: (context) => CreateGroup(),
         showNotifications: (context) => ShowNotifications(),
+        groupSettings: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return GroupSettings(group: group);
+          }
+          // Handle the case when no group is passed
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
         editGroup: (context) {
           final group = ModalRoute.of(context)?.settings.arguments as Group?;
           if (group != null) {

@@ -10,6 +10,8 @@ class Group {
   final Calendar calendar; // Shared calendar for the group
   List<User> users;
   final DateTime createdTime; // Time the group was created
+  bool
+      repetitiveEvents; //With this variable I can check if the members want to have repetitive events at the same time.
 
   Group({
     required this.id,
@@ -19,7 +21,24 @@ class Group {
     required this.calendar,
     required this.users,
     required this.createdTime, // Include the new field here
+    this.repetitiveEvents = false,
   });
+
+ Group copyWith({
+    bool? repetitiveEvents,
+    DateTime? createdTime, // Add the new field here
+  }) {
+    return Group(
+      id: this.id,
+      groupName: this.groupName,
+      ownerId: this.ownerId,
+      userRoles: this.userRoles,
+      calendar: this.calendar,
+      users: this.users,
+      createdTime: createdTime ?? this.createdTime,
+      repetitiveEvents: repetitiveEvents ?? this.repetitiveEvents,
+    );
+  }
 
   factory Group.fromJson(Map<String, dynamic> json) {
     // Parse the list of users from the JSON data
@@ -39,6 +58,8 @@ class Group {
       createdTime: json['createdTime'] != null
           ? DateTime.parse(json['createdTime'])
           : DateTime.now(),
+      repetitiveEvents:
+          json['repetitiveEvents'] ?? false, // Parse the new field here
     );
   }
 
@@ -56,7 +77,7 @@ class Group {
       'users': usersJson,
       'createdTime': createdTime
           .toIso8601String(), // Convert createdTime to ISO8601 string
-          
+      'repetitiveEvents': repetitiveEvents,
     };
   }
 

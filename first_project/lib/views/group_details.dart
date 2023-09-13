@@ -96,7 +96,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     group.calendar.events = events!.where((e) => e.id != event.id).toList();
     await storeService.updateGroup(group);
 
-    // Remove the event from the eventList
+    // Remove the event from the eventListP_)
     setState(() {
       events?.removeWhere((e) => e.id == event.id);
     });
@@ -151,11 +151,18 @@ class _GroupDetailsState extends State<GroupDetails> {
           ),
           actions: [
             IconButton(
-              icon: Icon(Icons.refresh),
+              icon: Icon(Icons.settings),
               onPressed: () {
-                _reloadScreen();
+                Navigator.pushNamed(context, groupSettings,
+                    arguments: userOrGroupObject);
               },
             ),
+            // IconButton(
+            //   icon: Icon(Icons.refresh),
+            //   onPressed: () {
+            //     _reloadScreen();
+            //   },
+            // ),
           ],
         ),
         drawer: MyDrawer(),

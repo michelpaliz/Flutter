@@ -64,73 +64,73 @@ class FireStoreProvider implements StoreProvider {
   }
 
   Future<void> updateEvent(Event event) async {
-  try {
-    if (event.groupId != null && event.groupId!.isNotEmpty) {
-      // Retrieve the group object based on event.groupId
-      Group? group = await getGroupFromId(event.groupId!);
+    try {
+      if (event.groupId != null && event.groupId!.isNotEmpty) {
+        // Retrieve the group object based on event.groupId
+        Group? group = await getGroupFromId(event.groupId!);
 
-      // Update the event data in the group's calendar
-      // You can access the group's calendar using group.calendar
-      // Update the event within the calendar as needed
+        // Update the event data in the group's calendar
+        // You can access the group's calendar using group.calendar
+        // Update the event within the calendar as needed
 
-      // Example: Update event in the calendar's events list
-      int eventIndex = group!.calendar.events.indexWhere((e) => e.id == event.id);
-      if (eventIndex != -1) {
-        group.calendar.events[eventIndex] = event;
-      }
+        // Example: Update event in the calendar's events list
+        int eventIndex =
+            group!.calendar.events.indexWhere((e) => e.id == event.id);
+        if (eventIndex != -1) {
+          group.calendar.events[eventIndex] = event;
+        }
 
-      // Save the updated group object back to Firestore
-      CollectionReference groupsCollection =
-          FirebaseFirestore.instance.collection('groups');
-      await groupsCollection.doc(group.id).update(group.toJson());
-    } else {
-      User? currentUser = await getCurrentUser();
-      if (currentUser == null) {
-        throw UserNotFoundAuthException();
-      }
+        // Save the updated group object back to Firestore
+        CollectionReference groupsCollection =
+            FirebaseFirestore.instance.collection('groups');
+        await groupsCollection.doc(group.id).update(group.toJson());
+      } else {
+        User? currentUser = await getCurrentUser();
+        if (currentUser == null) {
+          throw UserNotFoundAuthException();
+        }
 
-      String userId = currentUser.id;
+        String userId = currentUser.id;
 
-      CollectionReference userCollection =
-          FirebaseFirestore.instance.collection('users');
+        CollectionReference userCollection =
+            FirebaseFirestore.instance.collection('users');
 
-      DocumentReference userRef = userCollection.doc(userId);
+        DocumentReference userRef = userCollection.doc(userId);
 
-      DocumentSnapshot userSnapshot = await userRef.get();
+        DocumentSnapshot userSnapshot = await userRef.get();
 
-      if (userSnapshot.exists) {
-        Map<String, dynamic> userData =
-            userSnapshot.data() as Map<String, dynamic>;
+        if (userSnapshot.exists) {
+          Map<String, dynamic> userData =
+              userSnapshot.data() as Map<String, dynamic>;
 
-        List<dynamic>? events = userData['events'];
+          List<dynamic>? events = userData['events'];
 
-        if (events != null) {
-          // Find the event with the matching ID
-          int eventIndex = events.indexWhere((e) => e['id'] == event.id);
+          if (events != null) {
+            // Find the event with the matching ID
+            int eventIndex = events.indexWhere((e) => e['id'] == event.id);
 
-          if (eventIndex != -1) {
-            // Update the event object in the list
-            events[eventIndex] = event.toMap();
+            if (eventIndex != -1) {
+              // Update the event object in the list
+              events[eventIndex] = event.toMap();
 
-            // Update the events field in the user document
-            await userRef.update({'events': events});
+              // Update the events field in the user document
+              await userRef.update({'events': events});
 
-            return;
+              return;
+            } else {
+              throw EventNotFoundException();
+            }
           } else {
             throw EventNotFoundException();
           }
         } else {
-          throw EventNotFoundException();
+          throw UserNotFoundException();
         }
-      } else {
-        throw UserNotFoundException();
       }
+    } catch (error) {
+      throw Exception('Error updating event in Firestore: $error');
     }
-  } catch (error) {
-    throw Exception('Error updating event in Firestore: $error');
   }
-}
-
 
 /** the removeEvent method fetches the user's document from Firestore, removes the event from the updatedEvents list, and then updates the events field in the Firestore document with the updated event list. */
   @override
@@ -205,7 +205,12 @@ class FireStoreProvider implements StoreProvider {
     final groupReference = _firestore.collection('groups').doc(group.id);
 
     // Update the document with the new data
-    await groupReference.update(groupData);
+    try {
+      await groupReference.update(groupData);
+    } catch (e) {
+      print("Error updating group: $e");
+      // Handle the error appropriately, e.g., show a snackbar or alert to the user.
+    }
   }
 
   @override
@@ -358,6 +363,8 @@ class FireStoreProvider implements StoreProvider {
       // Handle the error
       print("Error deleting group: $error");
     }
+
+    //We proceed to delete the events of the deleted group in the users collection
   }
 
   @override
@@ -400,6 +407,33 @@ class FireStoreProvider implements StoreProvider {
       await updateGroup(group);
     } catch (error) {
       print('Error removing user from group: $error');
+    }
+  }
+
+  @override
+  Future<User> getOwnerFromGroup(Group group) async {
+    try {
+      // 1. Query Firestore to retrieve the owner's user document.
+      DocumentSnapshot userDocSnapshot = await _firestore
+          .collection(
+              'users') // Assuming 'users' is the collection name for users
+          .doc(group
+              .ownerId) // Replace with the actual path to the owner's user document
+          .get();
+
+      // 2. Convert Firestore document data to JSON format.
+      Map<String, dynamic> userData =
+          userDocSnapshot.data() as Map<String, dynamic>;
+
+      // 3. Create a User object using the user.fromJson method.
+      User owner = User.fromJson(
+          userData); // Replace with your actual JSON parsing logic
+
+      return owner;
+    } catch (e) {
+      // Handle any errors that may occur during the process.
+      print("Error retrieving owner: $e");
+      rethrow; // Rethrow the error for higher-level handling if needed.
     }
   }
 }
