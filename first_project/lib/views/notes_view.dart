@@ -341,7 +341,7 @@ class NotesViewState extends State<NotesView> {
                 ),
               ),
               subtitle: Text(
-                event.note,
+                event.title,
                 style: TextStyle(
                   color: eventColor,
                 ),

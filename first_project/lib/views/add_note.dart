@@ -9,29 +9,6 @@ import '../services/user/user_provider.dart';
 import '../styles/app_bar_styles.dart';
 import '../utilities/sharedprefs.dart';
 
-// void main() {
-//   runApp(MaterialApp(
-//     home: EventNoteApp(),
-//   ));
-// }
-
-// class EventNoteApp extends StatelessWidget {
-//   const EventNoteApp({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Event Note Widget',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: EventNoteWidget(initialEvents: [],),
-//     );
-//   }
-// }
-
-//---- NOTE WIDGET ----
-
 class EventNoteWidget extends StatefulWidget {
   final User? user;
   final Group? group;
@@ -174,7 +151,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         id: eventId,
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
-        note: eventNote,
+        title: eventNote,
         groupId: group?.id, // Set the groupId if adding to a group's events
       );
 

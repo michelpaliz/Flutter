@@ -19,7 +19,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     //  it retrieves the Event object passed as an argument to the screen and assigns its note value to the _noteController to populate the TextField with the existing note.
     super.didChangeDependencies();
     event = ModalRoute.of(context)!.settings.arguments as Event;
-    _noteController.text = event.note;
+    _noteController.text = event.title;
   }
 
   /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
@@ -65,7 +65,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       id: event.id,
       startDate: event.startDate,
       endDate: event.endDate,
-      note: updatedNote,
+      title: updatedNote,
       groupId: event.groupId,
     );
 

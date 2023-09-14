@@ -419,7 +419,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   ),
                 ),
                 subtitle: Text(
-                  event.note,
+                  event.title,
                   style: TextStyle(
                     color: eventColor,
                   ),
