@@ -1,3 +1,4 @@
+import 'package:first_project/enums/days_week.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -5,9 +6,11 @@ import '../models/event.dart';
 import '../models/group.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
-import '../services/user/user_provider.dart';
 import '../styles/app_bar_styles.dart';
 import '../utilities/sharedprefs.dart';
+import 'package:http/http.dart' as http; // Import the http package
+import 'dart:convert';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class EventNoteWidget extends StatefulWidget {
   final User? user;
@@ -23,12 +26,23 @@ class EventNoteWidget extends StatefulWidget {
 class _EventNoteWidgetState extends State<EventNoteWidget> {
   final User? user;
   final Group? group;
-
+  Event? event;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
   late TextEditingController _eventController;
   List<Event> eventList = [];
   StoreService storeService = StoreService.firebase();
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _descriptionController =
+      TextEditingController(); // Add the controller for the description
+  TextEditingController _noteController =
+      TextEditingController(); // Add the controller for the note
+  TextEditingController _locationController = TextEditingController(); // Add t
+
+  String? selectedRecurrenceRule; // Declare the selectedRecurrenceRule variable
+  var selectedDayOfWeek;
+  bool isRepetitive = false;
+  bool? isAllDay = false;
 
   _EventNoteWidgetState({this.user, this.group}) {
     if (user != null) {
@@ -41,7 +55,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
-
   @override
   void dispose() {
     _eventController.dispose();
@@ -51,13 +64,31 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   @override
   void initState() {
     super.initState();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-        
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventController = TextEditingController();
     loadEvents(); // Load events from shared preferences or other source
+  }
+
+  Future<List<String>> _getAddressSuggestions(String pattern) async {
+    final baseUrl = Uri.parse('https://nominatim.openstreetmap.org/search');
+    final queryParameters = {
+      'format': 'json',
+      'q': pattern,
+    };
+
+    final response =
+        await http.get(baseUrl.replace(queryParameters: queryParameters));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List<dynamic>;
+      final suggestions =
+          data.map((item) => item['display_name'] as String).toList();
+      return suggestions;
+    } else {
+      throw Exception('Failed to load suggestions');
+    }
   }
 
 /**
@@ -67,7 +98,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     setState(() {
       eventList = eventList.reversed.take(100).toList();
     });
- // SharedPrefsUtils.storeUser(user!);
+    // SharedPrefsUtils.storeUser(user!);
   }
 
   void _reloadScreen() {
@@ -147,26 +178,32 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     String eventId = Uuid().v4();
 
     if (eventNote.trim().isNotEmpty) {
-      Event event = Event(
+      Event newEvent = Event(
         id: eventId,
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
         title: eventNote,
         groupId: group?.id, // Set the groupId if adding to a group's events
+        recurrenceRule:
+            event?.recurrenceRule, // Retains recurrenceRule if available
+        localization: event?.localization, // Retains localization if available
+        allDay: event?.allDay ?? false, // Retains allDay with a default value
+        note: event?.note, // Retains note if available
+        description: event?.description, // Retains description if available
       );
 
       bool isStartHourUnique = eventList.every((e) =>
-          e.startDate.hour != event.startDate.hour ||
-          e.startDate.day != event.startDate.day);
+          e.startDate.hour != newEvent.startDate.hour ||
+          e.startDate.day != newEvent.startDate.day);
 
       if (isStartHourUnique) {
         setState(() {
-          eventList.add(event);
+          eventList.add(newEvent);
         });
 
         if (user != null) {
           List<Event> userEvents = user!.events;
-          userEvents.add(event);
+          userEvents.add(newEvent);
           user!.events = userEvents;
 
           await SharedPrefsUtils.storeUser(user!);
@@ -177,7 +214,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           );
         } else if (group != null) {
           List<Event> groupEvents = group!.calendar.events;
-          groupEvents.add(event);
+          groupEvents.add(newEvent);
           group?.calendar.events = groupEvents;
 
           await storeService.updateGroup(group!);
@@ -247,118 +284,131 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-        data: AppBarStyles.themeData,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Event Note Widget'),
-          ),
-          body: Container(
+      data: AppBarStyles.themeData,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Event Note Widget'),
+        ),
+        body: SingleChildScrollView(
+          // Wrap the Scaffold with SingleChildScrollView
+          child: Container(
             padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    _selectDate(context, true);
-                  },
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today),
-                      SizedBox(width: 10),
-                      Text(
-                        'Start Date: ${_selectedStartDate.toString()}',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {
-                    _selectDate(context, false);
-                  },
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today),
-                      SizedBox(width: 10),
-                      Text(
-                        'End Date: ${_selectedEndDate.toString()}',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _eventController,
+                // Title Input
+                TextFormField(
+                  controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: 'Event/Note',
+                    labelText: 'Title (max 10 characters)',
                   ),
+                  maxLength: 10,
                 ),
-                SizedBox(height: 20),
+
+                SizedBox(height: 10),
+
+                // Start Date and End Date Inputs
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      flex: 1,
+                      child: TextFormField(
+                        onTap: () => _selectDate(context, true),
+                        decoration: InputDecoration(
+                          labelText: 'Start Date',
+                        ),
+                        controller: TextEditingController(
+                          text: _selectedStartDate.toString(),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Flexible(
+                      flex: 1,
+                      child: TextFormField(
+                        onTap: () => _selectDate(context, false),
+                        decoration: InputDecoration(
+                          labelText: 'End Date',
+                        ),
+                        controller: TextEditingController(
+                          text: _selectedEndDate.toString(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 10),
+
+                // Location Input
+                // Location Input with Auto-Completion
+                TypeAheadField<String>(
+                  textFieldConfiguration: TextFieldConfiguration(
+                    controller: _locationController,
+                    decoration: InputDecoration(
+                      labelText: 'Location',
+                    ),
+                  ),
+                  suggestionsCallback: (pattern) async {
+                    return await _getAddressSuggestions(pattern);
+                  },
+                  itemBuilder: (context, suggestion) {
+                    return ListTile(
+                      title: Text(suggestion),
+                    );
+                  },
+                  onSuggestionSelected: (suggestion) {
+                    setState(() {
+                      _locationController.text = suggestion;
+                    });
+                  },
+                ),
+
+                SizedBox(height: 10),
+
+                // Description Input
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Description (max 30 characters)',
+                  ),
+                  maxLength: 30,
+                ),
+
+                SizedBox(height: 10),
+
+                // Note Input
+                TextFormField(
+                  controller: _noteController,
+                  decoration: InputDecoration(
+                    labelText: 'Note (max 15 characters)',
+                  ),
+                  maxLength: 15,
+                ),
+
+                // ... (other input fields)
+
+                SizedBox(height: 10),
+
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      _addEvent();
-                      _reloadScreen();
+                      if (_titleController.text.isEmpty) {
+                        // Show an error message or handle the empty title here
+                      } else {
+                        _addEvent();
+                        _reloadScreen();
+                      }
                     },
-                    // onPressed: _addEvent,
                     child: Text('Add Event'),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Event List:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: eventList.length,
-                    itemBuilder: (context, index) {
-                      Event event = eventList[index];
-                      return ListTile(
-                        title: RichText(
-                          text: TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              TextSpan(
-                                text: 'Note : '.toUpperCase(),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Lato',
-                                    fontSize: 16,
-                                    fontStyle: FontStyle.italic,
-                                    color: Color.fromARGB(255, 14, 103, 133)),
-                              ),
-                              TextSpan(
-                                text: event.note,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'lato',
-                                  fontSize: 16,
-                                  fontStyle: FontStyle.normal,
-                                  color: const Color.fromARGB(255, 0, 0, 0),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        subtitle: Text(
-                            'Start: ${event.startDate.toString()}\nEnd: ${event.endDate.toString()}'),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _showRemoveConfirmationDialog(event.id);
-                          },
-                        ),
-                      );
-                    },
                   ),
                 ),
               ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

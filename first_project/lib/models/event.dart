@@ -10,7 +10,7 @@ class Event {
   final String? localization; // Optional localization field
   final String? note; // Optional note field
   final String? description; // Optional description field
-  final bool allDay; // Optional allDay field with default value false
+  late final bool allDay; // Optional allDay field with default value false
   bool done;
 
   Event({
@@ -49,16 +49,21 @@ class Event {
       id: json['id'],
       startDate: DateTime.parse(json['startDate']),
       endDate: DateTime.parse(json['endDate']),
-      title: json['title'], // Deserialize title
+      title:
+          json['title'] ?? '', // Deserialize title with a default empty string
       groupId: json['groupId'],
       done: json['done'] ?? false,
       recurrenceRule: RecurrenceRule.fromString(
-          json['recurrenceRule']), // Use the fromString method
-      localization: json['localization'],
+        json['recurrenceRule'] ??
+            'daily', // Provide a default value for recurrenceRule
+      ),
+      localization: json['localization'] ??
+          '', // Provide a default empty string for localization
       allDay: json['allDay'] ??
           false, // Deserialize allDay with default value false
-      note: json['note'], // Deserialize note if present
-      description: json['description'], // Deserialize description if present
+      note: json['note'] ?? '', // Provide a default empty string for note
+      description: json['description'] ??
+          '', // Provide a default empty string for description
     );
   }
 }
