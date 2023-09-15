@@ -4,7 +4,7 @@ import 'package:first_project/constants/routes.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
-import 'package:first_project/views/add_note.dart';
+import 'package:first_project/views/add_event.dart';
 import 'package:first_project/views/edit_group.dart';
 import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/group_settings.dart';

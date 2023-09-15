@@ -1,42 +1,58 @@
 import 'package:first_project/enums/days_week.dart';
 
+import 'dart:core';
+
+enum RecurrenceType { Daily, Weekly, Monthly, Yearly }
+
 class RecurrenceRule {
   final String name;
   final DayOfWeek? dayOfWeek;
   final int? dayOfMonth;
   final int? month;
+  final int? repeatInterval; // Number of intervals for recurrence
+  final RecurrenceType recurrenceType;
+  final DateTime? untilDate; // End date for recurrence
 
-  const RecurrenceRule.daily()
+  const RecurrenceRule.daily({this.repeatInterval, this.untilDate})
       : name = 'Daily',
         dayOfWeek = null,
         dayOfMonth = null,
-        month = null;
+        month = null,
+        recurrenceType = RecurrenceType.Daily;
 
-  const RecurrenceRule.weekly(this.dayOfWeek)
+  const RecurrenceRule.weekly(this.dayOfWeek,
+      {this.repeatInterval, this.untilDate})
       : name = 'Weekly',
         dayOfMonth = null,
-        month = null;
+        month = null,
+        recurrenceType = RecurrenceType.Weekly;
 
-  const RecurrenceRule.monthly(this.dayOfMonth)
+  const RecurrenceRule.monthly(
+      {this.dayOfMonth, this.repeatInterval, this.untilDate})
       : name = 'Monthly',
         dayOfWeek = null,
-        month = null;
+        month = null,
+        recurrenceType = RecurrenceType.Monthly;
 
-  const RecurrenceRule.yearly(this.month, this.dayOfMonth)
+  const RecurrenceRule.yearly(this.month, this.dayOfMonth,
+      {this.repeatInterval, this.untilDate})
       : name = 'Yearly',
-        dayOfWeek = null;
-
+        dayOfWeek = null,
+        recurrenceType = RecurrenceType.Yearly;
 
   static RecurrenceRule? fromString(String ruleString) {
     switch (ruleString) {
       case 'daily':
         return RecurrenceRule.daily();
       case 'weekly':
-        return RecurrenceRule.weekly(null); // Pass the appropriate DayOfWeek value if needed
+        return RecurrenceRule.weekly(
+            null); // Pass the appropriate DayOfWeek value if needed
       case 'monthly':
-        return RecurrenceRule.monthly(null); // Pass the appropriate dayOfMonth value if needed
+        return RecurrenceRule
+            .monthly(); // User needs to specify dayOfMonth when creating
       case 'yearly':
-        return RecurrenceRule.yearly(null, null); // Pass the appropriate month and dayOfMonth values if needed
+        return RecurrenceRule.yearly(null,
+            null); // Pass the appropriate month and dayOfMonth values if needed
       default:
         return null; // Handle unrecognized ruleString
     }

@@ -1,4 +1,3 @@
-import 'package:first_project/enums/days_week.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,7 +6,6 @@ import '../models/group.dart';
 import '../models/user.dart';
 import '../services/firestore/implements/firestore_service.dart';
 import '../styles/app_bar_styles.dart';
-import '../utilities/sharedprefs.dart';
 import 'package:http/http.dart' as http; // Import the http package
 import 'dart:convert';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -24,6 +22,7 @@ class EventNoteWidget extends StatefulWidget {
 }
 
 class _EventNoteWidgetState extends State<EventNoteWidget> {
+  //** LOGIC VARIABLES  */
   final User? user;
   final Group? group;
   Event? event;
@@ -31,6 +30,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   late DateTime _selectedEndDate;
   late TextEditingController _eventController;
   List<Event> eventList = [];
+  //** CONTROLLERS  */
   StoreService storeService = StoreService.firebase();
   TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController =
@@ -38,12 +38,15 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   TextEditingController _noteController =
       TextEditingController(); // Add the controller for the note
   TextEditingController _locationController = TextEditingController(); // Add t
-
-  String? selectedRecurrenceRule; // Declare the selectedRecurrenceRule variable
+  //** LOGIC VARIABLES FOR THE VIEW */
+  final double toggleWidth = 50.0; // Width of the toggle button (constant)
+  String selectedFrequency = 'Daily'; // Initialize with a default frequency
   var selectedDayOfWeek;
-  bool isRepetitive = false;
+  late bool isRepetitive = false;
   bool? isAllDay = false;
+  String selectedRepetition = 'daily'; // Default repetition is daily
 
+  //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({this.user, this.group}) {
     if (user != null) {
       // Initialize eventList based on user
@@ -68,7 +71,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventController = TextEditingController();
-    loadEvents(); // Load events from shared preferences or other source
+    _loadEvents(); // Load events from shared preferences or other source
   }
 
   Future<List<String>> _getAddressSuggestions(String pattern) async {
@@ -94,7 +97,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 /**
  * the userEvents list is obtained from the user object. Then, the list is reversed using .reversed and the last 100 events are taken using .take(100)
  */
-  Future<void> loadEvents() async {
+  Future<void> _loadEvents() async {
     setState(() {
       eventList = eventList.reversed.take(100).toList();
     });
@@ -108,28 +111,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       _selectedEndDate = DateTime.now();
       _eventController.clear();
     });
-    loadEvents(); // Reload events from shared preferences
-  }
-
-  void _removeEvents(String eventId) async {
-    if (user != null) {
-      // Remove the event from the eventList
-      setState(() {
-        eventList.removeWhere((event) => event.id == eventId);
-      });
-
-      Navigator.of(context).pop();
-    } else if (group != null) {
-      setState(() {
-        eventList.removeWhere((event) => event.id == eventId);
-      });
-
-      // Update the group's events list and store it
-      group!.calendar.events = eventList;
-      await storeService.updateGroup(group!);
-
-      Navigator.of(context).pop();
-    }
+    _loadEvents(); // Reload events from shared preferences
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -172,6 +154,60 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
+  // Function to show the repetition selection dialog
+  void _showRepetitionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Repetition'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              DropdownButton<String>(
+                value: selectedFrequency,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedFrequency = newValue!;
+                  });
+                },
+                items: <String>[
+                  'Daily',
+                  'Weekly',
+                  'Monthly',
+                  'Yearly',
+                ].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  selectedRepetition = selectedFrequency
+                      .toLowerCase(); // Update the selected repetition
+                });
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /*** We retrieve the current user object. Then we can update the user object with the new event list and other modifications.*/
   void _addEvent() async {
     String eventNote = _eventController.text;
@@ -206,7 +242,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           userEvents.add(newEvent);
           user!.events = userEvents;
 
-          await SharedPrefsUtils.storeUser(user!);
           await storeService.updateUser(user!);
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -251,33 +286,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       );
     }
 
-    _reloadScreen();
-  }
-
-  void _showRemoveConfirmationDialog(String eventId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm Removal'),
-          content: Text('Are you sure you want to remove this event?'),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-            TextButton(
-              child: Text('Remove'),
-              onPressed: () async {
-                _removeEvents(eventId);
-              },
-            ),
-          ],
-        );
-      },
-    );
     _reloadScreen();
   }
 
@@ -387,10 +395,72 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                   maxLength: 15,
                 ),
 
-                // ... (other input fields)
-
                 SizedBox(height: 10),
 
+                //**Slide Button to Toggle Repetition */
+                SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {
+                    _showRepetitionDialog(
+                        context); // Open the repetition selection dialog
+                  },
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    width: 2 *
+                        toggleWidth, // Twice the toggle width for slide effect
+                    height: 40.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.0),
+                      color: isRepetitive ? Colors.green : Colors.grey,
+                    ),
+                    child: Center(
+                      child: AnimatedSwitcher(
+                        duration: Duration(milliseconds: 300),
+                        child: isRepetitive
+                            ? Text(
+                                'ON',
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 28, 86, 120),
+                                ),
+                              )
+                            : Text(
+                                'OFF',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Repetition Dropdown (conditionally shown)
+                if (isRepetitive)
+                  Column(
+                    children: [
+                      SizedBox(height: 10),
+                      DropdownButton<String>(
+                        value: selectedRepetition,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedRepetition = newValue!;
+                          });
+                        },
+                        items: <String>[
+                          'daily',
+                          'weekly',
+                          'monthly',
+                          'yearly',
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                SizedBox(height: 10),
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
