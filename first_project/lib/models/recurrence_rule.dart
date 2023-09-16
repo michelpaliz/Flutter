@@ -34,25 +34,27 @@ class RecurrenceRule {
         month = null,
         recurrenceType = RecurrenceType.Monthly;
 
-  const RecurrenceRule.yearly(this.month, this.dayOfMonth,
-      {this.repeatInterval, this.untilDate})
+  const RecurrenceRule.yearly(
+      {this.month, this.dayOfMonth, this.repeatInterval, this.untilDate})
       : name = 'Yearly',
         dayOfWeek = null,
         recurrenceType = RecurrenceType.Yearly;
 
-  static RecurrenceRule? fromString(String ruleString) {
+  static RecurrenceRule? fromString(String ruleString,
+      {int? month, int? dayOfMonth}) {
     switch (ruleString) {
       case 'daily':
         return RecurrenceRule.daily();
       case 'weekly':
         return RecurrenceRule.weekly(
-            null); // Pass the appropriate DayOfWeek value if needed
+            null, repeatInterval: null, untilDate: null);
       case 'monthly':
-        return RecurrenceRule
-            .monthly(); // User needs to specify dayOfMonth when creating
+        return RecurrenceRule.monthly(
+            dayOfMonth: null, repeatInterval: null, untilDate: null);
       case 'yearly':
-        return RecurrenceRule.yearly(null,
-            null); // Pass the appropriate month and dayOfMonth values if needed
+        return RecurrenceRule.yearly(
+            month: month, dayOfMonth: dayOfMonth,
+            repeatInterval: null, untilDate: null);
       default:
         return null; // Handle unrecognized ruleString
     }

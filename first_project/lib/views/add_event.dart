@@ -1,3 +1,4 @@
+import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -40,11 +41,10 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   TextEditingController _locationController = TextEditingController(); // Add t
   //** LOGIC VARIABLES FOR THE VIEW */
   final double toggleWidth = 50.0; // Width of the toggle button (constant)
-  String selectedFrequency = 'Daily'; // Initialize with a default frequency
   var selectedDayOfWeek;
   late bool isRepetitive = false;
   bool? isAllDay = false;
-  String selectedRepetition = 'daily'; // Default repetition is daily
+  String selectedRepetition = 'Daily'; // Default repetition is daily
 
   //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({this.user, this.group}) {
@@ -154,55 +154,199 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
-  // Function to show the repetition selection dialog
   void _showRepetitionDialog(BuildContext context) {
+    // Local state variables to store user input
+    String selectedFrequency = 'Daily'; // Default to Daily
+    int? repeatInterval;
+    int? dayOfMonth;
+    int? selectedMonth;
+    bool isForever =
+        false; // Variable to track whether the recurrence is forever
+    DateTime? untilDate;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select Repetition'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              DropdownButton<String>(
-                value: selectedFrequency,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedFrequency = newValue!;
-                  });
-                },
-                items: <String>[
-                  'Daily',
-                  'Weekly',
-                  'Monthly',
-                  'Yearly',
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text('Select Repetition'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  // Dropdown for selecting frequency
+                  DropdownButton<String>(
+                    value: selectedFrequency,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedFrequency = newValue!;
+                      });
+                    },
+                    items: <String>[
+                      'Daily',
+                      'Weekly',
+                      'Monthly',
+                      'Yearly',
+                    ].map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+
+                  // Optional input for repeat interval
+                  if (selectedFrequency != 'Daily')
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Repeat every'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        repeatInterval = int.tryParse(value);
+                      },
+                    ),
+
+                  // Optional input for day of month (for Monthly and Yearly)
+                  if (selectedFrequency == 'Monthly' ||
+                      selectedFrequency == 'Yearly')
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Day of Month'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        dayOfMonth = int.tryParse(value);
+                      },
+                    ),
+
+                  // Dropdown for selecting the month (for Yearly)
+                  if (selectedFrequency == 'Yearly')
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(
+                              top: 15.0,
+                              bottom: 5.0), // Add padding to the bottom
+                          child: Text(
+                            'Select the specific month of the year:',
+                            style: TextStyle(
+                              // You can also apply styling if needed
+                              fontSize: 15.0,
+                            ),
+                          ),
+                        ),
+                        DropdownButton<int>(
+                          value: selectedMonth,
+                          onChanged: (int? newValue) {
+                            setState(() {
+                              selectedMonth = newValue;
+                            });
+                          },
+                          items: List<DropdownMenuItem<int>>.generate(
+                            12,
+                            (index) => DropdownMenuItem<int>(
+                              value: index + 1,
+                              child: Text('${index + 1}'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  // Checkbox to enable the "Forever" option for until date
+                  Row(
+                    children: <Widget>[
+                      Checkbox(
+                        value: isForever,
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                            isForever = newValue ?? false;
+                            if (isForever) {
+                              untilDate =
+                                  null; // If forever is selected, clear the until date
+                            }
+                          });
+                        },
+                      ),
+                      Text('Forever'), // Label for the "Forever" checkbox
+                    ],
+                  ),
+
+                  // Optional input for until date (disabled if "Forever" is selected)
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Until Date (YYYY-MM-DD)',
+                      enabled: !isForever, // Disable if "Forever" is selected
+                    ),
+                    keyboardType: TextInputType.datetime,
+                    onChanged: (value) {
+                      untilDate = DateTime.tryParse(value);
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  selectedRepetition = selectedFrequency
-                      .toLowerCase(); // Update the selected repetition
-                });
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text('Confirm'),
-            ),
-          ],
+              actions: <Widget>[
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Create a RecurrenceRule based on user input
+                    RecurrenceRule recurrenceRule;
+
+                    switch (selectedFrequency) {
+                      case 'Daily':
+                        recurrenceRule = RecurrenceRule.daily(
+                          repeatInterval: repeatInterval,
+                          untilDate: isForever
+                              ? null
+                              : untilDate, // Check if "Forever" is selected
+                        );
+                        break;
+                      case 'Weekly':
+                        recurrenceRule = RecurrenceRule.weekly(
+                          null, // You can add logic here to select a day of the week
+                          repeatInterval: repeatInterval,
+                          untilDate: isForever
+                              ? null
+                              : untilDate, // Check if "Forever" is selected
+                        );
+                        break;
+                      case 'Monthly':
+                        recurrenceRule = RecurrenceRule.monthly(
+                          dayOfMonth: dayOfMonth,
+                          repeatInterval: repeatInterval,
+                          untilDate: isForever
+                              ? null
+                              : untilDate, // Check if "Forever" is selected
+                        );
+                        break;
+                      case 'Yearly':
+                        recurrenceRule = RecurrenceRule.yearly(
+                          month:
+                              selectedMonth, // Provide the selected month here
+                          dayOfMonth: dayOfMonth,
+                          repeatInterval: repeatInterval,
+                          untilDate: isForever
+                              ? null
+                              : untilDate, // Check if "Forever" is selected
+                        );
+                        break;
+                      default:
+                        recurrenceRule =
+                            RecurrenceRule.daily(); // Default to Daily
+                    }
+
+                    // Now you can use recurrenceRule as needed (e.g., store it or apply it to an Event object)
+
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('Confirm'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -399,6 +543,13 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
                 //**Slide Button to Toggle Repetition */
                 SizedBox(height: 10),
+                Text(
+                  "Repetition for the event",
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
+                SizedBox(height: 15),
                 GestureDetector(
                   onTap: () {
                     _showRepetitionDialog(
