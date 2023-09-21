@@ -1,6 +1,7 @@
 import 'dart:developer' as devtools show log;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
+import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
@@ -69,6 +70,18 @@ class MyApp extends StatelessWidget {
         dashboard: (context) => Dashboard(),
         createGroup: (context) => CreateGroup(),
         showNotifications: (context) => ShowNotifications(),
+        dialogRepetition: (context) {
+          final selectedStartDate =
+              ModalRoute.of(context)?.settings.arguments as DateTime?;
+          if (selectedStartDate != null) {
+            return RepetitionDialog(selectedStartDate: selectedStartDate);
+          }
+          // Handle the case when selectedStartDate is null
+          // You can return a default widget or show an error message here
+          return Center(
+            child: Text("Selected Start Date is null"),
+          );
+        },
         groupSettings: (context) {
           final group = ModalRoute.of(context)?.settings.arguments as Group?;
           if (group != null) {

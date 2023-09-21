@@ -10,3 +10,4 @@ const showNotifications= '/show-notifications';
 const groupDetails = '/group-details';
 const editGroup = '/edit-group';
 const groupSettings = '/group-settings';
+const dialogRepetition = '/dialog-repetition/';

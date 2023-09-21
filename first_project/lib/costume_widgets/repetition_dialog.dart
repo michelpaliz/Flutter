@@ -1,5 +1,5 @@
 import 'package:first_project/costume_widgets/number_selector.dart';
-import 'package:first_project/enums/days_week.dart';
+import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -20,21 +20,31 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   int? selectedMonth;
   bool isForever = false; // Variable to track whether the recurrence is forever
   DateTime? untilDate;
-  Set<DayOfWeek> selectedDays = Set<DayOfWeek>();
-
-
+  // Set<DayOfWeek> selectedDays = Set<DayOfWeek>();
+  Set<CustomDayOfWeek> selectedDays = Set<CustomDayOfWeek>();
   String previousFrequency = 'Daily';
-
   late DateTime _selectedStartDate;
+  List<CustomDayOfWeek> localCustomDaysOfWeek =
+      customDaysOfWeek; // Initialize with customDaysOfWeek
 
   @override
   void initState() {
     super.initState();
+
     _selectedStartDate =
         widget.selectedStartDate; // Initialize with the provided value
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showRepetitionDialog(context);
     });
+  }
+
+  void _goBackToParentView() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(); // Close the dialog
+      Navigator.of(context).pop(); // Go back one more step
+    } else {
+      Navigator.of(context).pop(); // Close the dialog if no other routes
+    }
   }
 
   void _showRepetitionDialog(BuildContext context) {
@@ -46,7 +56,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     bool isForever =
         false; // Variable to track whether the recurrence is forever
     DateTime? untilDate;
-    Set<DayOfWeek> selectedDays = Set<DayOfWeek>();
+    // Set<DayOfWeek> selectedDays = Set<DayOfWeek>();
 
     String previousFrequency = selectedFrequency;
 
@@ -71,85 +81,120 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               }
             }
 
-           // Define a function to build the "Repeat Every" row
-Widget buildRepeatEveryRow() {
-  String repeatMessage;
-  
-  // Check if the previous and selected frequencies are different
-  if (previousFrequency != selectedFrequency) {
-    repeatInterval = 0; // Reset to 0 when changing between daily and other options
-  }
-  
-  switch (selectedFrequency) {
-    case 'Daily':
-      repeatMessage = 'This event will repeat every $repeatInterval day';
-      break;
-    case 'Weekly':
-      repeatMessage = 'This event will repeat every $repeatInterval week(s) (on days of the week)';
-      break;
-    case 'Monthly':
-      repeatMessage = 'This event will repeat on the $dayOfMonth day every $repeatInterval month(s)';
-      break;
-    case 'Yearly':
-      repeatMessage = 'This event will repeat every $repeatInterval year(s) on $_selectedStartDate day';
-      break;
-    default:
-      repeatMessage = '';
-  }
+            // Define a function to build the "Repeat Every" row
+            Widget buildRepeatEveryRow() {
+              String repeatMessage;
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      SizedBox(height: 8.0), // Add space above the title
-      Text(
-        'Repetition Details:',
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      SizedBox(
-          height: 8.0), // Add space above the informative message
-      Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.0), // Add padding
-        child: Text(
-          repeatMessage,
-          style: TextStyle(
-            fontSize: 14,
-          ),
-        ),
-      ),
-      Row(
-        children: [
-          Text(
-            'Every: ',
-            style: TextStyle(
-              fontSize: 14,
-            ),
-          ),
-          // Recreate the NumberSelector widget with a new key
-          NumberSelector(
-            key: Key(selectedFrequency), // Use the selectedFrequency as the key
-            value: repeatInterval,
-            minValue: 0,
-            maxValue: getMaxRepeatValue(selectedFrequency),
-            onChanged: (value) {
-              setState(() {
-                repeatInterval = value;
+              // Check if the previous and selected frequencies are different
+              if (previousFrequency != selectedFrequency) {
+                repeatInterval =
+                    0; // Reset to 0 when changing between daily and other options
+              }
+
+              final formattedDate =
+                  DateFormat('d of MMMM').format(_selectedStartDate);
+
+              // Sort the selected day names based on the custom order
+              // Create a list of day names based on the selected days of the week
+              final selectedDayNames = selectedDays
+                  .map((day) => day.toString().split('.').last)
+                  .toList();
+
+              // Sort the selected day names based on the custom order
+              selectedDayNames.sort((a, b) {
+                final orderA = localCustomDaysOfWeek
+                    .firstWhere((customDay) => customDay.name == a)
+                    .order;
+                final orderB = localCustomDaysOfWeek
+                    .firstWhere((customDay) => customDay.name == b)
+                    .order;
+                return orderA.compareTo(orderB);
               });
-            },
-          ),
-          Text(
-            ' ${selectedFrequency.toLowerCase()}(s)',
-            style: TextStyle(
-              fontSize: 12.5,
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
-}
+
+              switch (selectedFrequency) {
+                case 'Daily':
+                  repeatMessage =
+                      'This event will repeat every $repeatInterval day';
+                  break;
+                case 'Weekly':
+                  if (selectedDayNames.length > 1) {
+                    final lastDay = selectedDayNames.removeLast();
+                    final customDaysOfWeekString = selectedDayNames.join(', ');
+                    repeatMessage =
+                        'This event will repeat every $repeatInterval week(s) on $customDaysOfWeekString, and $lastDay';
+                  } else if (selectedDayNames.length == 1) {
+                    repeatMessage =
+                        'This event will repeat every $repeatInterval week(s) on ${selectedDayNames.first}';
+                  } else {
+                    repeatMessage = 'No days selected';
+                  }
+                  break;
+                case 'Monthly':
+                  repeatMessage =
+                      'This event will repeat on the $formattedDate day every $repeatInterval month(s)';
+                  break;
+                case 'Yearly':
+                  repeatMessage =
+                      'This event will repeat every $repeatInterval year(s) on $formattedDate day';
+                  break;
+                default:
+                  repeatMessage = '';
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 8.0), // Add space above the title
+                  Text(
+                    'Repetition Details:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(
+                      height: 8.0), // Add space above the informative message
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0), // Add padding
+                    child: Text(
+                      repeatMessage,
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Every: ',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                      // Recreate the NumberSelector widget with a new key
+                      NumberSelector(
+                        key: Key(
+                            selectedFrequency), // Use the selectedFrequency as the key
+                        value: repeatInterval,
+                        minValue: 0,
+                        maxValue: getMaxRepeatValue(selectedFrequency),
+                        onChanged: (value) {
+                          setState(() {
+                            repeatInterval = value;
+                          });
+                        },
+                      ),
+                      Text(
+                        ' ${selectedFrequency.toLowerCase()}(s)',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }
 
             return AlertDialog(
               title: Text('Select Repetition'),
@@ -221,7 +266,7 @@ Widget buildRepeatEveryRow() {
                           ),
                           SizedBox(height: 8), // Add some spacing
                           Wrap(
-                            children: DayOfWeek.values.map((day) {
+                            children: customDaysOfWeek.map<Widget>((day) {
                               final isSelected = selectedDays.contains(
                                   day); // Check if the day is selected
 
@@ -252,7 +297,8 @@ Widget buildRepeatEveryRow() {
                                   ),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    day.displayName.substring(0, 3),
+                                    day.name.substring(0,
+                                        3), // Use day.name to get the day's name
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: isSelected
@@ -263,7 +309,7 @@ Widget buildRepeatEveryRow() {
                                 ),
                               );
                             }).toList(),
-                          ),
+                          )
                         ],
                       ),
                     // Optional input for day of month (for Daily)
@@ -347,7 +393,7 @@ Widget buildRepeatEveryRow() {
               actions: <Widget>[
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
+                    _goBackToParentView();
                   },
                   child: Text('Cancel'),
                 ),
@@ -367,13 +413,13 @@ Widget buildRepeatEveryRow() {
                         break;
                       case 'Weekly':
                         recurrenceRule = RecurrenceRule.weekly(
-                          null, // You can add logic here to select a day of the week
+                          selectedDays
+                              .toList(), // Pass the selected days of the week here
                           repeatInterval: repeatInterval,
-                          untilDate: isForever
-                              ? null
-                              : untilDate, // Check if "Forever" is selected
+                          untilDate: isForever ? null : untilDate,
                         );
                         break;
+
                       case 'Monthly':
                         recurrenceRule = RecurrenceRule.monthly(
                           dayOfMonth: dayOfMonth,
@@ -400,8 +446,13 @@ Widget buildRepeatEveryRow() {
                     }
 
                     // Now you can use recurrenceRule as needed (e.g., store it or apply it to an Event object)
+                    // Now you have the recurrenceRule instance based on user input
+                     print('Recurrence Rule: ${recurrenceRule}');
+                    print('Recurrence Rule: ${recurrenceRule.name}');
+                    print('Repeat Interval: ${recurrenceRule.repeatInterval}');
+                    print('Until Date: ${recurrenceRule.untilDate}');
 
-                    Navigator.of(context).pop(); // Close the dialog
+                    _goBackToParentView();
                   },
                   child: Text('Confirm'),
                 ),
