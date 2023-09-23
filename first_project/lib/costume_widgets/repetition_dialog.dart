@@ -6,8 +6,12 @@ import 'package:intl/intl.dart';
 
 class RepetitionDialog extends StatefulWidget {
   final DateTime selectedStartDate;
+  final RecurrenceRule? initialRecurrenceRule;
 
-  RepetitionDialog({required this.selectedStartDate});
+  RepetitionDialog({
+    required this.selectedStartDate,
+    this.initialRecurrenceRule, // Initialize it in the constructor
+  });
   @override
   _RepetitionDialogState createState() => _RepetitionDialogState();
 }
@@ -15,7 +19,7 @@ class RepetitionDialog extends StatefulWidget {
 class _RepetitionDialogState extends State<RepetitionDialog> {
   // Local state variables to store user input
   String selectedFrequency = 'Daily'; // Default to Daily
-  int? repeatInterval;
+  int? repeatInterval = 0;
   int? dayOfMonth;
   int? selectedMonth;
   bool isForever = false; // Variable to track whether the recurrence is forever
@@ -36,11 +40,27 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     _selectedStartDate =
         widget.selectedStartDate; // Initialize with the provided value
     // After the dialog is shown, you can print the routes
-
+    // Fill up variables if initialRecurrenceRule is not null
+    fillVariablesFromInitialRecurrenceRule(widget.initialRecurrenceRule);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_isDialogShown) {
         _showRepetitionDialog(context);
         _isDialogShown = true;
+      }
+    });
+  }
+
+  // Method to fill up variables when initialRecurrenceRule is not null
+  void fillVariablesFromInitialRecurrenceRule(RecurrenceRule? rule) {
+    setState(() {
+      if (rule != null) {
+        selectedFrequency = rule.name;
+        repeatInterval = rule.repeatInterval;
+        dayOfMonth = rule.dayOfMonth;
+        selectedMonth = rule.month;
+        untilDate = rule.untilDate;
+        isForever = rule.untilDate == null;
+        selectedDays = Set<CustomDayOfWeek>.from(rule.daysOfWeek ?? []);
       }
     });
   }
@@ -59,18 +79,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   }
 
   void _showRepetitionDialog(BuildContext context) {
-    // Local state variables to store user input
-    String selectedFrequency = 'Daily'; // Default to Daily
-    int? repeatInterval = 0;
-    int? dayOfMonth;
-    int? selectedMonth;
-    bool isForever =
-        false; // Variable to track whether the recurrence is forever
-    DateTime? untilDate;
-    // Set<DayOfWeek> selectedDays = Set<DayOfWeek>();
-
-    String previousFrequency = selectedFrequency;
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -93,15 +101,21 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               }
             }
 
+           // Reset the NumberSelector value when frequency changes based on the rules
+            if (previousFrequency != selectedFrequency) {
+              final maxRepeatValue = getMaxRepeatValue(selectedFrequency);
+
+              if (repeatInterval! > maxRepeatValue) {
+                repeatInterval = maxRepeatValue;
+              }
+              selectedMonth =
+                  null; // Reset selectedMonth when frequency changes
+            }
+            previousFrequency = selectedFrequency;
+
             // Define a function to build the "Repeat Every" row
             Widget buildRepeatEveryRow() {
               String repeatMessage;
-
-              // Check if the previous and selected frequencies are different
-              if (previousFrequency != selectedFrequency) {
-                repeatInterval =
-                    0; // Reset to 0 when changing between daily and other options
-              }
 
               final formattedDate =
                   DateFormat('d of MMMM').format(_selectedStartDate);
@@ -220,21 +234,11 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                           style: TextStyle(fontSize: 14)),
                     ),
                     SizedBox(height: 8), // Add some spacing
+
                     Wrap(
                       children: ['Daily', 'Weekly', 'Monthly', 'Yearly']
                           .map((frequency) {
                         final isSelected = frequency == selectedFrequency;
-
-                        // Reset the NumberSelector value when frequency changes
-                        if (previousFrequency != selectedFrequency) {
-                          repeatInterval =
-                              0; // You may need to adjust this value based on your requirements
-                          selectedMonth =
-                              null; // Reset selectedMonth when frequency changes
-                        }
-
-                        previousFrequency = selectedFrequency;
-
                         return GestureDetector(
                           onTap: () {
                             setState(() {
@@ -326,15 +330,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                       ),
                     // Optional input for day of month (for Daily)
                     if (selectedFrequency == 'Daily') buildRepeatEveryRow(),
-                    // Optional input for day of month (for Monthly and Yearly)
-                    // buildSelectedDayRow(),
-                    // Add the 'Repeat Every' row if selectedFrequency is 'Monthly'
                     if (selectedFrequency == 'Monthly') buildRepeatEveryRow(),
-                    // buildMonthlyRepeatEveryRow() ,
-                    // Add the 'Repeat Every' row if selectedFrequency is 'Yearly'
                     if (selectedFrequency == 'Yearly') buildRepeatEveryRow(),
-                    // buildYearlyRepeatEveryRow(),
-                    // Row for "Repeats Forever" checkbox
                     Row(
                       children: <Widget>[
                         Checkbox(
@@ -411,6 +408,13 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    // setState(() {
+                    //   // Update the state variables with new values
+                    //   repeatInterval = repeatInterval;
+                    //   selectedDays = selectedDays;
+                    //   isForever = isForever;
+                    //   untilDate = untilDate;
+                    // });
                     // Create a RecurrenceRule based on user input
                     RecurrenceRule recurrenceRule;
 

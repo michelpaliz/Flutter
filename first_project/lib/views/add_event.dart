@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +46,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   late bool isRepetitive = false;
   bool? isAllDay = false;
   String selectedRepetition = 'Daily'; // Default repetition is daily
-  late RecurrenceRule recurrenceRule;
+  late RecurrenceRule? recurrenceRule = null;
 
   //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({this.user, this.group}) {
@@ -458,19 +457,20 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                           context: context,
                           builder: (BuildContext context) {
                             return RepetitionDialog(
-                              selectedStartDate: _selectedStartDate,
-                            );
+                                selectedStartDate: _selectedStartDate,
+                                initialRecurrenceRule: recurrenceRule);
                           },
                         );
-
                         if (result != null && result.isNotEmpty) {
-                          if (result[0] != null) {
-                            recurrenceRule = result[0];
-                          }
                           bool updatedIsRepetitive = result[1];
-                          // Update isRepetitive here based on the value from the dialog
+                          RecurrenceRule? updatedRecurrenceRule = result[0];
+
+                          // Update isRepetitive and recurrenceRule based on the values from the dialog
                           setState(() {
                             isRepetitive = updatedIsRepetitive;
+                            if (updatedRecurrenceRule != null) {
+                              recurrenceRule = updatedRecurrenceRule;
+                            }
                           });
                         }
                       },
