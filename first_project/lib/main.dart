@@ -1,23 +1,26 @@
 import 'dart:developer' as devtools show log;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
+import 'package:first_project/models/RouteLogger.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_event.dart';
+import 'package:first_project/views/create_group.dart';
+import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_group.dart';
+import 'package:first_project/views/edit_note_screen.dart';
 import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/group_settings.dart';
-import 'package:first_project/views/show_notifications.dart';
-import 'package:first_project/views/dashboard.dart';
-import 'package:first_project/views/edit_note_screen.dart';
 import 'package:first_project/views/login_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:first_project/views/register_view.dart';
-import 'package:first_project/views/create_group.dart';
+import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
+
 import 'costume_widgets/drawer/my_drawer.dart';
 import 'models/group.dart';
 import 'models/user.dart';
@@ -58,6 +61,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Flutter Demo',
+      navigatorObservers: [RouteLogger()],
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -70,18 +74,6 @@ class MyApp extends StatelessWidget {
         dashboard: (context) => Dashboard(),
         createGroup: (context) => CreateGroup(),
         showNotifications: (context) => ShowNotifications(),
-        dialogRepetition: (context) {
-          final selectedStartDate =
-              ModalRoute.of(context)?.settings.arguments as DateTime?;
-          if (selectedStartDate != null) {
-            return RepetitionDialog(selectedStartDate: selectedStartDate);
-          }
-          // Handle the case when selectedStartDate is null
-          // You can return a default widget or show an error message here
-          return Center(
-            child: Text("Selected Start Date is null"),
-          );
-        },
         groupSettings: (context) {
           final group = ModalRoute.of(context)?.settings.arguments as Group?;
           if (group != null) {
@@ -122,6 +114,18 @@ class MyApp extends StatelessWidget {
           }
 
           return EventNoteWidget(user: user, group: group);
+        },
+        dialogRepetition: (context) {
+          final selectedStartDate =
+              ModalRoute.of(context)?.settings.arguments as DateTime?;
+          if (selectedStartDate != null) {
+            return RepetitionDialog(selectedStartDate: selectedStartDate);
+          }
+          // Handle the case when selectedStartDate is null
+          // You can return a default widget or show an error message here
+          return Center(
+            child: Text("Selected Start Date is null"),
+          );
         },
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),

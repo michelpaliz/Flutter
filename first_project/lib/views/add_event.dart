@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
+import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http; // Import the http package
@@ -29,7 +31,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   Event? event;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
-  late TextEditingController _eventController;
+  // late TextEditingController _eventController;
   List<Event> eventList = [];
   //** CONTROLLERS  */
   StoreService storeService = StoreService.firebase();
@@ -45,6 +47,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   late bool isRepetitive = false;
   bool? isAllDay = false;
   String selectedRepetition = 'Daily'; // Default repetition is daily
+  late RecurrenceRule recurrenceRule;
 
   //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({this.user, this.group}) {
@@ -60,8 +63,18 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
   @override
   void dispose() {
-    _eventController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    _noteController.dispose();
     super.dispose();
+  }
+
+  void _clearFields() {
+    _titleController.clear();
+    _descriptionController.clear();
+    _locationController.clear();
+    _noteController.clear();
   }
 
   @override
@@ -70,7 +83,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) {});
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
-    _eventController = TextEditingController();
+    // _eventController = TextEditingController();
     _loadEvents(); // Load events from shared preferences or other source
   }
 
@@ -109,7 +122,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       // Reset the necessary state variables if needed
       _selectedStartDate = DateTime.now();
       _selectedEndDate = DateTime.now();
-      _eventController.clear();
+      // _eventController.clear();
     });
     _loadEvents(); // Reload events from shared preferences
   }
@@ -156,22 +169,21 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
   /*** We retrieve the current user object. Then we can update the user object with the new event list and other modifications.*/
   void _addEvent() async {
-    String eventNote = _eventController.text;
+    String eventTitle = _titleController.text;
     String eventId = Uuid().v4();
 
-    if (eventNote.trim().isNotEmpty) {
+    if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
         id: eventId,
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
-        title: eventNote,
+        title: _titleController.text,
         groupId: group?.id, // Set the groupId if adding to a group's events
-        recurrenceRule:
-            event?.recurrenceRule, // Retains recurrenceRule if available
-        localization: event?.localization, // Retains localization if available
-        allDay: event?.allDay ?? false, // Retains allDay with a default value
-        note: event?.note, // Retains note if available
-        description: event?.description, // Retains description if available
+        recurrenceRule: event?.recurrenceRule,
+        localization: _locationController.toString(),
+        allDay: event?.allDay ?? false,
+        note: _noteController.text,
+        description: _descriptionController.text,
       );
 
       bool isStartHourUnique = eventList.every((e) =>
@@ -205,7 +217,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           );
         }
 
-        _eventController.clear();
+        _clearFields();
       } else {
         showDialog(
           context: context,
@@ -426,84 +438,75 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                   maxLength: 15,
                 ),
 
-                SizedBox(height: 10),
+                SizedBox(height: 20),
 
                 //**Slide Button to Toggle Repetition */
-                SizedBox(height: 10),
-                Text(
-                  "Repetition for the event",
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),
-                ),
-                SizedBox(height: 15),
-                GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return RepetitionDialog(selectedStartDate: _selectedStartDate,); // Create an instance of RepetitionDialog
-                      },
-                    );
-                  },
-                  child: AnimatedContainer(
-                    duration: Duration(milliseconds: 300),
-                    width: 2 *
-                        toggleWidth, // Twice the toggle width for slide effect
-                    height: 40.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0),
-                      color: isRepetitive ? Colors.green : Colors.grey,
-                    ),
-                    child: Center(
-                      child: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 300),
-                        child: isRepetitive
-                            ? Text(
-                                'ON',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 28, 86, 120),
-                                ),
-                              )
-                            : Text(
-                                'OFF',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
+                Row(
+                  children: [
+                    Text(
+                      "Repetition for the event",
+                      style: TextStyle(
+                        fontSize: 15,
                       ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 70, // Increase the width to add more separation
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final List<dynamic>? result = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return RepetitionDialog(
+                              selectedStartDate: _selectedStartDate,
+                            );
+                          },
+                        );
+
+                        if (result != null && result.isNotEmpty) {
+                          if (result[0] != null) {
+                            recurrenceRule = result[0];
+                          }
+                          bool updatedIsRepetitive = result[1];
+                          // Update isRepetitive here based on the value from the dialog
+                          setState(() {
+                            isRepetitive = updatedIsRepetitive;
+                          });
+                        }
+                      },
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 300),
+                        width: 2 * toggleWidth,
+                        height: 40.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20.0),
+                          color: isRepetitive ? Colors.green : Colors.grey,
+                        ),
+                        child: Center(
+                          child: AnimatedSwitcher(
+                            duration: Duration(milliseconds: 300),
+                            child: isRepetitive
+                                ? Text(
+                                    'ON',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 28, 86, 120),
+                                    ),
+                                  )
+                                : Text(
+                                    'OFF',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 // Repetition Dropdown (conditionally shown)
-                if (isRepetitive)
-                  Column(
-                    children: [
-                      SizedBox(height: 10),
-                      
-                      DropdownButton<String>(
-                        value: selectedRepetition,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedRepetition = newValue!;
-                          });
-                        },
-                        items: <String>[
-                          'daily',
-                          'weekly',
-                          'monthly',
-                          'yearly',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                SizedBox(height: 10),
+                SizedBox(height: 85),
                 Center(
                   child: ElevatedButton(
                     onPressed: () {

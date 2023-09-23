@@ -26,6 +26,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   late DateTime _selectedStartDate;
   List<CustomDayOfWeek> localCustomDaysOfWeek =
       customDaysOfWeek; // Initialize with customDaysOfWeek
+  bool isRepeated = false;
+  bool _isDialogShown = false;
 
   @override
   void initState() {
@@ -33,18 +35,27 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
     _selectedStartDate =
         widget.selectedStartDate; // Initialize with the provided value
+    // After the dialog is shown, you can print the routes
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showRepetitionDialog(context);
+      if (!_isDialogShown) {
+        _showRepetitionDialog(context);
+        _isDialogShown = true;
+      }
     });
   }
 
-  void _goBackToParentView() {
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop(); // Close the dialog
-      Navigator.of(context).pop(); // Go back one more step
-    } else {
-      Navigator.of(context).pop(); // Close the dialog if no other routes
-    }
+  void _goBackToParentView(
+    RecurrenceRule? recurrenceRule,
+    bool? isRepetitiveUpdated,
+  ) {
+    setState(() {
+      isRepeated = isRepetitiveUpdated!;
+    });
+
+    // Pop the dialog to return to the previous screen
+    Navigator.of(context).pop([recurrenceRule, isRepeated]);
+    Navigator.of(context).pop([recurrenceRule, isRepeated]);
   }
 
   void _showRepetitionDialog(BuildContext context) {
@@ -62,6 +73,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -393,7 +405,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               actions: <Widget>[
                 ElevatedButton(
                   onPressed: () {
-                    _goBackToParentView();
+                    _goBackToParentView(null, false);
                   },
                   child: Text('Cancel'),
                 ),
@@ -447,12 +459,12 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
                     // Now you can use recurrenceRule as needed (e.g., store it or apply it to an Event object)
                     // Now you have the recurrenceRule instance based on user input
-                     print('Recurrence Rule: ${recurrenceRule}');
+                    print('Recurrence Rule: ${recurrenceRule}');
                     print('Recurrence Rule: ${recurrenceRule.name}');
                     print('Repeat Interval: ${recurrenceRule.repeatInterval}');
                     print('Until Date: ${recurrenceRule.untilDate}');
 
-                    _goBackToParentView();
+                    _goBackToParentView(recurrenceRule, true);
                   },
                   child: Text('Confirm'),
                 ),
@@ -467,9 +479,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Optional: You can also add some logic here if needed
-      },
+      onTap: () {},
     );
   }
 }
