@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:http/http.dart' as http; // Import the http package
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../models/event.dart';
@@ -84,26 +83,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     _selectedEndDate = DateTime.now();
     // _eventController = TextEditingController();
     _loadEvents(); // Load events from shared preferences or other source
-  }
-
-  Future<List<String>> _getAddressSuggestions(String pattern) async {
-    final baseUrl = Uri.parse('https://nominatim.openstreetmap.org/search');
-    final queryParameters = {
-      'format': 'json',
-      'q': pattern,
-    };
-
-    final response =
-        await http.get(baseUrl.replace(queryParameters: queryParameters));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
-      final suggestions =
-          data.map((item) => item['display_name'] as String).toList();
-      return suggestions;
-    } else {
-      throw Exception('Failed to load suggestions');
-    }
   }
 
 /**
@@ -265,9 +244,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: 'Title (max 10 characters)',
+                    labelText: 'Title (max 20 characters)',
                   ),
-                  maxLength: 10,
+                  maxLength: 20,
                 ),
 
                 SizedBox(height: 10),
@@ -390,7 +369,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 ),
 
                 SizedBox(height: 10),
-
                 // Location Input
                 // Location Input with Auto-Completion
                 TypeAheadField<String>(
@@ -401,7 +379,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                     ),
                   ),
                   suggestionsCallback: (pattern) async {
-                    return await _getAddressSuggestions(pattern);
+                    return await Utilities.getAddressSuggestions(pattern);
                   },
                   itemBuilder: (context, suggestion) {
                     return ListTile(
@@ -421,9 +399,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 TextFormField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
-                    labelText: 'Description (max 30 characters)',
+                    labelText: 'Description (max 100 characters)',
                   ),
-                  maxLength: 30,
+                  maxLength: 100,
                 ),
 
                 SizedBox(height: 10),
@@ -432,9 +410,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 TextFormField(
                   controller: _noteController,
                   decoration: InputDecoration(
-                    labelText: 'Note (max 15 characters)',
+                    labelText: 'Note (max 50 characters)',
                   ),
-                  maxLength: 15,
+                  maxLength: 50,
                 ),
 
                 SizedBox(height: 20),

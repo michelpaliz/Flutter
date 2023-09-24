@@ -47,5 +47,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Testing porpuses</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Testing porpuses</string>
+
+	</dict>
 </plist>

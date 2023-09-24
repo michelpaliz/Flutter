@@ -32,6 +32,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
       customDaysOfWeek; // Initialize with customDaysOfWeek
   bool isRepeated = false;
   bool _isDialogShown = false;
+  var validationError;
 
   @override
   void initState() {
@@ -101,7 +102,25 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               }
             }
 
-           // Reset the NumberSelector value when frequency changes based on the rules
+            // Function to validate user input
+            String? validateInput() {
+              if (selectedFrequency == 'Weekly' && selectedDays.isEmpty) {
+                return 'Please select at least one day of the week.';
+              }
+              if (selectedFrequency != 'Daily' && repeatInterval == 0) {
+                return 'Please specify the repeat interval.';
+              }
+              if (selectedFrequency == 'Daily' && repeatInterval == 0) {
+                return 'Please specify the daily repeat interval.';
+              }
+              // Add more validation checks as needed
+
+              return null; // Input is valid
+            }
+
+            validationError = validateInput();
+
+            // Reset the NumberSelector value when frequency changes based on the rules
             if (previousFrequency != selectedFrequency) {
               final maxRepeatValue = getMaxRepeatValue(selectedFrequency);
 
@@ -170,14 +189,13 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 8.0), // Add space above the title
-                  Text(
-                    'Repetition Details:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  SizedBox(height: 15.0),
+                  Center(
+                    child: Text('REPETITION DETAILS',
+                        style: TextStyle(
+                          fontSize: 14,
+                        )),
+                  ), // Add space above the title
                   SizedBox(
                       height: 8.0), // Add space above the informative message
                   Padding(
@@ -213,7 +231,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                       Text(
                         ' ${selectedFrequency.toLowerCase()}(s)',
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -223,18 +241,15 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
             }
 
             return AlertDialog(
-              title: Text('Select Repetition'),
+              title: Center(
+                child:
+                    Text('SELECT REPETITION', style: TextStyle(fontSize: 18)),
+              ),
               content: SingleChildScrollView(
                 // Add SingleChildScrollView here
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Center(
-                      child: Text('Select Frequency:',
-                          style: TextStyle(fontSize: 14)),
-                    ),
-                    SizedBox(height: 8), // Add some spacing
-
                     Wrap(
                       children: ['Daily', 'Weekly', 'Monthly', 'Yearly']
                           .map((frequency) {
@@ -388,6 +403,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                           ),
                         ),
                     ]),
+
                     // Display the selected "Until Date"
                     if (!isForever)
                       Text(
@@ -395,6 +411,18 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                             ? 'Until Date: Not Selected'
                             : 'Until Date: ${DateFormat('yyyy-MM-dd').format(untilDate!)}', // Format the date
                         style: TextStyle(fontSize: 14),
+                      ),
+
+                    SizedBox(height: 10),
+
+                    // Display validation error message if applicable
+                    if (validationError != null)
+                      Text(
+                        validationError,
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 15, // Display error message in red
+                        ),
                       ),
                   ],
                 ),
@@ -408,14 +436,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // setState(() {
-                    //   // Update the state variables with new values
-                    //   repeatInterval = repeatInterval;
-                    //   selectedDays = selectedDays;
-                    //   isForever = isForever;
-                    //   untilDate = untilDate;
-                    // });
-                    // Create a RecurrenceRule based on user input
                     RecurrenceRule recurrenceRule;
 
                     switch (selectedFrequency) {
@@ -468,7 +488,10 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     print('Repeat Interval: ${recurrenceRule.repeatInterval}');
                     print('Until Date: ${recurrenceRule.untilDate}');
 
-                    _goBackToParentView(recurrenceRule, true);
+                    //If it's null, it means the input is valid
+                    if (validationError == null) {
+                      _goBackToParentView(recurrenceRule, true);
+                    }
                   },
                   child: Text('Confirm'),
                 ),

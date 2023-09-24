@@ -13,6 +13,16 @@ class RecurrenceRule {
   final RecurrenceType recurrenceType;
   final DateTime? untilDate; // End date for recurrence
 
+    RecurrenceRule({
+    required this.name,
+    this.daysOfWeek,
+    this.dayOfMonth,
+    this.month,
+    this.repeatInterval,
+    required this.recurrenceType,
+    this.untilDate,
+  });
+
   const RecurrenceRule.daily({this.repeatInterval, this.untilDate})
       : name = 'Daily',
         daysOfWeek = null,

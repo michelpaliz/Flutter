@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/RouteLogger.dart';
+import 'package:first_project/models/event.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
@@ -70,7 +71,14 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
-        editNote: (context) => EditNoteScreen(),
+        editNote: (context) {
+          final event = ModalRoute.of(context)?.settings.arguments as Event?;
+          if (event != null) {
+            return EditNoteScreen(event: event);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
         dashboard: (context) => Dashboard(),
         createGroup: (context) => CreateGroup(),
         showNotifications: (context) => ShowNotifications(),
