@@ -4,7 +4,7 @@ CALENDAR BY MICHAEL PALIZ MORALES.
 
 ## Getting Started
 This idea came out from a necessity of many companies that are always in the need of an application that can help them to work in a better manner/way of doing tasks more asynchronously and more efficiently.
-The main reason that I decided to create this app is to help companies to have a better management for themselves and for their employees.
+This is the main reason that I decided to create this app is to help companies to have a better management for themselves and for their employees.
 
 ### Basic Usage
 When we are talking about work we always have some sort of calendar or routine for each specific project/tasks, that is the reason companies needs to have a way for their workers/co-workers to have a way to handle this situation, and this is where this aplication came up with the idea to help companies to be able to share a better way to help companies with using a calendar, at the end this will enable the group to work asynchronously and make sure to follow the schedule.
