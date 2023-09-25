@@ -13,6 +13,7 @@ import 'package:first_project/views/create_group.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_group.dart';
 import 'package:first_project/views/edit_note_screen.dart';
+import 'package:first_project/views/event_detail.dart';
 import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/group_settings.dart';
 import 'package:first_project/views/login_view.dart';
@@ -71,7 +72,7 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
-        editNote: (context) {
+        editEvent: (context) {
           final event = ModalRoute.of(context)?.settings.arguments as Event?;
           if (event != null) {
             return EditNoteScreen(event: event);
@@ -109,7 +110,7 @@ class MyApp extends StatelessWidget {
           return SizedBox
               .shrink(); // Return an empty widget or handle the error
         },
-        addNote: (context) {
+        addEvent: (context) {
           final dynamic arg = ModalRoute.of(context)?.settings.arguments;
 
           User? user;
@@ -123,18 +124,14 @@ class MyApp extends StatelessWidget {
 
           return EventNoteWidget(user: user, group: group);
         },
-        dialogRepetition: (context) {
-          final selectedStartDate =
-              ModalRoute.of(context)?.settings.arguments as DateTime?;
-          if (selectedStartDate != null) {
-            return RepetitionDialog(selectedStartDate: selectedStartDate);
+        eventDetail: (context) {
+          final event = ModalRoute.of(context)?.settings.arguments as Event?;
+          if (event != null) {
+            return EventDetail(event: event);
           }
-          // Handle the case when selectedStartDate is null
-          // You can return a default widget or show an error message here
-          return Center(
-            child: Text("Selected Start Date is null"),
-          );
-        },
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        }
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),
     );

@@ -1,3 +1,4 @@
+import 'package:first_project/views/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -72,7 +73,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   void _editEvent(Event event, BuildContext context) {
     Navigator.pushNamed(
       context,
-      editNote,
+      editEvent,
       arguments: event,
     ).then((result) {
       if (result != null && result is Event) {
@@ -364,7 +365,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                     size: 25,
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, addNote,
+                    Navigator.pushNamed(context, addEvent,
                         arguments: userOrGroupObject);
                   },
                 ),
@@ -411,46 +412,56 @@ class _GroupDetailsState extends State<GroupDetails> {
               final timeColor = const Color.fromARGB(202, 33, 149, 243);
               final eventColor = Colors.black;
 
-              return ListTile(
-                title: Text(
-                  timeText.toUpperCase(),
-                  style: TextStyle(
-                    color: timeColor,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EventDetail(event: event),
+                    ),
+                  );
+                },
+                child: ListTile(
+                  title: Text(
+                    timeText.toUpperCase(),
+                    style: TextStyle(
+                      color: timeColor,
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  event.title,
-                  style: TextStyle(
-                    color: eventColor,
+                  subtitle: Text(
+                    event.title,
+                    style: TextStyle(
+                      color: eventColor,
+                    ),
                   ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize
-                      .min, // Ensure that the row takes up minimum space.
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        _editEvent(event, context);
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        // Implement the logic to remove the event
-                        _showRemoveConfirmationDialog(event, context);
-                      },
-                    ),
-                    Checkbox(
-                      value: event.done,
-                      onChanged: (newValue) {
-                        setState(() {
-                          event.done = newValue!;
-                          _updateEvent(event);
-                        });
-                      },
-                    ),
-                  ],
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // Ensure that the row takes up minimum space.
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () {
+                          _editEvent(event, context);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          // Implement the logic to remove the event
+                          _showRemoveConfirmationDialog(event, context);
+                        },
+                      ),
+                      Checkbox(
+                        value: event.done,
+                        onChanged: (newValue) {
+                          setState(() {
+                            event.done = newValue!;
+                            _updateEvent(event);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

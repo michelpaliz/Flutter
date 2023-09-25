@@ -75,7 +75,7 @@ class NotesViewState extends State<NotesView> {
   void _editEvent(Event event, BuildContext context) {
     Navigator.pushNamed(
       context,
-      editNote,
+      editEvent,
       arguments: event,
     ).then((result) {
       if (result != null && result is Event) {
@@ -287,7 +287,7 @@ class NotesViewState extends State<NotesView> {
                       size: 25,
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, addNote,
+                      Navigator.pushNamed(context, addEvent,
                           arguments: userOrGroupObject);
                     },
                   ),
