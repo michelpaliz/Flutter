@@ -33,7 +33,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   //** LOGIC VARIABLES FOR THE VIEW */
   final double toggleWidth = 50.0; // Width of the toggle button (constant)
   var selectedDayOfWeek;
-  late bool _isRepetitive = false;
+  late bool _isRepetitive;
   bool? isAllDay = false;
   String selectedRepetition = 'Daily'; // Default repetition is daily
   late RecurrenceRule? _recurrenceRule = null;
@@ -84,6 +84,11 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     final updatedLocation = _locationController.text;
     final updatedRecurrenceRule = _recurrenceRule;
 
+    String extractedText = updatedLocation;
+
+    // Remove unwanted characters and formatting
+    extractedText = extractedText.replaceAll(RegExp(r'[┤├]'), '');
+
     // Create an updated event with the new values
     final updatedEvent = Event(
       id: event.id,
@@ -93,7 +98,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       groupId: event.groupId,
       description: updatedDescription,
       note: updatedNote,
-      localization: updatedLocation,
+      localization: extractedText,
       recurrenceRule: updatedRecurrenceRule,
       // Add other attributes as needed
     );

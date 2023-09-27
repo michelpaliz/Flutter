@@ -158,12 +158,12 @@ class _GroupDetailsState extends State<GroupDetails> {
                     arguments: userOrGroupObject);
               },
             ),
-            // IconButton(
-            //   icon: Icon(Icons.refresh),
-            //   onPressed: () {
-            //     _reloadScreen();
-            //   },
-            // ),
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                _reloadScreen();
+              },
+            ),
           ],
         ),
         drawer: MyDrawer(),

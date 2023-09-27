@@ -16,29 +16,41 @@ class _EventDetailsWidget extends State<EventDetail> {
 
   _EventDetailsWidget({required this.event});
 
+  //*TODO Let's share the event as message
+  //   void _shareEvent() {
+  //   // Create a share message with event details
+  //   String shareMessage = "Check out this event: ${event.title}\n"
+  //       "Start Date: ${DateFormat('yyyy - MM - dd HH:mm').format(event.startDate)}\n"
+  //       "End Date: ${DateFormat('yyyy - MM - dd HH:mm').format(event.endDate)}\n"
+  //       // Add more event details as needed
+  //       "Localization: ${event.localization}\n"
+  //       "Description: ${event.description}\n";
+
+  //   // Use the share package to share the event details
+  //   Share.share(shareMessage);
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Material(
       child: Scaffold(
         appBar: AppBar(
           title: Text("Event Details"),
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.share,
+                color: Colors.white,
+              ),
+              onPressed: null,
+              // onPressed: _shareEvent,
+            ),
+          ],
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 10.0),
-            Center(
-              child: Text(
-                "EVENT DETAILS",
-                style: TextStyle(
-                  fontFamily: "bagel_fat_one.ttf",
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
-                ),
-              ),
-            ),
-            SizedBox(height: 8.0),
             CustomTextFieldWithIcons(
               text: event.title, // Pass the text directly
               hintText: "Title",

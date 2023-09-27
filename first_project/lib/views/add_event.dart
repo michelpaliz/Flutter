@@ -150,6 +150,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     String eventTitle = _titleController.text;
     String eventId = Uuid().v4();
 
+  // Remove unwanted characters and formatting
+    String extractedText = _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
+
     if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
         id: eventId,
@@ -157,8 +160,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         endDate: _selectedEndDate,
         title: _titleController.text,
         groupId: group?.id, // Set the groupId if adding to a group's events
-        recurrenceRule: event?.recurrenceRule,
-        localization: _locationController.toString(),
+        recurrenceRule: recurrenceRule,
+        localization: extractedText,
         allDay: event?.allDay ?? false,
         note: _noteController.text,
         description: _descriptionController.text,

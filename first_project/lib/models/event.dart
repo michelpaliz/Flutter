@@ -35,7 +35,7 @@ class Event {
       'title': title, // Serialize title
       'groupId': groupId,
       'done': done,
-      if (recurrenceRule != null) 'recurrenceRule': recurrenceRule.toString(),
+      if (recurrenceRule != null) 'recurrenceRule': recurrenceRule!.toMap(),
       if (localization != null) 'localization': localization,
       'allDay': allDay, // Serialize allDay
       if (note != null) 'note': note, // Serialize note if not null
@@ -45,6 +45,13 @@ class Event {
   }
 
   factory Event.fromJson(Map<String, dynamic> json) {
+    final recurrenceRuleJson = json['recurrenceRule'];
+    RecurrenceRule? recurrenceRule;
+
+    if (recurrenceRuleJson != null) {
+      recurrenceRule = RecurrenceRule.fromMap(recurrenceRuleJson);
+    }
+
     return Event(
       id: json['id'],
       startDate: DateTime.parse(json['startDate']),
@@ -53,10 +60,7 @@ class Event {
           json['title'] ?? '', // Deserialize title with a default empty string
       groupId: json['groupId'],
       done: json['done'] ?? false,
-      recurrenceRule: RecurrenceRule.fromString(
-        json['recurrenceRule'] ??
-            'daily', // Provide a default value for recurrenceRule
-      ),
+      recurrenceRule: recurrenceRule,
       localization: json['localization'] ??
           '', // Provide a default empty string for localization
       allDay: json['allDay'] ??
