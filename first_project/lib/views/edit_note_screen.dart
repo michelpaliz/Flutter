@@ -92,8 +92,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     // Create an updated event with the new values
     final updatedEvent = Event(
       id: event.id,
-      startDate: event.startDate,
-      endDate: event.endDate,
+      startDate: _selectedStartDate,
+      endDate: _selectedEndDate,
       title: updatedTitle,
       groupId: event.groupId,
       description: updatedDescription,

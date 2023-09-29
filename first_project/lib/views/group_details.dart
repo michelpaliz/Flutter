@@ -1,3 +1,5 @@
+import 'package:first_project/costume_widgets/costume_merged_cell.dart';
+import 'package:first_project/models/event_date_range.dart';
 import 'package:first_project/views/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -20,14 +22,15 @@ class GroupDetails extends StatefulWidget {
 }
 
 class _GroupDetailsState extends State<GroupDetails> {
-  late final Group group;
-  List<Event>? events;
-  DateTime focusedDay = DateTime.now();
-  DateTime? selectedDate;
+  late final Group _group;
+  List<Event>? _events;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDate;
   StoreService storeService = new StoreService.firebase();
   AuthService authService = new AuthService.firebase();
   var userOrGroupObject;
-  List<Event> selectedEvents = [];
+  List<Event> filteredEvents = [];
+//  final List<EventDateRange> eventDateRanges = preprocessEventData(events);
 
   @override
   void initState() {
@@ -36,34 +39,42 @@ class _GroupDetailsState extends State<GroupDetails> {
     _getEventsListFromGroup();
 
     // Initialize selectedEvents with events for the current date
-    selectedEvents = getEventsForDate(DateTime.now());
+    // _selectedEvents = getEventsForDate(DateTime.now());
   }
 
   // Update the onTap handler to call _onDateSelected
   void _onDateSelected(DateTime date) {
     setState(() {
-      selectedDate = date;
-      selectedEvents = getEventsForDate(date);
+      _selectedDate = date;
+      // _selectedEvents = getEventsForDate(date);
     });
   }
 
   //** Logic for my view */
   Future<void> _reloadScreen() async {
-    events = group.calendar.events.cast<Event>(); //
-    userOrGroupObject = group;
+    _events = _group.calendar.events.cast<Event>(); //
+    userOrGroupObject = _group;
   }
 
   Future<void> _getEventsListFromGroup() async {
-    group = widget.group; // Access the passed group
-    events = group.calendar.events.cast<Event>(); //
-    userOrGroupObject = group;
+    _group = widget.group; // Access the passed group
+    _events = _group.calendar.events.cast<Event>(); //
+    userOrGroupObject = _group;
   }
 
-  List<Event> getEventsForDate(DateTime date) {
-    final eventsForDate = events?.where((event) {
-          return event.startDate.year == date.year &&
-              event.startDate.month == date.month &&
-              event.startDate.day == date.day;
+  List<Event> _getEventsForDate(DateTime date) {
+    final eventsForDate = _events?.where((event) {
+          // Convert event dates to UTC for comparison
+          final eventStartDateUtc = event.startDate.toUtc();
+          final eventEndDateUtc = event.endDate.toUtc();
+
+          // Convert the specified date to UTC
+          final selectedDateUtc = date.toUtc();
+
+          // Check if the event starts on or before the specified date and ends after it
+          return eventStartDateUtc
+                  .isBefore(selectedDateUtc.add(Duration(days: 1))) &&
+              eventEndDateUtc.isAfter(selectedDateUtc);
         }).toList() ??
         [];
 
@@ -78,10 +89,10 @@ class _GroupDetailsState extends State<GroupDetails> {
     ).then((result) {
       if (result != null && result is Event) {
         // Update the event in the eventsList
-        final index = events?.indexWhere((e) => e.id == result.id);
+        final index = _events?.indexWhere((e) => e.id == result.id);
         if (index != null && index >= 0) {
           setState(() {
-            events?[index] = result;
+            _events?[index] = result;
           });
         }
       }
@@ -94,12 +105,12 @@ class _GroupDetailsState extends State<GroupDetails> {
 
     // Update the events for the user in Firestore
 
-    group.calendar.events = events!.where((e) => e.id != event.id).toList();
-    await storeService.updateGroup(group);
+    _group.calendar.events = _events!.where((e) => e.id != event.id).toList();
+    await storeService.updateGroup(_group);
 
     // Remove the event from the eventListP_)
     setState(() {
-      events?.removeWhere((e) => e.id == event.id);
+      _events?.removeWhere((e) => e.id == event.id);
     });
 
     Navigator.of(context).pop(); // Close the dialog
@@ -172,178 +183,190 @@ class _GroupDetailsState extends State<GroupDetails> {
             Column(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
-                  margin: EdgeInsets.all(4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Text(
-                          'Group Members',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                          height:
-                              3), // Add some spacing between the title and member list.
-                      Container(
-                        height:
-                            65, // Set the height of the horizontal member list.
-                        child: ListView.builder(
-                          scrollDirection: Axis
-                              .horizontal, // Set the scroll direction to horizontal.
-                          itemCount: group.users
-                              .length, // Replace with the actual count of group members.
-                          itemBuilder: (BuildContext context, int index) {
-                            final member = group.users[
-                                index]; // Replace with your data structure.
+                  // width: 400, // Set the desired width
+                  // height: 400, // Set the desired height
+                  child: TableCalendar<Event>(
+                    calendarStyle: CalendarStyle(
+                      cellMargin: EdgeInsets.all(10.0),
+                      outsideDaysVisible: false, //
+                    ),
+                    eventLoader: (date) {
+                      filteredEvents = _getEventsForDate(date);
 
-                            return Container(
-                              margin: EdgeInsets.all(
-                                  8), // Add spacing between members.
+                      // final eventsForFocusedDay = _getEventsForDate(_focusedDay);
+
+                      // Merge the events for the selected day and the focused day
+                      final allEvents = [
+                        ...filteredEvents,
+                        // ...eventsForFocusedDay
+                      ];
+
+                      return [];
+                    },
+                    firstDay: DateTime.utc(2023, 1, 1),
+                    focusedDay: DateTime.now(),
+                    lastDay: DateTime.utc(2023, 12, 31),
+                    calendarBuilders: CalendarBuilders(
+                      //*defaultBuilder: Customize the appearance of a non-selected cell. It uses a GestureDetector to detect taps on the cell.
+                      defaultBuilder: (context, date, events) {
+                        final isSelected = isSameDay(date, _selectedDate);
+
+                        if (filteredEvents.isNotEmpty) {
+                          // Merge cells if there are events on this date
+                          return GestureDetector(
+                            onTap: () {
+                              _onDateSelected(date);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors
+                                    .blue, // Background color for merged cell
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                ),
+                              ),
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 15, // Adjust the size as needed.
-                                    backgroundImage: NetworkImage(member
-                                        .photoUrl), // Replace with member's avatar.
-                                  ),
-                                  SizedBox(height: 2),
                                   Text(
-                                    member
-                                        .name, // Replace with the member's name or other relevant information.
+                                    date.day.toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  for (var event in filteredEvents)
+                                    Text(
+                                      event.title,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Use your default cell design for days without events
+                          return GestureDetector(
+                            onTap: () {
+                              _onDateSelected(date);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    date.day.toString(),
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? const Color.fromARGB(255, 7, 7, 7)
+                                          : Color.fromARGB(255, 19, 126, 161), // Adjust text color for focused day
+                                    ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                            ),
+                          );
+                        }
+                      },
+
+                      todayBuilder: (context, date, events) {
+                        final isSelected = isSameDay(date, _selectedDate);
+                        final isToday = isSameDay(date, DateTime.now());
+
+                        if (filteredEvents.isNotEmpty) {
+                          // Merge cells if there are events on this date
+                          return GestureDetector(
+                            onTap: () {
+                              _onDateSelected(date);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors
+                                    .blue, // Background color for merged cell
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    date.day.toString(),
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 8, 8, 8),
+                                    ),
+                                  ),
+                                  for (var event in filteredEvents)
+                                    Text(
+                                      event.title,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: const Color.fromARGB(255, 14, 13, 13),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Use your default cell design for today's cell
+                          return GestureDetector(
+                            onTap: () {
+                              _onDateSelected(date);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    date.day.toString(),
+                                    style: TextStyle(
+                                      color: isToday
+                                          ? Colors.blue
+                                          : Colors
+                                              .black, // Adjust text color for today
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+
+                      // selectedBuilder: (context, date, events) {
+                      //   //*selectedBuilder: Customize the appearance of a selected cell.
+
+                      // },
+                    ),
                   ),
                 ),
-                TableCalendar<Event>(
-                  eventLoader: (date) {
-                    return getEventsForDate(date);
-                  },
-                  firstDay: DateTime.utc(2023, 1, 1),
-                  focusedDay: DateTime.now(),
-                  lastDay: DateTime.utc(2023, 12, 31),
-                  calendarBuilders: CalendarBuilders(
-                    defaultBuilder: (context, date, _) {
-                      return GestureDetector(
-                        onTap: () {
-                          _onDateSelected(date);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.transparent,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                date.day.toString(),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    todayBuilder: (context, date, _) {
-                      final isFocusedDay = isSameDay(date, focusedDay);
-
-                      return GestureDetector(
-                        onTap: () {
-                          if (isSameDay(date, DateTime.now())) {
-                            _onDateSelected(date);
-                          }
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: isFocusedDay
-                                  ? Colors.blue
-                                  : Colors.transparent,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                date.day.toString(),
-                                style: TextStyle(
-                                  color:
-                                      isFocusedDay ? Colors.blue : Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    selectedBuilder: (context, date, events) {
-                      final isFocusedDay = isSameDay(date, focusedDay);
-
-                      return GestureDetector(
-                        onTap: () {
-                          if (isSameDay(date, DateTime.now())) {
-                            _onDateSelected(date);
-                          }
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color:
-                                isFocusedDay ? Colors.blue : Colors.transparent,
-                          ),
-                          margin: EdgeInsets.all(2),
-                          padding: EdgeInsets.all(2),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                date.day.toString(),
-                                style: TextStyle(
-                                  color: isFocusedDay
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: isFocusedDay
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Custom Layout', // Your custom content for the focused day
-                                style: TextStyle(
-                                  color: isFocusedDay
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                if (selectedDate != null)
+                if (_selectedDate != null)
                   Expanded(
                     child: Container(
                       color: const Color.fromARGB(255, 255, 255, 255),
                       child: Center(
-                        child: getNotesForDate(selectedDate!),
+                        child: getNotesForDate(_selectedDate!),
                       ),
                     ),
                   ),
@@ -378,7 +401,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Widget getNotesForDate(DateTime date) {
-    final eventsForDate = getEventsForDate(date);
+    final eventsForDate = _getEventsForDate(date);
 
     eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
 
