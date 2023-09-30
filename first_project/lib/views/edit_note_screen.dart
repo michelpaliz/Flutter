@@ -1,3 +1,4 @@
+import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/utils/utilities.dart';
@@ -37,6 +38,9 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   bool? isAllDay = false;
   String selectedRepetition = 'Daily'; // Default repetition is daily
   late RecurrenceRule? _recurrenceRule = null;
+  //We define the default colors for the event object
+  late Color selectedEventColor;
+  final colorList = ColorManager.eventColors;
 
   @override
   void initState() {
@@ -51,6 +55,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController = TextEditingController(text: event.localization ?? '');
     _recurrenceRule = event.recurrenceRule;
     _isRepetitive = event.recurrenceRule != null;
+    selectedEventColor = event.eventColor;
   }
 
   @override
@@ -66,13 +71,12 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController.text = event.localization!;
     _recurrenceRule = event.recurrenceRule;
     _isRepetitive = event.recurrenceRule != null;
-    // _isRepetitive = event.recurrenceRule != null;
   }
 
   /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
   @override
   void dispose() {
-    _noteController.dispose();
+    // _noteController.dispose();
     super.dispose();
   }
 
@@ -100,7 +104,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       note: updatedNote,
       localization: extractedText,
       recurrenceRule: updatedRecurrenceRule,
-      // Add other attributes as needed
+      eventColor: selectedEventColor,
     );
 
     try {
@@ -171,6 +175,44 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'Choose the color of the event:',
+                  style: TextStyle(
+                      fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<Color>(
+                      value: selectedEventColor,
+                      onChanged: (color) {
+                        setState(() {
+                          selectedEventColor = color!;
+                        });
+                      },
+                      items: colorList.map((color) {
+                        String colorName = ColorManager.getColorName(
+                            color); // Get the name of the color
+                        return DropdownMenuItem<Color>(
+                          value: color,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 20, // Adjust the width as needed
+                                height: 20, // Adjust the height as needed
+                                color: color, // Use the color as the background
+                              ),
+                              SizedBox(
+                                  width:
+                                      10), // Add spacing between color and name
+                              Text(colorName), // Display the color name
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
                 // Title Input
                 TextFormField(
                   controller: _titleController,
@@ -417,7 +459,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                 ),
 
                 // Repetition Dropdown (conditionally shown)
-                SizedBox(height: 85),
+                SizedBox(height: 25),
                 Center(
                   child: ElevatedButton(
                     onPressed: () {

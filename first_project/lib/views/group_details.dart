@@ -222,7 +222,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                               decoration: BoxDecoration(
                                 border: Border.all(
                                   color: isSelected
-                                      ? Colors.blue
+                                      ? Colors.black
                                       : Colors.transparent,
                                 ),
                               ),
@@ -249,8 +249,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                         fontSize: 12,
                                         color:
                                             const Color.fromARGB(255, 4, 4, 4),
-                                        backgroundColor: Colors
-                                            .blue, // Background color for event
+                                        backgroundColor: event.eventColor, // Background color for event
                                       ),
                                     ),
                                 ],
@@ -267,7 +266,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                               decoration: BoxDecoration(
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color.fromARGB(255, 243, 33, 219)
+                                      ? Color.fromARGB(255, 26, 105, 166)
                                       : Colors.transparent,
                                 ),
                               ),
@@ -335,7 +334,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                         fontSize: 12,
                                         color: const Color.fromARGB(
                                             255, 14, 13, 13),
-                                        backgroundColor: Colors.blue
+                                        backgroundColor: event.eventColor
                                       ),
                                     ),
                                 ],

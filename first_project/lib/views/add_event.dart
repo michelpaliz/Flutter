@@ -1,3 +1,4 @@
+import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/utils/utilities.dart';
@@ -46,6 +47,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   bool? isAllDay = false;
   String selectedRepetition = 'Daily'; // Default repetition is daily
   late RecurrenceRule? recurrenceRule = null;
+  //We define the default colors for the event object
+  late Color selectedEventColor;
+  final colorList = ColorManager.eventColors;
 
   //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({this.user, this.group}) {
@@ -57,6 +61,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       eventList = group!
           .calendar.events; // Example: group.events if Group has events list
     }
+    selectedEventColor = colorList.last;
   }
 
   @override
@@ -150,22 +155,23 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     String eventTitle = _titleController.text;
     String eventId = Uuid().v4();
 
-  // Remove unwanted characters and formatting
-    String extractedText = _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
+    // Remove unwanted characters and formatting
+    String extractedText =
+        _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
 
     if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
-        id: eventId,
-        startDate: _selectedStartDate,
-        endDate: _selectedEndDate,
-        title: _titleController.text,
-        groupId: group?.id, // Set the groupId if adding to a group's events
-        recurrenceRule: recurrenceRule,
-        localization: extractedText,
-        allDay: event?.allDay ?? false,
-        note: _noteController.text,
-        description: _descriptionController.text,
-      );
+          id: eventId,
+          startDate: _selectedStartDate,
+          endDate: _selectedEndDate,
+          title: _titleController.text,
+          groupId: group?.id, // Set the groupId if adding to a group's events
+          recurrenceRule: recurrenceRule,
+          localization: extractedText,
+          allDay: event?.allDay ?? false,
+          note: _noteController.text,
+          description: _descriptionController.text,
+          eventColor: selectedEventColor);
 
       bool isStartHourUnique = eventList.every((e) =>
           e.startDate.hour != newEvent.startDate.hour ||
@@ -243,16 +249,57 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title Input
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Title (max 20 characters)',
-                  ),
-                  maxLength: 20,
+                Text('Choose the color of the event:', style: TextStyle( fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<Color>(
+                      value: selectedEventColor,
+                      onChanged: (color) {
+                        setState(() {
+                          selectedEventColor = color!;
+                        });
+                      },
+                      items: colorList.map((color) {
+                        String colorName = ColorManager.getColorName(
+                            color); // Get the name of the color
+                        return DropdownMenuItem<Color>(
+                          value: color,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 20, // Adjust the width as needed
+                                height: 20, // Adjust the height as needed
+                                color: color, // Use the color as the background
+                              ),
+                              SizedBox(
+                                  width:
+                                      10), // Add spacing between color and name
+                              Text(colorName), // Display the color name
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
-
-                SizedBox(height: 10),
+                SizedBox(
+                    height:
+                        10), // Add spacing between the color picker and the title
+                // Title Input
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Title (max 20 characters)',
+                      ),
+                      maxLength: 20,
+                    ),
+                    SizedBox(height: 10),
+                  ],
+                ),
 
                 Container(
                   padding: EdgeInsets.all(16.0), // Adjust the padding as needed
@@ -487,7 +534,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 ),
 
                 // Repetition Dropdown (conditionally shown)
-                SizedBox(height: 85),
+                SizedBox(height: 25),
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
