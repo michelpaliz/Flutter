@@ -1,5 +1,3 @@
-import 'package:first_project/costume_widgets/costume_merged_cell.dart';
-import 'package:first_project/models/event_date_range.dart';
 import 'package:first_project/views/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,20 +22,21 @@ class GroupDetails extends StatefulWidget {
 class _GroupDetailsState extends State<GroupDetails> {
   late final Group _group;
   List<Event>? _events;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDate;
+  late DateTime _focusedDay;
+  late DateTime _selectedDate;
   StoreService storeService = new StoreService.firebase();
   AuthService authService = new AuthService.firebase();
   var userOrGroupObject;
   List<Event> filteredEvents = [];
-//  final List<EventDateRange> eventDateRanges = preprocessEventData(events);
 
   @override
   void initState() {
     super.initState();
 
     _getEventsListFromGroup();
-
+    _focusedDay = DateTime.now();
+    _selectedDate = DateTime.now();
+    ;
     // Initialize selectedEvents with events for the current date
     // _selectedEvents = getEventsForDate(DateTime.now());
   }
@@ -186,6 +185,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   // width: 400, // Set the desired width
                   // height: 400, // Set the desired height
                   child: TableCalendar<Event>(
+                    // onDaySelected: (selectedDay, focusedDay) => _focusedDay ,
                     calendarStyle: CalendarStyle(
                       cellMargin: EdgeInsets.all(10.0),
                       outsideDaysVisible: false, //
@@ -204,12 +204,14 @@ class _GroupDetailsState extends State<GroupDetails> {
                       return [];
                     },
                     firstDay: DateTime.utc(2023, 1, 1),
-                    focusedDay: DateTime.now(),
+                    focusedDay: _selectedDate,
                     lastDay: DateTime.utc(2023, 12, 31),
                     calendarBuilders: CalendarBuilders(
                       //*defaultBuilder: Customize the appearance of a non-selected cell. It uses a GestureDetector to detect taps on the cell.
                       defaultBuilder: (context, date, events) {
                         final isSelected = isSameDay(date, _selectedDate);
+                        final isSunday = date.weekday == DateTime.sunday;
+                        final isSaturday = date.weekday == DateTime.saturday;
 
                         // Check if there are events for this date
                         if (filteredEvents.isNotEmpty) {
@@ -231,25 +233,41 @@ class _GroupDetailsState extends State<GroupDetails> {
                                 children: [
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors
-                                          .transparent, // Background color for event portion
-                                    ),
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: TextStyle(
-                                        color: const Color.fromARGB(255, 14, 13,
-                                            13), // Text color for event number
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Color.fromARGB(255, 26, 105, 166)
+                                            : Colors.transparent,
                                       ),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          date.day.toString(),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: isSunday || isSaturday
+                                                ? Color.fromARGB(255, 5, 81, 91)
+                                                : isSelected
+                                                    ? const Color.fromARGB(
+                                                        255, 7, 7, 7)
+                                                    : Color.fromARGB(
+                                                        255, 19, 126, 161),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   for (var event in filteredEvents)
                                     Text(
                                       event.title,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         color:
                                             const Color.fromARGB(255, 4, 4, 4),
-                                        backgroundColor: event.eventColor, // Background color for event
+                                        backgroundColor: event
+                                            .eventColor, // Background color for event
                                       ),
                                     ),
                                 ],
@@ -260,7 +278,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                           // Use your default cell design for days without events, including the day number
                           return GestureDetector(
                             onTap: () {
-                              _onDateSelected(date);
+                              if (!isSelected) {
+                                _onDateSelected(date);
+                              }
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -276,10 +296,13 @@ class _GroupDetailsState extends State<GroupDetails> {
                                   Text(
                                     date.day.toString(),
                                     style: TextStyle(
-                                      color: isSelected
-                                          ? const Color.fromARGB(255, 7, 7, 7)
-                                          : Color.fromARGB(255, 19, 126, 161),
-                                      // Adjust text color for focused day
+                                      fontWeight: FontWeight.bold,
+                                      color: isSunday || isSaturday
+                                          ? Color.fromARGB(255, 5, 81, 91)
+                                          : isSelected
+                                              ? Color.fromARGB(255, 9, 51, 80)
+                                              : Color.fromARGB(
+                                                  255, 19, 126, 161),
                                     ),
                                   ),
                                 ],
@@ -290,14 +313,63 @@ class _GroupDetailsState extends State<GroupDetails> {
                       },
 
                       todayBuilder: (context, date, events) {
+                        final isToday = isSameDay(date, _focusedDay);
                         final isSelected = isSameDay(date, _selectedDate);
-                        final isToday = isSameDay(date, DateTime.now());
 
                         if (filteredEvents.isNotEmpty) {
                           // Merge cells if there are events on this date
                           return GestureDetector(
                             onTap: () {
-                              _onDateSelected(date);
+                              if (isToday) {
+                                _onDateSelected(date);
+                              }
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isToday
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isToday ? Colors.white : Colors.blue,
+                                    ),
+                                    child: Text(
+                                      date.day.toString(),
+                                      style: TextStyle(
+                                        color: isToday
+                                            ? Colors.black
+                                            : Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                  for (var event in filteredEvents)
+                                    Text(
+                                      event.title,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: const Color.fromARGB(
+                                            255, 14, 13, 13),
+                                        backgroundColor: event.eventColor,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Use your default cell design for today's cell
+                          return GestureDetector(
+                            onTap: () {
+                              if (!isToday) {
+                                _onDateSelected(date);
+                              }
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -310,59 +382,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: isToday
-                                          ? Colors.white
-                                          : Colors
-                                              .blue, // Background color for event portion on focused day
-                                    ),
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: TextStyle(
-                                        color: isToday
-                                            ? Colors.black
-                                            : Colors
-                                                .blue, // Text color for event number on focused day
-                                      ),
-                                    ),
-                                  ),
-                                  for (var event in filteredEvents)
-                                    Text(
-                                      event.title,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: const Color.fromARGB(
-                                            255, 14, 13, 13),
-                                        backgroundColor: event.eventColor
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          // Use your default cell design for today's cell
-                          return GestureDetector(
-                            onTap: () {
-                              _onDateSelected(date);
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    // color: isSelected ? Colors.blue : Colors.transparent,
-                                    ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
                                   Text(
                                     date.day.toString(),
                                     style: TextStyle(
-                                      color: isToday
-                                          ? Colors.blue
-                                          : Colors
-                                              .black, // Adjust text color for today
+                                      color:
+                                          isToday ? Colors.blue : Colors.black,
                                     ),
                                   ),
                                 ],
@@ -371,6 +395,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                           );
                         }
                       },
+
                       // selectedBuilder: (context, date, events) {
                       //   //*selectedBuilder: Customize the appearance of a selected cell.
 
@@ -378,15 +403,14 @@ class _GroupDetailsState extends State<GroupDetails> {
                     ),
                   ),
                 ),
-                if (_selectedDate != null)
-                  Expanded(
-                    child: Container(
-                      color: const Color.fromARGB(255, 255, 255, 255),
-                      child: Center(
-                        child: getNotesForDate(_selectedDate!),
-                      ),
+                Expanded(
+                  child: Container(
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    child: Center(
+                      child: getNotesForDate(_selectedDate),
                     ),
                   ),
+                ),
               ],
             ),
             Positioned(
