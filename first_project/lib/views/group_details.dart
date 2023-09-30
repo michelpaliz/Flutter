@@ -211,6 +211,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                       defaultBuilder: (context, date, events) {
                         final isSelected = isSameDay(date, _selectedDate);
 
+                        // Check if there are events for this date
                         if (filteredEvents.isNotEmpty) {
                           // Merge cells if there are events on this date
                           return GestureDetector(
@@ -219,8 +220,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors
-                                    .blue, // Background color for merged cell
                                 border: Border.all(
                                   color: isSelected
                                       ? Colors.blue
@@ -230,10 +229,17 @@ class _GroupDetailsState extends State<GroupDetails> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    date.day.toString(),
-                                    style: TextStyle(
-                                      color: Colors.white,
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors
+                                          .transparent, // Background color for event portion
+                                    ),
+                                    child: Text(
+                                      date.day.toString(),
+                                      style: TextStyle(
+                                        color: const Color.fromARGB(255, 14, 13,
+                                            13), // Text color for event number
+                                      ),
                                     ),
                                   ),
                                   for (var event in filteredEvents)
@@ -241,7 +247,10 @@ class _GroupDetailsState extends State<GroupDetails> {
                                       event.title,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.white,
+                                        color:
+                                            const Color.fromARGB(255, 4, 4, 4),
+                                        backgroundColor: Colors
+                                            .blue, // Background color for event
                                       ),
                                     ),
                                 ],
@@ -249,7 +258,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                             ),
                           );
                         } else {
-                          // Use your default cell design for days without events
+                          // Use your default cell design for days without events, including the day number
                           return GestureDetector(
                             onTap: () {
                               _onDateSelected(date);
@@ -258,7 +267,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                               decoration: BoxDecoration(
                                 border: Border.all(
                                   color: isSelected
-                                      ? Colors.blue
+                                      ? const Color.fromARGB(255, 243, 33, 219)
                                       : Colors.transparent,
                                 ),
                               ),
@@ -270,7 +279,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                                     style: TextStyle(
                                       color: isSelected
                                           ? const Color.fromARGB(255, 7, 7, 7)
-                                          : Color.fromARGB(255, 19, 126, 161), // Adjust text color for focused day
+                                          : Color.fromARGB(255, 19, 126, 161),
+                                      // Adjust text color for focused day
                                     ),
                                   ),
                                 ],
@@ -292,8 +302,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors
-                                    .blue, // Background color for merged cell
                                 border: Border.all(
                                   color: isSelected
                                       ? Colors.blue
@@ -303,10 +311,21 @@ class _GroupDetailsState extends State<GroupDetails> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    date.day.toString(),
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 8, 8, 8),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: isToday
+                                          ? Colors.white
+                                          : Colors
+                                              .blue, // Background color for event portion on focused day
+                                    ),
+                                    child: Text(
+                                      date.day.toString(),
+                                      style: TextStyle(
+                                        color: isToday
+                                            ? Colors.black
+                                            : Colors
+                                                .blue, // Text color for event number on focused day
+                                      ),
                                     ),
                                   ),
                                   for (var event in filteredEvents)
@@ -314,7 +333,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                                       event.title,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: const Color.fromARGB(255, 14, 13, 13),
+                                        color: const Color.fromARGB(
+                                            255, 14, 13, 13),
+                                        backgroundColor: Colors.blue
                                       ),
                                     ),
                                 ],
@@ -330,10 +351,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                             child: Container(
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: isSelected
-                                      ? Colors.blue
-                                      : Colors.transparent,
-                                ),
+                                    // color: isSelected ? Colors.blue : Colors.transparent,
+                                    ),
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -353,7 +372,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                           );
                         }
                       },
-
                       // selectedBuilder: (context, date, events) {
                       //   //*selectedBuilder: Customize the appearance of a selected cell.
 
