@@ -1,83 +1,72 @@
 import 'package:first_project/models/recurrence_rule.dart';
-import 'package:flutter/material.dart'; // Import the Flutter Material library for Color
 
 class Event {
   final String id;
   final DateTime startDate;
   final DateTime endDate;
-  final String title; // Required title field
-  final String? groupId; // Optional property for the group ID
-  final RecurrenceRule? recurrenceRule; // Optional recurrenceRule field
-  final String? localization; // Optional localization field
-  final String? note; // Optional note field
-  final String? description; // Optional description field
-  final Color eventColor; // Color for the event (default to transparent)
-  late final bool allDay; // Optional allDay field with default value false
+  final String title;
+  final String? groupId;
+  final RecurrenceRule? recurrenceRule;
+  final String? localization;
+  final String? note;
+  final String? description;
+  final int eventColorIndex; // Store the index of the color
+  late final bool allDay;
   bool done;
 
   Event({
     required this.id,
     required this.startDate,
     required this.endDate,
-    required this.title, // Required title field
+    required this.title,
     this.groupId,
     this.done = false,
     this.recurrenceRule,
     this.localization,
-    this.allDay = false, // Default value for allDay
-    this.note, // Optional note field
-    this.description, // Optional description field
-    Color? eventColor, // Color for the event (default to transparent)
-  }) : eventColor = eventColor ?? Colors.transparent; // Set default to transparent
+    this.allDay = false,
+    this.note,
+    this.description,
+    required this.eventColorIndex, // Store the color index
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
-      'title': title, // Serialize title
+      'title': title,
       'groupId': groupId,
       'done': done,
       if (recurrenceRule != null) 'recurrenceRule': recurrenceRule!.toMap(),
       if (localization != null) 'localization': localization,
-      'allDay': allDay, // Serialize allDay
-      if (note != null) 'note': note, // Serialize note if not null
-      if (description != null)
-        'description': description, // Serialize description if not null
-      'eventColor': eventColor.value, // Serialize eventColor as an integer value
+      'allDay': allDay,
+      if (note != null) 'note': note,
+      if (description != null) 'description': description,
+      'eventColorIndex': eventColorIndex, // Serialize color index
     };
   }
 
-factory Event.fromJson(Map<String, dynamic> json) {
-  final recurrenceRuleJson = json['recurrenceRule'];
-  RecurrenceRule? recurrenceRule;
+  factory Event.fromJson(Map<String, dynamic> json) {
+    final recurrenceRuleJson = json['recurrenceRule'];
+    RecurrenceRule? recurrenceRule;
 
-  if (recurrenceRuleJson != null) {
-    recurrenceRule = RecurrenceRule.fromMap(recurrenceRuleJson);
+    if (recurrenceRuleJson != null) {
+      recurrenceRule = RecurrenceRule.fromMap(recurrenceRuleJson);
+    }
+
+    return Event(
+      id: json['id'],
+      startDate: DateTime.parse(json['startDate']),
+      endDate: DateTime.parse(json['endDate']),
+      title: json['title'] ?? '',
+      groupId: json['groupId'],
+      done: json['done'] ?? false,
+      recurrenceRule: recurrenceRule,
+      localization: json['localization'] ?? '',
+      allDay: json['allDay'] ?? false,
+      note: json['note'] ?? '',
+      description: json['description'] ?? '',
+      eventColorIndex: json['eventColorIndex'], // Deserialize color index
+    );
   }
-
-  final int? eventColorValue = json['eventColor'];
-  final Color eventColor = eventColorValue != null
-      ? Color(eventColorValue) // Convert to Color if not null
-      : Colors.transparent; // Default to transparent if null
-
-  return Event(
-    id: json['id'],
-    startDate: DateTime.parse(json['startDate']),
-    endDate: DateTime.parse(json['endDate']),
-    title:
-        json['title'] ?? '', // Deserialize title with a default empty string
-    groupId: json['groupId'],
-    done: json['done'] ?? false,
-    recurrenceRule: recurrenceRule,
-    localization: json['localization'] ??
-        '', // Provide a default empty string for localization
-    allDay: json['allDay'] ??
-        false, // Deserialize allDay with default value false
-    note: json['note'] ?? '', // Provide a default empty string for note
-    description: json['description'] ??
-        '', // Provide a default empty string for description
-    eventColor: eventColor, // Use the Color value or default to transparent
-  );
-}
 }

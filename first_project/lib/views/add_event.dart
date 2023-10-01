@@ -161,17 +161,18 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
     if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
-          id: eventId,
-          startDate: _selectedStartDate,
-          endDate: _selectedEndDate,
-          title: _titleController.text,
-          groupId: group?.id, // Set the groupId if adding to a group's events
-          recurrenceRule: recurrenceRule,
-          localization: extractedText,
-          allDay: event?.allDay ?? false,
-          note: _noteController.text,
-          description: _descriptionController.text,
-          eventColor: selectedEventColor);
+        id: eventId,
+        startDate: _selectedStartDate,
+        endDate: _selectedEndDate,
+        title: _titleController.text,
+        groupId: group?.id, // Set the groupId if adding to a group's events
+        recurrenceRule: recurrenceRule,
+        localization: extractedText,
+        allDay: event?.allDay ?? false,
+        note: _noteController.text,
+        description: _descriptionController.text,
+        eventColorIndex: ColorManager().getColorIndex(selectedEventColor),
+      );
 
       bool isStartHourUnique = eventList.every((e) =>
           e.startDate.hour != newEvent.startDate.hour ||
@@ -249,7 +250,11 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Choose the color of the event:', style: TextStyle( fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),),
+                Text(
+                  'Choose the color of the event:',
+                  style: TextStyle(
+                      fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),
+                ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -293,9 +298,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                     TextFormField(
                       controller: _titleController,
                       decoration: InputDecoration(
-                        labelText: 'Title (max 20 characters)',
+                        labelText: 'Title (max 15 characters)',
                       ),
-                      maxLength: 20,
+                      maxLength: 15,
                     ),
                     SizedBox(height: 10),
                   ],

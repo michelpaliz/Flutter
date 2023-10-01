@@ -40,7 +40,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   late RecurrenceRule? _recurrenceRule = null;
   //We define the default colors for the event object
   late Color selectedEventColor;
-  final colorList = ColorManager.eventColors;
+  late List<Color> colorList;
 
   @override
   void initState() {
@@ -55,7 +55,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController = TextEditingController(text: event.localization ?? '');
     _recurrenceRule = event.recurrenceRule;
     _isRepetitive = event.recurrenceRule != null;
-    selectedEventColor = event.eventColor;
+    colorList = ColorManager.eventColors;
+    selectedEventColor = colorList[event.eventColorIndex];
   }
 
   @override
@@ -71,6 +72,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController.text = event.localization!;
     _recurrenceRule = event.recurrenceRule;
     _isRepetitive = event.recurrenceRule != null;
+    // selectedEventColor = event.eventColor;
   }
 
   /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
@@ -104,7 +106,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       note: updatedNote,
       localization: extractedText,
       recurrenceRule: updatedRecurrenceRule,
-      eventColor: selectedEventColor,
+      eventColorIndex: ColorManager().getColorIndex(selectedEventColor),
     );
 
     try {
@@ -191,35 +193,40 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                         });
                       },
                       items: colorList.map((color) {
-                        String colorName = ColorManager.getColorName(
-                            color); // Get the name of the color
+                        String colorName = ColorManager.getColorName(color);
+
+                        // Ensure each color is unique and corresponds to a unique DropdownMenuItem
+                        // You can use color.hashCode as a key to ensure uniqueness.
+                        // In this example, I'm using color.hashCode.toString() as the key.
+                        String key = color.hashCode.toString();
+
                         return DropdownMenuItem<Color>(
+                          key: ValueKey<String>(
+                              key), // Use a unique key for each item
                           value: color,
                           child: Row(
                             children: [
                               Container(
-                                width: 20, // Adjust the width as needed
-                                height: 20, // Adjust the height as needed
-                                color: color, // Use the color as the background
+                                width: 20,
+                                height: 20,
+                                color: color,
                               ),
-                              SizedBox(
-                                  width:
-                                      10), // Add spacing between color and name
-                              Text(colorName), // Display the color name
+                              SizedBox(width: 10),
+                              Text(colorName),
                             ],
                           ),
                         );
                       }).toList(),
-                    ),
+                    )
                   ],
                 ),
                 // Title Input
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: 'Title (max 20 characters)',
+                    labelText: 'Title (max 15 characters)',
                   ),
-                  maxLength: 20,
+                  maxLength: 15,
                 ),
 
                 SizedBox(height: 10),

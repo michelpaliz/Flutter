@@ -16,32 +16,36 @@ class ColorManager {
     Colors.white, // Add white color
   ];
 
+  // Define a map to associate color names with Color objects
+  static final Map<String, Color> colorNameToColor = {
+    'Red': Colors.red,
+    'Blue': Colors.blue,
+    'Green': Colors.green,
+    'Yellow': Colors.yellow,
+    'Orange': Colors.orange,
+    'Purple': Colors.purple,
+    'Pink': Colors.pink,
+    'Teal': Colors.teal,
+    'Indigo': Colors.indigo,
+    'Deep Orange': Colors.deepOrange,
+    'White': Colors.white,
+  };
+
   // Define a method to get the name of a color based on its value
   static String getColorName(Color color) {
-    if (color == Colors.red) {
-      return 'Red';
-    } else if (color == Colors.blue) {
-      return 'Blue';
-    } else if (color == Colors.green) {
-      return 'Green';
-    } else if (color == Colors.yellow) {
-      return 'Yellow';
-    } else if (color == Colors.orange) {
-      return 'Orange';
-    } else if (color == Colors.purple) {
-      return 'Purple';
-    } else if (color == Colors.pink) {
-      return 'Pink';
-    } else if (color == Colors.teal) {
-      return 'Teal';
-    } else if (color == Colors.indigo) {
-      return 'Indigo';
-    } else if (color == Colors.deepOrange) {
-      return 'Deep Orange';
-    } else if (color == Colors.white) {
-      return 'White';
-    } else {
-      return 'Unknown';
+    for (var entry in colorNameToColor.entries) {
+      if (entry.value == color) {
+        return entry.key;
+      }
     }
+    return 'Unknown';
+  }
+
+  int getColorIndex(Color color) {
+    return eventColors.indexOf(color);
+  }
+
+  Color getColor(int index) {
+    return ColorManager.eventColors[index];
   }
 }

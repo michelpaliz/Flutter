@@ -1,4 +1,4 @@
-import 'package:first_project/views/event_detail.dart';
+import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -6,7 +6,6 @@ import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
 import '../models/group.dart';
-import '../services/auth/implements/auth_service.dart';
 import '../services/firestore/implements/firestore_service.dart';
 import '../styles/app_bar_styles.dart';
 
@@ -24,21 +23,18 @@ class _GroupDetailsState extends State<GroupDetails> {
   List<Event>? _events;
   late DateTime _focusedDay;
   late DateTime _selectedDate;
-  StoreService storeService = new StoreService.firebase();
-  AuthService authService = new AuthService.firebase();
+  late StoreService _storeService;
   var userOrGroupObject;
-  List<Event> filteredEvents = [];
+  late List<Event> _filteredEvents;
 
   @override
   void initState() {
     super.initState();
-
     _getEventsListFromGroup();
     _focusedDay = DateTime.now();
     _selectedDate = DateTime.now();
-    ;
-    // Initialize selectedEvents with events for the current date
-    // _selectedEvents = getEventsForDate(DateTime.now());
+    _storeService = StoreService.firebase();
+    _filteredEvents = [];
   }
 
   // Update the onTap handler to call _onDateSelected
@@ -100,12 +96,12 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   Future<void> _removeGroupEvents(Event event) async {
     // Remove the event from Firestore
-    await storeService.removeEvent(event.id);
+    await _storeService.removeEvent(event.id);
 
     // Update the events for the user in Firestore
 
     _group.calendar.events = _events!.where((e) => e.id != event.id).toList();
-    await storeService.updateGroup(_group);
+    await _storeService.updateGroup(_group);
 
     // Remove the event from the eventListP_)
     setState(() {
@@ -116,7 +112,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Future<void> _updateEvent(Event event) async {
-    await storeService.updateEvent(event);
+    await _storeService.updateEvent(event);
   }
 
   void _showRemoveConfirmationDialog(Event event, BuildContext context) {
@@ -149,6 +145,11 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   @override
   Widget build(BuildContext context) {
+    //** We define the colors for the view  */
+    const Color colorMoreEvents = Color.fromARGB(255, 61, 133, 209);
+    const Color colorBorderCell = Color.fromARGB(255, 12, 31, 50);
+    const Color colorWeekends = Color.fromARGB(255, 5, 81, 91);
+
     return Theme(
       data: AppBarStyles.themeData,
       child: Scaffold(
@@ -191,16 +192,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                       outsideDaysVisible: false, //
                     ),
                     eventLoader: (date) {
-                      filteredEvents = _getEventsForDate(date);
-
-                      // final eventsForFocusedDay = _getEventsForDate(_focusedDay);
-
-                      // Merge the events for the selected day and the focused day
-                      final allEvents = [
-                        ...filteredEvents,
-                        // ...eventsForFocusedDay
-                      ];
-
+                      _filteredEvents = _getEventsForDate(date);
                       return [];
                     },
                     firstDay: DateTime.utc(2023, 1, 1),
@@ -214,20 +206,15 @@ class _GroupDetailsState extends State<GroupDetails> {
                         final isSaturday = date.weekday == DateTime.saturday;
 
                         // Check if there are events for this date
-                        if (filteredEvents.isNotEmpty) {
-                          // Merge cells if there are events on this date
-                          return GestureDetector(
+                        if (_filteredEvents.isNotEmpty) {
+                          // Display the first event
+                          final firstEvent = _filteredEvents[0];
+
+                          return InkWell(
                             onTap: () {
                               _onDateSelected(date);
                             },
                             child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.black
-                                      : Colors.transparent,
-                                ),
-                              ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -235,7 +222,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                     decoration: BoxDecoration(
                                       border: Border.all(
                                         color: isSelected
-                                            ? Color.fromARGB(255, 26, 105, 166)
+                                            ? colorBorderCell
                                             : Colors.transparent,
                                       ),
                                     ),
@@ -248,7 +235,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: isSunday || isSaturday
-                                                ? Color.fromARGB(255, 5, 81, 91)
+                                                ? colorWeekends
                                                 : isSelected
                                                     ? const Color.fromARGB(
                                                         255, 7, 7, 7)
@@ -256,37 +243,44 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                         255, 19, 126, 161),
                                           ),
                                         ),
+                                        Text(
+                                          firstEvent.title,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: const Color.fromARGB(
+                                                255, 4, 4, 4),
+                                            backgroundColor: ColorManager()
+                                                .getColor(
+                                                    firstEvent.eventColorIndex),
+                                          ),
+                                        ),
+                                        if (_filteredEvents.length > 1)
+                                          Text(
+                                            "+${_filteredEvents.length - 1} more events",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: colorMoreEvents,
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),
-                                  for (var event in filteredEvents)
-                                    Text(
-                                      event.title,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color:
-                                            const Color.fromARGB(255, 4, 4, 4),
-                                        backgroundColor: event
-                                            .eventColor, // Background color for event
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),
                           );
                         } else {
-                          // Use your default cell design for days without events, including the day number
+                          // Use your default cell design for days without events
                           return GestureDetector(
                             onTap: () {
-                              if (!isSelected) {
-                                _onDateSelected(date);
-                              }
+                              _onDateSelected(date);
                             },
                             child: Container(
                               decoration: BoxDecoration(
                                 border: Border.all(
                                   color: isSelected
-                                      ? Color.fromARGB(255, 26, 105, 166)
+                                      ? colorBorderCell
                                       : Colors.transparent,
                                 ),
                               ),
@@ -298,7 +292,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: isSunday || isSaturday
-                                          ? Color.fromARGB(255, 5, 81, 91)
+                                          ? colorWeekends
                                           : isSelected
                                               ? Color.fromARGB(255, 9, 51, 80)
                                               : Color.fromARGB(
@@ -316,8 +310,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                         final isToday = isSameDay(date, _focusedDay);
                         final isSelected = isSameDay(date, _selectedDate);
 
-                        if (filteredEvents.isNotEmpty) {
-                          // Merge cells if there are events on this date
+                        // Check if there are events for this date
+                        if (_filteredEvents.isNotEmpty) {
+                          // Display the first event
+                          final firstEvent = _filteredEvents[0];
+
                           return GestureDetector(
                             onTap: () {
                               if (isToday) {
@@ -349,14 +346,23 @@ class _GroupDetailsState extends State<GroupDetails> {
                                       ),
                                     ),
                                   ),
-                                  for (var event in filteredEvents)
+                                  Text(
+                                    firstEvent.title,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color:
+                                          const Color.fromARGB(255, 14, 13, 13),
+                                      backgroundColor: ColorManager()
+                                          .getColor(firstEvent.eventColorIndex),
+                                    ),
+                                  ),
+                                  if (_filteredEvents.length > 1)
                                     Text(
-                                      event.title,
+                                      "+${_filteredEvents.length - 1} more events",
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: const Color.fromARGB(
-                                            255, 14, 13, 13),
-                                        backgroundColor: event.eventColor,
+                                        fontSize: 11,
+                                        color: colorMoreEvents,
                                       ),
                                     ),
                                 ],
@@ -367,7 +373,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                           // Use your default cell design for today's cell
                           return GestureDetector(
                             onTap: () {
-                              if (!isToday) {
+                              if (isToday) {
                                 _onDateSelected(date);
                               }
                             },
@@ -382,11 +388,18 @@ class _GroupDetailsState extends State<GroupDetails> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    date.day.toString(),
-                                    style: TextStyle(
+                                  Container(
+                                    decoration: BoxDecoration(
                                       color:
-                                          isToday ? Colors.blue : Colors.black,
+                                          isToday ? Colors.white : Colors.blue,
+                                    ),
+                                    child: Text(
+                                      date.day.toString(),
+                                      style: TextStyle(
+                                        color: isToday
+                                            ? Colors.black
+                                            : Colors.blue,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -413,28 +426,33 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
               ],
             ),
-            Positioned(
-              bottom: 10,
-              right: 10,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.all(1),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 25,
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, addEvent,
-                        arguments: userOrGroupObject);
-                  },
-                ),
-              ),
-            ),
+            // Positioned(
+            //   bottom: 10, // Adjust the bottom position as needed
+            //   right: 0, // Center the button horizontally
+            //   left: 0,
+            //   child: Center(
+            //     child: Container(
+            //       decoration: BoxDecoration(
+            //         color: Colors.blue,
+            //         borderRadius: BorderRadius.circular(
+            //             25), // Adjust the border radius as needed
+            //       ),
+            //       width: 50, // Adjust the width of the button
+            //       height: 50, // Adjust the height of the button
+            //       child: IconButton(
+            //         icon: Icon(
+            //           Icons.add,
+            //           color: Colors.white,
+            //           size: 30, // Adjust the icon size as needed
+            //         ),
+            //         onPressed: () {
+            //           Navigator.pushNamed(context, addEvent,
+            //               arguments: userOrGroupObject);
+            //         },
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -471,66 +489,181 @@ class _GroupDetailsState extends State<GroupDetails> {
               final event = eventsForDate[index];
               final startTime = event.startDate;
               final endTime = event.endDate;
-              final timeText =
-                  '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')} - ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
-              final timeColor = const Color.fromARGB(202, 33, 149, 243);
-              final eventColor = Colors.black;
+              final startTimeText = DateFormat('hh:mm a').format(startTime);
+              final endDateText = DateFormat('hh:mm a').format(endTime);
 
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EventDetail(event: event),
-                    ),
-                  );
-                },
-                child: ListTile(
-                  title: Text(
-                    timeText.toUpperCase(),
-                    style: TextStyle(
-                      color: timeColor,
-                    ),
-                  ),
-                  subtitle: Text(
-                    event.title,
-                    style: TextStyle(
-                      color: eventColor,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize
-                        .min, // Ensure that the row takes up minimum space.
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          _editEvent(event, context);
-                        },
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(8), // Apply rounded corners
+                child: Padding(
+                  padding: const EdgeInsets.all(5.0), // Add padding
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        left: BorderSide(
+                          width: 5, // Adjust the line width as needed
+                          color: ColorManager().getColor(
+                              event.eventColorIndex), // Use event's color
+                        ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          // Implement the logic to remove the event
-                          _showRemoveConfirmationDialog(event, context);
-                        },
-                      ),
-                      Checkbox(
-                        value: event.done,
-                        onChanged: (newValue) {
-                          setState(() {
-                            event.done = newValue!;
-                            _updateEvent(event);
-                          });
-                        },
-                      ),
-                    ],
+                    ),
+                    child: Row(
+                      children: [
+                        // First Column: Start Hour and End Hour
+                        Expanded(
+                          flex: 1, // To occupy half of the row width
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 10.0), // Add left padding
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  startTimeText,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  endDateText,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Second Column: Start Date and End Date Above Title and Icons
+                        Expanded(
+                          flex: 3, // To occupy the rest of the row width
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    DateFormat('EEE, MMM d  -  ')
+                                        .format(startTime),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  Text(
+                                    DateFormat('EEE, MMM d').format(endTime),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Event Title
+
+                              // Row for Edit, Delete, and Checkbox
+                              Row(
+                                children: [
+                                  // Event Title
+                                  Expanded(
+                                    child: Text(
+                                      event.title,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Edit Icon
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Color.fromARGB(255, 96, 153, 199),
+                                    ),
+                                    onPressed: () {
+                                      _editEvent(event, context);
+                                    },
+                                  ),
+
+                                  // Delete Icon
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                      size: 20,
+                                      color: Color.fromARGB(255, 238, 105, 96),
+                                    ),
+                                    onPressed: () {
+                                      _showRemoveConfirmationDialog(
+                                          event, context);
+                                    },
+                                  ),
+
+                                  // Checkbox with reduced font size
+                                  Transform.scale(
+                                    scale:
+                                        0.8, // Adjust the scale factor as needed
+                                    child: Checkbox(
+                                      value: event.done,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          event.done = newValue!;
+                                          _updateEvent(event);
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
             },
           ),
-        )
+        ),
+        Container(
+          padding: EdgeInsets.all(5),
+          child: Positioned(
+            bottom: 10, // Adjust the bottom position as needed
+            right: 0, // Center the button horizontally
+            left: 0,
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(
+                      25), // Adjust the border radius as needed
+                ),
+                width: 50, // Adjust the width of the button
+                height: 50, // Adjust the height of the button
+                child: IconButton(
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 30, // Adjust the icon size as needed
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, addEvent,
+                        arguments: userOrGroupObject);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

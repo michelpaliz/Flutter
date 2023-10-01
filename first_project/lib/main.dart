@@ -3,7 +3,7 @@ import 'dart:developer' as devtools show log;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
-import 'package:first_project/models/RouteLogger.dart';
+import 'package:first_project/models/routeLogger.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
