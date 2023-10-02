@@ -26,6 +26,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   late StoreService _storeService;
   var userOrGroupObject;
   late List<Event> _filteredEvents;
+  final GlobalKey<ScaffoldState> contextStorageKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -94,29 +95,28 @@ class _GroupDetailsState extends State<GroupDetails> {
     });
   }
 
-  Future<void> _removeGroupEvents(Event event) async {
+  Future<void> _removeGroupEvents({required Event event}) async {
     // Remove the event from Firestore
     await _storeService.removeEvent(event.id);
 
     // Update the events for the user in Firestore
-
-    _group.calendar.events = _events!.where((e) => e.id != event.id).toList();
+    _group.calendar.events.removeWhere((e) => e.id == event.id);
     await _storeService.updateGroup(_group);
 
-    // Remove the event from the eventListP_)
+    // Update the UI by removing the event from the list
     setState(() {
-      _events?.removeWhere((e) => e.id == event.id);
+      _events!.remove(event);
     });
-
-    Navigator.of(context).pop(); // Close the dialog
   }
 
   Future<void> _updateEvent(Event event) async {
     await _storeService.updateEvent(event);
   }
 
-  void _showRemoveConfirmationDialog(Event event, BuildContext context) {
-    showDialog(
+  Future<bool> _showRemoveConfirmationDialog(
+      Event event, BuildContext context) async {
+    bool confirmed = false;
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -126,19 +126,29 @@ class _GroupDetailsState extends State<GroupDetails> {
             TextButton(
               child: Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(false);
               },
             ),
             TextButton(
               child: Text('Remove'),
               onPressed: () async {
-                _removeGroupEvents(event);
+                Navigator.of(context).pop(true);
+                confirmed = true;
+
+                // Remove the event from the list and update the UI
+                setState(() {
+                  _events!.remove(event);
+                });
+
+                // Also, remove the event from your data source (Firestore or wherever you're storing events)
+                await _removeGroupEvents(event: event);
               },
             ),
           ],
         );
       },
     );
+    return confirmed;
   }
 
   //** UI FOR THE VIEW */
@@ -419,40 +429,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                 Expanded(
                   child: Container(
                     color: const Color.fromARGB(255, 255, 255, 255),
-                    child: Center(
-                      child: getNotesForDate(_selectedDate),
-                    ),
+                    child: getNotesForDate(_selectedDate),
                   ),
                 ),
               ],
             ),
-            // Positioned(
-            //   bottom: 10, // Adjust the bottom position as needed
-            //   right: 0, // Center the button horizontally
-            //   left: 0,
-            //   child: Center(
-            //     child: Container(
-            //       decoration: BoxDecoration(
-            //         color: Colors.blue,
-            //         borderRadius: BorderRadius.circular(
-            //             25), // Adjust the border radius as needed
-            //       ),
-            //       width: 50, // Adjust the width of the button
-            //       height: 50, // Adjust the height of the button
-            //       child: IconButton(
-            //         icon: Icon(
-            //           Icons.add,
-            //           color: Colors.white,
-            //           size: 30, // Adjust the icon size as needed
-            //         ),
-            //         onPressed: () {
-            //           Navigator.pushNamed(context, addEvent,
-            //               arguments: userOrGroupObject);
-            //         },
-            //       ),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -482,187 +463,209 @@ class _GroupDetailsState extends State<GroupDetails> {
           ),
         ),
         Expanded(
-          child: ListView.separated(
-            itemCount: eventsForDate.length,
-            separatorBuilder: (context, index) => Divider(),
-            itemBuilder: (context, index) {
-              final event = eventsForDate[index];
-              final startTime = event.startDate;
-              final endTime = event.endDate;
-              final startTimeText = DateFormat('hh:mm a').format(startTime);
-              final endDateText = DateFormat('hh:mm a').format(endTime);
+          child: LayoutBuilder(builder: (context, constraints) {
+            return ListView.builder(
+              itemCount: eventsForDate.length,
+              itemBuilder: (context, index) {
+                final event = eventsForDate[index];
+                final startTime = event.startDate;
+                final endTime = event.endDate;
+                final startTimeText = DateFormat('hh:mm a').format(startTime);
+                final endDateText = DateFormat('hh:mm a').format(endTime);
 
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(8), // Apply rounded corners
-                child: Padding(
-                  padding: const EdgeInsets.all(5.0), // Add padding
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(
-                          width: 5, // Adjust the line width as needed
-                          color: ColorManager().getColor(
-                              event.eventColorIndex), // Use event's color
-                        ),
-                      ),
+                return Dismissible(
+                  key: Key(event.id), // Use a unique key for each item
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
                     ),
-                    child: Row(
-                      children: [
-                        // First Column: Start Hour and End Hour
-                        Expanded(
-                          flex: 1, // To occupy half of the row width
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                left: 10.0), // Add left padding
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  startTimeText,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  endDateText,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
+                  ),
+                  confirmDismiss: (direction) async {
+                    final bool confirm =
+                        await _showRemoveConfirmationDialog(event, context);
+                    return confirm;
+                  },
+
+                  onDismissed: (direction) {
+                    // Remove the event from the list and update the UI
+                    setState(() {
+                      eventsForDate.removeAt(index);
+                    });
+
+                    // Also, remove the event from your data source (Firestore or wherever you're storing events)
+                    _removeGroupEvents(event: event);
+                  },
+
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              width: 5,
+                              color: ColorManager()
+                                  .getColor(event.eventColorIndex),
                             ),
                           ),
                         ),
-
-                        // Second Column: Start Date and End Date Above Title and Icons
-                        Expanded(
-                          flex: 3, // To occupy the rest of the row width
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    DateFormat('EEE, MMM d  -  ')
-                                        .format(startTime),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  Text(
-                                    DateFormat('EEE, MMM d').format(endTime),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              // Event Title
-
-                              // Row for Edit, Delete, and Checkbox
-                              Row(
-                                children: [
-                                  // Event Title
-                                  Expanded(
-                                    child: Text(
-                                      event.title,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 10.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      startTimeText,
                                       style: TextStyle(
                                         fontSize: 16,
+                                        fontWeight: FontWeight.bold,
                                         color: Colors.black,
                                       ),
                                     ),
-                                  ),
-
-                                  // Edit Icon
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.edit,
-                                      size: 20,
-                                      color: Color.fromARGB(255, 96, 153, 199),
+                                    Text(
+                                      endDateText,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      _editEvent(event, context);
-                                    },
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        DateFormat('EEE, MMM d  -  ')
+                                            .format(startTime),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      Text(
+                                        DateFormat('EEE, MMM d')
+                                            .format(endTime),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-
-                                  // Delete Icon
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.delete,
-                                      size: 20,
-                                      color: Color.fromARGB(255, 238, 105, 96),
-                                    ),
-                                    onPressed: () {
-                                      _showRemoveConfirmationDialog(
-                                          event, context);
-                                    },
-                                  ),
-
-                                  // Checkbox with reduced font size
-                                  Transform.scale(
-                                    scale:
-                                        0.8, // Adjust the scale factor as needed
-                                    child: Checkbox(
-                                      value: event.done,
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          event.done = newValue!;
-                                          _updateEvent(event);
-                                        });
-                                      },
-                                    ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          event.title,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color:
+                                              Color.fromARGB(255, 96, 153, 199),
+                                        ),
+                                        onPressed: () {
+                                          _editEvent(event, context);
+                                        },
+                                      ),
+                                      // IconButton(
+                                      //   icon: Icon(
+                                      //     Icons.delete,
+                                      //     size: 20,
+                                      //     color:
+                                      //         Color.fromARGB(255, 238, 105, 96),
+                                      //   ),
+                                      //   onPressed: () {
+                                      //     _showRemoveConfirmationDialog(
+                                      //         event, context);
+                                      //   },
+                                      // ),
+                                      Transform.scale(
+                                        scale: 0.8,
+                                        child: Checkbox(
+                                          value: event.done,
+                                          onChanged: (newValue) {
+                                            setState(() {
+                                              event.done = newValue!;
+                                              _updateEvent(event);
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }),
+        ),
+        Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.all(5),
+              child: Positioned(
+                bottom: 10, // Adjust the bottom position as needed
+                right: 0, // Center the button horizontally
+                left: 0,
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(
+                          25), // Adjust the border radius as needed
+                    ),
+                    width: 50, // Adjust the width of the button
+                    height: 50, // Adjust the height of the button
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 30, // Adjust the icon size as needed
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, addEvent,
+                            arguments: userOrGroupObject);
+                      },
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.all(5),
-          child: Positioned(
-            bottom: 10, // Adjust the bottom position as needed
-            right: 0, // Center the button horizontally
-            left: 0,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(
-                      25), // Adjust the border radius as needed
-                ),
-                width: 50, // Adjust the width of the button
-                height: 50, // Adjust the height of the button
-                child: IconButton(
-                  icon: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 30, // Adjust the icon size as needed
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, addEvent,
-                        arguments: userOrGroupObject);
-                  },
-                ),
               ),
             ),
-          ),
+          ],
         ),
       ],
     );
