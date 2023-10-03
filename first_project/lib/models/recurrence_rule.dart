@@ -1,5 +1,7 @@
 import 'dart:core';
+
 import 'package:first_project/models/custom_day_week.dart';
+import 'package:first_project/models/event.dart';
 
 enum RecurrenceType { Daily, Weekly, Monthly, Yearly }
 
@@ -97,53 +99,57 @@ class RecurrenceRule {
     return map;
   }
 
-factory RecurrenceRule.fromMap(Map<String, dynamic> map) {
-  final String name = map['name'] ?? '';
-  final String recurrenceTypeString = map['recurrenceType'] ?? 'Daily';
-  final RecurrenceType recurrenceType = _mapStringToRecurrenceType(recurrenceTypeString);
+  factory RecurrenceRule.fromMap(Map<String, dynamic> map) {
+    final String name = map['name'] ?? '';
+    final String recurrenceTypeString = map['recurrenceType'] ?? 'Daily';
+    final RecurrenceType recurrenceType =
+        _mapStringToRecurrenceType(recurrenceTypeString);
 
-  List<CustomDayOfWeek>? daysOfWeek;
-  if (map['daysOfWeek'] != null) {
-    daysOfWeek = (map['daysOfWeek'] as List<dynamic>)
-        .map((day) => CustomDayOfWeek.fromString(day.toString())) // Cast day to String
-        .toList();
+    List<CustomDayOfWeek>? daysOfWeek;
+    if (map['daysOfWeek'] != null) {
+      daysOfWeek = (map['daysOfWeek'] as List<dynamic>)
+          .map((day) =>
+              CustomDayOfWeek.fromString(day.toString())) // Cast day to String
+          .toList();
+    }
+
+    final int? dayOfMonth = map['dayOfMonth'];
+    final int? month = map['month'];
+    final int? repeatInterval = map['repeatInterval'];
+
+    DateTime? untilDate;
+    if (map['untilDate'] != null) {
+      untilDate = DateTime.tryParse(
+          map['untilDate'].toString()); // Cast untilDate to String
+    }
+
+    return RecurrenceRule(
+      name: name,
+      daysOfWeek: daysOfWeek,
+      dayOfMonth: dayOfMonth,
+      month: month,
+      repeatInterval: repeatInterval,
+      recurrenceType: recurrenceType,
+      untilDate: untilDate,
+    );
   }
 
-  final int? dayOfMonth = map['dayOfMonth'];
-  final int? month = map['month'];
-  final int? repeatInterval = map['repeatInterval'];
-
-  DateTime? untilDate;
-  if (map['untilDate'] != null) {
-    untilDate = DateTime.tryParse(map['untilDate'].toString()); // Cast untilDate to String
+  static RecurrenceType _mapStringToRecurrenceType(
+      String recurrenceTypeString) {
+    switch (recurrenceTypeString.toLowerCase()) {
+      case 'daily':
+        return RecurrenceType.Daily;
+      case 'weekly':
+        return RecurrenceType.Weekly;
+      case 'monthly':
+        return RecurrenceType.Monthly;
+      case 'yearly':
+        return RecurrenceType.Yearly;
+      default:
+        return RecurrenceType.Daily; // Default to Daily if unrecognized
+    }
   }
 
-  return RecurrenceRule(
-    name: name,
-    daysOfWeek: daysOfWeek,
-    dayOfMonth: dayOfMonth,
-    month: month,
-    repeatInterval: repeatInterval,
-    recurrenceType: recurrenceType,
-    untilDate: untilDate,
-  );
-}
-
-
-static RecurrenceType _mapStringToRecurrenceType(String recurrenceTypeString) {
-  switch (recurrenceTypeString.toLowerCase()) {
-    case 'daily':
-      return RecurrenceType.Daily;
-    case 'weekly':
-      return RecurrenceType.Weekly;
-    case 'monthly':
-      return RecurrenceType.Monthly;
-    case 'yearly':
-      return RecurrenceType.Yearly;
-    default:
-      return RecurrenceType.Daily; // Default to Daily if unrecognized
-  }
-}
   @override
   String toString() {
     final StringBuffer buffer = StringBuffer('RecurrenceRule {');
@@ -167,4 +173,6 @@ static RecurrenceType _mapStringToRecurrenceType(String recurrenceTypeString) {
     buffer.write('}');
     return buffer.toString();
   }
+
+
 }

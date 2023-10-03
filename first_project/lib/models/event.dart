@@ -69,4 +69,19 @@ class Event {
       eventColorIndex: json['eventColorIndex'], // Deserialize color index
     );
   }
+
+  List<Event> generateRecurringOccurrences(
+      DateTime startDate, DateTime endDate) {
+    final List<Event> occurrences = [];
+
+    if (recurrenceRule != null) {
+      // Calculate recurring dates using recurrence rule logic here
+      // Append the recurring events to the 'occurrences' list
+    } else {
+      // If there is no recurrence rule, simply add the original event
+      occurrences.add(this);
+    }
+
+    return occurrences;
+  }
 }

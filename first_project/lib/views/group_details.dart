@@ -20,7 +20,7 @@ class GroupDetails extends StatefulWidget {
 
 class _GroupDetailsState extends State<GroupDetails> {
   late final Group _group;
-  List<Event>? _events;
+  late List<Event> _events;
   late DateTime _focusedDay;
   late DateTime _selectedDate;
   late StoreService _storeService;
@@ -59,20 +59,19 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   List<Event> _getEventsForDate(DateTime date) {
-    final eventsForDate = _events?.where((event) {
-          // Convert event dates to UTC for comparison
-          final eventStartDateUtc = event.startDate.toUtc();
-          final eventEndDateUtc = event.endDate.toUtc();
+    final eventsForDate = _events.where((event) {
+      // Convert event dates to UTC for comparison
+      final eventStartDateUtc = event.startDate.toUtc();
+      final eventEndDateUtc = event.endDate.toUtc();
 
-          // Convert the specified date to UTC
-          final selectedDateUtc = date.toUtc();
+      // Convert the specified date to UTC
+      final selectedDateUtc = date.toUtc();
 
-          // Check if the event starts on or before the specified date and ends after it
-          return eventStartDateUtc
-                  .isBefore(selectedDateUtc.add(Duration(days: 1))) &&
-              eventEndDateUtc.isAfter(selectedDateUtc);
-        }).toList() ??
-        [];
+      // Check if the event starts on or before the specified date and ends after it
+      return eventStartDateUtc
+              .isBefore(selectedDateUtc.add(Duration(days: 1))) &&
+          eventEndDateUtc.isAfter(selectedDateUtc);
+    }).toList();
 
     return eventsForDate;
   }
@@ -85,10 +84,10 @@ class _GroupDetailsState extends State<GroupDetails> {
     ).then((result) {
       if (result != null && result is Event) {
         // Update the event in the eventsList
-        final index = _events?.indexWhere((e) => e.id == result.id);
-        if (index != null && index >= 0) {
+        final index = _events.indexWhere((e) => e.id == result.id);
+        if (index >= 0) {
           setState(() {
-            _events?[index] = result;
+            _events[index] = result;
           });
         }
       }
@@ -105,7 +104,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
     // Update the UI by removing the event from the list
     setState(() {
-      _events!.remove(event);
+      _events.remove(event);
     });
   }
 
@@ -137,7 +136,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
                 // Remove the event from the list and update the UI
                 setState(() {
-                  _events!.remove(event);
+                  _events.remove(event);
                 });
 
                 // Also, remove the event from your data source (Firestore or wherever you're storing events)
@@ -201,13 +200,16 @@ class _GroupDetailsState extends State<GroupDetails> {
                       cellMargin: EdgeInsets.all(10.0),
                       outsideDaysVisible: false, //
                     ),
+
                     eventLoader: (date) {
                       _filteredEvents = _getEventsForDate(date);
                       return [];
                     },
+
                     firstDay: DateTime.utc(2023, 1, 1),
                     focusedDay: _selectedDate,
                     lastDay: DateTime.utc(2023, 12, 31),
+
                     calendarBuilders: CalendarBuilders(
                       //*defaultBuilder: Customize the appearance of a non-selected cell. It uses a GestureDetector to detect taps on the cell.
                       defaultBuilder: (context, date, events) {
@@ -440,7 +442,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     );
   }
 
-  Widget getNotesForDate(DateTime date) {
+    Widget getNotesForDate(DateTime date) {
     final eventsForDate = _getEventsForDate(date);
 
     eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
@@ -636,12 +638,8 @@ class _GroupDetailsState extends State<GroupDetails> {
         Stack(
           children: [
             Container(
-              padding: EdgeInsets.all(5),
+              // padding: EdgeInsets.all(5),
               child: Positioned(
-                bottom: 10, // Adjust the bottom position as needed
-                right: 0, // Center the button horizontally
-                left: 0,
-                child: Center(
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.blue,
@@ -651,6 +649,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                     width: 50, // Adjust the width of the button
                     height: 50, // Adjust the height of the button
                     child: IconButton(
+                      // padding: EdgeInsets.all(5),
                       icon: Icon(
                         Icons.add,
                         color: Colors.white,
@@ -662,11 +661,12 @@ class _GroupDetailsState extends State<GroupDetails> {
                       },
                     ),
                   ),
-                ),
+        
               ),
             ),
           ],
         ),
+        SizedBox(height: 5,)
       ],
     );
   }
