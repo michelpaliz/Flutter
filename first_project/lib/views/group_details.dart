@@ -21,30 +21,19 @@ class GroupDetails extends StatefulWidget {
 class _GroupDetailsState extends State<GroupDetails> {
   late final Group _group;
   late List<Event> _events;
-  // late DateTime _focusedDay;
-  // late DateTime _selectedDate;
+  late DateTime _selectedDate;
   late StoreService _storeService;
   var userOrGroupObject;
-  late List<Event> _filteredEvents;
   late List<Appointment> _appointments;
 
   @override
   void initState() {
     super.initState();
     _getEventsListFromGroup();
-    // _focusedDay = DateTime.now();
-    // _selectedDate = DateTime.now();
+    _selectedDate = DateTime.now().toLocal();
     _storeService = StoreService.firebase();
-    _filteredEvents = [];
     _appointments = [];
-  }
-
-  // Update the onTap handler to call _onDateSelected
-  void _onDateSelected(DateTime date) {
-    setState(() {
-      // _selectedDate = date;
-      // _selectedEvents = getEventsForDate(date);
-    });
+    // _getEventsListFromGroup();
   }
 
   //** Logic for my view */
@@ -55,7 +44,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   Future<void> _getEventsListFromGroup() async {
     _group = widget.group; // Access the passed group
-    _events = _group.calendar.events.cast<Event>(); //
+    _events = _group.calendar.events.cast<Event>();
     userOrGroupObject = _group;
   }
 
@@ -65,13 +54,20 @@ class _GroupDetailsState extends State<GroupDetails> {
       final eventStartDateUtc = event.startDate.toUtc();
       final eventEndDateUtc = event.endDate.toUtc();
 
-      // Convert the specified date to UTC
-      final selectedDateUtc = date.toUtc();
+      // Convert the specified date to UTC and remove the time component
+      final selectedDateUtc = DateTime.utc(date.year, date.month, date.day);
 
-      // Check if the event starts on or before the specified date and ends after it
-      return eventStartDateUtc
-              .isBefore(selectedDateUtc.add(Duration(days: 1))) &&
-          eventEndDateUtc.isAfter(selectedDateUtc);
+      // Debug print statements
+      print('Event: ${event.title}');
+      print('Event Start: $eventStartDateUtc');
+      print('Event End: $eventEndDateUtc');
+      print('Selected Date: $selectedDateUtc');
+
+      // Check if the event starts on or after the beginning of the selected day
+      // and ends before the end of the selected day
+      return eventStartDateUtc.isAtSameMomentAs(selectedDateUtc) ||
+          (eventStartDateUtc.isAfter(selectedDateUtc) &&
+              eventEndDateUtc.isBefore(selectedDateUtc.add(Duration(days: 1))));
     }).toList();
 
     return eventsForDate;
@@ -168,54 +164,54 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   //** UI FOR THE VIEW */
-  // Define a field to hold the selected date
-  DateTime selectedDate = DateTime.now(); // Initialize with a default date
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('CALENDAR'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, groupSettings,
-                  arguments: userOrGroupObject);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () {
-              _reloadScreen();
-            },
-          ),
-        ],
-      ),
-      drawer: MyDrawer(),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // Replace TableCalendar with SfCalendar
-              SfCalendar(
-                
+        appBar: AppBar(
+          title: Text('CALENDAR'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                Navigator.pushNamed(context, groupSettings,
+                    arguments: userOrGroupObject);
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                _reloadScreen();
+              },
+            ),
+          ],
+        ),
+        drawer: MyDrawer(),
+        body:
+            // Replace TableCalendar with SfCalendar
+            Column(
+          children: [
+            // Calendar widget
+            Container(
+              height: 390, // Set the desired height for the calendar
+              child: SfCalendar(
                 view: CalendarView.month,
+                timeZone: 'Europe/Madrid',
                 // Set the initial selected date (or update it when the user selects a date)
-                initialSelectedDate: selectedDate,
                 onSelectionChanged: (CalendarSelectionDetails details) {
                   if (details.date != null) {
                     // Use Future.delayed to schedule the state update after the build is complete
                     Future.delayed(Duration.zero, () {
                       // Update the selected date when the user selects a date
                       setState(() {
-                        selectedDate = details.date!;
+                        _selectedDate = details.date!.toLocal();
                       });
                       // Fetch events for the selected date
-                      _getEventsForDate(selectedDate);
+                      _getEventsForDate(_selectedDate);
                     });
                   }
                 },
+
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
                   appointmentDisplayMode:
@@ -227,23 +223,24 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
                 dataSource: EventDataSource(_events),
               ),
-              
-              Expanded(
-                child: Container(
-                  color: const Color.fromARGB(255, 255, 255, 255),
-                  child: getNotesForDate(selectedDate),
+            ),
 
-                ),
+            // Expanded section below the calendar
+            Expanded(
+              child: Container(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                child: _getNotesForDate(_selectedDate),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
+            ),
+          ],
+        ));
   }
 
-  Widget getNotesForDate(DateTime date) {
+  Widget _getNotesForDate(DateTime date) {
+    print('Selected Date VARIABLE: $date');
+
     final eventsForDate = _getEventsForDate(date);
+    print('EVENTS FOR DATE VARIABLE: ');
 
     eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
 

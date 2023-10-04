@@ -1,3 +1,4 @@
+import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/models/event.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -40,13 +41,7 @@ class EventDataSource extends CalendarDataSource {
     // Use the eventColorIndex to determine the color for the appointment
     // You can define a logic here to map eventColorIndex to a specific color
     // For example, you can use a list of predefined colors and access them by index
-    final List<Color> predefinedColors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.yellow,
-      // Add more colors as needed
-    ];
+    final List<Color> predefinedColors = ColorManager.eventColors;
 
     final int colorIndex = events[index].eventColorIndex;
 
