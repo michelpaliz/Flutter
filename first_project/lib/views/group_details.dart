@@ -1,13 +1,13 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
+import 'package:first_project/models/event_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
 import '../models/group.dart';
 import '../services/firestore/implements/firestore_service.dart';
-import '../styles/app_bar_styles.dart';
 
 class GroupDetails extends StatefulWidget {
   final Group group;
@@ -21,27 +21,28 @@ class GroupDetails extends StatefulWidget {
 class _GroupDetailsState extends State<GroupDetails> {
   late final Group _group;
   late List<Event> _events;
-  late DateTime _focusedDay;
-  late DateTime _selectedDate;
+  // late DateTime _focusedDay;
+  // late DateTime _selectedDate;
   late StoreService _storeService;
   var userOrGroupObject;
   late List<Event> _filteredEvents;
-  final GlobalKey<ScaffoldState> contextStorageKey = GlobalKey<ScaffoldState>();
+  late List<Appointment> _appointments;
 
   @override
   void initState() {
     super.initState();
     _getEventsListFromGroup();
-    _focusedDay = DateTime.now();
-    _selectedDate = DateTime.now();
+    // _focusedDay = DateTime.now();
+    // _selectedDate = DateTime.now();
     _storeService = StoreService.firebase();
     _filteredEvents = [];
+    _appointments = [];
   }
 
   // Update the onTap handler to call _onDateSelected
   void _onDateSelected(DateTime date) {
     setState(() {
-      _selectedDate = date;
+      // _selectedDate = date;
       // _selectedEvents = getEventsForDate(date);
     });
   }
@@ -150,299 +151,98 @@ class _GroupDetailsState extends State<GroupDetails> {
     return confirmed;
   }
 
+  List<Appointment> getCalendarDataSource() {
+    _appointments = <Appointment>[];
+
+    // Convert your custom events to Appointment objects
+    for (var event in _events) {
+      _appointments.add(Appointment(
+        startTime: event.startDate,
+        endTime: event.endDate,
+        subject: event.title,
+        color: ColorManager().getColor(event.eventColorIndex),
+      ));
+    }
+
+    return _appointments;
+  }
+
   //** UI FOR THE VIEW */
+  // Define a field to hold the selected date
+  DateTime selectedDate = DateTime.now(); // Initialize with a default date
 
   @override
   Widget build(BuildContext context) {
-    //** We define the colors for the view  */
-    const Color colorMoreEvents = Color.fromARGB(255, 61, 133, 209);
-    const Color colorBorderCell = Color.fromARGB(255, 12, 31, 50);
-    const Color colorWeekends = Color.fromARGB(255, 5, 81, 91);
-
-    return Theme(
-      data: AppBarStyles.themeData,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'CALENDAR',
-            style: TextStyle(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              fontSize: 20,
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('CALENDAR'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.pushNamed(context, groupSettings,
+                  arguments: userOrGroupObject);
+            },
           ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () {
-                Navigator.pushNamed(context, groupSettings,
-                    arguments: userOrGroupObject);
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () {
-                _reloadScreen();
-              },
-            ),
-          ],
-        ),
-        drawer: MyDrawer(),
-        body: Stack(
-          children: [
-            Column(
-              children: [
-                Container(
-                  // width: 400, // Set the desired width
-                  // height: 400, // Set the desired height
-                  child: TableCalendar<Event>(
-                    // onDaySelected: (selectedDay, focusedDay) => _focusedDay ,
-                    calendarStyle: CalendarStyle(
-                      cellMargin: EdgeInsets.all(10.0),
-                      outsideDaysVisible: false, //
-                    ),
-
-                    eventLoader: (date) {
-                      _filteredEvents = _getEventsForDate(date);
-                      return [];
-                    },
-
-                    firstDay: DateTime.utc(2023, 1, 1),
-                    focusedDay: _selectedDate,
-                    lastDay: DateTime.utc(2023, 12, 31),
-
-                    calendarBuilders: CalendarBuilders(
-                      //*defaultBuilder: Customize the appearance of a non-selected cell. It uses a GestureDetector to detect taps on the cell.
-                      defaultBuilder: (context, date, events) {
-                        final isSelected = isSameDay(date, _selectedDate);
-                        final isSunday = date.weekday == DateTime.sunday;
-                        final isSaturday = date.weekday == DateTime.saturday;
-
-                        // Check if there are events for this date
-                        if (_filteredEvents.isNotEmpty) {
-                          // Display the first event
-                          final firstEvent = _filteredEvents[0];
-
-                          return InkWell(
-                            onTap: () {
-                              _onDateSelected(date);
-                            },
-                            child: Container(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? colorBorderCell
-                                            : Colors.transparent,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          date.day.toString(),
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: isSunday || isSaturday
-                                                ? colorWeekends
-                                                : isSelected
-                                                    ? const Color.fromARGB(
-                                                        255, 7, 7, 7)
-                                                    : Color.fromARGB(
-                                                        255, 19, 126, 161),
-                                          ),
-                                        ),
-                                        Text(
-                                          firstEvent.title,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: const Color.fromARGB(
-                                                255, 4, 4, 4),
-                                            backgroundColor: ColorManager()
-                                                .getColor(
-                                                    firstEvent.eventColorIndex),
-                                          ),
-                                        ),
-                                        if (_filteredEvents.length > 1)
-                                          Text(
-                                            "+${_filteredEvents.length - 1} more events",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: colorMoreEvents,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          // Use your default cell design for days without events
-                          return GestureDetector(
-                            onTap: () {
-                              _onDateSelected(date);
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isSelected
-                                      ? colorBorderCell
-                                      : Colors.transparent,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    date.day.toString(),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: isSunday || isSaturday
-                                          ? colorWeekends
-                                          : isSelected
-                                              ? Color.fromARGB(255, 9, 51, 80)
-                                              : Color.fromARGB(
-                                                  255, 19, 126, 161),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                      },
-
-                      todayBuilder: (context, date, events) {
-                        final isToday = isSameDay(date, _focusedDay);
-                        final isSelected = isSameDay(date, _selectedDate);
-
-                        // Check if there are events for this date
-                        if (_filteredEvents.isNotEmpty) {
-                          // Display the first event
-                          final firstEvent = _filteredEvents[0];
-
-                          return GestureDetector(
-                            onTap: () {
-                              if (isToday) {
-                                _onDateSelected(date);
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isToday
-                                      ? Colors.blue
-                                      : Colors.transparent,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isToday ? Colors.white : Colors.blue,
-                                    ),
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: TextStyle(
-                                        color: isToday
-                                            ? Colors.black
-                                            : Colors.blue,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    firstEvent.title,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color:
-                                          const Color.fromARGB(255, 14, 13, 13),
-                                      backgroundColor: ColorManager()
-                                          .getColor(firstEvent.eventColorIndex),
-                                    ),
-                                  ),
-                                  if (_filteredEvents.length > 1)
-                                    Text(
-                                      "+${_filteredEvents.length - 1} more events",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: colorMoreEvents,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          // Use your default cell design for today's cell
-                          return GestureDetector(
-                            onTap: () {
-                              if (isToday) {
-                                _onDateSelected(date);
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.blue
-                                      : Colors.transparent,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isToday ? Colors.white : Colors.blue,
-                                    ),
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: TextStyle(
-                                        color: isToday
-                                            ? Colors.black
-                                            : Colors.blue,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                      },
-
-                      // selectedBuilder: (context, date, events) {
-                      //   //*selectedBuilder: Customize the appearance of a selected cell.
-
-                      // },
-                    ),
-                  ),
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              _reloadScreen();
+            },
+          ),
+        ],
+      ),
+      drawer: MyDrawer(),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              // Replace TableCalendar with SfCalendar
+              SfCalendar(
+                
+                view: CalendarView.month,
+                // Set the initial selected date (or update it when the user selects a date)
+                initialSelectedDate: selectedDate,
+                onSelectionChanged: (CalendarSelectionDetails details) {
+                  if (details.date != null) {
+                    // Use Future.delayed to schedule the state update after the build is complete
+                    Future.delayed(Duration.zero, () {
+                      // Update the selected date when the user selects a date
+                      setState(() {
+                        selectedDate = details.date!;
+                      });
+                      // Fetch events for the selected date
+                      _getEventsForDate(selectedDate);
+                    });
+                  }
+                },
+                // Customize other properties as needed
+                monthViewSettings: MonthViewSettings(
+                  appointmentDisplayMode:
+                      MonthAppointmentDisplayMode.appointment,
+                  // navigationDirection: MonthNavigationDirection.horizontal,
+                  appointmentDisplayCount: 2,
+                  showTrailingAndLeadingDates:
+                      false, // Hide trailing and leading date
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    child: getNotesForDate(_selectedDate),
-                  ),
+                dataSource: EventDataSource(_events),
+              ),
+              
+              Expanded(
+                child: Container(
+                  color: const Color.fromARGB(255, 255, 255, 255),
+                  child: getNotesForDate(selectedDate),
+
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-    Widget getNotesForDate(DateTime date) {
+  Widget getNotesForDate(DateTime date) {
     final eventsForDate = _getEventsForDate(date);
 
     eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
@@ -640,33 +440,34 @@ class _GroupDetailsState extends State<GroupDetails> {
             Container(
               // padding: EdgeInsets.all(5),
               child: Positioned(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(
-                          25), // Adjust the border radius as needed
-                    ),
-                    width: 50, // Adjust the width of the button
-                    height: 50, // Adjust the height of the button
-                    child: IconButton(
-                      // padding: EdgeInsets.all(5),
-                      icon: Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 30, // Adjust the icon size as needed
-                      ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, addEvent,
-                            arguments: userOrGroupObject);
-                      },
-                    ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(
+                        25), // Adjust the border radius as needed
                   ),
-        
+                  width: 50, // Adjust the width of the button
+                  height: 50, // Adjust the height of the button
+                  child: IconButton(
+                    // padding: EdgeInsets.all(5),
+                    icon: Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 30, // Adjust the icon size as needed
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, addEvent,
+                          arguments: userOrGroupObject);
+                    },
+                  ),
+                ),
               ),
             ),
           ],
         ),
-        SizedBox(height: 5,)
+        SizedBox(
+          height: 5,
+        )
       ],
     );
   }

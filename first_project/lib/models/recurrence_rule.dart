@@ -1,7 +1,5 @@
 import 'dart:core';
-
 import 'package:first_project/models/custom_day_week.dart';
-import 'package:first_project/models/event.dart';
 
 enum RecurrenceType { Daily, Weekly, Monthly, Yearly }
 
