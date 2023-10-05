@@ -49,29 +49,18 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   List<Event> _getEventsForDate(DateTime date) {
-    final eventsForDate = _events.where((event) {
-      // Convert event dates to UTC for comparison
-      final eventStartDateUtc = event.startDate.toUtc();
-      final eventEndDateUtc = event.endDate.toUtc();
+  final List<Event> eventsForDate = _events.where((event) {
+    final DateTime eventStartDate = event.startDate.toLocal();
+    final DateTime eventEndDate = event.endDate.toLocal();
 
-      // Convert the specified date to UTC and remove the time component
-      final selectedDateUtc = DateTime.utc(date.year, date.month, date.day);
+    // Check if the event falls on the selected date
+    return eventStartDate.isBefore(date.add(Duration(days: 1))) &&
+        eventEndDate.isAfter(date);
+  }).toList();
 
-      // Debug print statements
-      print('Event: ${event.title}');
-      print('Event Start: $eventStartDateUtc');
-      print('Event End: $eventEndDateUtc');
-      print('Selected Date: $selectedDateUtc');
+  return eventsForDate;
+}
 
-      // Check if the event starts on or after the beginning of the selected day
-      // and ends before the end of the selected day
-      return eventStartDateUtc.isAtSameMomentAs(selectedDateUtc) ||
-          (eventStartDateUtc.isAfter(selectedDateUtc) &&
-              eventEndDateUtc.isBefore(selectedDateUtc.add(Duration(days: 1))));
-    }).toList();
-
-    return eventsForDate;
-  }
 
   void _editEvent(Event event, BuildContext context) {
     Navigator.pushNamed(
@@ -240,7 +229,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     print('Selected Date VARIABLE: $date');
 
     final eventsForDate = _getEventsForDate(date);
-    print('EVENTS FOR DATE VARIABLE: ');
+    print('EVENTS FOR DATE VARIABLE: $eventsForDate' );
 
     eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
 
