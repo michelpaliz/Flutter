@@ -49,18 +49,17 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   List<Event> _getEventsForDate(DateTime date) {
-  final List<Event> eventsForDate = _events.where((event) {
-    final DateTime eventStartDate = event.startDate.toLocal();
-    final DateTime eventEndDate = event.endDate.toLocal();
+    final List<Event> eventsForDate = _events.where((event) {
+      final DateTime eventStartDate = event.startDate.toLocal();
+      final DateTime eventEndDate = event.endDate.toLocal();
 
-    // Check if the event falls on the selected date
-    return eventStartDate.isBefore(date.add(Duration(days: 1))) &&
-        eventEndDate.isAfter(date);
-  }).toList();
+      // Check if the event falls on the selected date
+      return eventStartDate.isBefore(date.add(Duration(days: 1))) &&
+          eventEndDate.isAfter(date);
+    }).toList();
 
-  return eventsForDate;
-}
-
+    return eventsForDate;
+  }
 
   void _editEvent(Event event, BuildContext context) {
     Navigator.pushNamed(
@@ -181,11 +180,17 @@ class _GroupDetailsState extends State<GroupDetails> {
             Column(
           children: [
             // Calendar widget
+
             Container(
-              height: 390, // Set the desired height for the calendar
+              height: 360, // Set the desired height for the calendar
               child: SfCalendar(
                 view: CalendarView.month,
                 timeZone: 'Europe/Madrid',
+                
+
+                headerStyle: CalendarHeaderStyle(
+                  textAlign: TextAlign.center, // Center-align the month name
+                ),
                 // Set the initial selected date (or update it when the user selects a date)
                 onSelectionChanged: (CalendarSelectionDetails details) {
                   if (details.date != null) {
@@ -200,15 +205,54 @@ class _GroupDetailsState extends State<GroupDetails> {
                     });
                   }
                 },
+                viewHeaderStyle: ViewHeaderStyle(
+                  backgroundColor: Color.fromARGB(255, 180, 237,
+                      248), // Change the background color of the month header
+                  dayTextStyle: TextStyle(
+                      color: Colors.black,fontWeight: FontWeight.bold, fontFamily: 'lato'), // Customize the text color
+                  // Customize weekend text color
+                ),
 
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
-                  appointmentDisplayMode:
-                      MonthAppointmentDisplayMode.appointment,
-                  // navigationDirection: MonthNavigationDirection.horizontal,
-                  appointmentDisplayCount: 2,
-                  showTrailingAndLeadingDates:
-                      false, // Hide trailing and leading date
+                  agendaViewHeight: 30,
+                  appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
+                  appointmentDisplayCount: 5,
+                  showTrailingAndLeadingDates: false,
+                  navigationDirection: MonthNavigationDirection.vertical, 
+                  monthCellStyle: MonthCellStyle(
+                    backgroundColor:
+                        Color.fromARGB(255, 37, 49, 96), // Background color for month cells
+                    trailingDatesBackgroundColor: Color(
+                        0xff216583), // Background color for trailing dates
+                    leadingDatesBackgroundColor:
+                        Color(0xff216583), // Background color for leading dates
+                    todayBackgroundColor:
+                        Color.fromARGB(255, 125, 236, 232), // Background color for today's date
+                    textStyle: TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'Arial',
+                      color: Colors.white, // Text color for month cells
+                    ),
+                    todayTextStyle: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Arial',
+                      color: Colors.black, // Text color for today's date
+                    ),
+                    trailingDatesTextStyle: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      fontFamily: 'Arial',
+                      color: Colors.white, // Text color for trailing dates
+                    ),
+                    leadingDatesTextStyle: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      fontFamily: 'Arial',
+                      color: Colors.white, // Text color for leading dates
+                    ),
+                  ),
                 ),
                 dataSource: EventDataSource(_events),
               ),
@@ -229,7 +273,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     print('Selected Date VARIABLE: $date');
 
     final eventsForDate = _getEventsForDate(date);
-    print('EVENTS FOR DATE VARIABLE: $eventsForDate' );
+    print('EVENTS FOR DATE VARIABLE: $eventsForDate');
 
     eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
 
