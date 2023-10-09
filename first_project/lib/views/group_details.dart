@@ -1,10 +1,10 @@
+import 'dart:developer' as devtools show log;
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
@@ -144,13 +144,14 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   List<Appointment> _getCalendarDataSource() {
     _appointments = <Appointment>[];
-
+    
+    devtools.log('Events ---- $_events'.toString());
     // Iterate through each event
     for (var event in _events) {
       // Check if the event has a recurrence rule
       if (event.recurrenceRule != null) {
         // Generate recurring appointments based on the recurrence rule
-        final appointment = _generateRecurringAppointment(event);
+        var appointment = _generateRecurringAppointment(event);
         _appointments.add(appointment);
       } else {
         // If the event doesn't have a recurrence rule, add it as a single appointment
@@ -172,6 +173,9 @@ class _GroupDetailsState extends State<GroupDetails> {
     final startDate = event.startDate;
     final endDate = event.endDate;
 
+    // Calculate the number of days between startDate and endDate (avoiding leap years)
+    final count = calculateDaysBetweenDatesAvoidLeapYears(startDate, endDate);
+
     // Get the recurrence rule details
     final recurrenceRule = event.recurrenceRule;
 
@@ -181,7 +185,6 @@ class _GroupDetailsState extends State<GroupDetails> {
     final untilDate = recurrenceRule?.untilDate;
 
     // Define a list of specific days of the week for weekly recurrence
-    // final List<int> weeklyDays = [];
     final List<String> weeklyDays = [];
     final daysOfWeek = recurrenceRule?.daysOfWeek;
     if (daysOfWeek != null) {
@@ -192,15 +195,13 @@ class _GroupDetailsState extends State<GroupDetails> {
       }
     }
 
-    print('SELECTED WEEKS ---- $daysOfWeek');
-
     // Create a new instance of Appointment for the specific instance
     final appointment = Appointment(
       id: event.id, // Generate a unique ID for the appointment
       startTime: startDate, // Generate
       endTime: endDate, // Generate
-      startTimeZone: 'Europe/Madrid',
-      endTimeZone: 'Europe/Madrid',
+      // startTimeZone: 'Europe/Madrid',
+      // endTimeZone: 'Europe/Madrid',
       subject: event.title,
       color: ColorManager().getColor(event.eventColorIndex),
     );
@@ -209,29 +210,31 @@ class _GroupDetailsState extends State<GroupDetails> {
     String recurrenceRuleString = '';
     if (recurrenceType == 'Daily') {
       recurrenceRuleString = 'FREQ=DAILY;INTERVAL=$repeatInterval';
-    }
-    if (recurrenceType == 'Weekly' && weeklyDays.isNotEmpty) {
+    } else if (recurrenceType == 'Weekly' && weeklyDays.isNotEmpty) {
       recurrenceRuleString = 'FREQ=WEEKLY;INTERVAL=$repeatInterval;BYDAY=';
       final daysOfWeekString = weeklyDays.join(',');
       recurrenceRuleString += daysOfWeekString;
-    } else if (recurrenceType == 'Weekly') {
-      recurrenceRuleString = 'FREQ=WEEKLY;INTERVAL=$repeatInterval';
     } else if (recurrenceType == 'Monthly') {
       recurrenceRuleString = 'FREQ=MONTHLY;INTERVAL=$repeatInterval';
+
+      // Add the BYMONTHDAY rule based on the day of the month from the start date
+      final dayOfMonth = startDate.day;
+      recurrenceRuleString += ';BYMONTHDAY=$dayOfMonth';
     } else if (recurrenceType == 'Yearly') {
       recurrenceRuleString = 'FREQ=YEARLY;INTERVAL=$repeatInterval';
+
+      // Add the BYMONTH rule based on the month index from the start date
+      final monthIndex = startDate.month;
+      recurrenceRuleString += ';BYMONTH=$monthIndex';
     }
 
-// Add the "UNTIL" parameter if "untilDate" is specified
-// Add the "UNTIL" parameter if "untilDate" is specified
-if (untilDate != null) {
-  final untilDateString = DateFormat('yyyyMMddTHHmmss').format(untilDate);
-  recurrenceRuleString += ';UNTIL=$untilDateString';
-}
+    // Add the "UNTIL" parameter if "untilDate" is specified
+    if (untilDate != null) {
+      final untilDateString = DateFormat('yyyyMMddTHHmmss').format(untilDate);
+      recurrenceRuleString += ';UNTIL=$untilDateString';
+    }
 
-// Add the "COUNT" parameter if "count" is specified
-    int count = calculateDaysBetweenDates(startDate, endDate);
-
+    // Add the "COUNT" parameter
     recurrenceRuleString += ';COUNT=$count';
 
     appointment.recurrenceRule = recurrenceRuleString;
@@ -239,6 +242,24 @@ if (untilDate != null) {
     print('This is the recurrence rule: $appointment.recurrenceRule');
 
     return appointment;
+  }
+
+  int calculateDaysBetweenDatesAvoidLeapYears(
+      DateTime startDate, DateTime endDate) {
+    int count = 0;
+    DateTime currentDate = startDate;
+
+    while (currentDate.isBefore(endDate) ||
+        currentDate.isAtSameMomentAs(endDate)) {
+      count++;
+      currentDate = currentDate.add(Duration(days: 1));
+      if (currentDate.month == 2 && currentDate.day == 29) {
+        // Skip leap year day
+        currentDate = DateTime(currentDate.year + 1, 3, 1);
+      }
+    }
+
+    return count;
   }
 
   //** UI FOR THE VIEW */
