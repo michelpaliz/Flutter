@@ -48,6 +48,7 @@ dependencies:
   http: ^1.1.0
   flutter_typeahead: ^4.7.0
   flutter_slidable: ^0.6.0
+  rrule: ^0.2.14
   # flutter_local_notifications: ^10.0.0
 
 

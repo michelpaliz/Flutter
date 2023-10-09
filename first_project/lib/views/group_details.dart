@@ -1,8 +1,10 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
-import 'package:first_project/models/event_data_source.dart';
+import 'package:first_project/models/custom_day_week.dart';
+import 'package:first_project/models/meeting_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
@@ -36,6 +38,10 @@ class _GroupDetailsState extends State<GroupDetails> {
     // _getEventsListFromGroup();
   }
 
+  int calculateDaysBetweenDates(DateTime startDate, DateTime endDate) {
+    return endDate.difference(startDate).inDays;
+  }
+
   //** Logic for my view */
   Future<void> _reloadScreen() async {
     _events = _group.calendar.events.cast<Event>(); //
@@ -46,19 +52,6 @@ class _GroupDetailsState extends State<GroupDetails> {
     _group = widget.group; // Access the passed group
     _events = _group.calendar.events.cast<Event>();
     userOrGroupObject = _group;
-  }
-
-  List<Event> _getEventsForDate(DateTime date) {
-    final List<Event> eventsForDate = _events.where((event) {
-      final DateTime eventStartDate = event.startDate.toLocal();
-      final DateTime eventEndDate = event.endDate.toLocal();
-
-      // Check if the event falls on the selected date
-      return eventStartDate.isBefore(date.add(Duration(days: 1))) &&
-          eventEndDate.isAfter(date);
-    }).toList();
-
-    return eventsForDate;
   }
 
   void _editEvent(Event event, BuildContext context) {
@@ -135,20 +128,117 @@ class _GroupDetailsState extends State<GroupDetails> {
     return confirmed;
   }
 
-  List<Appointment> getCalendarDataSource() {
+  /** This method is responsible for retrieving a list of events that occur on a specific date, which is passed as the date parameter. */
+  List<Event> _getEventsForDate(DateTime date) {
+    final List<Event> eventsForDate = _events.where((event) {
+      final DateTime eventStartDate = event.startDate.toLocal();
+      final DateTime eventEndDate = event.endDate.toLocal();
+
+      // Check if the event falls on the selected date
+      return eventStartDate.isBefore(date.add(Duration(days: 1))) &&
+          eventEndDate.isAfter(date);
+    }).toList();
+
+    return eventsForDate;
+  }
+
+  List<Appointment> _getCalendarDataSource() {
     _appointments = <Appointment>[];
 
-    // Convert your custom events to Appointment objects
+    // Iterate through each event
     for (var event in _events) {
-      _appointments.add(Appointment(
-        startTime: event.startDate,
-        endTime: event.endDate,
-        subject: event.title,
-        color: ColorManager().getColor(event.eventColorIndex),
-      ));
+      // Check if the event has a recurrence rule
+      if (event.recurrenceRule != null) {
+        // Generate recurring appointments based on the recurrence rule
+        final appointment = _generateRecurringAppointment(event);
+        _appointments.add(appointment);
+      } else {
+        // If the event doesn't have a recurrence rule, add it as a single appointment
+        _appointments.add(Appointment(
+          id: event.id, // Assign a unique ID here
+          startTime: event.startDate,
+          endTime: event.endDate,
+          subject: event.title,
+          color: ColorManager().getColor(event.eventColorIndex),
+        ));
+      }
     }
 
     return _appointments;
+  }
+
+  Appointment _generateRecurringAppointment(Event event) {
+    // Get the start date and end date from the event
+    final startDate = event.startDate;
+    final endDate = event.endDate;
+
+    // Get the recurrence rule details
+    final recurrenceRule = event.recurrenceRule;
+
+    // Extract recurrence information from the RecurrenceRule object
+    final recurrenceType = recurrenceRule?.recurrenceType.name;
+    final repeatInterval = recurrenceRule?.repeatInterval ?? 1;
+    final untilDate = recurrenceRule?.untilDate;
+
+    // Define a list of specific days of the week for weekly recurrence
+    // final List<int> weeklyDays = [];
+    final List<String> weeklyDays = [];
+    final daysOfWeek = recurrenceRule?.daysOfWeek;
+    if (daysOfWeek != null) {
+      for (var e in daysOfWeek) {
+        final abbreviation = CustomDayOfWeek.getPattern(e.name.toString());
+        print('abbreviation ---- $abbreviation');
+        weeklyDays.add(abbreviation);
+      }
+    }
+
+    print('SELECTED WEEKS ---- $daysOfWeek');
+
+    // Create a new instance of Appointment for the specific instance
+    final appointment = Appointment(
+      id: event.id, // Generate a unique ID for the appointment
+      startTime: startDate, // Generate
+      endTime: endDate, // Generate
+      startTimeZone: 'Europe/Madrid',
+      endTimeZone: 'Europe/Madrid',
+      subject: event.title,
+      color: ColorManager().getColor(event.eventColorIndex),
+    );
+
+    // Create a recurrence rule string pattern
+    String recurrenceRuleString = '';
+    if (recurrenceType == 'Daily') {
+      recurrenceRuleString = 'FREQ=DAILY;INTERVAL=$repeatInterval';
+    }
+    if (recurrenceType == 'Weekly' && weeklyDays.isNotEmpty) {
+      recurrenceRuleString = 'FREQ=WEEKLY;INTERVAL=$repeatInterval;BYDAY=';
+      final daysOfWeekString = weeklyDays.join(',');
+      recurrenceRuleString += daysOfWeekString;
+    } else if (recurrenceType == 'Weekly') {
+      recurrenceRuleString = 'FREQ=WEEKLY;INTERVAL=$repeatInterval';
+    } else if (recurrenceType == 'Monthly') {
+      recurrenceRuleString = 'FREQ=MONTHLY;INTERVAL=$repeatInterval';
+    } else if (recurrenceType == 'Yearly') {
+      recurrenceRuleString = 'FREQ=YEARLY;INTERVAL=$repeatInterval';
+    }
+
+// Add the "UNTIL" parameter if "untilDate" is specified
+// Add the "UNTIL" parameter if "untilDate" is specified
+if (untilDate != null) {
+  final untilDateString = DateFormat('yyyyMMddTHHmmss').format(untilDate);
+  recurrenceRuleString += ';UNTIL=$untilDateString';
+}
+
+// Add the "COUNT" parameter if "count" is specified
+    int count = calculateDaysBetweenDates(startDate, endDate);
+
+    recurrenceRuleString += ';COUNT=$count';
+
+    appointment.recurrenceRule = recurrenceRuleString;
+
+    print('This is the recurrence rule: $appointment.recurrenceRule');
+
+    return appointment;
   }
 
   //** UI FOR THE VIEW */
@@ -186,7 +276,6 @@ class _GroupDetailsState extends State<GroupDetails> {
               child: SfCalendar(
                 view: CalendarView.month,
                 timeZone: 'Europe/Madrid',
-                
 
                 headerStyle: CalendarHeaderStyle(
                   textAlign: TextAlign.center, // Center-align the month name
@@ -209,7 +298,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                   backgroundColor: Color.fromARGB(255, 180, 237,
                       248), // Change the background color of the month header
                   dayTextStyle: TextStyle(
-                      color: Colors.black,fontWeight: FontWeight.bold, fontFamily: 'lato'), // Customize the text color
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'lato'), // Customize the text color
                   // Customize weekend text color
                 ),
 
@@ -219,16 +310,16 @@ class _GroupDetailsState extends State<GroupDetails> {
                   appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
                   appointmentDisplayCount: 5,
                   showTrailingAndLeadingDates: false,
-                  navigationDirection: MonthNavigationDirection.vertical, 
+                  navigationDirection: MonthNavigationDirection.vertical,
                   monthCellStyle: MonthCellStyle(
-                    backgroundColor:
-                        Color.fromARGB(255, 37, 49, 96), // Background color for month cells
+                    backgroundColor: Color.fromARGB(
+                        255, 31, 46, 113), // Background color for month cells
                     trailingDatesBackgroundColor: Color(
                         0xff216583), // Background color for trailing dates
                     leadingDatesBackgroundColor:
                         Color(0xff216583), // Background color for leading dates
-                    todayBackgroundColor:
-                        Color.fromARGB(255, 125, 236, 232), // Background color for today's date
+                    todayBackgroundColor: Color.fromARGB(255, 125, 236,
+                        232), // Background color for today's date
                     textStyle: TextStyle(
                       fontSize: 12,
                       fontFamily: 'Arial',
@@ -254,7 +345,10 @@ class _GroupDetailsState extends State<GroupDetails> {
                     ),
                   ),
                 ),
-                dataSource: EventDataSource(_events),
+                // dataSource: EventDataSource(_events),
+                // Set the data source for the calendar using _getCalendarDataSource()
+                dataSource: MeetingDataSource(_getCalendarDataSource()),
+                // Use the generated appointments
               ),
             ),
 

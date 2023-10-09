@@ -40,6 +40,38 @@ class CustomDayOfWeek {
         throw ArgumentError('Invalid dayString: $dayString');
     }
   }
+
+  static String getPattern(String dayString) {
+    switch (dayString.toLowerCase()) {
+      case 'monday':
+        return 'MO';
+      case 'tuesday':
+        return 'TU';
+      case 'wednesday':
+        return 'WE';
+      case 'thursday':
+        return 'TH';
+      case 'friday':
+        return 'FR';
+      case 'saturday':
+        return 'SA';
+      case 'sunday':
+        return 'SU';
+      default:
+        throw ArgumentError('Invalid dayString: $dayString');
+    }
+  }
+
+// Define a mapping from abbreviations to DateTime objects
+  static Map<String, int> abbreviationToDateTime = {
+    'MO': DateTime.monday,
+    'TU': DateTime.tuesday,
+    'WE': DateTime.wednesday,
+    'TH': DateTime.thursday,
+    'FR': DateTime.friday,
+    'SA': DateTime.saturday,
+    'SU': DateTime.sunday,
+  };
 }
 
 final customDaysOfWeek = [

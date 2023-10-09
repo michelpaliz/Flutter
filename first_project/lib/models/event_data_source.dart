@@ -1,8 +1,8 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/models/event.dart';
+import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-
 
 class EventDataSource extends CalendarDataSource {
   final List<Event> events;
@@ -34,6 +34,11 @@ class EventDataSource extends CalendarDataSource {
 
   String? getDescription(int index) {
     return events[index].description;
+  }
+
+  String? getRecurrenceRule(int index) {
+    final recurrenceRule = events[index].recurrenceRule;
+    return recurrenceRule?.toString();
   }
 
   @override
