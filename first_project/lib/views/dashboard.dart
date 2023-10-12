@@ -20,8 +20,8 @@ class _DashboardState extends State<Dashboard> {
   User? currentUser;
   List<Group>? userGroups =
       []; // List to store the groups that the current user has
-  StoreService storeService = new StoreService.firebase();
-  AuthService authService = new AuthService.firebase();
+  late StoreService storeService;
+  late AuthService authService;
 
   //*LOGIC FOR THE VIEW //
   Future<void> _getCurrentUser() async {
@@ -37,6 +37,8 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+    storeService = new StoreService.firebase();
+    authService = new AuthService.firebase();
     _getCurrentUser();
   }
 
@@ -198,10 +200,12 @@ class _DashboardState extends State<Dashboard> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.edit), // Add the edit icon
-                          onPressed: () {
+                          onPressed: () async {
+                            Group? groupUpdated =
+                                await storeService.getGroupFromId(group.id);
                             // Navigate to the editGroup view
                             Navigator.pushNamed(context, editGroup,
-                                arguments: group);
+                                arguments: groupUpdated);
                           },
                         ),
                         IconButton(

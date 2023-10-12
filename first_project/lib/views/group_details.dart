@@ -21,7 +21,7 @@ class GroupDetails extends StatefulWidget {
 }
 
 class _GroupDetailsState extends State<GroupDetails> {
-  late final Group _group;
+  late Group _group;
   late List<Event> _events;
   late DateTime _selectedDate;
   late StoreService _storeService;
@@ -35,22 +35,36 @@ class _GroupDetailsState extends State<GroupDetails> {
     _selectedDate = DateTime.now().toLocal();
     _storeService = StoreService.firebase();
     _appointments = [];
-    // _getEventsListFromGroup();
   }
 
   int calculateDaysBetweenDates(DateTime startDate, DateTime endDate) {
     return endDate.difference(startDate).inDays;
   }
 
+  void _updateCalendarDataSource() {
+    setState(() {
+      _appointments = _getCalendarDataSource();
+    });
+  }
+
   //** Logic for my view */
-  Future<void> _reloadScreen() async {
-    _events = _group.calendar.events.cast<Event>(); //
-    userOrGroupObject = _group;
+  Future<void> _reloadData() async {
+    Group? group = await _storeService.getGroupFromId(_group.id);
+    setState(() {
+      _appointments = [];
+      if (group != null) {
+        _group = group;
+        _events = group.calendar.events;
+      }
+    });
+    _updateCalendarDataSource(); // Call the method here to update the data source
   }
 
   Future<void> _getEventsListFromGroup() async {
     _group = widget.group; // Access the passed group
+    print('THIS IS GROUP $_group'.toString);
     _events = _group.calendar.events.cast<Event>();
+    _updateCalendarDataSource(); // Call the method here to update the data source
     userOrGroupObject = _group;
   }
 
@@ -66,6 +80,7 @@ class _GroupDetailsState extends State<GroupDetails> {
         if (index >= 0) {
           setState(() {
             _events[index] = result;
+            _updateCalendarDataSource(); // Update the data source after the change
           });
         }
       }
@@ -144,7 +159,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   List<Appointment> _getCalendarDataSource() {
     _appointments = <Appointment>[];
-    
+
     devtools.log('Events ---- $_events'.toString());
     // Iterate through each event
     for (var event in _events) {
@@ -179,9 +194,11 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Get the recurrence rule details
     final recurrenceRule = event.recurrenceRule;
 
+    devtools.log('Recurrence Rule is ---- $recurrenceRule'.toString());
+
     // Extract recurrence information from the RecurrenceRule object
     final recurrenceType = recurrenceRule?.recurrenceType.name;
-    final repeatInterval = recurrenceRule?.repeatInterval ?? 1;
+    final repeatInterval = recurrenceRule?.repeatInterval;
     final untilDate = recurrenceRule?.untilDate;
 
     // Define a list of specific days of the week for weekly recurrence
@@ -226,6 +243,10 @@ class _GroupDetailsState extends State<GroupDetails> {
       // Add the BYMONTH rule based on the month index from the start date
       final monthIndex = startDate.month;
       recurrenceRuleString += ';BYMONTH=$monthIndex';
+
+      // Add the BYMONTHDAY rule based on the day of the month from the start date
+      final dayOfMonth = startDate.day;
+      recurrenceRuleString += ';BYMONTHDAY=$dayOfMonth';
     }
 
     // Add the "UNTIL" parameter if "untilDate" is specified
@@ -234,8 +255,10 @@ class _GroupDetailsState extends State<GroupDetails> {
       recurrenceRuleString += ';UNTIL=$untilDateString';
     }
 
-    // Add the "COUNT" parameter
-    recurrenceRuleString += ';COUNT=$count';
+    // Add the "COUNT" parameter only if count is greater than 0
+    if (count > 0) {
+      recurrenceRuleString += ';COUNT=$count';
+    }
 
     appointment.recurrenceRule = recurrenceRuleString;
 
@@ -280,7 +303,7 @@ class _GroupDetailsState extends State<GroupDetails> {
             IconButton(
               icon: Icon(Icons.refresh),
               onPressed: () {
-                _reloadScreen();
+                _reloadData();
               },
             ),
           ],
@@ -293,8 +316,10 @@ class _GroupDetailsState extends State<GroupDetails> {
             // Calendar widget
 
             Container(
-              height: 360, // Set the desired height for the calendar
+              // height: 360, // Set the desired height for the calendar
+              height: 500,
               child: SfCalendar(
+                firstDayOfWeek: DateTime.monday,
                 view: CalendarView.month,
                 timeZone: 'Europe/Madrid',
 
@@ -324,17 +349,37 @@ class _GroupDetailsState extends State<GroupDetails> {
                       fontFamily: 'lato'), // Customize the text color
                   // Customize weekend text color
                 ),
-
+                monthCellBuilder: (context, details) {
+                  // Check if the current date is a weekend (Saturday or Sunday).
+                  if (details.date.weekday == DateTime.saturday ||
+                      details.date.weekday == DateTime.sunday) {
+                    return Container(
+                      color: Color.fromARGB(255, 195, 225,
+                          224), // Change the background color for weekends.
+                      child: Center(
+                        child: Text(details.date.day.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),),
+                      ),
+                    );
+                  } else {
+                    return Container(
+                      color: Color.fromARGB(255, 158, 199, 220), // Use the default background color for other days.
+                      child: Center(
+                        child: Text(details.date.day.toString(),style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    );
+                  }
+                },
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
-                  agendaViewHeight: 30,
+                  showAgenda:true,
+                  agendaViewHeight: 100,
                   appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
                   appointmentDisplayCount: 5,
                   showTrailingAndLeadingDates: false,
                   navigationDirection: MonthNavigationDirection.vertical,
                   monthCellStyle: MonthCellStyle(
                     backgroundColor: Color.fromARGB(
-                        255, 31, 46, 113), // Background color for month cells
+                        255, 9, 74, 107), // Background color for month cells
                     trailingDatesBackgroundColor: Color(
                         0xff216583), // Background color for trailing dates
                     leadingDatesBackgroundColor:
@@ -366,6 +411,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                     ),
                   ),
                 ),
+
                 // dataSource: EventDataSource(_events),
                 // Set the data source for the calendar using _getCalendarDataSource()
                 dataSource: MeetingDataSource(_getCalendarDataSource()),
@@ -374,12 +420,12 @@ class _GroupDetailsState extends State<GroupDetails> {
             ),
 
             // Expanded section below the calendar
-            Expanded(
-              child: Container(
-                color: const Color.fromARGB(255, 255, 255, 255),
-                child: _getNotesForDate(_selectedDate),
-              ),
-            ),
+            // Expanded(
+            //   child: Container(
+            //     color: const Color.fromARGB(255, 255, 255, 255),
+            //     child: _getNotesForDate(_selectedDate),
+            //   ),
+            // ),
           ],
         ));
   }

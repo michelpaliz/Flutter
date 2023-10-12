@@ -1,6 +1,8 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
     "cSpell.words": [
+        "BYMONTH",
+        "BYMONTHDAY",
         "Firestore"
     ]
 }

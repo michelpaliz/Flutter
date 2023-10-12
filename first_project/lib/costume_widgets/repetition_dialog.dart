@@ -110,11 +110,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               if (selectedFrequency != 'Daily' && repeatInterval == 0) {
                 return 'Please specify the repeat interval.';
               }
-              if (selectedFrequency == 'Daily' && repeatInterval == 0) {
-                return 'Please specify the daily repeat interval.';
-              }
-              // Add more validation checks as needed
-
               return null; // Input is valid
             }
 

@@ -1,7 +1,5 @@
 import 'dart:core';
 import 'package:first_project/models/custom_day_week.dart';
-import 'package:first_project/models/event.dart';
-import 'package:first_project/models/recurrence_collection.dart';
 import 'package:intl/intl.dart';
 
 enum RecurrenceType { Daily, Weekly, Monthly, Yearly }
@@ -102,15 +100,14 @@ class RecurrenceRule {
 
   factory RecurrenceRule.fromMap(Map<String, dynamic> map) {
     final String name = map['name'] ?? '';
-    final String recurrenceTypeString = map['recurrenceType'] ?? 'Daily';
+    // final String recurrenceTypeString = map['recurrenceType'];
     final RecurrenceType recurrenceType =
-        _mapStringToRecurrenceType(recurrenceTypeString);
+        _mapStringToRecurrenceType(name);
 
     List<CustomDayOfWeek>? daysOfWeek;
     if (map['daysOfWeek'] != null) {
       daysOfWeek = (map['daysOfWeek'] as List<dynamic>)
-          .map((day) =>
-              CustomDayOfWeek.fromString(day.toString())) // Cast day to String
+          .map((day) => CustomDayOfWeek.fromString(day.toString()))
           .toList();
     }
 
@@ -120,8 +117,7 @@ class RecurrenceRule {
 
     DateTime? untilDate;
     if (map['untilDate'] != null) {
-      untilDate = DateTime.tryParse(
-          map['untilDate'].toString()); // Cast untilDate to String
+      untilDate = DateTime.tryParse(map['untilDate']);
     }
 
     return RecurrenceRule(
@@ -212,55 +208,4 @@ class RecurrenceRule {
     }
     return extractedVariables;
   }
-
-String generateRecurrenceRule(Map<String?, dynamic> extractedVariables) {
-  final StringBuffer buffer = StringBuffer('RRULE:');
-  String frequency = '';
-
-  if (extractedVariables['recurrenceType'] != null) {
-    var recurrenceType =
-        extractedVariables['recurrenceType'].toString(); // Convert to string
-    // Use the 'recurrenceType' variable
-    if (recurrenceType == 'RecurrenceType.Daily') {
-      recurrenceType = 'Daily';
-      frequency = 'FREQ=$recurrenceType';
-    } else if (recurrenceType == 'RecurrenceType.Weekly') {
-      recurrenceType = 'Weekly';
-      frequency = 'FREQ=$recurrenceType';
-    } else if (recurrenceType == 'RecurrenceType.Monthly') {
-      recurrenceType = 'Monthly';
-      frequency = 'FREQ=MONTHLY';
-    } else if (recurrenceType == 'RecurrenceType.Yearly') {
-      recurrenceType = 'Yearly';
-      frequency = 'FREQ=YEARLY';
-    }
-
-    if (extractedVariables['repeatInterval'] != null) {
-      final repeatInterval = extractedVariables['repeatInterval'];
-      // Use the 'repeatInterval' variable
-      frequency += ';INTERVAL=$repeatInterval';
-    }
-
-    // if (extractedVariables['untilDate'] != null) {
-    //   final DateFormat dateFormat = DateFormat('yyyyMMddTHHmmssZ');
-    //   final untilDate = dateFormat.format(extractedVariables['untilDate']);
-    //   // Use the 'untilDate' variable
-    //   frequency += ';UNTIL=$untilDate';
-    // }
-
-    if (recurrenceType == 'Weekly') {
-      if (extractedVariables['daysOfWeek'] != null) {
-        final List<String> daysOfWeek =
-            List<String>.from(extractedVariables['daysOfWeek']);
-        // Use the 'daysOfWeek' list
-        frequency += ';BYDAY=${daysOfWeek.join(',')}';
-      }
-    }
-  }
-
-  // Append the constructed frequency to the buffer
-  buffer.write(frequency);
-  return buffer.toString();
-}
-
 }
