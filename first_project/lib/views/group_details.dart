@@ -34,7 +34,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     _getEventsListFromGroup();
     _selectedDate = DateTime.now().toLocal();
     _storeService = StoreService.firebase();
-  
+
     _appointments = [];
   }
 
@@ -474,26 +474,65 @@ class _GroupDetailsState extends State<GroupDetails> {
                                 _removeGroupEvents(event: event);
                               },
                               child: Container(
-                                margin: EdgeInsets.all(5),
-                                // height: 50, // Adjust the height as needed
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    left: BorderSide(
-                                      width: 10,
-                                      color: ColorManager()
-                                          .getColor(event.eventColorIndex),
+                                  margin: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      left: BorderSide(
+                                        width: 10,
+                                        color: ColorManager()
+                                            .getColor(event.eventColorIndex),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Center(
+                                  child: Column(
+                                    // Use a column for vertical alignment
+
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(
+                                            left: 16), // Add left margin
                                         child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
                                           children: [
-                                            SizedBox(width: 8),
+                                            Text(
+                                              DateFormat('EEE, MMM d  -  ')
+                                                  .format(event.startDate),
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            Text(
+                                              DateFormat('EEE, MMM d')
+                                                  .format(event.endDate),
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                                // Transform.scale(
+                                      //   scale: 0.8,
+                                      //   child: Checkbox(
+                                      //     value: event.done,
+                                      //     onChanged: (newValue) {
+                                      //       setState(() {
+                                      //         event.done = newValue!;
+                                      //         _updateEvent(event);
+                                      //       });
+                                      //     },
+                                      //   ),
+                                      // ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+
+                                      Container(
+                                        margin: EdgeInsets.only(
+                                            left: 16), // Add left margin
+                                        child: Row(
+                                          children: [
                                             Icon(
                                               Icons.event,
                                               size: 20,
@@ -511,36 +550,20 @@ class _GroupDetailsState extends State<GroupDetails> {
                                           ],
                                         ),
                                       ),
-                                    ),
-                                    Container(
-                                      // height:
-                                      //     100, // Adjust the height as needed
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            DateFormat('EEE, MMM d  -  ')
-                                                .format(event.startDate),
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          Text(
-                                            DateFormat('EEE, MMM d')
-                                                .format(event.endDate),
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                      // Transform.scale(
+                                      //   scale: 0.8,
+                                      //   child: Checkbox(
+                                      //     value: event.done,
+                                      //     onChanged: (newValue) {
+                                      //       setState(() {
+                                      //         event.done = newValue!;
+                                      //         _updateEvent(event);
+                                      //       });
+                                      //     },
+                                      //   ),
+                                      // ),
+                                    ],
+                                  )),
                             ),
                           );
                         } else {
@@ -558,7 +581,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                     },
                   );
                 },
-
                 // dataSource: EventDataSource(_events),
                 // Set the data source for the calendar using _getCalendarDataSource()
                 dataSource: MeetingDataSource(_getCalendarDataSource()),
@@ -606,6 +628,4 @@ class _GroupDetailsState extends State<GroupDetails> {
           ],
         ));
   }
-
-
 }
