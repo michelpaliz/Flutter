@@ -64,4 +64,7 @@ class StoreService extends StoreProvider {
   
   @override
   Future<User> getOwnerFromGroup(Group group) => provider.getOwnerFromGroup(group);
+  
+  @override
+  Future<Event?> getEventById(String eventId, String groupId) => provider.getEventById(eventId, groupId);
 }

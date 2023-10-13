@@ -436,4 +436,23 @@ class FireStoreProvider implements StoreProvider {
       rethrow; // Rethrow the error for higher-level handling if needed.
     }
   }
+
+  @override
+  Future<Event?> getEventById(String eventId, String groupId) async {
+    try {
+      Group? fetchedGroup = await getGroupFromId(groupId);
+
+      if (fetchedGroup != null) {
+        Event? foundEvent = fetchedGroup.calendar.events.firstWhere(
+          (event) => event.id == eventId,
+        );
+
+        return foundEvent;
+      }
+    } catch (e) {
+      print('Error: $e');
+      rethrow;
+    }
+    return null;
+  }
 }

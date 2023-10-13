@@ -21,4 +21,5 @@ abstract class StoreProvider {
   Future<User?> getUserByName(String userName); 
   Future<void> removeAll(User user, Group group);
   Future<User> getOwnerFromGroup(Group group);
+  Future<Event?> getEventById(String eventId, String groupId);
 }

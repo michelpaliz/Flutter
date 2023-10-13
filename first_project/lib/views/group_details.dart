@@ -34,6 +34,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     _getEventsListFromGroup();
     _selectedDate = DateTime.now().toLocal();
     _storeService = StoreService.firebase();
+  
     _appointments = [];
   }
 
@@ -88,6 +89,8 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Future<void> _removeGroupEvents({required Event event}) async {
+    // Event? event = await _storeService.getEventById(eventId, groupId);
+
     // Remove the event from Firestore
     await _storeService.removeEvent(event.id);
 
@@ -317,9 +320,10 @@ class _GroupDetailsState extends State<GroupDetails> {
 
             Container(
               // height: 360, // Set the desired height for the calendar
-              height: 500,
+              height: 650,
               child: SfCalendar(
                 firstDayOfWeek: DateTime.monday,
+                initialSelectedDate: DateTime.now(),
                 view: CalendarView.month,
                 timeZone: 'Europe/Madrid',
 
@@ -357,22 +361,30 @@ class _GroupDetailsState extends State<GroupDetails> {
                       color: Color.fromARGB(255, 195, 225,
                           224), // Change the background color for weekends.
                       child: Center(
-                        child: Text(details.date.day.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),),
+                        child: Text(
+                          details.date.day.toString(),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic),
+                        ),
                       ),
                     );
                   } else {
                     return Container(
-                      color: Color.fromARGB(255, 158, 199, 220), // Use the default background color for other days.
+                      color: Color.fromARGB(255, 158, 199,
+                          220), // Use the default background color for other days.
                       child: Center(
-                        child: Text(details.date.day.toString(),style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text(details.date.day.toString(),
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     );
                   }
                 },
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
-                  showAgenda:true,
-                  agendaViewHeight: 100,
+                  showAgenda: true,
+                  agendaItemHeight: 70,
+                  // agendaViewHeight: 100,
                   appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
                   appointmentDisplayCount: 5,
                   showTrailingAndLeadingDates: false,
@@ -412,6 +424,141 @@ class _GroupDetailsState extends State<GroupDetails> {
                   ),
                 ),
 
+                appointmentBuilder:
+                    (BuildContext context, CalendarAppointmentDetails details) {
+                  final appointment = details.appointments.first;
+
+                  return FutureBuilder<Event?>(
+                    future:
+                        _storeService.getEventById(appointment.id, _group.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator
+                            .adaptive(); // Loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text(
+                            'Error: ${snapshot.error}'); // Display error message
+                      } else {
+                        final Event? event = snapshot.data;
+                        if (event != null) {
+                          return GestureDetector(
+                            onTap: () {
+                              _editEvent(event,
+                                  context); // Call your edit event function when the appointment is tapped
+                            },
+                            child: Dismissible(
+                              key: Key(appointment.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment.centerRight,
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                child: Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              confirmDismiss: (direction) async {
+                                final bool confirm =
+                                    await _showRemoveConfirmationDialog(
+                                        event, context);
+                                return confirm;
+                              },
+                              onDismissed: (direction) {
+                                // Remove the event from the list and update the UI
+                                setState(() {
+                                  _appointments.remove(appointment);
+                                });
+
+                                // Also, remove the event from your data source (Firestore or wherever you're storing events)
+                                _removeGroupEvents(event: event);
+                              },
+                              child: Container(
+                                margin: EdgeInsets.all(5),
+                                // height: 50, // Adjust the height as needed
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    left: BorderSide(
+                                      width: 10,
+                                      color: ColorManager()
+                                          .getColor(event.eventColorIndex),
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Center(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            SizedBox(width: 8),
+                                            Icon(
+                                              Icons.event,
+                                              size: 20,
+                                              color: ColorManager().getColor(
+                                                  event.eventColorIndex),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              event.title,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      // height:
+                                      //     100, // Adjust the height as needed
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            DateFormat('EEE, MMM d  -  ')
+                                                .format(event.startDate),
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          Text(
+                                            DateFormat('EEE, MMM d')
+                                                .format(event.endDate),
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        } else {
+                          return Container(
+                            child: Text(
+                              'No events found for this date',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  );
+                },
+
                 // dataSource: EventDataSource(_events),
                 // Set the data source for the calendar using _getCalendarDataSource()
                 dataSource: MeetingDataSource(_getCalendarDataSource()),
@@ -425,212 +572,12 @@ class _GroupDetailsState extends State<GroupDetails> {
             //     color: const Color.fromARGB(255, 255, 255, 255),
             //     child: _getNotesForDate(_selectedDate),
             //   ),
+
             // ),
-          ],
-        ));
-  }
 
-  Widget _getNotesForDate(DateTime date) {
-    print('Selected Date VARIABLE: $date');
-
-    final eventsForDate = _getEventsForDate(date);
-    print('EVENTS FOR DATE VARIABLE: $eventsForDate');
-
-    eventsForDate.sort((a, b) => a.startDate.compareTo(b.startDate));
-
-    final formattedDate = DateFormat('MMMM d, yyyy').format(date);
-
-    return Column(
-      children: [
-        SizedBox(height: 8), // Add spacing above the title
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'NOTES FOR $formattedDate'.toUpperCase(),
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 32, 116, 165),
-              fontFamily: 'righteous',
-            ),
-          ),
-        ),
-        Expanded(
-          child: LayoutBuilder(builder: (context, constraints) {
-            return ListView.builder(
-              itemCount: eventsForDate.length,
-              itemBuilder: (context, index) {
-                final event = eventsForDate[index];
-                final startTime = event.startDate;
-                final endTime = event.endDate;
-                final startTimeText = DateFormat('hh:mm a').format(startTime);
-                final endDateText = DateFormat('hh:mm a').format(endTime);
-
-                return Dismissible(
-                  key: Key(event.id), // Use a unique key for each item
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  confirmDismiss: (direction) async {
-                    final bool confirm =
-                        await _showRemoveConfirmationDialog(event, context);
-                    return confirm;
-                  },
-
-                  onDismissed: (direction) {
-                    // Remove the event from the list and update the UI
-                    setState(() {
-                      eventsForDate.removeAt(index);
-                    });
-
-                    // Also, remove the event from your data source (Firestore or wherever you're storing events)
-                    _removeGroupEvents(event: event);
-                  },
-
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              width: 5,
-                              color: ColorManager()
-                                  .getColor(event.eventColorIndex),
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 10.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      startTimeText,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    Text(
-                                      endDateText,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        DateFormat('EEE, MMM d  -  ')
-                                            .format(startTime),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        DateFormat('EEE, MMM d')
-                                            .format(endTime),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          event.title,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.edit,
-                                          size: 20,
-                                          color:
-                                              Color.fromARGB(255, 96, 153, 199),
-                                        ),
-                                        onPressed: () {
-                                          _editEvent(event, context);
-                                        },
-                                      ),
-                                      // IconButton(
-                                      //   icon: Icon(
-                                      //     Icons.delete,
-                                      //     size: 20,
-                                      //     color:
-                                      //         Color.fromARGB(255, 238, 105, 96),
-                                      //   ),
-                                      //   onPressed: () {
-                                      //     _showRemoveConfirmationDialog(
-                                      //         event, context);
-                                      //   },
-                                      // ),
-                                      Transform.scale(
-                                        scale: 0.8,
-                                        child: Checkbox(
-                                          value: event.done,
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              event.done = newValue!;
-                                              _updateEvent(event);
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }),
-        ),
-        Stack(
-          children: [
-            Container(
-              // padding: EdgeInsets.all(5),
-              child: Positioned(
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.blue,
@@ -640,7 +587,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                   width: 50, // Adjust the width of the button
                   height: 50, // Adjust the height of the button
                   child: IconButton(
-                    // padding: EdgeInsets.all(5),
                     icon: Icon(
                       Icons.add,
                       color: Colors.white,
@@ -654,12 +600,12 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
               ),
             ),
+            SizedBox(
+              height: 5,
+            )
           ],
-        ),
-        SizedBox(
-          height: 5,
-        )
-      ],
-    );
+        ));
   }
+
+
 }
