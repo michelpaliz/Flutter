@@ -26,12 +26,30 @@ class _DashboardState extends State<Dashboard> {
   //*LOGIC FOR THE VIEW //
   Future<void> _getCurrentUser() async {
     currentUser = await authService.getCurrentUserAsCustomeModel();
+
     if (currentUser != null) {
-      userGroups = await storeService.fetchUserGroups(currentUser!.groupIds);
+      // // Set userGroups to an empty list to indicate loading
+      // userGroups = [];
+
+      // Fetch user groups
+      // List<Group>? fetchedGroups =
+      //     await storeService.fetchUserGroups(currentUser!.groupIds);
+
+      // userGroups = fetchedGroups;
     } else {
       userGroups = null;
     }
+
     setState(() {}); // Refresh the user data and userGroups
+  }
+
+  Future<List<Group>> _getUserGroups() async {
+    if (currentUser != null) {
+      List<Group>? fetchedGroups =
+          await storeService.fetchUserGroups(currentUser!.groupIds);
+      return fetchedGroups;
+    }
+    return [];
   }
 
   @override
@@ -39,6 +57,7 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
     storeService = new StoreService.firebase();
     authService = new AuthService.firebase();
+    userGroups = [];
     _getCurrentUser();
   }
 
@@ -172,54 +191,70 @@ class _DashboardState extends State<Dashboard> {
             ),
           ),
           SizedBox(height: 20),
-          if (userGroups == null || userGroups!.isEmpty)
-            Center(child: Text("There are no groups available"))
-          else
-            Expanded(
-                child: ListView.builder(
-              itemCount: userGroups!.length,
-              itemBuilder: (context, index) {
-                Group group = userGroups![index];
-                String formattedDate =
-                    DateFormat('yyyy-MM-dd').format(group.createdTime);
+          Expanded(
+            child: FutureBuilder<List<Group>>(
+              future: _getUserGroups(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // Display a loading indicator while waiting for the data.
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  // Handle any errors that occur during the data retrieval.
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  // Handle the case where there are no groups available.
+                  return Center(child: Text("There are no groups available"));
+                } else {
+                  // Data is available, display the list of groups.
+                  List<Group> userGroups = snapshot.data!;
+                  return ListView.builder(
+                    itemCount: userGroups.length,
+                    itemBuilder: (context, index) {
+                      Group group = userGroups[index];
+                      String formattedDate =
+                          DateFormat('yyyy-MM-dd').format(group.createdTime);
 
-                return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  elevation: 2,
-                  child: ListTile(
-                    title: Text("${group.groupName} - $formattedDate"),
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        groupDetails,
-                        arguments: group,
+                      return Card(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        elevation: 2,
+                        child: ListTile(
+                          title: Text("${group.groupName} - $formattedDate"),
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              groupDetails,
+                              arguments: group,
+                            );
+                          },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () async {
+                                  Group? groupUpdated = await storeService
+                                      .getGroupFromId(group.id);
+                                  Navigator.pushNamed(context, editGroup,
+                                      arguments: groupUpdated);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  _showDeleteConfirmationDialog(group);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit), // Add the edit icon
-                          onPressed: () async {
-                            Group? groupUpdated =
-                                await storeService.getGroupFromId(group.id);
-                            // Navigate to the editGroup view
-                            Navigator.pushNamed(context, editGroup,
-                                arguments: groupUpdated);
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _showDeleteConfirmationDialog(group);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                  );
+                }
               },
-            )),
+            ),
+          ),
           SizedBox(height: 20),
           Center(
             child: ElevatedButton(
