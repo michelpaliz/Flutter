@@ -27,6 +27,8 @@ class _GroupDetailsState extends State<GroupDetails> {
   late StoreService _storeService;
   var userOrGroupObject;
   late List<Appointment> _appointments;
+  late CalendarView _selectedView;
+  late CalendarController _controller;
 
   @override
   void initState() {
@@ -34,7 +36,8 @@ class _GroupDetailsState extends State<GroupDetails> {
     _getEventsListFromGroup();
     _selectedDate = DateTime.now().toLocal();
     _storeService = StoreService.firebase();
-
+    _selectedView = CalendarView.month;
+    _controller = CalendarController();
     _appointments = [];
   }
 
@@ -296,6 +299,52 @@ class _GroupDetailsState extends State<GroupDetails> {
         appBar: AppBar(
           title: Text('CALENDAR'),
           actions: [
+            PopupMenuButton<CalendarView>(
+              icon: Icon(Icons.calendar_today), // Icon for the dropdown
+              initialValue: _selectedView,
+              onSelected: (CalendarView value) {
+                setState(() {
+                  _selectedView = value;
+                });
+                // Call the method here to update the data source based on _selectedView
+                _updateCalendarDataSource();
+              },
+
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<CalendarView>(
+                    value: CalendarView.month,
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_view_month), // Icon for Month
+                        SizedBox(width: 8),
+                        Text('Month'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<CalendarView>(
+                    value: CalendarView.schedule,
+                    child: Row(
+                      children: [
+                        Icon(Icons.schedule), // Icon for Week
+                        SizedBox(width: 8),
+                        Text('Week'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<CalendarView>(
+                    value: CalendarView.day,
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_view_day), // Icon for Day
+                        SizedBox(width: 8),
+                        Text('Day'),
+                      ],
+                    ),
+                  ),
+                ];
+              },
+            ),
             IconButton(
               icon: Icon(Icons.settings),
               onPressed: () {
@@ -313,20 +362,34 @@ class _GroupDetailsState extends State<GroupDetails> {
         ),
         drawer: MyDrawer(),
         body:
+
             // Replace TableCalendar with SfCalendar
             Column(
           children: [
             // Calendar widget
-
             Container(
               // height: 360, // Set the desired height for the calendar
               height: 650,
               child: SfCalendar(
+                allowedViews: [
+                  CalendarView.day,
+                  CalendarView.week,
+                  CalendarView.month,
+                  CalendarView.schedule
+                ],
+                controller: _controller,
+                onViewChanged: (ViewChangedDetails viewChangedDetails) {
+                  Future.delayed(Duration.zero, () {
+                    setState(() {
+                      _selectedView = _controller.view!;
+                    });
+                  });
+                },
+
                 firstDayOfWeek: DateTime.monday,
                 initialSelectedDate: DateTime.now(),
-                view: CalendarView.month,
+                view: _selectedView,
                 timeZone: 'Europe/Madrid',
-
                 headerStyle: CalendarHeaderStyle(
                   textAlign: TextAlign.center, // Center-align the month name
                 ),
@@ -383,7 +446,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
                   showAgenda: true,
-                  agendaItemHeight: 70,
+                  agendaItemHeight: 85,
+                  dayFormat: 'EEE',
                   // agendaViewHeight: 100,
                   appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
                   appointmentDisplayCount: 5,
@@ -432,151 +496,187 @@ class _GroupDetailsState extends State<GroupDetails> {
                     future:
                         _storeService.getEventById(appointment.id, _group.id),
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator
-                            .adaptive(); // Loading indicator
-                      } else if (snapshot.hasError) {
-                        return Text(
-                            'Error: ${snapshot.error}'); // Display error message
-                      } else {
-                        final Event? event = snapshot.data;
-                        if (event != null) {
-                          return GestureDetector(
-                            onTap: () {
-                              _editEvent(event,
-                                  context); // Call your edit event function when the appointment is tapped
-                            },
-                            child: Dismissible(
-                              key: Key(appointment.id),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                color: Colors.red,
-                                alignment: Alignment.centerRight,
-                                padding: EdgeInsets.symmetric(horizontal: 20),
-                                child: Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
+                      if (_selectedView == CalendarView.month) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator
+                              .adaptive(); // Loading indicator
+                        } else if (snapshot.hasError) {
+                          return Text(
+                              'Error: ${snapshot.error}'); // Display error message
+                        } else {
+                          final Event? event = snapshot.data;
+                          if (event != null) {
+                            return GestureDetector(
+                              onTap: () {
+                                _editEvent(event,
+                                    context); // Call your edit event function when the appointment is tapped
+                              },
+                              child: Dismissible(
+                                key: Key(appointment.id),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  color: Colors.red,
+                                  alignment: Alignment.centerRight,
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  child: Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
-                              confirmDismiss: (direction) async {
-                                final bool confirm =
-                                    await _showRemoveConfirmationDialog(
-                                        event, context);
-                                return confirm;
-                              },
-                              onDismissed: (direction) {
-                                // Remove the event from the list and update the UI
-                                setState(() {
-                                  _appointments.remove(appointment);
-                                });
+                                confirmDismiss: (direction) async {
+                                  final bool confirm =
+                                      await _showRemoveConfirmationDialog(
+                                          event, context);
+                                  return confirm;
+                                },
+                                onDismissed: (direction) {
+                                  // Remove the event from the list and update the UI
+                                  setState(() {
+                                    _appointments.remove(appointment);
+                                  });
 
-                                // Also, remove the event from your data source (Firestore or wherever you're storing events)
-                                _removeGroupEvents(event: event);
-                              },
-                              child: Container(
-                                  margin: EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      left: BorderSide(
-                                        width: 10,
-                                        color: ColorManager()
-                                            .getColor(event.eventColorIndex),
+                                  // Also, remove the event from your data source (Firestore or wherever you're storing events)
+                                  _removeGroupEvents(event: event);
+                                },
+                                child: Container(
+                                    margin: EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          width: 10,
+                                          color: ColorManager()
+                                              .getColor(event.eventColorIndex),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  child: Column(
-                                    // Use a column for vertical alignment
-
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(
-                                            left: 16), // Add left margin
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              DateFormat('EEE, MMM d  -  ')
-                                                  .format(event.startDate),
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          margin: EdgeInsets.only(
+                                              left: 16), // Add left margin
+                                          child: Row(
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    DateFormat(
+                                                            'EEE, MMM d  -  ')
+                                                        .format(
+                                                            event.startDate),
+                                                    style: TextStyle(
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    DateFormat('EEE, MMM d')
+                                                        .format(event.endDate),
+                                                    style: TextStyle(
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ),
-                                            Text(
-                                              DateFormat('EEE, MMM d')
-                                                  .format(event.endDate),
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                                // Transform.scale(
-                                      //   scale: 0.8,
-                                      //   child: Checkbox(
-                                      //     value: event.done,
-                                      //     onChanged: (newValue) {
-                                      //       setState(() {
-                                      //         event.done = newValue!;
-                                      //         _updateEvent(event);
-                                      //       });
-                                      //     },
-                                      //   ),
-                                      // ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 8),
+                                        SizedBox(height: 4),
 
-                                      Container(
-                                        margin: EdgeInsets.only(
-                                            left: 16), // Add left margin
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.event,
-                                              size: 20,
-                                              color: ColorManager().getColor(
-                                                  event.eventColorIndex),
-                                            ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              event.title,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black,
+                                        Container(
+                                          margin: EdgeInsets.only(
+                                              left: 16), // Add left margin
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                '${event.startDate.hour}-${event.startDate.minute}  -',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.black,
+                                                ),
                                               ),
-                                            ),
-                                          ],
+                                              SizedBox(width: 8),
+                                              Text(
+                                                '${event.endDate.hour}-${event.endDate.minute}',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      // Transform.scale(
-                                      //   scale: 0.8,
-                                      //   child: Checkbox(
-                                      //     value: event.done,
-                                      //     onChanged: (newValue) {
-                                      //       setState(() {
-                                      //         event.done = newValue!;
-                                      //         _updateEvent(event);
-                                      //       });
-                                      //     },
-                                      //   ),
-                                      // ),
-                                    ],
-                                  )),
-                            ),
-                          );
-                        } else {
-                          return Container(
-                            child: Text(
-                              'No events found for this date',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
+
+                                        SizedBox(height: 8),
+
+                                        Container(
+                                          margin: EdgeInsets.only(
+                                              left: 16), // Add left margin
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.event,
+                                                size: 20,
+                                                color: ColorManager().getColor(
+                                                    event.eventColorIndex),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                event.title,
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        // Transform.scale(
+                                        //   scale: 0.8,
+                                        //   child: Checkbox(
+                                        //     value: event.done,
+                                        //     onChanged: (newValue) {
+                                        //       setState(() {
+                                        //         event.done = newValue!;
+                                        //         _updateEvent(event);
+                                        //       });
+                                        //     },
+                                        //   ),
+                                        // ),
+                                      ],
+                                    )),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            return Container(
+                              child: Text(
+                                'No events found for this date',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            );
+                          }
                         }
+                      } else {
+                        return Container(
+                          child: Text(
+                            'This is $_selectedView',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                        );
                       }
                     },
                   );

@@ -53,10 +53,11 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   void sendNotificationToOwner(NotificationUser notification) async {
     //We create a notification for the owner to inform him that a guest has accepted the petition to join the group.
+
     NotificationUser ntOwner = NotificationUser(
         id: notification.id,
         ownerId: notification.ownerId,
-        title: notification.title,
+        title: 'New user added to $notification.title group ',
         message:
             '${currentUser!.name} has accepted your invitation to join the group',
         timestamp: DateTime.now());

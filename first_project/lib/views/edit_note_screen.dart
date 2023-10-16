@@ -1,6 +1,5 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
-import 'package:first_project/models/custom_appointment.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
@@ -99,13 +98,6 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     // Create an updated event with the new values
     final updatedEvent = Event(
       id: event.id,
-      // appointment: new CustomAppointment(
-      //     startTime: _selectedStartDate,
-      //     endTime: _selectedEndDate,
-      //     subject: updatedTitle,
-      //     color: ColorManager()
-      //         .getColor(ColorManager().getColorIndex(selectedEventColor)),
-      //     id: event.id),
       startDate: _selectedStartDate,
       endDate: _selectedEndDate,
       title: updatedTitle,
