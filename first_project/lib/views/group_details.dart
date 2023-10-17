@@ -299,52 +299,6 @@ class _GroupDetailsState extends State<GroupDetails> {
         appBar: AppBar(
           title: Text('CALENDAR'),
           actions: [
-            PopupMenuButton<CalendarView>(
-              icon: Icon(Icons.calendar_today), // Icon for the dropdown
-              initialValue: _selectedView,
-              onSelected: (CalendarView value) {
-                setState(() {
-                  _selectedView = value;
-                });
-                // Call the method here to update the data source based on _selectedView
-                _updateCalendarDataSource();
-              },
-
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<CalendarView>(
-                    value: CalendarView.month,
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_view_month), // Icon for Month
-                        SizedBox(width: 8),
-                        Text('Month'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<CalendarView>(
-                    value: CalendarView.schedule,
-                    child: Row(
-                      children: [
-                        Icon(Icons.schedule), // Icon for Week
-                        SizedBox(width: 8),
-                        Text('Week'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<CalendarView>(
-                    value: CalendarView.day,
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_view_day), // Icon for Day
-                        SizedBox(width: 8),
-                        Text('Day'),
-                      ],
-                    ),
-                  ),
-                ];
-              },
-            ),
             IconButton(
               icon: Icon(Icons.settings),
               onPressed: () {
@@ -407,6 +361,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                     });
                   }
                 },
+                scheduleViewSettings: ScheduleViewSettings(
+                  appointmentItemHeight: 70,
+                ),
                 viewHeaderStyle: ViewHeaderStyle(
                   backgroundColor: Color.fromARGB(255, 180, 237,
                       248), // Change the background color of the month header
@@ -492,11 +449,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                     (BuildContext context, CalendarAppointmentDetails details) {
                   final appointment = details.appointments.first;
 
-                  return FutureBuilder<Event?>(
-                    future:
-                        _storeService.getEventById(appointment.id, _group.id),
-                    builder: (context, snapshot) {
-                      if (_selectedView == CalendarView.month) {
+                  if (_selectedView == CalendarView.month) {
+                    return FutureBuilder<Event?>(
+                      future:
+                          _storeService.getEventById(appointment.id, _group.id),
+                      builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return CircularProgressIndicator
@@ -667,19 +624,104 @@ class _GroupDetailsState extends State<GroupDetails> {
                             );
                           }
                         }
-                      } else {
-                        return Container(
-                          child: Text(
-                            'This is $_selectedView',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                  );
+                      },
+                    );
+                  } else {
+                    // Retrieve the Event data
+                    // Retrieve the Event data asynchronously
+                    return FutureBuilder<Event?>(
+                      future: _storeService.getEventById(
+                          appointment.id.toString(), _group.id.toString()),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          // Handle loading state
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          // Handle error state
+                          return Text('Error: ${snapshot.error}');
+                        } else {
+                          final event = snapshot.data;
+                          if (event != null) {
+                            // Return your design for other views with the fetched event data
+                            return GestureDetector(
+                              onTap: () {
+                                // Add code to handle appointment editing when tapped
+                                _editEvent(event,
+                                    context); // Replace with your edit appointment function
+                              },
+                              child: Container(
+                                width: details.bounds.width,
+                                height: details.bounds.height,
+                                margin: EdgeInsets.only(bottom: 10),
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: ColorManager()
+                                        .getColor(event.eventColorIndex),
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.all(2),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            '${event.startDate.hour}-${event.startDate.minute}  -',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            '${event.endDate.hour}-${event.endDate.minute}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.event_available_rounded,
+                                          size: 15,
+                                          color: ColorManager()
+                                              .getColor(event.eventColorIndex),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 8, right: 8),
+                                          child: Text(
+                                            event.title,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          } else {
+                            return Text(
+                                'No event data found for this appointment');
+                          }
+                        }
+                      },
+                    );
+                  }
                 },
                 // dataSource: EventDataSource(_events),
                 // Set the data source for the calendar using _getCalendarDataSource()
@@ -687,15 +729,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                 // Use the generated appointments
               ),
             ),
-
-            // Expanded section below the calendar
-            // Expanded(
-            //   child: Container(
-            //     color: const Color.fromARGB(255, 255, 255, 255),
-            //     child: _getNotesForDate(_selectedDate),
-            //   ),
-
-            // ),
 
             Expanded(
               child: Align(
