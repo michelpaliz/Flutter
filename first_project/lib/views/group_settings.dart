@@ -20,21 +20,27 @@ class _GroupSettingsState extends State<GroupSettings> {
   late User groupOwner;
   late Group group;
 
-  Future<Group> _getGroup() async {
-    Group? updatedGroup = await _storeService.getGroupFromId(widget.group.id);
-    return updatedGroup!;
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
   }
 
-  Future<void> _initializeData() async {
-    Group? updatedGroup = await _getGroup();
-    if (updatedGroup != null) {
-      groupOwner = await _storeService.getOwnerFromGroup(updatedGroup);
-    }
-    setState(() {
-      group = updatedGroup;
-      _repetitiveEvents = group.repetitiveEvents;
-    });
+Future<void> _initializeData() async {
+  Group updatedGroup = await _getUpdatedGroup();
+  setState(() {
+    group = updatedGroup;
+    _repetitiveEvents = group.repetitiveEvents;
+  });
+}
+
+Future<Group> _getUpdatedGroup() async {
+  Group? updatedGroup = await _storeService.getGroupFromId(widget.group.id);
+  if (updatedGroup != null) {
+    groupOwner = await _storeService.getOwnerFromGroup(updatedGroup);
   }
+  return updatedGroup!;
+}
 
   Future<void> _updateGroup(Group groupUpdated) async {
     try {
@@ -56,19 +62,13 @@ class _GroupSettingsState extends State<GroupSettings> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _initializeData();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Group Settings'),
       ),
       body: FutureBuilder<Group?>(
-        future: _getGroup(),
+        future: _getUpdatedGroup(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Display a loading screen while fetching data.

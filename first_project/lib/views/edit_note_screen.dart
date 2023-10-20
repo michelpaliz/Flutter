@@ -114,7 +114,10 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
           .updateEvent(updatedEvent); // Call the updateEvent method
 
       // You can handle success or navigate back to the previous screen
-      Navigator.pop(context, updatedEvent);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Event added successfully!')),
+      );
+      // Navigator.pop(context, updatedEvent);
     } catch (error) {
       // Handle the error
     }

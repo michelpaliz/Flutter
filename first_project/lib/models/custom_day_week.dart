@@ -37,6 +37,27 @@ class CustomDayOfWeek {
       case 'sunday':
         return customDaysOfWeek[6];
       default:
+        if (dayString.length == 2) {
+          // Check for two-letter abbreviations
+          switch (dayString.toLowerCase()) {
+            case 'mo':
+              return customDaysOfWeek[0];
+            case 'tu':
+              return customDaysOfWeek[1];
+            case 'we':
+              return customDaysOfWeek[2];
+            case 'th':
+              return customDaysOfWeek[3];
+            case 'fr':
+              return customDaysOfWeek[4];
+            case 'sa':
+              return customDaysOfWeek[5];
+            case 'su':
+              return customDaysOfWeek[6];
+            default:
+              throw ArgumentError('Invalid dayString: $dayString');
+          }
+        }
         throw ArgumentError('Invalid dayString: $dayString');
     }
   }

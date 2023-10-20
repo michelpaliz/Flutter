@@ -31,7 +31,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   List<CustomDayOfWeek> localCustomDaysOfWeek =
       customDaysOfWeek; // Initialize with customDaysOfWeek
   bool isRepeated = false;
-  bool _isDialogShown = false;
   var validationError;
 
   @override
@@ -43,12 +42,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     // After the dialog is shown, you can print the routes
     // Fill up variables if initialRecurrenceRule is not null
     fillVariablesFromInitialRecurrenceRule(widget.initialRecurrenceRule);
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (!_isDialogShown) {
-    //     _showRepetitionDialog(context);
-    //     _isDialogShown = true;
-    //   }
-    // });
   }
 
   // Method to fill up variables when initialRecurrenceRule is not null
@@ -110,14 +103,22 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
         // Function to validate user input
         String? validateInput() {
-          if (selectedFrequency == 'Weekly' && selectedDays.isEmpty) {
-            return 'Please select at least one day of the week.';
-          }
-          if (selectedFrequency != 'Daily' && repeatInterval == 0) {
-            return 'Please specify the repeat interval.';
-          }
-          return null; // Input is valid
-        }
+  if (selectedFrequency == 'Weekly' && selectedDays.isEmpty) {
+    return 'Please select at least one day of the week.';
+  }
+  if (selectedFrequency == 'Weekly') {
+    final eventDayAbbreviation = CustomDayOfWeek.getPattern(
+        DateFormat('EEEE', 'en_US').format(_selectedStartDate));
+    if (!selectedDays.contains(CustomDayOfWeek.fromString(eventDayAbbreviation))) {
+      return 'The day of the event should coincide with one of the selected days.';
+    }
+  }
+  if (selectedFrequency != 'Daily' && repeatInterval == 0) {
+    return 'Please specify the repeat interval.';
+  }
+  return null; // Input is valid
+}
+
 
         validationError = validateInput();
 
@@ -343,23 +344,23 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 if (selectedFrequency == 'Daily') buildRepeatEveryRow(),
                 if (selectedFrequency == 'Monthly') buildRepeatEveryRow(),
                 if (selectedFrequency == 'Yearly') buildRepeatEveryRow(),
-                Row(
-                  children: <Widget>[
-                    Checkbox(
-                      value: isForever,
-                      onChanged: (bool? newValue) {
-                        setState(() {
-                          isForever = newValue ?? false;
-                          if (isForever) {
-                            untilDate =
-                                null; // If forever is selected, clear the until date
-                          }
-                        });
-                      },
-                    ),
-                    Text('Repeats Forever', style: TextStyle(fontSize: 14)),
-                  ],
-                ),
+                // Row(
+                //   children: <Widget>[
+                //     Checkbox(
+                //       value: isForever,
+                //       onChanged: (bool? newValue) {
+                //         setState(() {
+                //           isForever = newValue ?? false;
+                //           if (isForever) {
+                //             untilDate =
+                //                 null; // If forever is selected, clear the until date
+                //           }
+                //         });
+                //       },
+                //     ),
+                //     Text('Repeats Forever', style: TextStyle(fontSize: 14)),
+                //   ],
+                // ),
                 // Row for "Repeats Until" and date picker
                 Row(children: [
                   Checkbox(
