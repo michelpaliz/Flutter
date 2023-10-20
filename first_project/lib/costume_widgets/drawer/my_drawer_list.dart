@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../constants/routes.dart';
 import '../../services/auth/implements/auth_service.dart';
 
@@ -9,14 +10,14 @@ enum DrawerSections { dashboard, notes_view, settings, log_out }
 List<Map<String, dynamic>> menuItems = [
   {
     'section': DrawerSections.dashboard,
-    'title': 'Dashboard',
-    'icon': Icons.dashboard,
+    'title': 'Groups',
+    'icon': Icons.group,
     'isSelected': true,
   },
   {
     'section': DrawerSections.notes_view,
-    'title': 'Notes View',
-    'icon': Icons.notes,
+    'title': 'Calendar',
+    'icon': Icons.calendar_month,
     'isSelected': false,
   },
   {
@@ -64,7 +65,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
             Navigator.pushNamed(context, dashboard);
             break;
           case DrawerSections.notes_view:
-            Navigator.pushNamed(context, notesRoute);
+            Navigator.pushNamed(context, userCalendar);
             break;
           case DrawerSections.settings:
             // Handle logout section tap

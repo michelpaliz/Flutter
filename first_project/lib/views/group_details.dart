@@ -2,6 +2,9 @@ import 'dart:developer' as devtools show log;
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
+import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/views/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -25,20 +28,49 @@ class _GroupDetailsState extends State<GroupDetails> {
   late List<Event> _events;
   late DateTime _selectedDate;
   late StoreService _storeService;
-  var userOrGroupObject;
+  late AuthService _authService;
+  var _userOrGroupObject;
   late List<Appointment> _appointments;
   late CalendarView _selectedView;
   late CalendarController _controller;
+  late double _screenWidth;
+  late double _calendarHeight;
+  late Map<String, String> _users;
+  String userRole = "";
+  late User? _user;
+
+  //** Logic for my view */
 
   @override
   void initState() {
     super.initState();
-    _getEventsListFromGroup();
+    _group = widget.group; // Access the passed group
+    _users = _group.userRoles; // Access the
+    _events = [];
     _selectedDate = DateTime.now().toLocal();
     _storeService = StoreService.firebase();
     _selectedView = CalendarView.month;
     _controller = CalendarController();
+    _authService = AuthService.firebase();
     _appointments = [];
+    _getEventsListFromGroup();
+  }
+
+  Future<void> _getEventsListFromGroup() async {
+    // _user = await SharedPrefsUtils.getUserFromPreferences();
+    _user = _authService.costumeUser;
+    devtools.log('This is the user fetched $_user'.toString());
+    setState(() {
+      if (_user != null) {
+        userRole = _getRoleByName(
+            _user!.name)!; // This might be nullable, no need for ! here
+        _events = _group.calendar.events;
+      }
+      _users = _group.userRoles;
+      print('THIS IS GROUP $_group'.toString);
+      _userOrGroupObject = _group;
+      _updateCalendarDataSource(); // Call the method here to update the data source
+    });
   }
 
   int calculateDaysBetweenDates(DateTime startDate, DateTime endDate) {
@@ -51,25 +83,23 @@ class _GroupDetailsState extends State<GroupDetails> {
     });
   }
 
-  //** Logic for my view */
+  Future<void> _updateEvent(Event event) async {
+    await _storeService.updateEvent(event);
+  }
+
   Future<void> _reloadData() async {
     Group? group = await _storeService.getGroupFromId(_group.id);
     setState(() {
       _appointments = [];
       if (group != null) {
         _group = group;
-        _events = group.calendar.events;
       }
     });
     _updateCalendarDataSource(); // Call the method here to update the data source
   }
 
-  Future<void> _getEventsListFromGroup() async {
-    _group = widget.group; // Access the passed group
-    print('THIS IS GROUP $_group'.toString);
-    _events = _group.calendar.events.cast<Event>();
-    _updateCalendarDataSource(); // Call the method here to update the data source
-    userOrGroupObject = _group;
+  String? _getRoleByName(String name) {
+    return _users[name];
   }
 
   void _editEvent(Event event, BuildContext context) {
@@ -105,10 +135,6 @@ class _GroupDetailsState extends State<GroupDetails> {
     setState(() {
       _events.remove(event);
     });
-  }
-
-  Future<void> _updateEvent(Event event) async {
-    await _storeService.updateEvent(event);
   }
 
   Future<bool> _showRemoveConfirmationDialog(
@@ -295,6 +321,13 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   @override
   Widget build(BuildContext context) {
+    _screenWidth = MediaQuery.of(context).size.width;
+    // Set the globalVariable based on the screen size
+    if (_screenWidth < 600) {
+      _calendarHeight = 650; // Set a value for smaller screens
+    } else {
+      _calendarHeight = 700; // Set a different value for larger screens
+    }
     return Scaffold(
         appBar: AppBar(
           title: Text('CALENDAR'),
@@ -303,7 +336,7 @@ class _GroupDetailsState extends State<GroupDetails> {
               icon: Icon(Icons.settings),
               onPressed: () {
                 Navigator.pushNamed(context, groupSettings,
-                    arguments: userOrGroupObject);
+                    arguments: _userOrGroupObject);
               },
             ),
             IconButton(
@@ -316,14 +349,13 @@ class _GroupDetailsState extends State<GroupDetails> {
         ),
         drawer: MyDrawer(),
         body:
-
             // Replace TableCalendar with SfCalendar
             Column(
           children: [
             // Calendar widget
             Container(
               // height: 360, // Set the desired height for the calendar
-              height: 650,
+              height: _calendarHeight,
               child: SfCalendar(
                 allowedViews: [
                   CalendarView.day,
@@ -339,10 +371,12 @@ class _GroupDetailsState extends State<GroupDetails> {
                     });
                   });
                 },
-
+                showNavigationArrow: true,
                 firstDayOfWeek: DateTime.monday,
                 initialSelectedDate: DateTime.now(),
                 view: _selectedView,
+                showDatePickerButton: true,
+                // showDatePickerButton: true,
                 timeZone: 'Europe/Madrid',
                 headerStyle: CalendarHeaderStyle(
                   textAlign: TextAlign.center, // Center-align the month name
@@ -401,6 +435,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   }
                 },
                 // Customize other properties as needed
+
                 monthViewSettings: MonthViewSettings(
                   showAgenda: true,
                   agendaItemHeight: 85,
@@ -410,39 +445,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                   appointmentDisplayCount: 5,
                   showTrailingAndLeadingDates: false,
                   navigationDirection: MonthNavigationDirection.vertical,
-                  monthCellStyle: MonthCellStyle(
-                    backgroundColor: Color.fromARGB(
-                        255, 9, 74, 107), // Background color for month cells
-                    trailingDatesBackgroundColor: Color(
-                        0xff216583), // Background color for trailing dates
-                    leadingDatesBackgroundColor:
-                        Color(0xff216583), // Background color for leading dates
-                    todayBackgroundColor: Color.fromARGB(255, 125, 236,
-                        232), // Background color for today's date
-                    textStyle: TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'Arial',
-                      color: Colors.white, // Text color for month cells
-                    ),
-                    todayTextStyle: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Arial',
-                      color: Colors.black, // Text color for today's date
-                    ),
-                    trailingDatesTextStyle: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12,
-                      fontFamily: 'Arial',
-                      color: Colors.white, // Text color for trailing dates
-                    ),
-                    leadingDatesTextStyle: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12,
-                      fontFamily: 'Arial',
-                      color: Colors.white, // Text color for leading dates
-                    ),
-                  ),
                 ),
 
                 appointmentBuilder:
@@ -451,8 +453,8 @@ class _GroupDetailsState extends State<GroupDetails> {
 
                   if (_selectedView == CalendarView.month) {
                     return FutureBuilder<Event?>(
-                      future:
-                          _storeService.getEventById(appointment.id, _group.id),
+                      future: _storeService.getEventFromGroupById(
+                          appointment.id, _group.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -466,8 +468,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                           if (event != null) {
                             return GestureDetector(
                               onTap: () {
-                                _editEvent(event,
-                                    context); // Call your edit event function when the appointment is tapped
+                                if (userRole == 'Administrator' ||
+                                    userRole == 'Co-Administrator') {
+                                  _editEvent(event,
+                                      context); // Call your edit event function when the appointment is tapped
+                                }
                               },
                               child: Dismissible(
                                 key: Key(appointment.id),
@@ -482,10 +487,34 @@ class _GroupDetailsState extends State<GroupDetails> {
                                   ),
                                 ),
                                 confirmDismiss: (direction) async {
-                                  final bool confirm =
-                                      await _showRemoveConfirmationDialog(
-                                          event, context);
-                                  return confirm;
+                                  if (userRole == 'Administrator' ||
+                                      userRole == 'Co-Administrator') {
+                                    final bool confirm =
+                                        await _showRemoveConfirmationDialog(
+                                            event, context);
+                                    return confirm;
+                                  } else {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('Permission Denied'),
+                                          content: Text(
+                                              'You are not an administrator to remove this item.'),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('OK'),
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(); // Close the dialog
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
+                                  return false;
                                 },
                                 onDismissed: (direction) {
                                   // Remove the event from the list and update the UI
@@ -546,7 +575,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                                           ),
                                         ),
                                         SizedBox(height: 4),
-
                                         Container(
                                           margin: EdgeInsets.only(
                                               left: 16), // Add left margin
@@ -570,9 +598,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                             ],
                                           ),
                                         ),
-
                                         SizedBox(height: 8),
-
                                         Container(
                                           margin: EdgeInsets.only(
                                               left: 16), // Add left margin
@@ -592,22 +618,46 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                   color: Colors.black,
                                                 ),
                                               ),
+                                              SizedBox(width: 10),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  // Navigate to another view when the second icon is pressed
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) {
+                                                      return EventDetail(
+                                                          event: event);
+                                                    }),
+                                                  );
+                                                },
+                                                child: Icon(
+                                                    Icons
+                                                        .more_rounded, // Replace with your desired icon
+                                                    size:
+                                                        20, // Adjust the size as needed
+                                                    color: ColorManager()
+                                                        .getColor(event
+                                                            .eventColorIndex) // Change the color as needed
+                                                    ),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Container(
+                                                height:
+                                                    20, // Set the desired height for the Checkbox
+                                                child: Checkbox(
+                                                  value: event.done,
+                                                  onChanged: (newValue) {
+                                                    setState(() {
+                                                      event.done = newValue!;
+                                                      _updateEvent(event);
+                                                    });
+                                                  },
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
-
-                                        // Transform.scale(
-                                        //   scale: 0.8,
-                                        //   child: Checkbox(
-                                        //     value: event.done,
-                                        //     onChanged: (newValue) {
-                                        //       setState(() {
-                                        //         event.done = newValue!;
-                                        //         _updateEvent(event);
-                                        //       });
-                                        //     },
-                                        //   ),
-                                        // ),
                                       ],
                                     )),
                               ),
@@ -627,10 +677,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                       },
                     );
                   } else {
-                    // Retrieve the Event data
                     // Retrieve the Event data asynchronously
                     return FutureBuilder<Event?>(
-                      future: _storeService.getEventById(
+                      future: _storeService.getEventFromGroupById(
                           appointment.id.toString(), _group.id.toString()),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -729,32 +778,32 @@ class _GroupDetailsState extends State<GroupDetails> {
                 // Use the generated appointments
               ),
             ),
-
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(
-                        25), // Adjust the border radius as needed
-                  ),
-                  width: 50, // Adjust the width of the button
-                  height: 50, // Adjust the height of the button
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 30, // Adjust the icon size as needed
+            if (userRole == 'Administrator' || userRole == 'Co-Administrator')
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(
+                          25), // Adjust the border radius as needed
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, addEvent,
-                          arguments: userOrGroupObject);
-                    },
+                    width: 50, // Adjust the width of the button
+                    height: 50, // Adjust the height of the button
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 30, // Adjust the icon size as needed
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, addEvent,
+                            arguments: _userOrGroupObject);
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
             SizedBox(
               height: 5,
             )

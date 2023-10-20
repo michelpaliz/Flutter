@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart'
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/auth_user.dart';
-
 import '../../../firebase_options.dart';
 import '../../../models/user.dart';
 import '../../firestore/implements/firestore_service.dart';
@@ -36,8 +35,14 @@ class FirebaseAuthProvider implements AuthProvider {
         await user.updateProfile(displayName: user.uid);
 
         // Create a User object using the UID as the user ID
-        User person = User(id: user.uid, name: name, email: user.email!, photoUrl: '',
-            groupIds: [],events: [], notifications: []);
+        User person = User(
+            id: user.uid,
+            name: name,
+            email: user.email!,
+            photoUrl: '',
+            groupIds: [],
+            events: [],
+            notifications: []);
 
         // Upload the user object to Firestore using the UID as the document ID
         return await StoreService.firebase().uploadPersonToFirestore(
@@ -158,9 +163,12 @@ class FirebaseAuthProvider implements AuthProvider {
 
   @override
   User? get costumeUser {
-    if (_currentUser == null) {
-      throw UserNotFoundAuthException();
-    }
     return _currentUser;
+  }
+
+  set costumeUser(User? userUpdated) {
+    if (userUpdated != null) {
+      _currentUser = userUpdated;
+    }
   }
 }

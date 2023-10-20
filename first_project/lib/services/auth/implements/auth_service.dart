@@ -8,13 +8,15 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class AuthService implements AuthProvider {
   final AuthProvider provider;
-  const AuthService(this.provider);
+  const AuthService._(this.provider);
 
-  factory AuthService.firebase() => AuthService(FirebaseAuthProvider());
 
-// The .instance property is a static property that returns a single, globally accessible instance of the FirebaseAuth class. This ensures that you're working with the same instance of FirebaseAuth throughout your application.
-  static firebase_auth.FirebaseAuth _firebaseAuth =
-      firebase_auth.FirebaseAuth.instance;
+  static AuthService? _instance; // Singleton instance
+
+  factory AuthService.firebase() {
+    _instance ??= AuthService._(FirebaseAuthProvider());
+    return _instance!;
+  }
 
   @override
   Future<String> createUser({
@@ -50,19 +52,25 @@ class AuthService implements AuthProvider {
   @override
   Future<void> initialize() => provider.initialize();
 
-  static String? getCurrentUserId() {
-    final firebase_auth.User? firebaseUser = _firebaseAuth.currentUser;
-    if (firebaseUser != null) {
-      return firebaseUser.uid;
-    }
-    return null;
-  }
-  
+  // static String? getCurrentUserId() {
+  //   final firebase_auth.User? firebaseUser = _firebaseAuth.currentUser;
+  //   if (firebaseUser != null) {
+  //     return firebaseUser.uid;
+  //   }
+  //   return null;
+  // }
+
   @override
-  Future<User?> getCurrentUserAsCustomeModel() => provider.getCurrentUserAsCustomeModel();
-  
+  Future<User?> getCurrentUserAsCustomeModel() =>
+      provider.getCurrentUserAsCustomeModel();
+
   @override
   User? get costumeUser => provider.costumeUser;
-  
+
+  @override
+  set costumeUser(User? user) {
+    if (user != null) {
+      provider.costumeUser = user;
+    }
+  }
 }
-  

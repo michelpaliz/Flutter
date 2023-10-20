@@ -2,9 +2,8 @@ import 'dart:developer' as devtools show log;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/constants/routes.dart';
-import 'package:first_project/costume_widgets/repetition_dialog.dart';
-import 'package:first_project/models/routeLogger.dart';
 import 'package:first_project/models/event.dart';
+import 'package:first_project/models/routeLogger.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
@@ -70,7 +69,7 @@ class MyApp extends StatelessWidget {
       routes: {
         loginRoute: (context) => const LoginViewState(),
         registerRoute: (context) => const RegisterView(),
-        notesRoute: (context) => const NotesView(),
+        userCalendar: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
         editEvent: (context) {
           final event = ModalRoute.of(context)?.settings.arguments as Event?;
@@ -101,7 +100,7 @@ class MyApp extends StatelessWidget {
           return SizedBox
               .shrink(); // Return an empty widget or handle the error
         },
-        groupDetails: (context) {
+        groupCalendar: (context) {
           final group = ModalRoute.of(context)?.settings.arguments as Group?;
           if (group != null) {
             return GroupDetails(group: group);
@@ -150,25 +149,46 @@ class HomePage extends StatelessWidget {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              final currentUser = AuthService.firebase().currentUser;
-              if (currentUser != null) {
-                final emailVerified = currentUser.isEmailVerified;
-                devtools.log('Is verified ? $emailVerified');
-                if (emailVerified) {
-                  return const NotesView();
-                } else {
-                  return const VerifyEmailView();
-                }
-              } else {
-                return const LoginViewState();
-              }
+              return buildBody();
             default:
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(),
               );
           }
         },
       ),
+    );
+  }
+
+  Widget buildBody() {
+    final authService = AuthService.firebase();
+    final currentUser = authService.currentUser;
+
+    return FutureBuilder(
+      future: authService.getCurrentUserAsCustomeModel(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          final costumeUser = snapshot.data as User; // Assuming getCurrentUserAsCustomeModel() returns a User
+          // Set the custom user using the setter
+          authService.costumeUser = costumeUser;
+
+          if (currentUser != null) {
+            final emailVerified = currentUser.isEmailVerified;
+            devtools.log('Is verified ? $emailVerified');
+            if (emailVerified) {
+              return const NotesView();
+            } else {
+              return const VerifyEmailView();
+            }
+          } else {
+            return const LoginViewState();
+          }
+        } else {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
     );
   }
 }

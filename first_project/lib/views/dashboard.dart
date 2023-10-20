@@ -2,6 +2,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/group.dart';
@@ -20,33 +21,17 @@ class _DashboardState extends State<Dashboard> {
   User? currentUser;
   List<Group>? userGroups =
       []; // List to store the groups that the current user has
-  late StoreService storeService;
-  late AuthService authService;
+  late StoreService _storeService;
+  late AuthService _authService;
 
   //*LOGIC FOR THE VIEW //
-  Future<void> _getCurrentUser() async {
-    currentUser = await authService.getCurrentUserAsCustomeModel();
 
-    if (currentUser != null) {
-      // // Set userGroups to an empty list to indicate loading
-      // userGroups = [];
-
-      // Fetch user groups
-      // List<Group>? fetchedGroups =
-      //     await storeService.fetchUserGroups(currentUser!.groupIds);
-
-      // userGroups = fetchedGroups;
-    } else {
-      userGroups = null;
-    }
-
-    setState(() {}); // Refresh the user data and userGroups
-  }
 
   Future<List<Group>> _getUserGroups() async {
+    currentUser = _authService.costumeUser;
     if (currentUser != null) {
       List<Group>? fetchedGroups =
-          await storeService.fetchUserGroups(currentUser!.groupIds);
+          await _storeService.fetchUserGroups(currentUser!.groupIds);
       return fetchedGroups;
     }
     return [];
@@ -55,10 +40,10 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
-    storeService = new StoreService.firebase();
-    authService = new AuthService.firebase();
+    _storeService = new StoreService.firebase();
+    _authService = new AuthService.firebase();
     userGroups = [];
-    _getCurrentUser();
+    _getUserGroups();
   }
 
   void _createGroup() {
@@ -99,7 +84,7 @@ class _DashboardState extends State<Dashboard> {
     if (deleteConfirmed == true) {
       try {
         // Perform the group removal logic here
-        await storeService.deleteGroup(group.id);
+        await _storeService.deleteGroup(group.id);
 
         // Show a success message using a SnackBar
         scaffoldMessenger.showSnackBar(
@@ -144,7 +129,7 @@ class _DashboardState extends State<Dashboard> {
           IconButton(
             icon: Icon(Icons.refresh), // Add refresh icon
             onPressed: () async {
-              await _getCurrentUser();
+              await _getUserGroups();
             },
           ),
           if (currentUser?.hasNewNotifications == true)
@@ -159,7 +144,7 @@ class _DashboardState extends State<Dashboard> {
               onPressed: () {
                 // Open notifications screen
                 currentUser?.hasNewNotifications = false;
-                storeService.updateUser(currentUser!);
+                _storeService.updateUser(currentUser!);
                 setState(() {}); // Trigger UI update
                 Navigator.pushNamed(context, showNotifications);
               },
@@ -223,7 +208,7 @@ class _DashboardState extends State<Dashboard> {
                           onTap: () {
                             Navigator.pushNamed(
                               context,
-                              groupDetails,
+                              groupCalendar,
                               arguments: group,
                             );
                           },
@@ -233,7 +218,7 @@ class _DashboardState extends State<Dashboard> {
                               IconButton(
                                 icon: Icon(Icons.edit),
                                 onPressed: () async {
-                                  Group? groupUpdated = await storeService
+                                  Group? groupUpdated = await _storeService
                                       .getGroupFromId(group.id);
                                   Navigator.pushNamed(context, editGroup,
                                       arguments: groupUpdated);

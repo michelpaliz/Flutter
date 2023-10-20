@@ -80,7 +80,6 @@ class Group {
       'repetitiveEvents': repetitiveEvents,
     };
   }
-
   @override
   String toString() {
     final userNames = users.map((user) => user.name).join(', ');

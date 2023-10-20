@@ -1,11 +1,13 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
+
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/text_field_widget.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
+
 import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utilities/show_error_dialog.dart';
@@ -105,7 +107,7 @@ class _LoginViewState extends State<LoginViewState> {
                         devtools.log(emailVerified.toString());
                         if (emailVerified) {
                           Navigator.of(context)
-                              .pushReplacementNamed(notesRoute);
+                              .pushReplacementNamed(userCalendar);
                         } else {
                           Navigator.of(context)
                               .pushReplacementNamed(verifyEmailRoute);

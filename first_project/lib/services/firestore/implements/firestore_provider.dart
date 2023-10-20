@@ -1,20 +1,20 @@
 import 'dart:async';
-import 'dart:developer' as devtools show log;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
-
 import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import '../../../models/event.dart';
 import '../../../models/notification_user.dart';
 import '../../../models/user.dart';
-import '../../../utilities/sharedprefs.dart';
 import '../Ifirestore_provider.dart';
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FireStoreProvider implements StoreProvider {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthService _authService = AuthService.firebase();
 
   @override
   Future<String> uploadPersonToFirestore({
@@ -48,6 +48,9 @@ class FireStoreProvider implements StoreProvider {
         DocumentReference userRef = userQuerySnapshot.docs.first.reference;
 
         await userRef.update(user.toJson()); // Update the user document
+
+        _authService.costumeUser = user;
+
 
         //We update the user in his groups
         if (user.groupIds.isNotEmpty) {
@@ -135,7 +138,8 @@ class FireStoreProvider implements StoreProvider {
 /** the removeEvent method fetches the user's document from Firestore, removes the event from the updatedEvents list, and then updates the events field in the Firestore document with the updated event list. */
   @override
   Future<List<Event>> removeEvent(String eventId) async {
-    User? user = await SharedPrefsUtils.getUserFromPreferences();
+    // User? user = await SharedPrefsUtils.getUserFromPreferences();
+    User? user = _authService.costumeUser;
 
     if (user != null) {
       List<Event> updatedEvents = user.events;
@@ -143,7 +147,8 @@ class FireStoreProvider implements StoreProvider {
 
       user.events = updatedEvents;
 
-      await SharedPrefsUtils.storeUser(user);
+      // await SharedPrefsUtils.storeUser(user);
+      _authService.costumeUser = user;
 
       CollectionReference userCollection =
           FirebaseFirestore.instance.collection('users');
@@ -438,7 +443,7 @@ class FireStoreProvider implements StoreProvider {
   }
 
   @override
-  Future<Event?> getEventById(String eventId, String groupId) async {
+  Future<Event?> getEventFromGroupById(String eventId, String groupId) async {
     try {
       Group? fetchedGroup = await getGroupFromId(groupId);
 
@@ -454,5 +459,26 @@ class FireStoreProvider implements StoreProvider {
       rethrow;
     }
     return null;
+  }
+
+  @override
+  Future<Event?> getEventFromUserById(User user, String eventId) async {
+    try {
+      // First, you should fetch the user's list of events.
+      List<Event> userEvents =
+          user.events; // Assuming User has a list of events.
+
+      // Find the event you're looking for based on the provided eventIdToRetrieve.
+      Event? event = userEvents.firstWhere(
+        (event) =>
+            event.id ==
+            eventId, // Provide a default value if the event is not found.
+      );
+
+      return event;
+    } catch (e) {
+      print("Error while getting event: $e");
+      return null;
+    }
   }
 }
