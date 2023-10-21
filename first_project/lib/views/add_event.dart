@@ -1,12 +1,10 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
-import 'package:first_project/models/custom_appointment.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:uuid/uuid.dart';
 import '../models/event.dart';
 import '../models/group.dart';
@@ -164,13 +162,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
         id: eventId,
-        // appointment: new CustomAppointment(
-        //     id: eventId,
-        //     startTime: _selectedStartDate,
-        //     endTime: _selectedEndDate,
-        //     subject: eventTitle,
-        //     color: ColorManager()
-        //         .getColor(ColorManager().getColorIndex(selectedEventColor))),
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
         title: _titleController.text,
@@ -186,8 +177,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       bool isStartHourUnique = eventList.every((e) =>
           e.startDate.hour != newEvent.startDate.hour ||
           e.startDate.day != newEvent.startDate.day);
-
-      if (isStartHourUnique) {
+      bool allowRepetitiveHours = group!.repetitiveEvents;
+      if (isStartHourUnique && allowRepetitiveHours) {
         setState(() {
           eventList.add(newEvent);
         });
@@ -500,6 +491,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                           builder: (BuildContext context) {
                             return RepetitionDialog(
                                 selectedStartDate: _selectedStartDate,
+                                selectedEndDate: _selectedEndDate,
                                 initialRecurrenceRule: recurrenceRule);
                           },
                         );

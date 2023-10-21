@@ -11,7 +11,7 @@ import 'package:first_project/views/add_event.dart';
 import 'package:first_project/views/create_group.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_group.dart';
-import 'package:first_project/views/edit_note_screen.dart';
+import 'package:first_project/views/edit_evenit.dart';
 import 'package:first_project/views/event_detail.dart';
 import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/group_settings.dart';

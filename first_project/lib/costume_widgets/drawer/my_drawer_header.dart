@@ -1,8 +1,13 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/user.dart';
 import '../../services/auth/implements/auth_service.dart';
 import '../../services/firestore/implements/firestore_service.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
@@ -12,9 +17,11 @@ class MyHeaderDrawer extends StatefulWidget {
 }
 
 class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
-  AuthService authService = new AuthService.firebase();
-  StoreService storeService = StoreService.firebase();
-  User? currentUser;
+  AuthService _authService = new AuthService.firebase();
+  StoreService _storeService = StoreService.firebase();
+  User? _currentUser;
+  // Define a variable to store the selected image.
+  XFile? _selectedImage;
 
   @override
   void initState() {
@@ -22,16 +29,43 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     getCurrentUser();
   }
 
-  void getCurrentUser() {
-    AuthService.firebase()
-        .getCurrentUserAsCustomeModel()
-        .then((User? fetchedUser) {
-      if (fetchedUser != null) {
+  void getCurrentUser() async {
+    _currentUser = _authService.costumeUser;
+  }
+
+  // Function to pick an image from the gallery
+  Future<void> _pickImage() async {
+    final imagePicker = ImagePicker();
+    final pickedImage =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      try {
+        // Reference to the Firebase Storage bucket where you want to upload the image
+        final storageReference = firebase_storage.FirebaseStorage.instance
+            .ref()
+            .child('profile_images/${_currentUser!.id}.jpg');
+
+        // Upload the image to Firebase Storage
+        await storageReference.putFile(File(pickedImage.path));
+
+        // Get the download URL of the uploaded image
+        final imageUrl = await storageReference.getDownloadURL();
+
+        // Update the user's profile picture URL in your AuthService
+        _currentUser?.photoUrl = imageUrl;
+
+        // Update the user's profile information in your StoreService
+        _storeService.updateUser(_currentUser!);
+
+        // Update the UI with the new image
         setState(() {
-          currentUser = fetchedUser;
+          _selectedImage = pickedImage;
         });
+      } catch (e) {
+        print('Error uploading image: $e');
       }
-    });
+    }
   }
 
   @override
@@ -44,28 +78,38 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            margin: EdgeInsets.only(bottom: 10),
-            width: 80, // Adjust this value to control the container's width
-            height: 80, // Adjust this value to control the container's height
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage(
-                  'assets/images/default_profile.png', // Replace with your image path
+          GestureDetector(
+            onTap: _pickImage, // Call the _pickImage function when tapped
+            child: CachedNetworkImage(
+              imageUrl: _currentUser!.photoUrl.toString().isNotEmpty
+                  ? _currentUser!.photoUrl
+                      as String // URL from Firebase Storage
+                  : 'assets/images/default_profile.png', // Local asset path
+              imageBuilder: (context, imageProvider) => Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                fit: BoxFit.cover, // Set the fit mode for the image
               ),
+              placeholder: (context, url) =>
+                  CircularProgressIndicator(), // Loading indicator
+              errorWidget: (context, url, error) =>
+                  Icon(Icons.error), // Error icon
             ),
           ),
           SizedBox(height: 5), // Add spacing between image and name
           Text(
-            currentUser?.name ?? 'Guest',
+            _currentUser?.name ?? 'Guest',
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
           SizedBox(height: 5), // Add spacing between name and email
           Text(
-            currentUser?.email ?? '',
+            _currentUser?.email ?? '',
             style:
                 TextStyle(color: Color.fromARGB(255, 2, 31, 72), fontSize: 14),
           ),

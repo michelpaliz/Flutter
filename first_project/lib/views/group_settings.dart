@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_null_comparison
-
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
@@ -15,7 +13,7 @@ class GroupSettings extends StatefulWidget {
 }
 
 class _GroupSettingsState extends State<GroupSettings> {
-  bool _repetitiveEvents = false;
+  late bool _repetitiveEvents;
   StoreService _storeService = new StoreService.firebase();
   late User groupOwner;
   late Group group;

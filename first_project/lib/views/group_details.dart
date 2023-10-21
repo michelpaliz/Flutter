@@ -93,6 +93,7 @@ class _GroupDetailsState extends State<GroupDetails> {
       _appointments = [];
       if (group != null) {
         _group = group;
+        _events = group.calendar.events;
       }
     });
     _updateCalendarDataSource(); // Call the method here to update the data source
@@ -357,12 +358,7 @@ class _GroupDetailsState extends State<GroupDetails> {
               // height: 360, // Set the desired height for the calendar
               height: _calendarHeight,
               child: SfCalendar(
-                allowedViews: [
-                  CalendarView.day,
-                  CalendarView.week,
-                  CalendarView.month,
-                  CalendarView.schedule
-                ],
+                allowedViews: [CalendarView.month, CalendarView.schedule],
                 controller: _controller,
                 onViewChanged: (ViewChangedDetails viewChangedDetails) {
                   Future.delayed(Duration.zero, () {
@@ -376,7 +372,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                 initialSelectedDate: DateTime.now(),
                 view: _selectedView,
                 showDatePickerButton: true,
-                // showDatePickerButton: true,
                 timeZone: 'Europe/Madrid',
                 headerStyle: CalendarHeaderStyle(
                   textAlign: TextAlign.center, // Center-align the month name
@@ -412,8 +407,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   if (details.date.weekday == DateTime.saturday ||
                       details.date.weekday == DateTime.sunday) {
                     return Container(
-                      color: Color.fromARGB(255, 195, 225,
-                          224), // Change the background color for weekends.
+                      color: Color.fromARGB(255, 195, 225, 224), // Change the background color for weekends.
                       child: Center(
                         child: Text(
                           details.date.day.toString(),
@@ -425,8 +419,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                     );
                   } else {
                     return Container(
-                      color: Color.fromARGB(255, 158, 199,
-                          220), // Use the default background color for other days.
+                      color: Color.fromARGB(255, 158, 199, 220), // Use the default background color for other days.
                       child: Center(
                         child: Text(details.date.day.toString(),
                             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -435,7 +428,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                   }
                 },
                 // Customize other properties as needed
-
                 monthViewSettings: MonthViewSettings(
                   showAgenda: true,
                   agendaItemHeight: 85,
@@ -446,7 +438,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                   showTrailingAndLeadingDates: false,
                   navigationDirection: MonthNavigationDirection.vertical,
                 ),
-
                 appointmentBuilder:
                     (BuildContext context, CalendarAppointmentDetails details) {
                   final appointment = details.appointments.first;
@@ -499,8 +490,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                       builder: (BuildContext context) {
                                         return AlertDialog(
                                           title: Text('Permission Denied'),
-                                          content: Text(
-                                              'You are not an administrator to remove this item.'),
+                                          content: Text('You are not an administrator to remove this item.'),
                                           actions: <Widget>[
                                             TextButton(
                                               child: Text('OK'),

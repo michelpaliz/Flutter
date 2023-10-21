@@ -2,7 +2,6 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../constants/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/group.dart';
@@ -25,7 +24,6 @@ class _DashboardState extends State<Dashboard> {
   late AuthService _authService;
 
   //*LOGIC FOR THE VIEW //
-
 
   Future<List<Group>> _getUserGroups() async {
     currentUser = _authService.costumeUser;
@@ -240,7 +238,6 @@ class _DashboardState extends State<Dashboard> {
               },
             ),
           ),
-          SizedBox(height: 20),
           Center(
             child: ElevatedButton(
               onPressed: () {
@@ -249,6 +246,7 @@ class _DashboardState extends State<Dashboard> {
               child: Text("Create Group"),
             ),
           ),
+          SizedBox(height: 15),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
+import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
@@ -24,28 +25,26 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 //** LOGIC VARIABLES  */
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
-  // late TextEditingController _eventController;
-  List<Event> eventList = [];
+  List<Event> _eventList = [];
   //** CONTROLLERS  */
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _noteController;
   late TextEditingController _locationController;
   //** LOGIC VARIABLES FOR THE VIEW */
-  final double toggleWidth = 50.0; // Width of the toggle button (constant)
+  final double _toggleWidth = 50.0;
   var selectedDayOfWeek;
   late bool _isRepetitive;
   bool? isAllDay = false;
-  String selectedRepetition = 'Daily'; // Default repetition is daily
   late RecurrenceRule? _recurrenceRule = null;
-  //We define the default colors for the event object
-  late Color selectedEventColor;
-  late List<Color> colorList;
+  late Color _selectedEventColor;
+  late List<Color> _colorList;
+  late Group _group;
+  late StoreService _storeService = StoreService.firebase();
 
   @override
   void initState() {
     super.initState();
-
     // Initialize controllers with event attributes
     event = widget.event;
     _titleController = TextEditingController(text: event.title);
@@ -55,8 +54,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController = TextEditingController(text: event.localization ?? '');
     _recurrenceRule = event.recurrenceRule;
     _isRepetitive = event.recurrenceRule != null;
-    colorList = ColorManager.eventColors;
-    selectedEventColor = colorList[event.eventColorIndex];
+    _colorList = ColorManager.eventColors;
+    _selectedEventColor = _colorList[event.eventColorIndex];
   }
 
   @override
@@ -72,7 +71,6 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController.text = event.localization!;
     _recurrenceRule = event.recurrenceRule;
     _isRepetitive = event.recurrenceRule != null;
-    // selectedEventColor = event.eventColor;
   }
 
   /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
@@ -80,6 +78,10 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   void dispose() {
     // _noteController.dispose();
     super.dispose();
+  }
+
+  Future<Group> _getGroup() async {
+    return _group = (await _storeService.getGroupFromId(event.groupId!))!;
   }
 
   void _saveEditedEvent() async {
@@ -106,20 +108,48 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       note: updatedNote,
       localization: extractedText,
       recurrenceRule: updatedRecurrenceRule,
-      eventColorIndex: ColorManager().getColorIndex(selectedEventColor),
+      eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
     );
 
-    try {
-      await storeService
-          .updateEvent(updatedEvent); // Call the updateEvent method
+    bool isStartHourUnique = _eventList.every((e) =>
+        e.startDate.hour != updatedEvent.startDate.hour ||
+        e.startDate.day != updatedEvent.startDate.day);
 
-      // You can handle success or navigate back to the previous screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Event added successfully!')),
+    _group = await _getGroup();
+    _eventList = _group.calendar.events;
+    bool allowRepetitiveHours = _group.repetitiveEvents;
+    if (isStartHourUnique && allowRepetitiveHours) {
+      try {
+        await storeService
+            .updateEvent(updatedEvent); // Call the updateEvent method
+
+        // You can handle success or navigate back to the previous screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Event edited successfully!')),
+        );
+        // Navigator.pop(context, updatedEvent);
+      } catch (error) {
+        // Handle the error
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Duplicate Start Date'),
+            content: Text(
+                'An event with the same start hour and day already exists.'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ],
+          );
+        },
       );
-      // Navigator.pop(context, updatedEvent);
-    } catch (error) {
-      // Handle the error
     }
   }
 
@@ -189,13 +219,13 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DropdownButtonFormField<Color>(
-                      value: selectedEventColor,
+                      value: _selectedEventColor,
                       onChanged: (color) {
                         setState(() {
-                          selectedEventColor = color!;
+                          _selectedEventColor = color!;
                         });
                       },
-                      items: colorList.map((color) {
+                      items: _colorList.map((color) {
                         String colorName = ColorManager.getColorName(color);
 
                         // Ensure each color is unique and corresponds to a unique DropdownMenuItem
@@ -419,6 +449,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                           builder: (BuildContext context) {
                             return RepetitionDialog(
                                 selectedStartDate: _selectedStartDate,
+                                selectedEndDate: _selectedEndDate,
                                 initialRecurrenceRule: _recurrenceRule);
                           },
                         );
@@ -439,7 +470,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                       },
                       child: AnimatedContainer(
                         duration: Duration(milliseconds: 300),
-                        width: 2 * toggleWidth,
+                        width: 2 * _toggleWidth,
                         height: 40.0,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20.0),

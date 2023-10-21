@@ -36,6 +36,9 @@ dependencies:
   carousel_slider: ^4.0.0
   geolocator: ^7.0.3
   syncfusion_flutter_calendar: ^21.2.3
+  image_picker: ^0.8.0
+  firebase_storage: ^11.3.1
+  cached_network_image: ^3.3.0
 
 
   cupertino_icons: ^1.0.2

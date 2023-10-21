@@ -6,11 +6,13 @@ import 'package:intl/intl.dart';
 
 class RepetitionDialog extends StatefulWidget {
   final DateTime selectedStartDate;
+  final DateTime selectedEndDate;
   final RecurrenceRule? initialRecurrenceRule;
 
   RepetitionDialog({
     required this.selectedStartDate,
-    this.initialRecurrenceRule, // Initialize it in the constructor
+    this.initialRecurrenceRule,
+    required this.selectedEndDate, // Initialize it in the constructor
   });
   @override
   _RepetitionDialogState createState() => _RepetitionDialogState();
@@ -24,21 +26,25 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   int? selectedMonth;
   bool isForever = false; // Variable to track whether the recurrence is forever
   DateTime? untilDate;
-  // Set<DayOfWeek> selectedDays = Set<DayOfWeek>();
   Set<CustomDayOfWeek> selectedDays = Set<CustomDayOfWeek>();
   String previousFrequency = 'Daily';
   late DateTime _selectedStartDate;
+  late DateTime _selectedEndDate;
   List<CustomDayOfWeek> localCustomDaysOfWeek =
       customDaysOfWeek; // Initialize with customDaysOfWeek
   bool isRepeated = false;
   var validationError;
 
+  String getWeekdayName(DateTime date) {
+    final weekdayName = DateFormat('EEEE').format(date);
+    return weekdayName;
+  }
+
   @override
   void initState() {
     super.initState();
-
-    _selectedStartDate =
-        widget.selectedStartDate; // Initialize with the provided value
+    _selectedStartDate = widget.selectedStartDate; // Initialize with the provided value
+    _selectedEndDate = widget.selectedEndDate;
     // After the dialog is shown, you can print the routes
     // Fill up variables if initialRecurrenceRule is not null
     fillVariablesFromInitialRecurrenceRule(widget.initialRecurrenceRule);
@@ -103,22 +109,42 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
         // Function to validate user input
         String? validateInput() {
-  if (selectedFrequency == 'Weekly' && selectedDays.isEmpty) {
-    return 'Please select at least one day of the week.';
-  }
-  if (selectedFrequency == 'Weekly') {
-    final eventDayAbbreviation = CustomDayOfWeek.getPattern(
-        DateFormat('EEEE', 'en_US').format(_selectedStartDate));
-    if (!selectedDays.contains(CustomDayOfWeek.fromString(eventDayAbbreviation))) {
-      return 'The day of the event should coincide with one of the selected days.';
-    }
-  }
-  if (selectedFrequency != 'Daily' && repeatInterval == 0) {
-    return 'Please specify the repeat interval.';
-  }
-  return null; // Input is valid
-}
+          switch (selectedFrequency) {
+            case 'Daily':
+              break;
+            case 'Monthly':
+              break;
+            case 'Weekly':
+              if (selectedDays.isEmpty) {
+                return 'Please select at least one day of the week.';
+              }
+              final eventDayAbbreviation = CustomDayOfWeek.getPattern(
+                  DateFormat('EEEE', 'en_US').format(_selectedStartDate));
+              if (!selectedDays
+                  .contains(CustomDayOfWeek.fromString(eventDayAbbreviation))) {
+                final _selectedStartDate =
+                    DateTime.now(); // Replace this with your date
+                final weekdayName = getWeekdayName(_selectedStartDate);
+                print('Weekday name: $weekdayName');
+                return 'The day of the event is  ${weekdayName} should coincide with one of the selected days.';
+              }
+              break;
+            case 'Yearly':
+              break;
+          }
 
+          if (repeatInterval == 0) {
+            return 'Please specify the repeat interval.';
+          }
+          if (_selectedStartDate.day != _selectedEndDate.day) {
+            return 'Start and end dates must be the same day for the event to repeat';
+          }
+          if (untilDate == null) {
+            return 'Please specify the until date.';
+          }
+
+          return null; // Input is valid
+        }
 
         validationError = validateInput();
 
