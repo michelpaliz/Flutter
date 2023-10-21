@@ -18,10 +18,38 @@ Each user possesses their own set of events, which are used to construct their p
 The calendar showcases the events that users have created, providing an organized view of their schedules.
 
 ## Key Features
-A user can associate multiple calendars but will receive notifications from a single calendar.
+A user can associate multiple calendars but will receive notifications from a single calendar or multiple calendars simultaneously.
 
 ## Events
 An event within the "Calendar" app comprises various attributes, including a title, start date, end date, location, description, notes, and event repetition.
+
+## Streamlined Event Management in the "Calendar" App
+
+In the "Calendar" app, events are richly detailed with a range of attributes to enhance your scheduling experience. These attributes encompass:
+
+1. **Title:** Give your event a meaningful name.
+2. **Start Date:** Set the event's commencement date.
+3. **End Date:** Specify when the event concludes.
+4. **Location:** Indicate the event's designated place.
+5. **Description:** Provide context or additional information about the event.
+6. **Notes:** Include any important reminders or notes.
+7. **Event Repetition:** Tailor how often the event recurs.
+
+### Event Repetition Choices
+
+You can customize the event's repetition using the following options:
+
+**1. Daily:** Configure the interval and select the date until which the event repeats.
+
+**2. Weekly:** Determine the interval, choose specific days of the week, and set the end date for weekly repetitions.
+
+**3. Monthly:** Define the interval and the concluding date for monthly recurrence.
+
+**4. Yearly:** Opt for the interval and until date for yearly repetitions.
+
+This refined event management system grants you precise control over your events and timetables within the "Calendar" app, ensuring your commitments are effortlessly organized and tracked.
+
+
 
 ## Initial Version of the Calendar Application
 ### 1. Introduction (Date: August 1, 2023, to August 23, 2023)
