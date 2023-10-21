@@ -252,7 +252,7 @@ class _GroupDetailsState extends State<GroupDetails> {
       endTime: endDate, // Generate
       // startTimeZone: 'Europe/Madrid',
       // endTimeZone: 'Europe/Madrid',
-      subject: event.title,
+      subject: event.description ?? "",
       color: ColorManager().getColor(event.eventColorIndex),
     );
 

@@ -20,7 +20,7 @@ class EditNoteScreen extends StatefulWidget {
 
 class _EditNoteScreenState extends State<EditNoteScreen> {
   StoreService storeService = StoreService.firebase();
-  late Event event;
+  late Event _event;
 
 //** LOGIC VARIABLES  */
   late DateTime _selectedStartDate;
@@ -46,31 +46,32 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   void initState() {
     super.initState();
     // Initialize controllers with event attributes
-    event = widget.event;
-    _titleController = TextEditingController(text: event.title);
+    _event = widget.event;
+    _titleController = TextEditingController(text: _event.title);
+    _noteController = TextEditingController(text: _event.note);
     _descriptionController =
-        TextEditingController(text: event.description ?? '');
-    _noteController = TextEditingController(text: event.note ?? '');
-    _locationController = TextEditingController(text: event.localization ?? '');
-    _recurrenceRule = event.recurrenceRule;
-    _isRepetitive = event.recurrenceRule != null;
+        TextEditingController(text: _event.description ?? '');
+    _locationController =
+        TextEditingController(text: _event.localization ?? '');
+    _recurrenceRule = _event.recurrenceRule;
+    _isRepetitive = _event.recurrenceRule != null;
     _colorList = ColorManager.eventColors;
-    _selectedEventColor = _colorList[event.eventColorIndex];
+    _selectedEventColor = _colorList[_event.eventColorIndex];
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Retrieve the 'Event' object passed as an argument to this screen
-    event = ModalRoute.of(context)!.settings.arguments as Event;
+    _event = ModalRoute.of(context)!.settings.arguments as Event;
     // Set the attributes of the retrieved  'Event' object;
-    _noteController.text = event.title;
-    _selectedStartDate = event.startDate;
-    _selectedEndDate = event.endDate;
-    _descriptionController.text = event.description!;
-    _locationController.text = event.localization!;
-    _recurrenceRule = event.recurrenceRule;
-    _isRepetitive = event.recurrenceRule != null;
+    _noteController.text = _event.note ?? '';
+    _selectedStartDate = _event.startDate;
+    _selectedEndDate = _event.endDate;
+    _descriptionController.text = _event.description!;
+    _locationController.text = _event.localization!;
+    _recurrenceRule = _event.recurrenceRule;
+    _isRepetitive = _event.recurrenceRule != null;
   }
 
   /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
@@ -81,16 +82,16 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   }
 
   Future<Group> _getGroup() async {
-    return _group = (await _storeService.getGroupFromId(event.groupId!))!;
+    return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
   }
 
   void _saveEditedEvent() async {
     // Retrieve updated values from controllers
     final updatedTitle = _titleController.text;
     final updatedDescription = _descriptionController.text;
-    final updatedNote = _noteController.text;
     final updatedLocation = _locationController.text;
     final updatedRecurrenceRule = _recurrenceRule;
+    final updateNote = _noteController.text;
 
     String extractedText = updatedLocation;
 
@@ -99,21 +100,29 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
     // Create an updated event with the new values
     final updatedEvent = Event(
-      id: event.id,
+      id: _event.id,
       startDate: _selectedStartDate,
       endDate: _selectedEndDate,
       title: updatedTitle,
-      groupId: event.groupId,
+      groupId: _event.groupId,
       description: updatedDescription,
-      note: updatedNote,
+      note: updateNote,
       localization: extractedText,
       recurrenceRule: updatedRecurrenceRule,
       eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
     );
 
-    bool isStartHourUnique = _eventList.every((e) =>
-        e.startDate.hour != updatedEvent.startDate.hour ||
-        e.startDate.day != updatedEvent.startDate.day);
+    bool isStartHourUnique = _eventList.every((e) {
+      // Check if the event's ID matches the event being edited
+      if (e.id == updatedEvent.id) {
+        // For the event being edited, allow its own start date
+        return true;
+      }
+
+      // Check if the start hour and day are unique
+      return e.startDate.hour != updatedEvent.startDate.hour ||
+          e.startDate.day != updatedEvent.startDate.day;
+    });
 
     _group = await _getGroup();
     _eventList = _group.calendar.events;

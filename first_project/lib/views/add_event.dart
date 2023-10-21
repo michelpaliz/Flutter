@@ -169,7 +169,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         recurrenceRule: recurrenceRule,
         localization: extractedText,
         allDay: event?.allDay ?? false,
-        note: _noteController.text,
         description: _descriptionController.text,
         eventColorIndex: ColorManager().getColorIndex(selectedEventColor),
       );
