@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -79,29 +80,9 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: _pickImage, // Call the _pickImage function when tapped
-            child: CachedNetworkImage(
-              imageUrl: _currentUser!.photoUrl.toString().isNotEmpty
-                  ? _currentUser!.photoUrl
-                      as String // URL from Firebase Storage
-                  : 'assets/images/default_profile.png', // Local asset path
-              imageBuilder: (context, imageProvider) => Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              placeholder: (context, url) =>
-                  CircularProgressIndicator(), // Loading indicator
-              errorWidget: (context, url, error) =>
-                  Icon(Icons.error), // Error icon
-            ),
-          ),
+              onTap: _pickImage, // Call the _pickImage function when tapped
+              child: Utilities.widgetbuildProfileImage(
+                  _currentUser!.photoUrl.toString())),
           SizedBox(height: 5), // Add spacing between image and name
           Text(
             _currentUser?.name ?? 'Guest',

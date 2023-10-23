@@ -1,5 +1,6 @@
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../constants/routes.dart';
@@ -105,6 +106,52 @@ class _DashboardState extends State<Dashboard> {
   }
 
   //** UI FOR THE VIEW */
+  Widget buildCard(Group group) {
+    String formattedDate = DateFormat('yyyy-MM-dd').format(group.createdTime);
+
+    return Container(
+      child: Card(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 2,
+        child: SizedBox(
+          width: 150, // Set a fixed width
+          child: GestureDetector(
+            onTap: () {},
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(8.0), // Add padding
+                  child: Icon(Icons.group, size: 32, color: Colors.blue),
+                ),
+                SizedBox(width: 8), // Add some spacing
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 10), // Add vertical
+                      Text(formattedDate),
+                      SizedBox(height: 10), // Add vertical spacing
+                      Text(
+                        group.groupName.toUpperCase(), // Uppercase group name
+                        style: TextStyle(
+                          fontSize: 16,
+                          color:
+                              Color.fromARGB(255, 48, 133, 141), // Change color
+                          fontWeight: FontWeight.bold, // Make it bold
+                          fontFamily: 'Lato', // Use Lato font family
+                        ),
+                      ),
+                      SizedBox(height: 10), // Add vertical
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +221,8 @@ class _DashboardState extends State<Dashboard> {
             ),
           ),
           SizedBox(height: 20),
-          Expanded(
+          Container(
+            height: 100,
             child: FutureBuilder<List<Group>>(
               future: _getUserGroups(),
               builder: (context, snapshot) {
@@ -191,46 +239,17 @@ class _DashboardState extends State<Dashboard> {
                   // Data is available, display the list of groups.
                   List<Group> userGroups = snapshot.data!;
                   return ListView.builder(
+                    scrollDirection: Axis.vertical,
                     itemCount: userGroups.length,
                     itemBuilder: (context, index) {
-                      Group group = userGroups[index];
-                      String formattedDate =
-                          DateFormat('yyyy-MM-dd').format(group.createdTime);
-
-                      return Card(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        elevation: 2,
-                        child: ListTile(
-                          title: Text("${group.groupName} - $formattedDate"),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              groupCalendar,
-                              arguments: group,
-                            );
-                          },
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () async {
-                                  Group? groupUpdated = await _storeService
-                                      .getGroupFromId(group.id);
-                                  Navigator.pushNamed(context, editGroup,
-                                      arguments: groupUpdated);
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
-                                  _showDeleteConfirmationDialog(group);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                      return GestureDetector(
+                        onTap: () async {
+                          Group _group = userGroups[index];
+                          User _groupOwner =
+                              await _storeService.getOwnerFromGroup(_group);
+                          showProfileAlertDialog(context, _group, _groupOwner);
+                        },
+                        child: buildCard(userGroups[index]),
                       );
                     },
                   );
@@ -238,17 +257,65 @@ class _DashboardState extends State<Dashboard> {
               },
             ),
           ),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                _createGroup();
-              },
-              child: Text("Create Group"),
-            ),
-          ),
-          SizedBox(height: 15),
         ],
       ),
+    );
+  }
+
+  void showProfileAlertDialog(BuildContext context, Group group, User owner) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 30, // Adjust the size as needed
+                backgroundImage:
+                    Utilities.buildProfileImage(owner.photoUrl.toString()),
+              ),
+
+              SizedBox(height: 8), // Add some spacing
+              Text(
+                group.groupName,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              SizedBox(height: 8), // Add some spacing
+              Text(
+                "${DateFormat('yyyy-MM-dd').format(group.createdTime)}",
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // Edit group logic here
+                Navigator.of(context).pop();
+                Group? groupUpdated =
+                    await _storeService.getGroupFromId(group.id);
+                Navigator.pushNamed(context, editGroup,
+                    arguments: groupUpdated);
+              },
+              child: Text('Edit'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Remove group logic here
+                Navigator.of(context).pop();
+                _showDeleteConfirmationDialog(group);
+              },
+              child: Text('Remove'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -11,3 +11,4 @@ const groupCalendar = '/group-calendar';
 const editGroup = '/edit-group';
 const groupSettings = '/group-settings';
 const eventDetail = '/event-detail';
+const settings = '/settings';

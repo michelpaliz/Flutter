@@ -18,6 +18,7 @@ import 'package:first_project/views/group_settings.dart';
 import 'package:first_project/views/login_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:first_project/views/register_view.dart';
+import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
+        settings:(context) => const Settings(),
         loginRoute: (context) => const LoginViewState(),
         registerRoute: (context) => const RegisterView(),
         userCalendar: (context) => const NotesView(),

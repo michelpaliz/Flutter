@@ -68,8 +68,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
             Navigator.pushNamed(context, userCalendar);
             break;
           case DrawerSections.settings:
-            // Handle logout section tap
-            // Perform logout actions...
+            Navigator.pushNamed(context, settings);
             break;
           case DrawerSections.log_out:
             _handleLogout(context);
