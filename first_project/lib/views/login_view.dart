@@ -3,12 +3,11 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/constants/routes.dart';
 import 'package:first_project/costume_widgets/text_field_widget.dart';
+import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
-
-import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utilities/show_error_dialog.dart';
 
@@ -24,12 +23,14 @@ class _LoginViewState extends State<LoginViewState> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   bool buttonHovered = false; // Added buttonHovered variable
+  late ButtonStyle _myCustomButtonStyle;
 
   @override
   void initState() {
     super.initState();
     _email = TextEditingController();
     _password = TextEditingController();
+    _myCustomButtonStyle = ColorProperties.defaultButton();
   }
 
   @override
@@ -120,7 +121,7 @@ class _LoginViewState extends State<LoginViewState> {
                         await showErrorDialog(context, 'Authentication error');
                       }
                     },
-                    style: ButtonStyles.saucyButtonStyle(buttonHovered),
+                    style: _myCustomButtonStyle,
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
                       onEnter: (event) {

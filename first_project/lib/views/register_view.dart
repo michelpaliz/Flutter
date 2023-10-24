@@ -1,4 +1,5 @@
 // ======= REGISTER =========
+import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import '../constants/routes.dart';
@@ -167,7 +168,7 @@ class _RegisterViewState extends State<RegisterView> {
                             });
                       }
                     },
-                    style: ButtonStyles.saucyButtonStyle(buttonHovered),
+                    style: ColorProperties.defaultButton(),
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
                       onEnter: (event) {

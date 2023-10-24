@@ -1,5 +1,6 @@
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/styles/button_styles.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +24,8 @@ class _DashboardState extends State<Dashboard> {
       []; // List to store the groups that the current user has
   late StoreService _storeService;
   late AuthService _authService;
+  // VARIABLE FOR THE UI
+  Axis _scrollDirection = Axis.vertical;
 
   //*LOGIC FOR THE VIEW //
 
@@ -43,6 +46,13 @@ class _DashboardState extends State<Dashboard> {
     _authService = new AuthService.firebase();
     userGroups = [];
     _getUserGroups();
+  }
+
+  void _toggleScrollDirection() {
+    setState(() {
+      _scrollDirection =
+          _scrollDirection == Axis.vertical ? Axis.horizontal : Axis.vertical;
+    });
   }
 
   void _createGroup() {
@@ -106,7 +116,9 @@ class _DashboardState extends State<Dashboard> {
   }
 
   //** UI FOR THE VIEW */
-  Widget buildCard(Group group) {
+  Widget buildCard(
+    Group group,
+  ) {
     String formattedDate = DateFormat('yyyy-MM-dd').format(group.createdTime);
 
     return Container(
@@ -116,7 +128,10 @@ class _DashboardState extends State<Dashboard> {
         child: SizedBox(
           width: 150, // Set a fixed width
           child: GestureDetector(
-            onTap: () {},
+            onTap: () async {
+              User _groupOwner = await _storeService.getOwnerFromGroup(group);
+              showProfileAlertDialog(context, group, _groupOwner);
+            },
             child: Row(
               children: [
                 Padding(
@@ -208,16 +223,38 @@ class _DashboardState extends State<Dashboard> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0),
-            child: Center(
-              child: Text(
-                "Groups", // Add your desired title here
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+          Container(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Groups",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 10), // Add space between text and icon
+                      GestureDetector(
+                        onTap:
+                            _toggleScrollDirection, // Toggle the scroll direction
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.dashboard,
+                            // Add your icon properties here
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
           SizedBox(height: 20),
@@ -239,7 +276,7 @@ class _DashboardState extends State<Dashboard> {
                   // Data is available, display the list of groups.
                   List<Group> userGroups = snapshot.data!;
                   return ListView.builder(
-                    scrollDirection: Axis.vertical,
+                    scrollDirection: _scrollDirection,
                     itemCount: userGroups.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
@@ -291,6 +328,31 @@ class _DashboardState extends State<Dashboard> {
                   color: Colors.grey,
                 ),
               ),
+              SizedBox(height: 15),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    groupCalendar,
+                    arguments: group,
+                  );
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.calendar_month_rounded),
+                    SizedBox(width: 8),
+                    Text('Go to calendar',
+                        style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+                style: ButtonStyles.saucyButtonStyle(
+                  defaultBackgroundColor: Color.fromARGB(255, 229, 117, 151),
+                  pressedBackgroundColor: Color.fromARGB(255, 227, 62, 98),
+                  textColor: const Color.fromARGB(255, 26, 26, 26),
+                  borderColor: const Color.fromARGB(255, 53, 10, 7),
+                ),
+              )
             ],
           ),
           actions: [

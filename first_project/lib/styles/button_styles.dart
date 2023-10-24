@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 
 class ButtonStyles {
-  static ButtonStyle saucyButtonStyle(bool buttonHovered) {
+  static ButtonStyle saucyButtonStyle({
+    required Color defaultBackgroundColor,
+    required Color pressedBackgroundColor,
+    required Color textColor,
+    required Color borderColor,
+    IconData? iconData,
+  }) {
     return ButtonStyle(
       textStyle: MaterialStateProperty.all<TextStyle>(
         const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 16,
           fontStyle: FontStyle.italic,
-          color: Colors.black,
         ),
       ),
       backgroundColor: MaterialStateProperty.resolveWith<Color>(
-        (states) {
+        (Set<MaterialState> states) {
           if (states.contains(MaterialState.pressed)) {
-            return Colors.grey.withOpacity(0.8); // Apply opacity when button is pressed
-          } else if (states.contains(MaterialState.hovered) && buttonHovered) {
-            return Color.fromARGB(100, 131, 205, 216); // Apply a different background color when button is hovered
+            return pressedBackgroundColor; // Apply pressed background color
+          } else if (states.contains(MaterialState.hovered)) {
+            return defaultBackgroundColor; // Apply hovered background color
           }
-          return Color.fromARGB(75, 131, 205, 216); // Default background color
+          return defaultBackgroundColor; // Default background color
         },
       ),
       overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
@@ -28,10 +33,32 @@ class ButtonStyles {
       shape: MaterialStateProperty.all<OutlinedBorder>(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: Color.fromARGB(255, 17, 159, 241)),
+          side: BorderSide(color: borderColor),
         ),
       ),
     );
   }
+
+  static Widget buttonWithIcon({
+    required IconData iconData,
+    required String label,
+    required ButtonStyle style,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton(
+      style: style,
+      onPressed: onPressed,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(iconData),
+          SizedBox(width: 8), // Add some spacing between icon and text
+          Text(label),
+        ],
+      ),
+    );
+  }
 }
+
+
 
