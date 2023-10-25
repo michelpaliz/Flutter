@@ -1,3 +1,4 @@
+import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/button_styles.dart';
@@ -294,6 +295,28 @@ class _DashboardState extends State<Dashboard> {
               },
             ),
           ),
+          SizedBox(height: 15),
+          Positioned(
+            bottom: 10,
+            child: Center(
+              child: TextButton(
+                onPressed: () {
+                  _createGroup();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.group_add),
+                    SizedBox(width: 8),
+                    Text('Add a new Group',
+                        style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+                style: ColorProperties.defaultButton(),
+              ),
+            ),
+          ),
+          SizedBox(height: 15)
         ],
       ),
     );
