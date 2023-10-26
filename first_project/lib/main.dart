@@ -8,6 +8,8 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_event.dart';
+import 'package:first_project/views/create-group/create_group_data.dart';
+import 'package:first_project/views/create-group/create_group_search_bar.dart';
 import 'package:first_project/views/create_group.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_group.dart';
@@ -82,7 +84,7 @@ class MyApp extends StatelessWidget {
               .shrink(); // Return an empty widget or handle the error
         },
         dashboard: (context) => Dashboard(),
-        createGroup: (context) => CreateGroup(),
+        createGroupData: (context) => CreateGroupData(),
         showNotifications: (context) => ShowNotifications(),
         groupSettings: (context) {
           final group = ModalRoute.of(context)?.settings.arguments as Group?;
@@ -132,7 +134,11 @@ class MyApp extends StatelessWidget {
           }
           return SizedBox
               .shrink(); // Return an empty widget or handle the error
-        }
+        },
+        // createGroupSearchBar: (context) {
+        //    final dynamic arg = ModalRoute.of(context)?.settings.arguments;
+        //    return CreateGroupSearchBar( groupName: arg.,;
+        // }
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),
     );

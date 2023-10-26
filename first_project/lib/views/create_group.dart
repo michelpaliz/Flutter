@@ -176,7 +176,7 @@ class _CreateGroupState extends State<CreateGroup> {
         calendar: calendar,
         // users: userInGroup, // Include the list of users in the group
         users: users,
-        createdTime: DateTime.now());
+        createdTime: DateTime.now(), description: '', photo: '');
 
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
     storeService.addGroup(group);

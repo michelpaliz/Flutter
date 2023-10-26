@@ -10,8 +10,9 @@ class Group {
   final Calendar calendar; // Shared calendar for the group
   List<User> users;
   final DateTime createdTime; // Time the group was created
-  bool
-      repetitiveEvents; //With this variable I can check if the members want to have repetitive events at the same time.
+  bool repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
+  String description; // A description of the group
+  String photo; // Add the new field for storing a photo link
 
   Group({
     required this.id,
@@ -20,13 +21,17 @@ class Group {
     required this.userRoles,
     required this.calendar,
     required this.users,
-    required this.createdTime, // Include the new field here
+    required this.createdTime,
     this.repetitiveEvents = false,
+    required this.description,
+    required this.photo, // Include the new field in the constructor
   });
 
- Group copyWith({
+  Group copyWith({
     bool? repetitiveEvents,
-    DateTime? createdTime, // Add the new field here
+    DateTime? createdTime,
+    String? description,
+    String? photo, // Add the new field here
   }) {
     return Group(
       id: this.id,
@@ -37,19 +42,19 @@ class Group {
       users: this.users,
       createdTime: createdTime ?? this.createdTime,
       repetitiveEvents: repetitiveEvents ?? this.repetitiveEvents,
+      description: description ?? this.description,
+      photo: photo ?? this.photo, // Include the new field here
     );
   }
 
   factory Group.fromJson(Map<String, dynamic> json) {
-    // Parse the list of users from the JSON data
     List<dynamic>? usersJson = json['users'];
     List<User> users = usersJson != null
         ? usersJson.map((userJson) => User.fromJson(userJson)).toList()
         : [];
 
     return Group(
-      id: json['id'] ??
-          '', // Use an empty string as a default value if id is null
+      id: json['id'] ?? '',
       groupName: json['groupName'] ?? '',
       ownerId: json['ownerId'] ?? '',
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
@@ -58,13 +63,13 @@ class Group {
       createdTime: json['createdTime'] != null
           ? DateTime.parse(json['createdTime'])
           : DateTime.now(),
-      repetitiveEvents:
-          json['repetitiveEvents'] ?? false, // Parse the new field here
+      repetitiveEvents: json['repetitiveEvents'] ?? false,
+      description: json['description'] ?? '',
+      photo: json['photo'] ?? '', // Parse the new field here
     );
   }
 
   Map<String, dynamic> toJson() {
-    // Convert the list of users to JSON data
     List<Map<String, dynamic>> usersJson =
         users.map((user) => user.toJson()).toList();
 
@@ -75,14 +80,16 @@ class Group {
       'userRoles': userRoles,
       'calendar': calendar.toJson(),
       'users': usersJson,
-      'createdTime': createdTime
-          .toIso8601String(), // Convert createdTime to ISO8601 string
+      'createdTime': createdTime.toIso8601String(),
       'repetitiveEvents': repetitiveEvents,
+      'description': description,
+      'photo': photo, // Include the new field here
     };
   }
+
   @override
   String toString() {
     final userNames = users.map((user) => user.name).join(', ');
-    return 'Group information (groupName: $groupName, users: $userNames)';
+    return 'Group information (groupName: $groupName, users: $userNames, description: $description, photo: $photo)';
   }
 }

@@ -60,7 +60,7 @@ class _DashboardState extends State<Dashboard> {
     // Implement the create group functionality similar to the previous example.
     // Add the newly created group ID to the currentUser's groupIds list, and then update the userGroups list.
     // Don't forget to call setState() after updating the userGroups list.
-    Navigator.pushNamed(context, createGroup);
+    Navigator.pushNamed(context, createGroupData);
     // Call setState to trigger a UI update
     setState(() {});
   }
@@ -225,7 +225,7 @@ class _DashboardState extends State<Dashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            child: Column(
+            child: Stack(
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
@@ -296,24 +296,21 @@ class _DashboardState extends State<Dashboard> {
             ),
           ),
           SizedBox(height: 15),
-          Positioned(
-            bottom: 10,
-            child: Center(
-              child: TextButton(
-                onPressed: () {
-                  _createGroup();
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.group_add),
-                    SizedBox(width: 8),
-                    Text('Add a new Group',
-                        style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-                style: ColorProperties.defaultButton(),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                _createGroup();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.group_add),
+                  SizedBox(width: 8),
+                  Text('Add a new Group',
+                      style: TextStyle(color: Colors.white)),
+                ],
               ),
+              style: ColorProperties.defaultButton(),
             ),
           ),
           SizedBox(height: 15)
@@ -385,7 +382,9 @@ class _DashboardState extends State<Dashboard> {
                 Navigator.of(context).pop();
                 Group? groupUpdated =
                     await _storeService.getGroupFromId(group.id);
-                Navigator.pushNamed(context, editGroup,
+                // Navigator.pushNamed(context, editGroup,
+                //     arguments: groupUpdated);
+                Navigator.pushNamed(context, createGroupData,
                     arguments: groupUpdated);
               },
               child: Text('Edit'),
