@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
@@ -19,6 +18,7 @@ class FirebaseAuthProvider implements AuthProvider {
 
   @override
   Future<String> createUser({
+    required String userName,
     required String name,
     required String email,
     required String password,
@@ -38,6 +38,7 @@ class FirebaseAuthProvider implements AuthProvider {
         User person = User(
             id: user.uid,
             name: name,
+            userName: userName,
             email: user.email!,
             photoUrl: '',
             groupIds: [],

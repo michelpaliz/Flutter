@@ -223,7 +223,7 @@ class _CreateGroupState extends State<CreateGroup> {
 
   //TODO: Move this function to the server side
   // Helper function to get the user document based on their name from Firestore`
-  Future<DocumentSnapshot?> getUserFromName(String userName) async {
+  Future<DocumentSnapshot?> _getUserFromName(String userName) async {
     QuerySnapshot querySnapshot =
         await usersCollection.where('name', isEqualTo: userName).get();
     if (querySnapshot.docs.isNotEmpty) {

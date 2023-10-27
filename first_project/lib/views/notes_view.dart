@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
-import 'package:first_project/constants/routes.dart';
+import 'package:first_project/routes/routes.dart';
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/drawer/my_drawer.dart';
 import 'package:first_project/models/custom_day_week.dart';

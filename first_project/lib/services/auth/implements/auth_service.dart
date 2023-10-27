@@ -20,11 +20,13 @@ class AuthService implements AuthProvider {
 
   @override
   Future<String> createUser({
+    required String userName,
     required String name,
     required String email,
     required String password,
   }) =>
       provider.createUser(
+        userName: userName,
         email: email,
         password: password,
         name: name,
@@ -51,14 +53,6 @@ class AuthService implements AuthProvider {
 
   @override
   Future<void> initialize() => provider.initialize();
-
-  // static String? getCurrentUserId() {
-  //   final firebase_auth.User? firebaseUser = _firebaseAuth.currentUser;
-  //   if (firebaseUser != null) {
-  //     return firebaseUser.uid;
-  //   }
-  //   return null;
-  // }
 
   @override
   Future<User?> getCurrentUserAsCustomeModel() =>

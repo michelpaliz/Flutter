@@ -1,7 +1,7 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/constants/routes.dart';
+import 'package:first_project/routes/routes.dart';
 import 'package:first_project/costume_widgets/text_field_widget.dart';
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
@@ -24,10 +24,12 @@ class _LoginViewState extends State<LoginViewState> {
   late final TextEditingController _password;
   bool buttonHovered = false; // Added buttonHovered variable
   late ButtonStyle _myCustomButtonStyle;
+  late final AuthService _authService;
 
   @override
   void initState() {
     super.initState();
+    _authService = AuthService.firebase();
     _email = TextEditingController();
     _password = TextEditingController();
     _myCustomButtonStyle = ColorProperties.defaultButton();
@@ -103,7 +105,7 @@ class _LoginViewState extends State<LoginViewState> {
                       try {
                         await AuthService.firebase()
                             .logIn(email: email, password: password);
-                        final user = AuthService.firebase().currentUser;
+                        final user = _authService.currentUser;
                         bool emailVerified = user?.isEmailVerified ?? false;
                         devtools.log(emailVerified.toString());
                         if (emailVerified) {
@@ -134,9 +136,8 @@ class _LoginViewState extends State<LoginViewState> {
                           buttonHovered = false;
                         });
                       },
-                      child: const Text(
-                        'LOGIN',
-                      ),
+                      child: const Text('LOGIN',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ),

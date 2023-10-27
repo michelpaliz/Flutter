@@ -8,6 +8,7 @@ class User {
   String _name;
   final String _email;
   String? _photoUrl;
+  String _userName;
   List<Event> _events;
   List<String> _groupIds;
   List<NotificationUser>? _notifications;
@@ -17,6 +18,7 @@ class User {
     required String id,
     required String name,
     required String email,
+    required String userName, // Include userName in the constructor
     required List<Event> events,
     required List<String> groupIds,
     String? photoUrl,
@@ -25,6 +27,7 @@ class User {
   })  : _id = id,
         _name = name,
         _email = email,
+        _userName = userName, // Initialize _userName
         _events = events,
         _groupIds = groupIds,
         _photoUrl = photoUrl,
@@ -59,10 +62,16 @@ class User {
     _notifications = notifications;
   }
 
+  String get userName => _userName; // Include getter for userName
+  set userName(String userName) {
+    _userName = userName; // Include setter for userName
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': _id,
       'name': _name,
+      'userName': _userName,
       'email': _email,
       'photoUrl': _photoUrl,
       'events': _events.map((event) => event.toMap()).toList(),
@@ -79,6 +88,7 @@ class User {
       id: json['id'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
+      userName: json['userName'] as String,
       events: (json['events'] as List<dynamic>?)!
           .map((eventJson) => Event.fromJson(eventJson))
           .toList(),
@@ -122,8 +132,9 @@ class User {
 
       return User(
         id: userDocument.id,
-        name: userData['name'] ?? '',
+        name: userData['name'],
         email: email,
+        userName: userData['userName'],
         events: (userData['events'] as List<dynamic>?)!
             .map((eventJson) => Event.fromJson(eventJson))
             .toList(),
@@ -136,6 +147,7 @@ class User {
         id: '',
         name: '',
         email: email,
+        userName: '',
         events: [],
         groupIds: [],
         notifications: [],
@@ -154,11 +166,12 @@ class User {
         'id: $_id, '
         'name: $_name, '
         'email: $_email, '
+        'userName: $_userName, ' // Include this line
         'photoUrl: $_photoUrl, '
         'events: $_events, '
         'groupIds: $_groupIds, '
         'notifications: $_notifications, '
-        'hasNewNotifications: $hasNewNotifications' // Updated line
+        'hasNewNotifications: $hasNewNotifications'
         ')';
   }
 }

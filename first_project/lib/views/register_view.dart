@@ -1,12 +1,13 @@
 // ======= REGISTER =========
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_project/costume_widgets/text_field_widget.dart';
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
-import '../constants/routes.dart';
-import '../costume_widgets/text_field_widget.dart';
+import 'package:flutter/services.dart';
+import '../routes/routes.dart';
 import '../services/auth/auth_exceptions.dart';
 import '../services/auth/implements/auth_service.dart';
-import '../styles/button_styles.dart';
 import '../styles/textfield_styles.dart';
 import '../utilities/show_error_dialog.dart';
 import 'dart:developer' as devtools show log;
@@ -22,8 +23,9 @@ class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   late final TextEditingController _confirmPassword;
+  late final TextEditingController _nameController;
+  late final TextEditingController _userNameController;
   bool buttonHovered = false; // Added buttonHovered variable
-  late final TextEditingController _nameController = TextEditingController();
 
   @override
   void initState() {
@@ -31,6 +33,8 @@ class _RegisterViewState extends State<RegisterView> {
     _email = TextEditingController();
     _password = TextEditingController();
     _confirmPassword = TextEditingController();
+    _nameController = TextEditingController();
+    _userNameController = TextEditingController();
   }
 
   @override
@@ -38,6 +42,18 @@ class _RegisterViewState extends State<RegisterView> {
     _email.dispose();
     _password.dispose();
     super.dispose();
+  }
+
+  Future<bool> _isUserNameTaken(String userName) async {
+    final firestore = FirebaseFirestore.instance;
+    final userCollection = firestore.collection('users');
+
+    final querySnapshot = await userCollection
+        .where('userName', isEqualTo: userName)
+        .limit(1)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty;
   }
 
   @override
@@ -74,12 +90,33 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
                 const SizedBox(height: 25),
                 TextFieldWidget(
-                    controller: _nameController,
-                    decoration: TextFieldStyles.saucyInputDecoration(
-                        hintText: 'Enter your name',
-                        labelText: 'Name',
-                        suffixIcon: Icons.person),
-                    keyboardType: TextInputType.text),
+                  controller: _userNameController,
+                  decoration: TextFieldStyles.saucyInputDecoration(
+                    hintText: 'Enter your username (e.g., john_doe123)',
+                    labelText: 'User Name',
+                    suffixIcon: Icons.verified_user_rounded,
+                  ),
+                  keyboardType: TextInputType.text,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'^[a-zA-Z0-9_]+$')), // Updated regex pattern
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextFieldWidget(
+                  controller: _nameController,
+                  decoration: TextFieldStyles.saucyInputDecoration(
+                      hintText: 'Enter your name',
+                      labelText: 'Name',
+                      suffixIcon: Icons.person),
+                  keyboardType: TextInputType.text,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'^[a-zA-Z0-9_]+$')), // Updated regex pattern
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                ),
                 const SizedBox(height: 10),
                 TextFieldWidget(
                   controller: _email,
@@ -116,6 +153,7 @@ class _RegisterViewState extends State<RegisterView> {
                   height: 50,
                   child: TextButton(
                     onPressed: () async {
+                      final userName = _userNameController.text;
                       final email = _email.text;
                       final password = _password.text;
                       final name = _nameController.text;
@@ -127,11 +165,21 @@ class _RegisterViewState extends State<RegisterView> {
                             context, 'Passwords do not match');
                         return;
                       }
+                      if (await _isUserNameTaken(userName)) {
+                        // Inform the user that the user name is already taken
+                        await showErrorDialog(
+                            context, 'The user name is already taken');
+                        return;
+                      }
+
                       try {
                         // The await keyword is used to wait for the registration process to complete before proceeding.
                         registrationStatus = await AuthService.firebase()
                             .createUser(
-                                name: name, email: email, password: password);
+                                userName: userName,
+                                name: name,
+                                email: email,
+                                password: password);
                         // Sign in the user after successful registration
                         await AuthService.firebase()
                             .logIn(email: email, password: password);
@@ -183,6 +231,7 @@ class _RegisterViewState extends State<RegisterView> {
                       },
                       child: const Text(
                         'Register',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),

@@ -8,7 +8,7 @@ import 'package:first_project/views/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../constants/routes.dart';
+import '../routes/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/event.dart';
 import '../models/group.dart';

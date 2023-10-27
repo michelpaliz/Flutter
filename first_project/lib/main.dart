@@ -1,22 +1,19 @@
 import 'dart:developer' as devtools show log;
-
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/constants/routes.dart';
+import 'package:first_project/routes/routes.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/routeLogger.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_event.dart';
 import 'package:first_project/views/create-group/create_group_data.dart';
-import 'package:first_project/views/create-group/create_group_search_bar.dart';
-import 'package:first_project/views/create_group.dart';
 import 'package:first_project/views/dashboard.dart';
 import 'package:first_project/views/edit_group.dart';
 import 'package:first_project/views/edit_event.dart';
 import 'package:first_project/views/event_detail.dart';
 import 'package:first_project/views/group_details.dart';
 import 'package:first_project/views/group_settings.dart';
+import 'package:first_project/views/home_page.dart';
 import 'package:first_project/views/login_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:first_project/views/register_view.dart';
@@ -24,12 +21,11 @@ import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
-
-import 'costume_widgets/drawer/my_drawer.dart';
 import 'models/group.dart';
 import 'models/user.dart';
 
 //** Logic for my view */
+// main.dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -53,6 +49,7 @@ void main() async {
   runApp(MyApp(currentUser: currentUser));
 }
 
+
 //** UI for my view */
 class MyApp extends StatelessWidget {
   final User? currentUser;
@@ -70,7 +67,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        settings:(context) => const Settings(),
+        settings: (context) => const Settings(),
         loginRoute: (context) => const LoginViewState(),
         registerRoute: (context) => const RegisterView(),
         userCalendar: (context) => const NotesView(),
@@ -135,68 +132,8 @@ class MyApp extends StatelessWidget {
           return SizedBox
               .shrink(); // Return an empty widget or handle the error
         },
-        // createGroupSearchBar: (context) {
-        //    final dynamic arg = ModalRoute.of(context)?.settings.arguments;
-        //    return CreateGroupSearchBar( groupName: arg.,;
-        // }
       },
       home: isLoggedIn ? const HomePage() : const LoginViewState(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: MyDrawer(),
-      body: FutureBuilder(
-        future: AuthService.firebase().initialize(),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return buildBody();
-            default:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-          }
-        },
-      ),
-    );
-  }
-
-  Widget buildBody() {
-    final authService = AuthService.firebase();
-    final currentUser = authService.currentUser;
-
-    return FutureBuilder(
-      future: authService.getCurrentUserAsCustomeModel(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          final costumeUser = snapshot.data as User; // Assuming getCurrentUserAsCustomeModel() returns a User
-          // Set the custom user using the setter
-          authService.costumeUser = costumeUser;
-
-          if (currentUser != null) {
-            final emailVerified = currentUser.isEmailVerified;
-            devtools.log('Is verified ? $emailVerified');
-            if (emailVerified) {
-              return const NotesView();
-            } else {
-              return const VerifyEmailView();
-            }
-          } else {
-            return const LoginViewState();
-          }
-        } else {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
     );
   }
 }

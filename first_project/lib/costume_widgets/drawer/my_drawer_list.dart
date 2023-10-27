@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../constants/routes.dart';
+import '../../routes/routes.dart';
 import '../../services/auth/implements/auth_service.dart';
 
 //* GLOBAL VARIABLES */

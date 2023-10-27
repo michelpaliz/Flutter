@@ -5,7 +5,7 @@ import 'package:first_project/styles/button_styles.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../constants/routes.dart';
+import '../routes/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/group.dart';
 import '../models/user.dart';

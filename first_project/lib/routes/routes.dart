@@ -14,3 +14,4 @@ const eventDetail = '/event-detail';
 const settings = '/settings';
 const createGroupData ='/create-group-data';
 const createGroupSearchBar = '/create-group-search-bar';
+const homePage = '/home-page';
