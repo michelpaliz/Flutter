@@ -145,22 +145,23 @@ class FirebaseAuthProvider implements AuthProvider {
     );
   }
 
-  @override
-  Future<User?> getCurrentUserAsCustomeModel() async {
-    final firebaseUser = _firebaseAuth.currentUser;
-    if (firebaseUser != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .get();
-      if (userSnapshot.exists) {
-        _currentUser = User.fromJson(userSnapshot.data()
-            as Map<String, dynamic>); // Explicit cast to Map<String, dynamic>
-        return _currentUser; // Return the populated user object
-      }
+@override
+Future<User?> getCurrentUserAsCustomeModel() async {
+  final firebaseUser = _firebaseAuth.currentUser;
+  if (firebaseUser != null) {
+    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(firebaseUser.uid)
+        .get();
+    if (userSnapshot.exists) {
+      _currentUser = User.fromJson(userSnapshot.data() as Map<String, dynamic>);
+      return _currentUser; // Return the populated user object
     }
-    return null; // Return null only if the user is not found
   }
+  throw Exception("User data not found"); // Throw an exception when the user doesn't exist
+}
+
+
 
   @override
   User? get costumeUser {

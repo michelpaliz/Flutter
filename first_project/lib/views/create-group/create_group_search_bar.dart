@@ -1,4 +1,3 @@
-import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/costume_widgets/costume_search_bar.dart';
 import 'package:first_project/models/user.dart';
@@ -6,14 +5,9 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class CreateGroupSearchBar extends StatefulWidget {
-  final String groupName;
-  final String groupDescription;
+  final Function(List<User> userInGroup, Map<String, String> userRoles) onDataChanged;
 
-  CreateGroupSearchBar({
-    required this.groupName,
-    required this.groupDescription,
-  });
-
+  CreateGroupSearchBar({required this.onDataChanged});
   @override
   _CreateGroupSearchBarState createState() => _CreateGroupSearchBarState();
 }
@@ -51,11 +45,11 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('name', isEqualTo: username)
+          .where('userName', isEqualTo: username)
           .get();
 
       final List<String> foundUsers =
-          querySnapshot.docs.map((doc) => doc['name'] as String).toList();
+          querySnapshot.docs.map((doc) => doc['userName'] as String).toList();
 
       setState(() {
         searchResults = foundUsers;
@@ -74,7 +68,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('name', isEqualTo: username)
+          .where('userName', isEqualTo: username)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -90,7 +84,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
           }
         });
 
-        print('User added: $user');
+        print('User added: ${user.userName}');
       } else {
         // User with the provided username not found
         print('User not found for username: $username');
@@ -101,10 +95,10 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   }
 
   /** Remove the user using the index of the list  */
-  void removeUser(String user) {
+  void removeUser(String fetchedUserName) {
     // Check if the user is the current user before attempting to remove
-    if (user == currentUser?.name) {
-      print('Cannot remove current user: $user');
+    if (fetchedUserName == currentUser?.userName) {
+      print('Cannot remove current user: $fetchedUserName');
       // Show a message to the user that they cannot remove themselves
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -116,16 +110,16 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
 
     // Find the index of the User object in the userInGroup list that matches the username
-    int indexToRemove = userInGroup.indexWhere((u) => u.name == user);
+    int indexToRemove = userInGroup.indexWhere((u) => u.userName == fetchedUserName);
 
     if (indexToRemove != -1) {
       setState(() {
         userInGroup.removeAt(indexToRemove);
-        selectedUsers.remove(user);
+        selectedUsers.remove(fetchedUserName);
       });
-      print('Remove user: $user');
+      print('Remove user: $fetchedUserName');
     } else {
-      print('User not found in the group: $user');
+      print('User not found in the group: $fetchedUserName');
     }
   }
 
@@ -137,18 +131,9 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 5),
-              Center(
-                child: Text(
-                  "THESE ARE THE USERS SELECTED",
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              SizedBox(height: 5),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: selectedUsers.length,
@@ -157,7 +142,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                     final userRole = userRoles[selectedUser] ?? 'member';
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      padding: const EdgeInsets.all(15.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -279,14 +264,11 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Group Search Bar'),
-      ),
-      body: Column(
+    return Container(
+      child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             child: CustomSearchBar(
               controller: _searchController,
               onChanged: (value) => _searchUser(value),
@@ -299,21 +281,21 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: searchResults.map((user) {
+            children: searchResults.map((userName) {
               return Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(user),
+                      child: Text(userName),
                     ),
                     IconButton(
                       onPressed: () {
                         setState(() {
-                          clickedUser = user;
+                          clickedUser = userName;
                         });
-                        addUser(user); // Call the addUser function here
+                        addUser(userName); // Call the addUser function here
                       },
                       icon: Icon(Icons.add),
                     ),
@@ -321,9 +303,9 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                       onPressed: () {
                         setState(() {
                           clickedUser =
-                              null; // Reset clickedUser when removing the user
+                              null; // Reset clickedUser when removing the userName
                         });
-                        removeUser(user); // Call the removeUser function here
+                        removeUser(userName); // Call the removeUser function here
                       },
                       icon: Icon(Icons.remove),
                     ),

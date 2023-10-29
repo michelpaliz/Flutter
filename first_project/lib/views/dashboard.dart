@@ -272,7 +272,8 @@ class _DashboardState extends State<Dashboard> {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   // Handle the case where there are no groups available.
-                  return Center(child: Text("There are no groups available"));
+                  return Center(child: Text("NO GROUP/S FOUND/S", style: TextStyle(fontSize: 
+                  15),), );
                 } else {
                   // Data is available, display the list of groups.
                   List<Group> userGroups = snapshot.data!;
