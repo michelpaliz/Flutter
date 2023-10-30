@@ -5,7 +5,8 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class CreateGroupSearchBar extends StatefulWidget {
-  final Function(List<User> userInGroup, Map<String, String> userRoles) onDataChanged;
+  final Function(List<User> userInGroup, Map<String, String> userRoles)
+      onDataChanged;
 
   CreateGroupSearchBar({required this.onDataChanged});
   @override
@@ -14,31 +15,32 @@ class CreateGroupSearchBar extends StatefulWidget {
 
 class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   List<String> searchResults = [];
-  Map<String, String> userRoles = {}; // Map to store user roles
+  Map<String, String> userRoles = {};
   late List<String> filteredItems;
   TextEditingController _searchController = TextEditingController();
   bool isListVisible = false;
   User? currentUser = null;
-  List<User> userInGroup = []; // List to store selected users
+  List<User> userInGroup = [];
   List<String> selectedUsers = [];
   String? clickedUser;
 
   @override
   void initState() {
     super.initState();
-    AuthService.firebase()
-        .getCurrentUserAsCustomeModel()
-        .then((User? fetchedUser) {
-      if (fetchedUser != null) {
-        setState(() {
-          currentUser = fetchedUser;
-          userInGroup = [currentUser!];
-          selectedUsers = [currentUser!.name];
-          // Set the default role to administrator for the current user
-          userRoles[currentUser!.name] = 'Administrator';
-        });
-      }
-    });
+    initializeVariables();
+  }
+
+  Future<void> initializeVariables() async {
+    final fetchedUser =
+        await AuthService.firebase().getCurrentUserAsCustomeModel();
+    if (fetchedUser != null) {
+      setState(() {
+        currentUser = fetchedUser;
+        userInGroup = [currentUser!];
+        selectedUsers = [currentUser!.userName];
+        userRoles[currentUser!.userName] = 'Administrator';
+      });
+    }
   }
 
   void _searchUser(String username) async {
@@ -78,9 +80,12 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
         final user = User.fromJson(userData);
 
         setState(() {
-          if (!selectedUsers.contains(user.name)) {
-            selectedUsers.add(user.name);
+          if (!selectedUsers.contains(user.userName)) {
+            selectedUsers.add(user.userName);
             userInGroup.add(user);
+            userRoles[user.userName] =
+                'Member'; // Set the default role for the new user
+            widget.onDataChanged(userInGroup, userRoles);
           }
         });
 
@@ -110,12 +115,14 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
 
     // Find the index of the User object in the userInGroup list that matches the username
-    int indexToRemove = userInGroup.indexWhere((u) => u.userName == fetchedUserName);
+    int indexToRemove =
+        userInGroup.indexWhere((u) => u.userName == fetchedUserName);
 
     if (indexToRemove != -1) {
       setState(() {
         userInGroup.removeAt(indexToRemove);
         selectedUsers.remove(fetchedUserName);
+        widget.onDataChanged(userInGroup, userRoles);
       });
       print('Remove user: $fetchedUserName');
     } else {
@@ -139,7 +146,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                   itemCount: selectedUsers.length,
                   itemBuilder: (context, index) {
                     final selectedUser = selectedUsers[index];
-                    final userRole = userRoles[selectedUser] ?? 'member';
+                    final userRole = userRoles[selectedUser] ?? 'Member';
 
                     return Padding(
                       padding: const EdgeInsets.all(15.0),
@@ -153,7 +160,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (selectedUser == currentUser!.name)
+                          if (selectedUser == currentUser!.userName)
                             Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
@@ -193,7 +200,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                       style: TextStyle(fontSize: 14)),
                                 ),
                                 DropdownMenuItem<String>(
-                                  value: 'member',
+                                  value: 'Member',
                                   child: Text('Member',
                                       style: TextStyle(fontSize: 14)),
                                 ),
@@ -201,6 +208,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                               onChanged: (newValue) {
                                 setState(() {
                                   userRoles[selectedUser] = newValue!;
+                                  widget.onDataChanged(userInGroup, userRoles);
                                 });
                               },
                             ),
@@ -265,57 +273,60 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: CustomSearchBar(
-              controller: _searchController,
-              onChanged: (value) => _searchUser(value),
-              onSearch: () {}, // Provide an empty function as a placeholder
-              onClear: () {
-                _searchController.clear();
-                _searchUser('');
-              },
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+              child: CustomSearchBar(
+                controller: _searchController,
+                onChanged: (value) => _searchUser(value),
+                onSearch: () {}, // Provide an empty function as a placeholder
+                onClear: () {
+                  _searchController.clear();
+                  _searchUser('');
+                },
+              ),
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: searchResults.map((userName) {
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(userName),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          clickedUser = userName;
-                        });
-                        addUser(userName); // Call the addUser function here
-                      },
-                      icon: Icon(Icons.add),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          clickedUser =
-                              null; // Reset clickedUser when removing the userName
-                        });
-                        removeUser(userName); // Call the removeUser function here
-                      },
-                      icon: Icon(Icons.remove),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-          _buildSelectedUsersList()
-        ],
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: searchResults.map((userName) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(userName),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            clickedUser = userName;
+                          });
+                          addUser(userName); // Call the addUser function here
+                        },
+                        icon: Icon(Icons.add),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            clickedUser =
+                                null; // Reset clickedUser when removing the userName
+                          });
+                          removeUser(
+                              userName); // Call the removeUser function here
+                        },
+                        icon: Icon(Icons.remove),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            _buildSelectedUsersList()
+          ],
+        ),
       ),
     );
   }

@@ -6,7 +6,6 @@ import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/styles/button_styles.dart';
 import 'package:first_project/views/create-group/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,17 +22,34 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
   StoreService _storeService = StoreService.firebase();
-  User? _currentUser = AuthService.firebase().costumeUser;
-  
-  set userRoles(Map<String, String> userRoles) {}
-  
-  set userInGroup(List<User> userInGroup) {}
+  User? _currentUser;
+  Map<String, String> _userRoles = {}; // Map to store user roles
+  List<User> _userInGroup = []; // List to store selected users
 
-  void onDataChanged(List<User> userInGroup, Map<String, String> userRoles) {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize instance variables in the initState method
+    _groupName = '';
+    _groupDescription = '';
+    _selectedImage = null;
+    _userRoles = {};
+    _userInGroup = [];
+    _currentUser = AuthService.firebase().costumeUser;
+  }
+
+  void _onDataChanged(
+      List<User> updatedUserInGroup, Map<String, String> updatedUserRoles) {
+    // Print the new data before updating the state
+    print('Updated User In Group: $updatedUserInGroup');
+    print('Updated User Roles: $updatedUserRoles');
+
     // Update the state of CreateGroupData with the received data
     setState(() {
-      this.userInGroup = userInGroup;
-      this.userRoles = userRoles;
+      _userInGroup =
+          updatedUserInGroup; // Assign the received data directly to the fields
+      _userRoles =
+          updatedUserRoles; // Assign the received data directly to the fields
     });
   }
 
@@ -54,15 +70,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     // You can perform your search action with the 'query' parameter
     print('Search query: $query');
     // Add your logic here
-  }
-
-  void goToAnotherView() {
-    // Navigate to another view and pass the group name and group description as arguments.
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CreateGroupSearchBar(),
-      ),
-    );
   }
 
   void _saveGroup() {
@@ -131,7 +138,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         id: groupId,
         groupName: _groupName,
         ownerId: _currentUser!.id,
-        userRoles: userRoles,
+        userRoles: _userRoles,
         calendar: calendar,
         // users: userInGroup, // Include the list of users in the group
         users: users,
@@ -155,14 +162,13 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         '${_currentUser?.name.toUpperCase()} invited you to a group';
     // Create the notification message for the group
     String notificationMessage =
-        '${_currentUser?.name.toUpperCase()} invited you to this Group: ${group._groupName}}';
-
+        '${_currentUser?.name.toUpperCase()} invited you to this Group: ${group.groupName}';
     String notificationQuestion = 'Would you like to join to this group ?';
 
-    print(userInGroup);
+    print(_userInGroup);
 
     // Add a new notification for each user in the group
-    for (User user in userInGroup) {
+    for (User user in _userInGroup) {
       if (user.id != _currentUser!.id) {
         // Compare using user IDs
         NotificationUser notification = NotificationUser(
@@ -247,7 +253,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
               SizedBox(height: 5),
               CreateGroupSearchBar(
                 onDataChanged:
-                    onDataChanged, // Pass the callback function to CreateGroupSearchBar
+                    _onDataChanged, // Pass the callback function to CreateGroupSearchBar
               ),
               SizedBox(height: 10),
               TextButton(
