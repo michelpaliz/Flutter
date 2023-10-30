@@ -24,7 +24,7 @@ class CustomSearchBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
         ),
         filled: true,
-        fillColor: Color.fromARGB(255, 223, 228, 231), // Background color
+        fillColor: Color.fromARGB(255, 255, 255, 255), // Background color
         prefixIcon: MouseRegion(
           onEnter: (_) {
             onSearch(); // Perform search when the icon is clicked

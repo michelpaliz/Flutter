@@ -149,7 +149,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                     final userRole = userRoles[selectedUser] ?? 'Member';
 
                     return Padding(
-                      padding: const EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15.0, vertical: 5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -169,11 +170,13 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                 color: Colors.grey[300],
                                 borderRadius: BorderRadius.circular(5),
                               ),
-                              child: Text(
-                                userRole,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                              child: Center(
+                                child: Text(
+                                  userRole,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             )
@@ -190,19 +193,21 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                               ),
                               items: [
                                 DropdownMenuItem<String>(
-                                  value: 'Administrator',
-                                  child: Text('Administrator',
-                                      style: TextStyle(fontSize: 14)),
-                                ),
+                                    value: 'Administrator',
+                                    child: Center(
+                                        child: Text('Administrator',
+                                            style: TextStyle(fontSize: 14)))),
                                 DropdownMenuItem<String>(
                                   value: 'Co-Administrator',
-                                  child: Text('Co-Administrator',
-                                      style: TextStyle(fontSize: 14)),
+                                  child: Center(
+                                      child: Text('Co-Administrator',
+                                          style: TextStyle(fontSize: 14))),
                                 ),
                                 DropdownMenuItem<String>(
                                   value: 'Member',
-                                  child: Text('Member',
-                                      style: TextStyle(fontSize: 14)),
+                                  child: Center(
+                                      child: Text('Member',
+                                          style: TextStyle(fontSize: 14))),
                                 ),
                               ],
                               onChanged: (newValue) {
@@ -273,6 +278,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 250,
       child: SingleChildScrollView(
         child: Column(
           children: [
@@ -293,7 +299,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
               children: searchResults.map((userName) {
                 return Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      const EdgeInsets.symmetric(horizontal: 50.0, vertical: 5),
                   child: Row(
                     children: [
                       Expanded(

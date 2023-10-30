@@ -22,9 +22,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
   StoreService _storeService = StoreService.firebase();
-  User? _currentUser;
-  Map<String, String> _userRoles = {}; // Map to store user roles
-  List<User> _userInGroup = []; // List to store selected users
+  User? _currentUser = AuthService.firebase().costumeUser;
+  Map<String, String> userRoles = {}; // Map to store user roles
+  List<User> userInGroup = []; // List to store selected users
 
   @override
   void initState() {
@@ -33,9 +33,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     _groupName = '';
     _groupDescription = '';
     _selectedImage = null;
-    _userRoles = {};
-    _userInGroup = [];
-    _currentUser = AuthService.firebase().costumeUser;
+    userRoles = {};
+    userInGroup = [];
   }
 
   void _onDataChanged(
@@ -46,9 +45,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
     // Update the state of CreateGroupData with the received data
     setState(() {
-      _userInGroup =
+      userInGroup =
           updatedUserInGroup; // Assign the received data directly to the fields
-      _userRoles =
+      userRoles =
           updatedUserRoles; // Assign the received data directly to the fields
     });
   }
@@ -138,7 +137,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         id: groupId,
         groupName: _groupName,
         ownerId: _currentUser!.id,
-        userRoles: _userRoles,
+        userRoles: userRoles,
         calendar: calendar,
         // users: userInGroup, // Include the list of users in the group
         users: users,
@@ -165,10 +164,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         '${_currentUser?.name.toUpperCase()} invited you to this Group: ${group.groupName}';
     String notificationQuestion = 'Would you like to join to this group ?';
 
-    print(_userInGroup);
+    print(userInGroup);
 
     // Add a new notification for each user in the group
-    for (User user in _userInGroup) {
+    for (User user in userInGroup) {
       if (user.id != _currentUser!.id) {
         // Compare using user IDs
         NotificationUser notification = NotificationUser(
@@ -194,84 +193,128 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       appBar: AppBar(
         title: Text('Group Data'),
       ),
-      body: SingleChildScrollView(
-        // Wrap the content with SingleChildScrollView
-        child: Padding(
-          // Wrap the Column with Padding
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: 20.0),
-                child: GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey,
+      body: Column(
+        // Use a Column to stack the widgets vertically
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              // Use Expanded with SingleChildScrollView
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey,
+                          ),
+                          child: Center(
+                            child: _selectedImage != null
+                                ? Image.file(File(_selectedImage!.path))
+                                : Icon(
+                                    Icons.add_a_photo,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
-                    child: Center(
-                      child: _selectedImage != null
-                          ? Image.file(File(_selectedImage!.path))
-                          : Icon(
-                              Icons.add_a_photo,
-                              size: 50,
-                              color: Colors.white,
-                            ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Put an image for your group if you want',
+                      style: TextStyle(color: Colors.grey),
                     ),
-                  ),
+                    SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        onChanged: (value) => _groupName = value,
+                        decoration: InputDecoration(
+                          labelText: 'Enter group name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        onChanged: (value) => _groupDescription = value,
+                        decoration: InputDecoration(
+                          labelText: 'Enter group description',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    TextButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text("Dialog Title"),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: CreateGroupSearchBar(
+                                      onDataChanged: _onDataChanged,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text("Close"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Text('Add user'),
+                      ),
+                    )
+
+                    // CreateGroupSearchBar(
+                    //   onDataChanged: _onDataChanged,
+                    // ),
+                  ],
                 ),
               ),
-              SizedBox(height: 5),
-              Text(
-                'Put an image for your group if you want',
-                style: TextStyle(color: Colors.grey),
-              ),
-              SizedBox(height: 15),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  onChanged: (value) => _groupName = value,
-                  decoration: InputDecoration(
-                    labelText: 'Enter group name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  onChanged: (value) => _groupDescription = value,
-                  decoration: InputDecoration(
-                    labelText: 'Enter group description',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              SizedBox(height: 5),
-              CreateGroupSearchBar(
-                onDataChanged:
-                    _onDataChanged, // Pass the callback function to CreateGroupSearchBar
-              ),
-              SizedBox(height: 10),
-              TextButton(
-                  onPressed: () {
-                    _saveGroup();
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.group_add_rounded),
-                      SizedBox(width: 8),
-                      Text('Save Group', style: TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                  style: ColorProperties.defaultButton())
-            ],
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextButton(
+              onPressed: () {
+                _saveGroup();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.group_add_rounded),
+                  SizedBox(width: 8),
+                  Text('Save Group', style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              style: ColorProperties.defaultButton(),
+            ),
+          ),
+        ],
       ),
     );
   }
