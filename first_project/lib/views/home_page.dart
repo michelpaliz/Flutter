@@ -35,7 +35,7 @@ class HomePage extends StatelessWidget {
       throw new UserNotFoundAuthException();
     }
     return FutureBuilder(
-      future: authService.getCurrentUserAsCustomeModel(),
+      future: authService.generateUserCustomeModel(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           final costumeUser = snapshot.data;

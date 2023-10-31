@@ -263,11 +263,18 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Text("Dialog Title"),
-                                  ),
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Center(
+                                        child: Text(
+                                          "ADD A NEW USER TO YOUR GROUP",
+                                          style: TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      )),
                                   Padding(
-                                    padding: const EdgeInsets.all(16.0),
+                                    padding: const EdgeInsets.all(10.0),
                                     child: CreateGroupSearchBar(
                                       onDataChanged: _onDataChanged,
                                     ),

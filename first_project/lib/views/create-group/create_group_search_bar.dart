@@ -32,7 +32,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
   Future<void> initializeVariables() async {
     final fetchedUser =
-        await AuthService.firebase().getCurrentUserAsCustomeModel();
+        await AuthService.firebase().generateUserCustomeModel();
     if (fetchedUser != null) {
       setState(() {
         currentUser = fetchedUser;

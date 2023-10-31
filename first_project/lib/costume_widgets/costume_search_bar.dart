@@ -19,7 +19,7 @@ class CustomSearchBar extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       decoration: InputDecoration(
-        labelText: 'Search for a person',
+        labelText: 'Search by user name',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
         ),

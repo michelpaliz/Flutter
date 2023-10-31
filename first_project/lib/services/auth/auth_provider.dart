@@ -13,6 +13,6 @@ abstract class AuthProvider {
       {required String userName, required String name, required String email, required String password});
   Future<void> logOut();
   Future<void> sendEmailVerification();
-  Future<User?> getCurrentUserAsCustomeModel();
+  Future<User?> generateUserCustomeModel();
 
 }

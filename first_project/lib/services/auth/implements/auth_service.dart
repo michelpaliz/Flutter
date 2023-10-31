@@ -3,9 +3,6 @@ import 'package:first_project/services/auth/auth_provider.dart';
 import 'package:first_project/services/auth/auth_user.dart';
 import 'package:first_project/services/auth/implements/firebase_auth_provider.dart';
 
-//WE FUSE ALL THE SERVERS
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-
 class AuthService implements AuthProvider {
   final AuthProvider provider;
   const AuthService._(this.provider);
@@ -55,8 +52,8 @@ class AuthService implements AuthProvider {
   Future<void> initialize() => provider.initialize();
 
   @override
-  Future<User?> getCurrentUserAsCustomeModel() =>
-      provider.getCurrentUserAsCustomeModel();
+  Future<User?> generateUserCustomeModel() =>
+      provider.generateUserCustomeModel();
 
   @override
   User? get costumeUser => provider.costumeUser;

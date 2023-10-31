@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/calendar.dart';
 import '../models/group.dart';
 import '../models/notification_user.dart';
@@ -40,7 +41,7 @@ class _CreateGroupState extends State<CreateGroup> {
     super.initState();
     // Call getCurrentUserAsCustomeModel to populate currentUser
     AuthService.firebase()
-        .getCurrentUserAsCustomeModel()
+        .generateUserCustomeModel()
         .then((User? fetchedUser) {
       if (fetchedUser != null) {
         setState(() {

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/routes/routes.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/routeLogger.dart';
+import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/add_event.dart';
@@ -36,19 +37,27 @@ void main() async {
     print('Error initializing Firebase: $error');
   }
 
-  // Check the current user's authentication status
-  User? currentUser;
+  // Create an instance of AuthService
+  final AuthService authService = AuthService.firebase();
+
+  // Initialize AuthService (if needed, e.g., for authentication)
   try {
-    currentUser =
-        await getCurrentUser(); // Replace with your authentication method
+    await authService.initialize();
   } catch (error) {
-    currentUser = null;
-    UserNotFoundException();
+    print('Error initializing AuthService: $error');
   }
 
-  runApp(MyApp(currentUser: currentUser));
-}
+  // Generate the custom user model
+  User? customUser = await authService.generateUserCustomeModel();
 
+  // Set the custom user model in AuthService
+  authService.costumeUser = customUser;
+
+  // Retrieve the current user from AuthService
+  User? userFetched = authService.costumeUser;
+
+  runApp(MyApp(currentUser: userFetched, ));
+}
 
 //** UI for my view */
 class MyApp extends StatelessWidget {

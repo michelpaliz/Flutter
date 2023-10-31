@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/auth_user.dart';
+
 import '../../../firebase_options.dart';
 import '../../../models/user.dart';
 import '../../firestore/implements/firestore_service.dart';
@@ -146,7 +148,7 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
 @override
-Future<User?> getCurrentUserAsCustomeModel() async {
+Future<User?> generateUserCustomeModel() async {
   final firebaseUser = _firebaseAuth.currentUser;
   if (firebaseUser != null) {
     DocumentSnapshot userSnapshot = await FirebaseFirestore.instance

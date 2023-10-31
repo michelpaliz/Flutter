@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
@@ -25,7 +26,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   void getCurrentUser() {
     AuthService.firebase()
-        .getCurrentUserAsCustomeModel()
+        .generateUserCustomeModel()
         .then((User? fetchedUser) {
       if (fetchedUser != null) {
         setState(() {

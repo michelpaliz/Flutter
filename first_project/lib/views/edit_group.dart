@@ -42,7 +42,7 @@ class _EditGroupState extends State<EditGroup> {
   }
 
   Future<void> _getCurrentUser() async {
-    currentUser = await authService.getCurrentUserAsCustomeModel();
+    currentUser = await authService.generateUserCustomeModel();
     setState(() {}); // Refresh the user data and userGroups
   }
 
