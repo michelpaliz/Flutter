@@ -32,27 +32,21 @@ class HomePage extends StatelessWidget {
     final authService = AuthService.firebase();
     final currentUser = authService.currentUser;
     if (currentUser == null) {
-      throw new UserNotFoundAuthException();
+      throw UserNotFoundAuthException();
     }
-    return FutureBuilder(
-      future: authService.generateUserCustomeModel(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          final costumeUser = snapshot.data;
-          authService.costumeUser = costumeUser;
-          final emailVerified = currentUser.isEmailVerified;
-          // devtools.log('Is verified ? $emailVerified');
-          if (emailVerified) {
-            return const NotesView();
-          } else {
-            return const VerifyEmailView();
-          }
-        } else {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
+    final costumeUser = authService.costumeUser;
+    if (costumeUser != null) {
+      final emailVerified = currentUser.isEmailVerified;
+      if (emailVerified) {
+        return const NotesView();
+      } else {
+        return const VerifyEmailView();
+      }
+    } else {
+      // Handle the case where costumeUser is not available
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
   }
 }

@@ -18,6 +18,39 @@ class FirebaseAuthProvider implements AuthProvider {
   // Private variable to store the current user
   User? _currentUser;
 
+  // Add a StreamController for the authentication state
+  final StreamController<User?> _authStateController =
+      StreamController<User?>();
+
+  // Define a getter to access the authentication state stream
+  Stream<User?> get authStateStream => _authStateController.stream;
+
+  FirebaseAuthProvider() {
+    // Initialize the authentication state listener
+    initializeAuthStateListener();
+  }
+
+  void initializeAuthStateListener() {
+    // Listen to authentication state changes and add them to the stream
+    _firebaseAuth.authStateChanges().listen((user) async {
+      // Fetch and update the custom user model based on the user's email
+      final updatedUser = (user != null)
+          ? await _getUserDataFromFirestore(user.email.toString())
+          : null;
+
+      // Only update the _currentUser if it's different from the previous one
+      if (_currentUser != updatedUser) {
+        _currentUser = updatedUser;
+        _authStateController.add(_currentUser);
+      }
+    });
+  }
+
+  // Remember to dispose of the stream controller when it's no longer needed
+  void dispose() {
+    _authStateController.close();
+  }
+
   @override
   Future<String> createUser({
     required String userName,
@@ -147,23 +180,45 @@ class FirebaseAuthProvider implements AuthProvider {
     );
   }
 
-@override
-Future<User?> generateUserCustomeModel() async {
-  final firebaseUser = _firebaseAuth.currentUser;
-  if (firebaseUser != null) {
-    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(firebaseUser.uid)
-        .get();
-    if (userSnapshot.exists) {
-      _currentUser = User.fromJson(userSnapshot.data() as Map<String, dynamic>);
-      return _currentUser; // Return the populated user object
+  @override
+  Future<User?> generateUserCustomeModel() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+      if (userSnapshot.exists) {
+        _currentUser =
+            User.fromJson(userSnapshot.data() as Map<String, dynamic>);
+        return _currentUser; // Return the populated user object
+      }
+    }
+    throw Exception(
+        "User data not found"); // Throw an exception when the user doesn't exist
+  }
+
+// Fetch user data from Firestore based on the provided userId
+// Fetch user data from Firestore based on the provided email
+  Future<User?> _getUserDataFromFirestore(String userEmail) async {
+    try {
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: userEmail) // Query by email
+          .get();
+
+      if (userSnapshot.docs.isNotEmpty) {
+        // In this example, we assume that email is unique, so we use the first document found.
+        final userData = userSnapshot.docs.first.data();
+        return User.fromJson(userData);
+      }
+
+      return null; // Return null when the user doesn't exist in Firestore
+    } catch (e) {
+      print("Error fetching user data from Firestore: $e");
+      return null;
     }
   }
-  throw Exception("User data not found"); // Throw an exception when the user doesn't exist
-}
-
-
 
   @override
   User? get costumeUser {

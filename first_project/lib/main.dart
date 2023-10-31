@@ -54,9 +54,9 @@ void main() async {
   authService.costumeUser = customUser;
 
   // Retrieve the current user from AuthService
-  User? userFetched = authService.costumeUser;
+  User? costumeUser = authService.costumeUser;
 
-  runApp(MyApp(currentUser: userFetched, ));
+  runApp(MyApp(currentUser: costumeUser, ));
 }
 
 //** UI for my view */
