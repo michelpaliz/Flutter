@@ -2,7 +2,7 @@ import 'package:first_project/costume_widgets/drawer/my_drawer.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/views/notes_view.dart';
-import 'package:first_project/views/verify_email_view.dart';
+import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {

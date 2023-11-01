@@ -222,100 +222,104 @@ class _DashboardState extends State<Dashboard> {
       ),
       drawer: MyDrawer(),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Groups",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(width: 10), // Add space between text and icon
-                      GestureDetector(
-                        onTap:
-                            _toggleScrollDirection, // Toggle the scroll direction
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.dashboard,
-                            // Add your icon properties here
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Groups",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(
+                                  width: 10), // Add space between text and icon
+                              GestureDetector(
+                                onTap:
+                                    _toggleScrollDirection, // Toggle the scroll direction
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.dashboard,
+                                    // Add your icon properties here
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Container(
-            height: 100,
-            child: FutureBuilder<List<Group>>(
-              future: _getUserGroups(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Display a loading indicator while waiting for the data.
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  // Handle any errors that occur during the data retrieval.
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  // Handle the case where there are no groups available.
-                  return Center(child: Text("NO GROUP/S FOUND/S", style: TextStyle(fontSize: 
-                  15),), );
-                } else {
-                  // Data is available, display the list of groups.
-                  List<Group> userGroups = snapshot.data!;
-                  return ListView.builder(
-                    scrollDirection: _scrollDirection,
-                    itemCount: userGroups.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () async {
-                          Group _group = userGroups[index];
-                          User _groupOwner =
-                              await _storeService.getOwnerFromGroup(_group);
-                          showProfileAlertDialog(context, _group, _groupOwner);
-                        },
-                        child: buildCard(userGroups[index]),
-                      );
-                    },
-                  );
-                }
-              },
-            ),
-          ),
-          SizedBox(height: 15),
-          Center(
-            child: TextButton(
-              onPressed: () {
-                _createGroup();
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.group_add),
-                  SizedBox(width: 8),
-                  Text('Add a new Group',
-                      style: TextStyle(color: Colors.white)),
+                  SizedBox(height: 20),
+                  Container(
+                    height: 100,
+                    child: FutureBuilder<List<Group>>(
+                      future: _getUserGroups(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          // Display a loading indicator while waiting for the data.
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          // Handle any errors that occur during the data retrieval.
+                          return Center(
+                              child: Text("Error: ${snapshot.error}"));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          // Handle the case where there are no groups available.
+                          return Center(
+                            child: Text(
+                              "NO GROUP/S FOUND/S",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          );
+                        } else {
+                          // Data is available, display the list of groups.
+                          List<Group> userGroups = snapshot.data!;
+                          return ListView.builder(
+                            scrollDirection: _scrollDirection,
+                            itemCount: userGroups.length,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  Group _group = userGroups[index];
+                                  User _groupOwner = await _storeService
+                                      .getOwnerFromGroup(_group);
+                                  showProfileAlertDialog(
+                                      context, _group, _groupOwner);
+                                },
+                                child: buildCard(userGroups[index]),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  ),
                 ],
               ),
-              style: ColorProperties.defaultButton(),
             ),
           ),
-          SizedBox(height: 15)
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _createGroup();
+        },
+        child: Icon(Icons.group_add_rounded),
       ),
     );
   }

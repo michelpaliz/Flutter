@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:flutter/material.dart';
 
-import '../models/notification_user.dart';
-import '../models/user.dart';
-import '../services/auth/implements/auth_service.dart';
-import '../services/firestore/implements/firestore_service.dart';
+import '../../models/notification_user.dart';
+import '../../models/user.dart';
+import '../../services/auth/implements/auth_service.dart';
+import '../../services/firestore/implements/firestore_service.dart';
 
 class EditGroup extends StatefulWidget {
   final Group group; // Add this line to accept the parameter

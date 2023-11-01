@@ -18,6 +18,11 @@ class FirebaseAuthProvider implements AuthProvider {
   // Private variable to store the current user
   User? _currentUser;
 
+  FirebaseAuthProvider() {
+    // Initialize the authentication state listener
+    _initializeAuthStateListener();
+  }
+
   // Add a StreamController for the authentication state
   final StreamController<User?> _authStateController =
       StreamController<User?>();
@@ -25,12 +30,7 @@ class FirebaseAuthProvider implements AuthProvider {
   // Define a getter to access the authentication state stream
   Stream<User?> get authStateStream => _authStateController.stream;
 
-  FirebaseAuthProvider() {
-    // Initialize the authentication state listener
-    initializeAuthStateListener();
-  }
-
-  void initializeAuthStateListener() {
+  void _initializeAuthStateListener() {
     // Listen to authentication state changes and add them to the stream
     _firebaseAuth.authStateChanges().listen((user) async {
       // Fetch and update the custom user model based on the user's email
@@ -38,7 +38,7 @@ class FirebaseAuthProvider implements AuthProvider {
           ? await _getUserDataFromFirestore(user.email.toString())
           : null;
 
-      // Only update the _currentUser if it's different from the previous one
+      // Update the _currentUser if it's different from the previous one
       if (_currentUser != updatedUser) {
         _currentUser = updatedUser;
         _authStateController.add(_currentUser);
@@ -46,7 +46,7 @@ class FirebaseAuthProvider implements AuthProvider {
     });
   }
 
-  // Remember to dispose of the stream controller when it's no longer needed
+  // Dispose the stream controller when it's no longer needed
   void dispose() {
     _authStateController.close();
   }
@@ -198,7 +198,6 @@ class FirebaseAuthProvider implements AuthProvider {
         "User data not found"); // Throw an exception when the user doesn't exist
   }
 
-// Fetch user data from Firestore based on the provided userId
 // Fetch user data from Firestore based on the provided email
   Future<User?> _getUserDataFromFirestore(String userEmail) async {
     try {

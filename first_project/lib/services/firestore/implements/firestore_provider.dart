@@ -51,7 +51,6 @@ class FireStoreProvider implements StoreProvider {
 
         _authService.costumeUser = user;
 
-
         //We update the user in his groups
         if (user.groupIds.isNotEmpty) {
           updateUserInGroups(user);
@@ -377,7 +376,7 @@ class FireStoreProvider implements StoreProvider {
     try {
       QuerySnapshot querySnapshot = await _firestore
           .collection('users')
-          .where('username', isEqualTo: userName)
+          .where('userName', isEqualTo: userName)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -479,6 +478,36 @@ class FireStoreProvider implements StoreProvider {
     } catch (e) {
       print("Error while getting event: $e");
       return null;
+    }
+  }
+
+  Future<User?> getUserByUserName(String userName) async {
+    try {
+      // 1. Query Firestore to retrieve the user document with the matching username.
+      QuerySnapshot userQuerySnapshot = await _firestore
+          .collection('users')
+          .where('userName', isEqualTo: userName)
+          .get();
+
+      // 2. Check if a user with the given username exists.
+      if (userQuerySnapshot.docs.isNotEmpty) {
+        // 3. Get the first document (assuming usernames are unique) and convert it to JSON format.
+        Map<String, dynamic> userData =
+            userQuerySnapshot.docs.first.data() as Map<String, dynamic>;
+
+        // 4. Create a User object using the `fromJson` method.
+        User user =
+            User.fromJson(userData); // Replace with your JSON parsing logic
+
+        return user;
+      } else {
+        // User with the provided username was not found.
+        return null;
+      }
+    } catch (e) {
+      // Handle any errors that may occur during the process.
+      print("Error retrieving user: $e");
+      rethrow; // Rethrow the error for higher-level handling if needed.
     }
   }
 }

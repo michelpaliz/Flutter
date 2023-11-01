@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-import '../models/calendar.dart';
-import '../models/group.dart';
-import '../models/notification_user.dart';
-import '../models/user.dart';
-import '../services/auth/implements/auth_service.dart';
-import '../services/firestore/implements/firestore_service.dart';
+import '../../models/calendar.dart';
+import '../../models/group.dart';
+import '../../models/notification_user.dart';
+import '../../models/user.dart';
+import '../../services/auth/implements/auth_service.dart';
+import '../../services/firestore/implements/firestore_service.dart';
 
 class CreateGroup extends StatefulWidget {
   const CreateGroup({Key? key}) : super(key: key);

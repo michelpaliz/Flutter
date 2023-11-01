@@ -90,4 +90,7 @@ class StoreService extends StoreProvider {
   @override
   Future<Event?> getEventFromUserById(User user, String eventId) =>
       provider.getEventFromUserById(user, eventId);
+
+  @override
+  Future<User?> getUserByUserName(String userName) => provider.getUserByUserName(userName);
 }

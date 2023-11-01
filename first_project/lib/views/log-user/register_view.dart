@@ -5,11 +5,11 @@ import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../routes/routes.dart';
-import '../services/auth/auth_exceptions.dart';
-import '../services/auth/implements/auth_service.dart';
-import '../styles/textfield_styles.dart';
-import '../utilities/show_error_dialog.dart';
+import '../../routes/routes.dart';
+import '../../services/auth/auth_exceptions.dart';
+import '../../services/auth/implements/auth_service.dart';
+import '../../styles/textfield_styles.dart';
+import '../../utilities/show_error_dialog.dart';
 import 'dart:developer' as devtools show log;
 
 class RegisterView extends StatefulWidget {

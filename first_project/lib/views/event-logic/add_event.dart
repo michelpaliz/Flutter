@@ -1,165 +1,113 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
-import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import '../models/event.dart';
-import '../services/firestore/implements/firestore_service.dart';
-import '../styles/app_bar_styles.dart';
+import 'package:uuid/uuid.dart';
+import '../../models/event.dart';
+import '../../models/group.dart';
+import '../../models/user.dart';
+import '../../services/firestore/implements/firestore_service.dart';
+import '../../styles/app_bar_styles.dart';
 
-//*
-class EditNoteScreen extends StatefulWidget {
-  final Event event;
-  EditNoteScreen({required this.event});
+class EventNoteWidget extends StatefulWidget {
+  final User? user;
+  final Group? group;
+
+  EventNoteWidget({Key? key, this.user, this.group}) : super(key: key);
+
   @override
-  _EditNoteScreenState createState() => _EditNoteScreenState();
+  _EventNoteWidgetState createState() =>
+      _EventNoteWidgetState(user: user, group: group);
 }
 
-class _EditNoteScreenState extends State<EditNoteScreen> {
-  StoreService storeService = StoreService.firebase();
-  late Event _event;
-
-//** LOGIC VARIABLES  */
+class _EventNoteWidgetState extends State<EventNoteWidget> {
+  //** LOGIC VARIABLES  */
+  final User? user;
+  final Group? group;
+  Event? event;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
-  List<Event> _eventList = [];
+  // late TextEditingController _eventController;
+  List<Event> eventList = [];
   //** CONTROLLERS  */
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _noteController;
-  late TextEditingController _locationController;
+  StoreService storeService = StoreService.firebase();
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _descriptionController =
+      TextEditingController(); // Add the controller for the description
+  TextEditingController _noteController =
+      TextEditingController(); // Add the controller for the note
+  TextEditingController _locationController = TextEditingController(); // Add t
   //** LOGIC VARIABLES FOR THE VIEW */
-  final double _toggleWidth = 50.0;
+  final double toggleWidth = 50.0; // Width of the toggle button (constant)
   var selectedDayOfWeek;
-  late bool _isRepetitive;
+  late bool isRepetitive = false;
   bool? isAllDay = false;
-  late RecurrenceRule? _recurrenceRule = null;
-  late Color _selectedEventColor;
-  late List<Color> _colorList;
-  late Group _group;
-  late StoreService _storeService = StoreService.firebase();
+  String selectedRepetition = 'Daily'; // Default repetition is daily
+  late RecurrenceRule? recurrenceRule = null;
+  //We define the default colors for the event object
+  late Color selectedEventColor;
+  final colorList = ColorManager.eventColors;
+
+  //** LOGIC FOR THE VIEW */////////
+  _EventNoteWidgetState({this.user, this.group}) {
+    if (user != null) {
+      // Initialize eventList based on user
+      eventList = user!.events; // Example: user.events if User has events list
+    } else if (group != null) {
+      // Initialize eventList based on group
+      eventList = group!
+          .calendar.events; // Example: group.events if Group has events list
+    }
+    selectedEventColor = colorList.last;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _clearFields() {
+    _titleController.clear();
+    _descriptionController.clear();
+    _locationController.clear();
+    _noteController.clear();
+  }
 
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with event attributes
-    _event = widget.event;
-    _titleController = TextEditingController(text: _event.title);
-    _noteController = TextEditingController(text: _event.note);
-    _descriptionController =
-        TextEditingController(text: _event.description ?? '');
-    _locationController =
-        TextEditingController(text: _event.localization ?? '');
-    _recurrenceRule = _event.recurrenceRule;
-    _isRepetitive = _event.recurrenceRule != null;
-    _colorList = ColorManager.eventColors;
-    _selectedEventColor = _colorList[_event.eventColorIndex];
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
+    _selectedStartDate = DateTime.now();
+    _selectedEndDate = DateTime.now();
+    // _eventController = TextEditingController();
+    _loadEvents(); // Load events from shared preferences or other source
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Retrieve the 'Event' object passed as an argument to this screen
-    _event = ModalRoute.of(context)!.settings.arguments as Event;
-    // Set the attributes of the retrieved  'Event' object;
-    _noteController.text = _event.note ?? '';
-    _selectedStartDate = _event.startDate;
-    _selectedEndDate = _event.endDate;
-    _descriptionController.text = _event.description!;
-    _locationController.text = _event.localization!;
-    _recurrenceRule = _event.recurrenceRule;
-    _isRepetitive = _event.recurrenceRule != null;
-  }
-
-  /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
-  @override
-  void dispose() {
-    // _noteController.dispose();
-    super.dispose();
-  }
-
-  Future<Group> _getGroup() async {
-    return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
-  }
-
-  void _saveEditedEvent() async {
-    // Retrieve updated values from controllers
-    final updatedTitle = _titleController.text;
-    final updatedDescription = _descriptionController.text;
-    final updatedLocation = _locationController.text;
-    final updatedRecurrenceRule = _recurrenceRule;
-    final updateNote = _noteController.text;
-
-    String extractedText = updatedLocation;
-
-    // Remove unwanted characters and formatting
-    extractedText = extractedText.replaceAll(RegExp(r'[┤├]'), '');
-
-    // Create an updated event with the new values
-    final updatedEvent = Event(
-      id: _event.id,
-      startDate: _selectedStartDate,
-      endDate: _selectedEndDate,
-      title: updatedTitle,
-      groupId: _event.groupId,
-      description: updatedDescription,
-      note: updateNote,
-      localization: extractedText,
-      recurrenceRule: updatedRecurrenceRule,
-      eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
-    );
-
-    bool isStartHourUnique = _eventList.every((e) {
-      // Check if the event's ID matches the event being edited
-      if (e.id == updatedEvent.id) {
-        // For the event being edited, allow its own start date
-        return true;
-      }
-
-      // Check if the start hour and day are unique
-      return e.startDate.hour != updatedEvent.startDate.hour ||
-          e.startDate.day != updatedEvent.startDate.day;
+/**
+ * the userEvents list is obtained from the user object. Then, the list is reversed using .reversed and the last 100 events are taken using .take(100)
+ */
+  Future<void> _loadEvents() async {
+    setState(() {
+      eventList = eventList.reversed.take(100).toList();
     });
+    // SharedPrefsUtils.storeUser(user!);
+  }
 
-    _group = await _getGroup();
-    _eventList = _group.calendar.events;
-    bool allowRepetitiveHours = _group.repetitiveEvents;
-    if (isStartHourUnique && allowRepetitiveHours) {
-      try {
-        await storeService
-            .updateEvent(updatedEvent); // Call the updateEvent method
-
-        // You can handle success or navigate back to the previous screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Event edited successfully!')),
-        );
-        // Navigator.pop(context, updatedEvent);
-      } catch (error) {
-        // Handle the error
-      }
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Duplicate Start Date'),
-            content: Text(
-                'An event with the same start hour and day already exists.'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+  void _reloadScreen() {
+    setState(() {
+      // Reset the necessary state variables if needed
+      _selectedStartDate = DateTime.now();
+      _selectedEndDate = DateTime.now();
+      // _eventController.clear();
+    });
+    _loadEvents(); // Reload events from shared preferences
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -202,7 +150,89 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     }
   }
 
-  //** UI FOR THE VIEW */
+  /*** We retrieve the current user object. Then we can update the user object with the new event list and other modifications.*/
+  void _addEvent() async {
+    String eventTitle = _titleController.text;
+    String eventId = Uuid().v4();
+
+    // Remove unwanted characters and formatting
+    String extractedText =
+        _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
+
+    if (eventTitle.trim().isNotEmpty) {
+      Event newEvent = Event(
+        id: eventId,
+        startDate: _selectedStartDate,
+        endDate: _selectedEndDate,
+        title: _titleController.text,
+        groupId: group?.id, // Set the groupId if adding to a group's events
+        recurrenceRule: recurrenceRule,
+        localization: extractedText,
+        allDay: event?.allDay ?? false,
+        description: _descriptionController.text,
+        eventColorIndex: ColorManager().getColorIndex(selectedEventColor),
+      );
+
+      bool isStartHourUnique = eventList.every((e) =>
+          e.startDate.hour != newEvent.startDate.hour ||
+          e.startDate.day != newEvent.startDate.day);
+      bool allowRepetitiveHours = group!.repetitiveEvents;
+      if (isStartHourUnique && allowRepetitiveHours) {
+        setState(() {
+          eventList.add(newEvent);
+        });
+
+        if (user != null) {
+          List<Event> userEvents = user!.events;
+          userEvents.add(newEvent);
+          user!.events = userEvents;
+
+          await storeService.updateUser(user!);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Event added successfully!')),
+          );
+        } else if (group != null) {
+          List<Event> groupEvents = group!.calendar.events;
+          groupEvents.add(newEvent);
+          group?.calendar.events = groupEvents;
+
+          await storeService.updateGroup(group!);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Event added to group successfully!')),
+          );
+        }
+
+        _clearFields();
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Duplicate Start Date'),
+              content: Text(
+                  'An event with the same start hour and day already exists.'),
+              actions: [
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Event note cannot be empty!')),
+      );
+    }
+
+    _reloadScreen();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,50 +258,52 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DropdownButtonFormField<Color>(
-                      value: _selectedEventColor,
+                      value: selectedEventColor,
                       onChanged: (color) {
                         setState(() {
-                          _selectedEventColor = color!;
+                          selectedEventColor = color!;
                         });
                       },
-                      items: _colorList.map((color) {
-                        String colorName = ColorManager.getColorName(color);
-
-                        // Ensure each color is unique and corresponds to a unique DropdownMenuItem
-                        // You can use color.hashCode as a key to ensure uniqueness.
-                        // In this example, I'm using color.hashCode.toString() as the key.
-                        String key = color.hashCode.toString();
-
+                      items: colorList.map((color) {
+                        String colorName = ColorManager.getColorName(
+                            color); // Get the name of the color
                         return DropdownMenuItem<Color>(
-                          key: ValueKey<String>(
-                              key), // Use a unique key for each item
                           value: color,
                           child: Row(
                             children: [
                               Container(
-                                width: 20,
-                                height: 20,
-                                color: color,
+                                width: 20, // Adjust the width as needed
+                                height: 20, // Adjust the height as needed
+                                color: color, // Use the color as the background
                               ),
-                              SizedBox(width: 10),
-                              Text(colorName),
+                              SizedBox(
+                                  width:
+                                      10), // Add spacing between color and name
+                              Text(colorName), // Display the color name
                             ],
                           ),
                         );
                       }).toList(),
-                    )
+                    ),
                   ],
                 ),
+                SizedBox(
+                    height:
+                        10), // Add spacing between the color picker and the title
                 // Title Input
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Title (max 15 characters)',
-                  ),
-                  maxLength: 15,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Title (max 15 characters)',
+                      ),
+                      maxLength: 15,
+                    ),
+                    SizedBox(height: 10),
+                  ],
                 ),
-
-                SizedBox(height: 10),
 
                 Container(
                   padding: EdgeInsets.all(16.0), // Adjust the padding as needed
@@ -459,7 +491,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                             return RepetitionDialog(
                                 selectedStartDate: _selectedStartDate,
                                 selectedEndDate: _selectedEndDate,
-                                initialRecurrenceRule: _recurrenceRule);
+                                initialRecurrenceRule: recurrenceRule);
                           },
                         );
                         if (result != null && result.isNotEmpty) {
@@ -468,27 +500,25 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
                           // Update isRepetitive and recurrenceRule based on the values from the dialog
                           setState(() {
-                            _isRepetitive = updatedIsRepetitive;
-                            if (updatedRecurrenceRule == null) {
-                              _recurrenceRule = null;
-                            } else {
-                              _recurrenceRule = updatedRecurrenceRule;
+                            isRepetitive = updatedIsRepetitive;
+                            if (updatedRecurrenceRule != null) {
+                              recurrenceRule = updatedRecurrenceRule;
                             }
                           });
                         }
                       },
                       child: AnimatedContainer(
                         duration: Duration(milliseconds: 300),
-                        width: 2 * _toggleWidth,
+                        width: 2 * toggleWidth,
                         height: 40.0,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20.0),
-                          color: _isRepetitive ? Colors.green : Colors.grey,
+                          color: isRepetitive ? Colors.green : Colors.grey,
                         ),
                         child: Center(
                           child: AnimatedSwitcher(
                             duration: Duration(milliseconds: 300),
-                            child: _isRepetitive
+                            child: isRepetitive
                                 ? Text(
                                     'ON',
                                     style: TextStyle(
@@ -516,10 +546,11 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                       if (_titleController.text.isEmpty) {
                         // Show an error message or handle the empty title here
                       } else {
-                        _saveEditedEvent();
+                        _addEvent();
+                        _reloadScreen();
                       }
                     },
-                    child: Text('Edit Event'),
+                    child: Text('Add Event'),
                   ),
                 ),
               ],
