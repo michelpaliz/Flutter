@@ -4,12 +4,15 @@ import 'package:first_project/models/calendar.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:first_project/views/create-group/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class CreateGroupData extends StatefulWidget {
@@ -22,7 +25,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   String _groupDescription = '';
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
-  StoreService _storeService = StoreService.firebase();
+  late StoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
@@ -30,7 +33,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   @override
   void initState() {
     super.initState();
-    // Initialize instance variables in the initState method
     _groupName = '';
     _groupDescription = '';
     _selectedImage = null;
@@ -42,6 +44,17 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     setState(() {
       _userInGroup = updatedData;
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
 
   void _onDataChanged(
@@ -78,10 +91,27 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     // Add your logic here
   }
 
-  void _saveGroup() {
+  void _saveGroup() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
-      // Both fields are not empty, you can proceed with saving the group
-      // Add your logic to save the group here
+      bool groupCreated =
+          await _creatingGroup(); // Call _creatingGroup and await the result
+
+      if (groupCreated) {
+        // Group creation was successful, show a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Group created successfully!'),
+          ),
+        );
+      } else {
+        // Group creation failed, show an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create the group. Please try again.'),
+          ),
+        );
+      }
+
       print('Group name: $_groupName');
       print('Group description: $_groupDescription');
     } else {
@@ -139,8 +169,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     }
   }
 
-  /** Create the group, just insert the name for the group */
-  void creatingGroup() async {
+  Future<bool> _creatingGroup() async {
     if (_groupName.trim().isEmpty) {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
       ScaffoldMessenger.of(context).showSnackBar(
@@ -149,86 +178,93 @@ class _CreateGroupDataState extends State<CreateGroupData> {
           duration: Duration(seconds: 2),
         ),
       );
-      return;
+      return false; // Return false to indicate that the group creation failed.
     }
 
-    //** CREATING THE GROUP*/
-    // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
-    String groupId = UniqueKey().toString();
+    try {
+      //** CREATING THE GROUP*/
+      // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
+      String groupId = UniqueKey().toString();
 
-    // Generate a random ID using Firestore
-    final uuid = Uuid();
-    final randomId = uuid.v4();
+      // Generate a random ID using Firestore
+      final uuid = Uuid();
+      final randomId = uuid.v4();
 
-    // Create an instance of the Calendar class or any other logic required to initialize the calendar.
-    Calendar? calendar = new Calendar(randomId, _groupName,
-        events: null); // Assuming Calendar is defined elsewhere.
+      // Create an instance of the Calendar class or any other logic required to initialize the calendar.
+      Calendar? calendar = new Calendar(randomId, _groupName,
+          events: null); // Assuming Calendar is defined elsewhere.
 
-    // We are gonna only add the current user to the group, the others would need to accept the group's notification.
+      // We are gonna only add the current user to the group, the others would need to accept the group's notification.
 
-    List<User> users = [];
-    users.add(_currentUser!);
+      List<User> users = [];
+      users.add(_currentUser!);
 
-    //We assign the groupId to the current user
-    _currentUser!.groupIds.add(groupId);
+      //We assign the groupId to the current user
+      _currentUser!.groupIds.add(groupId);
 
-    // Create the group object with the appropriate attributes
-    Group group = Group(
-        id: groupId,
-        groupName: _groupName,
-        ownerId: _currentUser!.id,
-        userRoles: _userRoles,
-        calendar: calendar,
-        // users: userInGroup, // Include the list of users in the group
-        users: users,
-        createdTime: DateTime.now(),
-        description: '',
-        photo: '');
+      // Create the group object with the appropriate attributes
+      Group group = Group(
+          id: groupId,
+          groupName: _groupName,
+          ownerId: _currentUser!.id,
+          userRoles: _userRoles,
+          calendar: calendar,
+          users: users, // Include the list of users in the group
+          createdTime: DateTime.now(),
+          description: '',
+          photo: '');
 
-    //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-    _storeService.addGroup(group);
-    //let's update the current user and add the new group id in his list.
-    _storeService.updateUser(_currentUser!);
-    // Show a success message using a SnackBar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Group created successfully!')),
-    );
+      //** UPLOAD THE GROUP CREATED TO FIRESTORE */
+      await _storeService.addGroup(group);
+      //let's update the current user and add the new group id in his list.
+      await _storeService.updateUser(_currentUser!);
+      // Show a success message using a SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Group created successfully!')),
+      );
 
-    //** AFTER CREATING THE GROUP WE PROCEED TO CREATE THE NOTIFICATION */
+      //** AFTER CREATING THE GROUP WE PROCEED TO CREATE THE NOTIFICATION */
 
-    //Create the title message of the notification
-    String notificationTitle =
-        '${_currentUser?.name.toUpperCase()} invited you to a group';
-    // Create the notification message for the group
-    String notificationMessage =
-        '${_currentUser?.name.toUpperCase()} invited you to this Group: ${group.groupName}';
-    String notificationQuestion = 'Would you like to join to this group ?';
+      //Create the title message of the notification
+      String notificationTitle =
+          '${_currentUser?.name.toUpperCase()} invited you to a group';
+      // Create the notification message for the group
+      String notificationMessage =
+          '${_currentUser?.name.toUpperCase()} invited you to this Group: ${group.groupName}';
+      String notificationQuestion = 'Would you like to join this group ?';
 
-    print(_userInGroup);
+      // Add a new notification for each user in the group
+      for (User user in _userInGroup) {
+        if (user.id != _currentUser!.id) {
+          // Compare using user IDs
+          NotificationUser notification = NotificationUser(
+              id: groupId,
+              ownerId: _currentUser!.id,
+              title: notificationTitle,
+              message: notificationMessage,
+              timestamp: DateTime.now(),
+              hasQuestion: true,
+              question: notificationQuestion,
+              isAnswered: false);
 
-    // Add a new notification for each user in the group
-    for (User user in _userInGroup) {
-      if (user.id != _currentUser!.id) {
-        // Compare using user IDs
-        NotificationUser notification = NotificationUser(
-            id: groupId,
-            ownerId: _currentUser!.id,
-            title: notificationTitle,
-            message: notificationMessage,
-            timestamp: DateTime.now(),
-            hasQuestion: true,
-            question: notificationQuestion,
-            isAnswered: false);
-
-        user.notifications.add(notification);
-        user.hasNewNotifications = true;
-        await _storeService.updateUser(user);
+          user.notifications.add(notification);
+          user.hasNewNotifications = true;
+          await _storeService.updateUser(user);
+        }
       }
+
+      return true; // Return true to indicate that the group creation was successful.
+    } catch (e) {
+      // Handle any errors that may occur during the process.
+      print("Error creating group: $e");
+      return false; // Return false to indicate that the group creation failed.
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final TITLE_MAX_LENGHT = 25;
+    final DESCRIPTION_MAX_LENGHT = 100;
     return Scaffold(
         appBar: AppBar(
           title: Text('Group Data'),
@@ -267,9 +303,19 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
-                    onChanged: (value) => _groupName = value,
+                    onChanged: (value) {
+                      if (value.length <= 25) {
+                        // Set your desired maximum length (e.g., 50)
+                        _groupName = value;
+                      }
+                    },
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(
+                          TITLE_MAX_LENGHT), // Set the maximum length here
+                    ],
                     decoration: InputDecoration(
-                      labelText: 'Enter group name',
+                      labelText:
+                          'Enter group name (Limit: $TITLE_MAX_LENGHT characters)',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -277,9 +323,20 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
-                    onChanged: (value) => _groupDescription = value,
+                    onChanged: (value) {
+                      setState(() {
+                        _groupDescription = value;
+                      });
+                    },
+                    maxLines:
+                        null, // Allow the text field to have unlimited lines
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(
+                          DESCRIPTION_MAX_LENGHT), // Adjust the limit based on an average word length
+                    ],
                     decoration: InputDecoration(
-                      labelText: 'Enter group description',
+                      labelText:
+                          'Enter group description (Limit: $DESCRIPTION_MAX_LENGHT characters)',
                       border: OutlineInputBorder(),
                     ),
                   ),

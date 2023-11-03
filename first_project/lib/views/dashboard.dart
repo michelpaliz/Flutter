@@ -1,10 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/enums/color_properties.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/button_styles.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../routes/routes.dart';
 import '../costume_widgets/drawer/my_drawer.dart';
 import '../models/group.dart';
@@ -20,9 +23,8 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  User? currentUser;
-  List<Group>? userGroups =
-      []; // List to store the groups that the current user has
+  User? _currentUser;
+  late List<Group>? _userGroups;
   late StoreService _storeService;
   late AuthService _authService;
   // VARIABLE FOR THE UI
@@ -31,22 +33,64 @@ class _DashboardState extends State<Dashboard> {
   //*LOGIC FOR THE VIEW //
 
   Future<List<Group>> _getUserGroups() async {
-    currentUser = _authService.costumeUser;
-    if (currentUser != null) {
+    _currentUser = _authService.costumeUser;
+    if (_currentUser != null) {
       List<Group>? fetchedGroups =
-          await _storeService.fetchUserGroups(currentUser!.groupIds);
+          await fetchUserGroups(_currentUser!.groupIds);
       return fetchedGroups;
     }
     return [];
   }
 
+  Future<List<Group>> fetchUserGroups(List<String>? groupIds) async {
+    List<Group> groups = [];
+
+    if (groupIds != null) {
+      for (String groupId in groupIds) {
+        Group? group = await getGroupFromId(groupId);
+        groups.add(group!);
+      }
+    }
+
+    return groups;
+  }
+
+  Future<Group?> getGroupFromId(String groupId) async {
+    try {
+      DocumentSnapshot groupSnapshot = await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .get();
+
+      if (groupSnapshot.exists) {
+        return Group.fromJson(groupSnapshot.data()! as Map<String, dynamic>);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching group: $e');
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _storeService = new StoreService.firebase();
     _authService = new AuthService.firebase();
-    userGroups = [];
+    _currentUser = _authService.costumeUser;
+    _userGroups = [];
     _getUserGroups();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
 
   void _toggleScrollDirection() {
@@ -157,7 +201,17 @@ class _DashboardState extends State<Dashboard> {
                           fontFamily: 'Lato', // Use Lato font family
                         ),
                       ),
-                      SizedBox(height: 10), // Add vertical
+                      SizedBox(height: 10),
+                      Text(
+                        group.description, // Uppercase group name
+                        style: TextStyle(
+                          fontSize: 16,
+                          color:
+                              Color.fromARGB(255, 48, 133, 141), // Change color
+                          fontWeight: FontWeight.bold, // Make it bold
+                          fontFamily: 'Lato', // Use Lato font family
+                        ),
+                      ), // Add vertical
                     ],
                   ),
                 ),
@@ -193,7 +247,7 @@ class _DashboardState extends State<Dashboard> {
               await _getUserGroups();
             },
           ),
-          if (currentUser?.hasNewNotifications == true)
+          if (_currentUser?.hasNewNotifications == true)
             IconButton(
               icon: Stack(
                 alignment: Alignment.topRight,
@@ -204,8 +258,8 @@ class _DashboardState extends State<Dashboard> {
               ),
               onPressed: () {
                 // Open notifications screen
-                currentUser?.hasNewNotifications = false;
-                _storeService.updateUser(currentUser!);
+                _currentUser?.hasNewNotifications = false;
+                _storeService.updateUser(_currentUser!);
                 setState(() {}); // Trigger UI update
                 Navigator.pushNamed(context, showNotifications);
               },
@@ -335,7 +389,7 @@ class _DashboardState extends State<Dashboard> {
               CircleAvatar(
                 radius: 30, // Adjust the size as needed
                 backgroundImage:
-                    Utilities.buildProfileImage(owner.photoUrl.toString()),
+                    Utilities.buildProfileImage(group.photo.toString()),
               ),
 
               SizedBox(height: 8), // Add some spacing

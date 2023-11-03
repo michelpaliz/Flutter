@@ -2,10 +2,12 @@ import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/event.dart';
 import '../../services/firestore/implements/firestore_service.dart';
 import '../../styles/app_bar_styles.dart';
@@ -19,13 +21,11 @@ class EditNoteScreen extends StatefulWidget {
 }
 
 class _EditNoteScreenState extends State<EditNoteScreen> {
-  StoreService storeService = StoreService.firebase();
-  late Event _event;
-
 //** LOGIC VARIABLES  */
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
   List<Event> _eventList = [];
+  late Event _event;
   //** CONTROLLERS  */
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -40,7 +40,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   late Color _selectedEventColor;
   late List<Color> _colorList;
   late Group _group;
-  late StoreService _storeService = StoreService.firebase();
+  late StoreService _storeService;
 
   @override
   void initState() {
@@ -62,6 +62,12 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
     // Retrieve the 'Event' object passed as an argument to this screen
     _event = ModalRoute.of(context)!.settings.arguments as Event;
     // Set the attributes of the retrieved  'Event' object;
@@ -129,7 +135,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     bool allowRepetitiveHours = _group.repetitiveEvents;
     if (isStartHourUnique && allowRepetitiveHours) {
       try {
-        await storeService
+        await _storeService
             .updateEvent(updatedEvent); // Call the updateEvent method
 
         // You can handle success or navigate back to the previous screen

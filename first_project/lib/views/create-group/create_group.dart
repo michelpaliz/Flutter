@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/calendar.dart';
@@ -25,8 +27,7 @@ class _CreateGroupState extends State<CreateGroup> {
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
   String? clickedUser;
-  StoreService storeService =
-      StoreService.firebase(); // Create an instance of StoreService
+  late StoreService _storeService; // Create an instance of StoreService
   Map<String, String> userRoles = {}; // Map to store user roles
   User? currentUser = null;
 
@@ -39,10 +40,7 @@ class _CreateGroupState extends State<CreateGroup> {
   @override
   void initState() {
     super.initState();
-    // Call getCurrentUserAsCustomeModel to populate currentUser
-    AuthService.firebase()
-        .generateUserCustomeModel()
-        .then((User? fetchedUser) {
+    AuthService.firebase().generateUserCustomeModel().then((User? fetchedUser) {
       if (fetchedUser != null) {
         setState(() {
           currentUser = fetchedUser;
@@ -53,6 +51,17 @@ class _CreateGroupState extends State<CreateGroup> {
         });
       }
     });
+  }
+
+    @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
 
   //** LOGIC FOR THE VIEW */
@@ -177,12 +186,14 @@ class _CreateGroupState extends State<CreateGroup> {
         calendar: calendar,
         // users: userInGroup, // Include the list of users in the group
         users: users,
-        createdTime: DateTime.now(), description: '', photo: '');
+        createdTime: DateTime.now(),
+        description: '',
+        photo: '');
 
     //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-    storeService.addGroup(group);
+    _storeService.addGroup(group);
     //let's update the current user and add the new group id in his list.
-    storeService.updateUser(currentUser!);
+    _storeService.updateUser(currentUser!);
     // Show a success message using a SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Group created successfully!')),
@@ -217,7 +228,7 @@ class _CreateGroupState extends State<CreateGroup> {
 
         user.notifications.add(notification);
         user.hasNewNotifications = true;
-        await storeService.updateUser(user);
+        await _storeService.updateUser(user);
       }
     }
   }

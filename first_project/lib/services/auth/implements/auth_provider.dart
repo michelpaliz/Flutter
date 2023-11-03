@@ -6,21 +6,37 @@ import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/auth_user.dart';
+import 'package:flutter/material.dart';
 
 import '../../../firebase_options.dart';
 import '../../../models/user.dart';
 import '../../firestore/implements/firestore_service.dart';
-import '../auth_provider.dart';
+import '../auth_repository.dart';
 
-class FirebaseAuthProvider implements AuthProvider {
+class AuthProvider implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   // Private variable to store the current user
   User? _currentUser;
+  // final StoreService storeService;
 
-  FirebaseAuthProvider() {
+  AuthProvider() {
     // Initialize the authentication state listener
     _initializeAuthStateListener();
+  }
+//Function added to user the provider package
+  void _initializeAuthStateListener() {
+    _firebaseAuth.authStateChanges().listen((user) async {
+      // Fetch and update the custom user model based on the user's email
+      final updatedUser = (user != null)
+          ? await _getUserDataFromFirestore(user.email.toString())
+          : null;
+
+      if (_currentUser != updatedUser) {
+        _currentUser = updatedUser; // Notify listeners when the user changes
+      }
+    });
   }
 
   // Add a StreamController for the authentication state
@@ -29,27 +45,6 @@ class FirebaseAuthProvider implements AuthProvider {
 
   // Define a getter to access the authentication state stream
   Stream<User?> get authStateStream => _authStateController.stream;
-
-  void _initializeAuthStateListener() {
-    // Listen to authentication state changes and add them to the stream
-    _firebaseAuth.authStateChanges().listen((user) async {
-      // Fetch and update the custom user model based on the user's email
-      final updatedUser = (user != null)
-          ? await _getUserDataFromFirestore(user.email.toString())
-          : null;
-
-      // Update the _currentUser if it's different from the previous one
-      if (_currentUser != updatedUser) {
-        _currentUser = updatedUser;
-        _authStateController.add(_currentUser);
-      }
-    });
-  }
-
-  // Dispose the stream controller when it's no longer needed
-  void dispose() {
-    _authStateController.close();
-  }
 
   @override
   Future<String> createUser({
@@ -81,7 +76,7 @@ class FirebaseAuthProvider implements AuthProvider {
             notifications: []);
 
         // Upload the user object to Firestore using the UID as the document ID
-        return await StoreService.firebase().uploadPersonToFirestore(
+        return await uploadPersonToFirestore(
           person: person,
           documentId: user.uid,
         );
@@ -100,6 +95,21 @@ class FirebaseAuthProvider implements AuthProvider {
       }
     } catch (_) {
       throw GenericAuthException();
+    }
+  }
+
+  Future<String> uploadPersonToFirestore({
+    required User person,
+    required String documentId,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(documentId)
+          .set(person.toJson());
+      return 'User with ID $documentId has been added';
+    } catch (error) {
+      throw 'There was an error adding the person to Firestore: $error';
     }
   }
 
@@ -203,16 +213,17 @@ class FirebaseAuthProvider implements AuthProvider {
     try {
       final userSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('email', isEqualTo: userEmail) // Query by email
-          .get();
+          .where('email', isEqualTo: userEmail)
+          .limit(1)
+          .get(); // Use get() to fetch the data as a query result
 
       if (userSnapshot.docs.isNotEmpty) {
-        // In this example, we assume that email is unique, so we use the first document found.
         final userData = userSnapshot.docs.first.data();
-        return User.fromJson(userData);
+        // Update _currentUser with the new data
+        _currentUser = User.fromJson(userData);
       }
 
-      return null; // Return null when the user doesn't exist in Firestore
+      return _currentUser;
     } catch (e) {
       print("Error fetching user data from Firestore: $e");
       return null;

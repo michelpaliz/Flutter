@@ -1,7 +1,9 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class GroupSettings extends StatefulWidget {
   final Group group;
@@ -14,7 +16,7 @@ class GroupSettings extends StatefulWidget {
 
 class _GroupSettingsState extends State<GroupSettings> {
   late bool _repetitiveEvents;
-  StoreService _storeService = new StoreService.firebase();
+  late StoreService _storeService;
   late User groupOwner;
   late Group group;
 
@@ -24,21 +26,32 @@ class _GroupSettingsState extends State<GroupSettings> {
     _initializeData();
   }
 
-Future<void> _initializeData() async {
-  Group updatedGroup = await _getUpdatedGroup();
-  setState(() {
-    group = updatedGroup;
-    _repetitiveEvents = group.repetitiveEvents;
-  });
-}
+    @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-Future<Group> _getUpdatedGroup() async {
-  Group? updatedGroup = await _storeService.getGroupFromId(widget.group.id);
-  if (updatedGroup != null) {
-    groupOwner = await _storeService.getOwnerFromGroup(updatedGroup);
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
-  return updatedGroup!;
-}
+
+  Future<void> _initializeData() async {
+    Group updatedGroup = await _getUpdatedGroup();
+    setState(() {
+      group = updatedGroup;
+      _repetitiveEvents = group.repetitiveEvents;
+    });
+  }
+
+  Future<Group> _getUpdatedGroup() async {
+    Group? updatedGroup = await _storeService.getGroupFromId(widget.group.id);
+    if (updatedGroup != null) {
+      groupOwner = await _storeService.getOwnerFromGroup(updatedGroup);
+    }
+    return updatedGroup!;
+  }
 
   Future<void> _updateGroup(Group groupUpdated) async {
     try {

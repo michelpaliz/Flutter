@@ -3,10 +3,12 @@ import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../routes/routes.dart';
 import '../../costume_widgets/drawer/my_drawer.dart';
@@ -48,9 +50,11 @@ class _GroupDetailsState extends State<GroupDetails> {
     _users = _group.userRoles; // Access the
     _events = [];
     _selectedDate = DateTime.now().toLocal();
-    _storeService = StoreService.firebase();
+    _storeService =
+        StoreService.firebase(Provider.of<ProviderManagement>(context));
     _selectedView = CalendarView.month;
     _controller = CalendarController();
+    ProviderManagement providerManagement = ProviderManagement();
     _authService = AuthService.firebase();
     _appointments = [];
     _getEventsListFromGroup();
@@ -407,7 +411,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                   if (details.date.weekday == DateTime.saturday ||
                       details.date.weekday == DateTime.sunday) {
                     return Container(
-                      color: Color.fromARGB(255, 195, 225, 224), // Change the background color for weekends.
+                      color: Color.fromARGB(255, 195, 225,
+                          224), // Change the background color for weekends.
                       child: Center(
                         child: Text(
                           details.date.day.toString(),
@@ -419,7 +424,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                     );
                   } else {
                     return Container(
-                      color: Color.fromARGB(255, 158, 199, 220), // Use the default background color for other days.
+                      color: Color.fromARGB(255, 158, 199,
+                          220), // Use the default background color for other days.
                       child: Center(
                         child: Text(details.date.day.toString(),
                             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -490,7 +496,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                                       builder: (BuildContext context) {
                                         return AlertDialog(
                                           title: Text('Permission Denied'),
-                                          content: Text('You are not an administrator to remove this item.'),
+                                          content: Text(
+                                              'You are not an administrator to remove this item.'),
                                           actions: <Widget>[
                                             TextButton(
                                               child: Text('OK'),

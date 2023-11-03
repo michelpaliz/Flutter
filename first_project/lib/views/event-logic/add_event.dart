@@ -1,10 +1,12 @@
 import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/event.dart';
 import '../../models/group.dart';
@@ -33,7 +35,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   // late TextEditingController _eventController;
   List<Event> eventList = [];
   //** CONTROLLERS  */
-  StoreService storeService = StoreService.firebase();
+  late StoreService _storeService;
   TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController =
       TextEditingController(); // Add the controller for the description
@@ -66,6 +68,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
   @override
   void dispose() {
+    _storeService =
+        StoreService.firebase(Provider.of<ProviderManagement>(context));
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
@@ -187,7 +191,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           userEvents.add(newEvent);
           user!.events = userEvents;
 
-          await storeService.updateUser(user!);
+          await _storeService.updateUser(user!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Event added successfully!')),
@@ -197,7 +201,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           groupEvents.add(newEvent);
           group?.calendar.events = groupEvents;
 
-          await storeService.updateGroup(group!);
+          await _storeService.updateGroup(group!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Event added to group successfully!')),

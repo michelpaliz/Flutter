@@ -1,6 +1,7 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/firestore/implements/firestore_provider.dart';
 
 import '../../../models/event.dart';
@@ -16,18 +17,13 @@ class StoreService extends StoreProvider {
   static StoreService? _instance;
 
   // Factory method to get the single instance of StoreService
-  factory StoreService.firebase() {
+factory StoreService.firebase(ProviderManagement providerManagement) {
     if (_instance == null) {
-      _instance = StoreService._(FireStoreProvider());
+      _instance = StoreService._(FireStoreProvider(providerManagement: providerManagement));
     }
     return _instance!;
   }
-
-  @override
-  Future<String> uploadPersonToFirestore(
-          {required User person, required String documentId}) =>
-      provider.uploadPersonToFirestore(person: person, documentId: documentId);
-
+  
   /**when you call removeEvent on an instance of StoreService, it will delegate the call to the underlying FireStoreProvider and execute its removeEvent method. */
   @override
   Future<List<Event>> removeEvent(String eventId) =>

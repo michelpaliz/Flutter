@@ -1,9 +1,12 @@
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
 import '../services/firestore/implements/firestore_service.dart';
+
 class ShowNotifications extends StatefulWidget {
   const ShowNotifications({super.key});
 
@@ -13,7 +16,7 @@ class ShowNotifications extends StatefulWidget {
 
 class _ShowNotificationsState extends State<ShowNotifications> {
   AuthService authService = new AuthService.firebase();
-  StoreService storeService = StoreService.firebase();
+  late StoreService _storeService;
   User? currentUser;
 
   //** LOGIC FOR THE VIEW */
@@ -24,10 +27,19 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     getCurrentUser();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
+  }
+
   void getCurrentUser() {
-    AuthService.firebase()
-        .generateUserCustomeModel()
-        .then((User? fetchedUser) {
+    AuthService.firebase().generateUserCustomeModel().then((User? fetchedUser) {
       if (fetchedUser != null) {
         setState(() {
           currentUser = fetchedUser;
@@ -38,7 +50,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   void addUserToGroup(NotificationUser notification) {
     //Here we add the user to the group
-    storeService.addUserToGroup(currentUser!, notification);
+    _storeService.addUserToGroup(currentUser!, notification);
   }
 
   // Function to remove a notification at a given index
@@ -47,7 +59,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index >= 0 &&
         index < currentUser!.notifications.length) {
       currentUser!.notifications.removeAt(index);
-      await storeService.updateUser(currentUser!);
+      await _storeService.updateUser(currentUser!);
       setState(() {});
     }
   }
@@ -65,7 +77,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
     User? user = null;
     //Now we look up for the owner who created the group and assign him this notification.
-    user = await storeService.getUserById(notification.ownerId);
+    user = await _storeService.getUserById(notification.ownerId);
 
     //We add the notification to the user
     user!.notifications.add(ntOwner);
@@ -74,7 +86,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     user.hasNewNotifications = true;
 
     //Now we proceed to update the user
-    storeService.updateUser(user);
+    _storeService.updateUser(user);
   }
 
   void handleConfirmation(int index) async {
@@ -84,7 +96,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       NotificationUser notification = currentUser!.notifications[index];
       if (!notification.isAnswered && notification.question.isNotEmpty) {
         currentUser!.notifications[index].isAnswered = true;
-        await storeService.updateUser(currentUser!);
+        await _storeService.updateUser(currentUser!);
         addUserToGroup(notification);
         setState(() {});
 
@@ -107,7 +119,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       NotificationUser notification = currentUser!.notifications[index];
       if (!notification.isAnswered && notification.question.isNotEmpty) {
         currentUser!.notifications[index].isAnswered = false;
-        await storeService.updateUser(currentUser!);
+        await _storeService.updateUser(currentUser!);
         addUserToGroup(notification);
         setState(() {});
 

@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/utils/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/user.dart';
 import '../../services/auth/implements/auth_service.dart';
@@ -19,7 +21,7 @@ class MyHeaderDrawer extends StatefulWidget {
 
 class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   AuthService _authService = new AuthService.firebase();
-  StoreService _storeService = StoreService.firebase();
+  late StoreService _storeService;
   User? _currentUser;
   // Define a variable to store the selected image.
   XFile? _selectedImage;
@@ -32,6 +34,17 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
 
   void getCurrentUser() async {
     _currentUser = _authService.costumeUser;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
 
   // Function to pick an image from the gallery
@@ -81,23 +94,29 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
         children: [
           GestureDetector(
             onTap: _pickImage, // Call the _pickImage function when tapped
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: 100, // Set the maximum width
-                maxHeight: 100, // Set the maximum height
-              ),
-              child: Image.network(
-                (_currentUser?.photoUrl != null &&
-                        _currentUser?.photoUrl.isNotEmpty)
-                    ? _currentUser?.photoUrl
-                    : 'https://firebasestorage.googleapis.com/v0/b/firstapp-75986.appspot.com/o/default_profile.png?alt=media&token=7c68d367-0c2a-4f87-b0b0-bef21199e2a0&_gl=1*1d4t8ef*_ga*MjEyNjIzODA4i4xNjc0MTQxMjc2*_ga_CW55HF8NVT*MTY5ODQyOTE2My4yMTkuMS.4LjAuMA..',
-                errorBuilder: (context, error, stackTrace) {
-                  // Provide a default image when the network image fails to load
-                  return Image.asset(
-                      'assets/images/default_profile.png'); // Replace with your default image asset
-                },
-              ),
+            child: CircleAvatar(
+              radius: 30, // Adjust the size as needed
+              backgroundImage:
+                  Utilities.buildProfileImage(_currentUser?.photoUrl),
             ),
+            // child: Container(
+            //   constraints: BoxConstraints(
+            //     maxWidth: 100, // Set the maximum width
+            //     maxHeight: 100, // Set the maximum height
+            //   ),
+            //   background: Utilities.buildProfileImage(_currentUser?.photoUrl),
+            // child: Image.network(
+            //   (_currentUser?.photoUrl != null &&
+            //           _currentUser?.photoUrl.isNotEmpty)
+            //       ? _currentUser?.photoUrl
+            //       : 'https://firebasestorage.googleapis.com/v0/b/firstapp-75986.appspot.com/o/default_profile.png?alt=media&token=7c68d367-0c2a-4f87-b0b0-bef21199e2a0&_gl=1*1d4t8ef*_ga*MjEyNjIzODA4i4xNjc0MTQxMjc2*_ga_CW55HF8NVT*MTY5ODQyOTE2My4yMTkuMS.4LjAuMA..',
+            //   errorBuilder: (context, error, stackTrace) {
+            //     // Provide a default image when the network image fails to load
+            //     return Image.asset(
+            //         'assets/images/default_profile.png'); // Replace with your default image asset
+            //   },
+            // ),
+            // ),
           ),
           SizedBox(height: 5), // Add spacing between image and name
           Text(

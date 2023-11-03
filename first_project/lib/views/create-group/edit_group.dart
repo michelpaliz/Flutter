@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/notification_user.dart';
 import '../../models/user.dart';
@@ -18,7 +20,7 @@ class EditGroup extends StatefulWidget {
 }
 
 class _EditGroupState extends State<EditGroup> {
-  StoreService storeService = new StoreService.firebase();
+  late StoreService _storeService;
   AuthService authService = new AuthService.firebase();
   late TextEditingController _groupNameController;
   late List<User> _selectedUsers;
@@ -33,6 +35,17 @@ class _EditGroupState extends State<EditGroup> {
     _getCurrentUser();
     _groupNameController = TextEditingController(text: widget.group.groupName);
     _selectedUsers = List.from(widget.group.users);
+  }
+  
+    @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
 
   @override
@@ -59,7 +72,7 @@ class _EditGroupState extends State<EditGroup> {
       _selectedUsers = updatedUsers;
     });
 
-    await storeService.removeAll(user, widget.group);
+    await _storeService.removeAll(user, widget.group);
 
     print('User removed from group');
   }
@@ -227,7 +240,7 @@ class _EditGroupState extends State<EditGroup> {
   }
 
   Future<void> removeUser(String userName) async {
-    User? user = await storeService.getUserByName(userName);
+    User? user = await _storeService.getUserByName(userName);
     setState(() {
       _selectedUsers.remove(user);
     });
@@ -250,7 +263,7 @@ class _EditGroupState extends State<EditGroup> {
 
     // Iterate through the new users and add them to the group
     newUsers.forEach((user) {
-      storeService.addUserToGroup(user, notification);
+      _storeService.addUserToGroup(user, notification);
     });
 
     // Update the group's name and users
@@ -259,7 +272,7 @@ class _EditGroupState extends State<EditGroup> {
       group.users = newUsers;
     });
 
-    storeService.updateGroup(group);
+    _storeService.updateGroup(group);
 
     // Perform further logic to save the changes to your data source
   }

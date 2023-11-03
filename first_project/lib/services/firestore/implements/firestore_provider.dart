@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
@@ -14,23 +15,13 @@ import '../Ifirestore_provider.dart';
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FireStoreProvider implements StoreProvider {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final AuthService _authService = AuthService.firebase();
+  final AuthService _authService;
+  final ProviderManagement _providerManagement;
 
-  @override
-  Future<String> uploadPersonToFirestore({
-    required User person,
-    required String documentId,
-  }) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(documentId)
-          .set(person.toJson());
-      return 'User with ID $documentId has been added';
-    } catch (error) {
-      throw 'There was an error adding the person to Firestore: $error';
-    }
-  }
+  FireStoreProvider({
+    required ProviderManagement providerManagement,
+  })  : _authService = AuthService.firebase(),
+        _providerManagement = providerManagement;
 
   /** Here I update the user and also if he is in groups  */
   @override
@@ -49,12 +40,19 @@ class FireStoreProvider implements StoreProvider {
 
         await userRef.update(user.toJson()); // Update the user document
 
-        _authService.costumeUser = user;
+        User? currentUser = _authService.costumeUser;
 
-        //We update the user in his groups
-        if (user.groupIds.isNotEmpty) {
-          updateUserInGroups(user);
+        if (currentUser!.id == user.id) {
+          _authService.costumeUser = user;
+
+          // Update the user in his groups
+          if (user.groupIds.isNotEmpty) {
+            updateUserInGroups(user);
+          }
         }
+
+        // Use _providerManagement here
+        _providerManagement.updateUser(user);
 
         return 'User has been updated';
       }

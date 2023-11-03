@@ -3,8 +3,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/routes/routes.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/routeLogger.dart';
+import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
+import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/create-group/create_group_data.dart';
@@ -27,8 +29,12 @@ import 'models/user.dart';
 
 //** Logic for my view */
 // main.dart
+import 'package:provider/provider.dart';
+// ...
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ProviderManagement providerManagement = ProviderManagement();
 
   // Initialize Firebase
   try {
@@ -56,8 +62,15 @@ void main() async {
   // Retrieve the current user from AuthService
   User? costumeUser = authService.costumeUser;
 
-  runApp(MyApp(currentUser: costumeUser, ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => providerManagement,
+      child: MyApp(currentUser: costumeUser),
+    ),
+  );
 }
+
+
 
 //** UI for my view */
 class MyApp extends StatelessWidget {
@@ -67,6 +80,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final providerManagement = Provider.of<ProviderManagement>(context);
+    final User? currentUser = providerManagement.user;
+
     final bool isLoggedIn = currentUser != null;
 
     return MaterialApp(

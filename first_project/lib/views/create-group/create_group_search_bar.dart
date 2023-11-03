@@ -39,6 +39,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       });
     }
   }
+  
 
   void _searchUser(String username) async {
     try {

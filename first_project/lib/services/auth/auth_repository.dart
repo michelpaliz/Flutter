@@ -3,7 +3,7 @@ import 'package:first_project/services/auth/auth_user.dart';
 
 import '../../models/user.dart';
 
-abstract class AuthProvider {
+abstract class AuthRepository {
   Future<void> initialize();
   AuthUser? get currentUser;
   User? get costumeUser;
