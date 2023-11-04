@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
@@ -187,8 +186,9 @@ class _DashboardState extends State<Dashboard> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Center vertically
                     children: [
-                      SizedBox(height: 10), // Add vertical
                       Text(formattedDate),
                       SizedBox(height: 10), // Add vertical spacing
                       Text(
@@ -203,7 +203,7 @@ class _DashboardState extends State<Dashboard> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        group.description, // Uppercase group name
+                        group.description, // Description
                         style: TextStyle(
                           fontSize: 16,
                           color:
@@ -211,7 +211,7 @@ class _DashboardState extends State<Dashboard> {
                           fontWeight: FontWeight.bold, // Make it bold
                           fontFamily: 'Lato', // Use Lato font family
                         ),
-                      ), // Add vertical
+                      ),
                     ],
                   ),
                 ),
@@ -231,7 +231,6 @@ class _DashboardState extends State<Dashboard> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon(Icons.dashboard), // Icon next to "Dashboard" text
               // SizedBox(width: 8), // Adding some space between icon and text
               Text(
                 "Dashboard",
@@ -241,12 +240,6 @@ class _DashboardState extends State<Dashboard> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh), // Add refresh icon
-            onPressed: () async {
-              await _getUserGroups();
-            },
-          ),
           if (_currentUser?.hasNewNotifications == true)
             IconButton(
               icon: Stack(
@@ -319,7 +312,7 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   SizedBox(height: 20),
                   Container(
-                    height: 100,
+                    height: _scrollDirection == Axis.vertical ? 500 : 130,
                     child: FutureBuilder<List<Group>>(
                       future: _getUserGroups(),
                       builder: (context, snapshot) {

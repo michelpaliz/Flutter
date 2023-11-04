@@ -50,14 +50,22 @@ class _GroupDetailsState extends State<GroupDetails> {
     _users = _group.userRoles; // Access the
     _events = [];
     _selectedDate = DateTime.now().toLocal();
-    _storeService =
-        StoreService.firebase(Provider.of<ProviderManagement>(context));
     _selectedView = CalendarView.month;
     _controller = CalendarController();
-    ProviderManagement providerManagement = ProviderManagement();
     _authService = AuthService.firebase();
     _appointments = [];
     _getEventsListFromGroup();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
   }
 
   Future<void> _getEventsListFromGroup() async {
@@ -67,7 +75,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     setState(() {
       if (_user != null) {
         userRole = _getRoleByName(
-            _user!.name)!; // This might be nullable, no need for ! here
+            _user!.userName)!; // This might be nullable, no need for ! here
         _events = _group.calendar.events;
       }
       _users = _group.userRoles;
@@ -103,8 +111,8 @@ class _GroupDetailsState extends State<GroupDetails> {
     _updateCalendarDataSource(); // Call the method here to update the data source
   }
 
-  String? _getRoleByName(String name) {
-    return _users[name];
+  String? _getRoleByName(String userName) {
+    return _users[userName];
   }
 
   void _editEvent(Event event, BuildContext context) {
