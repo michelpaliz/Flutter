@@ -3,11 +3,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/routes/routes.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/routeLogger.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/views/create-group/edit_group_data.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/create-group/create_group_data.dart';
-import 'package:first_project/views/dashboard.dart';
+import 'package:first_project/views/dashboard/dashboard.dart';
 import 'package:first_project/views/create-group/edit_group.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -17,6 +19,7 @@ import 'package:first_project/views/home_page.dart';
 import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:first_project/views/log-user/register_view.dart';
+import 'package:first_project/views/service_provider/app_services.dart';
 import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
@@ -31,7 +34,6 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ProviderManagement providerManagement = ProviderManagement();
 
   // Initialize Firebase
   try {
@@ -56,18 +58,35 @@ void main() async {
   // Set the custom user model in AuthService
   authService.costumeUser = customUser;
 
-  // Retrieve the current user from AuthService
-  User? costumeUser = authService.costumeUser;
+  // Create an instance of ProviderManagement
+  final providerManagement = ProviderManagement(user: customUser!);
+
+  // Initialize the StoreService by providing the ProviderManagement
+  StoreService storeService = StoreService.firebase(providerManagement);
+
+  //Fetched user groups for the provider
+
+  List<Group>? fetchedGroups =
+      await storeService.fetchUserGroups(customUser.groupIds);
+
+  //Set the user groups into the service
+  providerManagement.groups = fetchedGroups;
+
+  // Create an instance of AppServices to provide the StoreService
+  AppServices appServices = AppServices(providerManagement, storeService);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => providerManagement,
-      child: MyApp(currentUser: costumeUser),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ProviderManagement>.value(
+            value: appServices.providerManagement),
+        Provider<AppServices>.value(
+            value: appServices), // Provide AppServices at the root level
+      ],
+      child: MyApp(currentUser: customUser),
     ),
   );
 }
-
-
 
 //** UI for my view */
 class MyApp extends StatelessWidget {
@@ -154,8 +173,16 @@ class MyApp extends StatelessWidget {
           return SizedBox
               .shrink(); // Return an empty widget or handle the error
         },
+        editGroupData: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return EditGroupData(group: group);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        }
       },
-      home: isLoggedIn ? const HomePage() : const LoginViewState(),
+      home: isLoggedIn ? const Dashboard() : const LoginViewState(),
     );
   }
 }

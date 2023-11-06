@@ -1,7 +1,7 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/firestore/implements/firestore_provider.dart';
 
 import '../../../models/event.dart';

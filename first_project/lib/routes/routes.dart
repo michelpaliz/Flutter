@@ -15,3 +15,4 @@ const settings = '/settings';
 const createGroupData ='/create-group-data';
 const createGroupSearchBar = '/create-group-search-bar';
 const homePage = '/home-page';
+const editGroupData = '/edit-group-data';

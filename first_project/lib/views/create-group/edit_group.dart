@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

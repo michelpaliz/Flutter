@@ -6,13 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
-import 'package:first_project/services/auth/auth_management.dart';
 import 'package:first_project/services/auth/auth_user.dart';
-import 'package:flutter/material.dart';
-
 import '../../../firebase_options.dart';
 import '../../../models/user.dart';
-import '../../firestore/implements/firestore_service.dart';
 import '../auth_repository.dart';
 
 class AuthProvider implements AuthRepository {

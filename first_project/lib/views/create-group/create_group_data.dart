@@ -1,13 +1,14 @@
 import 'dart:io';
+
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/calendar.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/utils/utilities.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/create-group/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -199,9 +200,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       List<User> users = [];
       users.add(_currentUser!);
 
-      //We assign the groupId to the current user
-      _currentUser!.groupIds.add(groupId);
-
       // Create the group object with the appropriate attributes
       Group group = Group(
           id: groupId,
@@ -211,47 +209,15 @@ class _CreateGroupDataState extends State<CreateGroupData> {
           calendar: calendar,
           users: users, // Include the list of users in the group
           createdTime: DateTime.now(),
-          description: '',
-          photo: '');
+          description: _groupDescription,
+          photo: _selectedImage.toString());
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.addGroup(group);
-      //let's update the current user and add the new group id in his list.
-      await _storeService.updateUser(_currentUser!);
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Group created successfully!')),
       );
-
-      //** AFTER CREATING THE GROUP WE PROCEED TO CREATE THE NOTIFICATION */
-
-      //Create the title message of the notification
-      String notificationTitle =
-          '${_currentUser?.name.toUpperCase()} invited you to a group';
-      // Create the notification message for the group
-      String notificationMessage =
-          '${_currentUser?.name.toUpperCase()} invited you to this Group: ${group.groupName}';
-      String notificationQuestion = 'Would you like to join this group ?';
-
-      // Add a new notification for each user in the group
-      for (User user in _userInGroup) {
-        if (user.id != _currentUser!.id) {
-          // Compare using user IDs
-          NotificationUser notification = NotificationUser(
-              id: groupId,
-              ownerId: _currentUser!.id,
-              title: notificationTitle,
-              message: notificationMessage,
-              timestamp: DateTime.now(),
-              hasQuestion: true,
-              question: notificationQuestion,
-              isAnswered: false);
-
-          user.notifications.add(notification);
-          user.hasNewNotifications = true;
-          await _storeService.updateUser(user);
-        }
-      }
 
       return true; // Return true to indicate that the group creation was successful.
     } catch (e) {

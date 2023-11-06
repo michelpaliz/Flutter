@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
+import 'package:first_project/utilities/utilities.dart';
 import '../../../models/event.dart';
 import '../../../models/notification_user.dart';
 import '../../../models/user.dart';
@@ -194,9 +195,66 @@ class FireStoreProvider implements StoreProvider {
 
   @override
   Future<void> addGroup(Group group) async {
-    final groupData = group.toJson(); // Serialize the entire Group object
+    try {
+      // Serialize the group object to JSON
+      final groupData = group.toJson();
 
-    await _firestore.collection('groups').doc(group.id).set(groupData);
+      // Create the group document in the 'groups' collection
+      await _firestore.collection('groups').doc(group.id).set(groupData);
+
+      //Now we are gonna create a new URL reference for the group's image and update it
+      _updatePhotoURLForGroup(group);
+
+      // Update the current user's group IDs
+      final currentUser = AuthService.firebase().costumeUser;
+      currentUser!.groupIds.add(group.id);
+      await updateUser(currentUser);
+
+      // Create notifications for group members
+      await _createNotificationsForGroups(group, currentUser);
+    } catch (e) {
+      print('Error adding group: $e');
+      throw 'Failed to add the group';
+    }
+  }
+
+  Future<void> _updatePhotoURLForGroup(Group group) async {
+    String photo = group.photo;
+    if (photo.isNotEmpty) {
+      String imageURL =
+          await Utilities.pickAndUploadImageGroup(group, group.photo);
+      group.photo = imageURL;
+      await updateGroup(group);
+    }
+  }
+
+  Future<void> _createNotificationsForGroups(
+      Group group, User currentUser) async {
+    // Create notification details
+    final notificationTitle =
+        '${currentUser.name.toUpperCase()} invited you to a group';
+    final notificationMessage =
+        '${currentUser.name.toUpperCase()} invited you to this Group: ${group.groupName}';
+    final notificationQuestion = 'Would you like to join this group ?';
+
+    for (User user in group.users) {
+      if (user.id != currentUser.id) {
+        final notification = NotificationUser(
+          id: group.id,
+          ownerId: currentUser.id,
+          title: notificationTitle,
+          message: notificationMessage,
+          timestamp: DateTime.now(),
+          hasQuestion: true,
+          question: notificationQuestion,
+          isAnswered: false,
+        );
+
+        user.notifications.add(notification);
+        user.hasNewNotifications = true;
+        await updateUser(user);
+      }
+    }
   }
 
   @override
@@ -209,6 +267,10 @@ class FireStoreProvider implements StoreProvider {
     // Update the document with the new data
     try {
       await groupReference.update(groupData);
+      //Now we are gonna create a new URL reference for the group's image and update it
+      _updatePhotoURLForGroup(group);
+      _providerManagement.updateGroup(group);
+      
     } catch (e) {
       print("Error updating group: $e");
       // Handle the error appropriately, e.g., show a snackbar or alert to the user.
@@ -508,4 +570,5 @@ class FireStoreProvider implements StoreProvider {
       rethrow; // Rethrow the error for higher-level handling if needed.
     }
   }
+
 }

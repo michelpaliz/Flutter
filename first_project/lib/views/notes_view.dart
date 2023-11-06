@@ -5,7 +5,7 @@ import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/drawer/my_drawer.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -49,6 +49,7 @@ class NotesViewState extends State<NotesView> {
     _selectedView = CalendarView.month;
     _controller = CalendarController();
     _appointments = [];
+    // _storeService = StoreService.firebase(context);
   }
 
   void _updateCalendarDataSource() {
@@ -57,16 +58,16 @@ class NotesViewState extends State<NotesView> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
 
-    // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+  //   // Access the inherited widget in the didChangeDependencies method.
+  //   final providerManagement = Provider.of<ProviderManagement>(context);
 
-    // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
-  }
+  //   // Initialize the _storeService using the providerManagement.
+  //   _storeService = StoreService.firebase(providerManagement);
+  // }
 
   Future<void> _reloadData() async {
     _getEventsListFromUser();

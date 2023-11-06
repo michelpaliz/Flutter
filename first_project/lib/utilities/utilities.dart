@@ -1,11 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/costume_widgets/color_manager.dart';
+import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart'; // Import the http package
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class Utilities {
   static Future<List<String>> getAddressSuggestions(String pattern) async {
@@ -88,6 +93,7 @@ class Utilities {
     return recurringAppointment;
   }
 
+  /*** This function shows the image URL from my FirebaseStorage returns a Widget */
   static Widget widgetbuildProfileImage(String imageUrl) {
     return CachedNetworkImage(
       imageUrl:
@@ -113,6 +119,26 @@ class Utilities {
       return NetworkImage(imageUrl);
     } else {
       return AssetImage('assets/images/default_profile.png');
+    }
+  }
+
+  static Future<String> pickAndUploadImageGroup(Group group, String imagePath) async {
+    try {
+      // Reference to the Firebase Storage bucket where you want to upload the image
+      final storageReference = firebase_storage.FirebaseStorage.instance
+          .ref()
+          .child('group_images/${group.id}.jpg');
+
+      // Upload the image to Firebase Storage using the provided image path
+      await storageReference.putFile(File(imagePath));
+
+      // Get the download URL of the uploaded image
+      final imageUrl = await storageReference.getDownloadURL();
+
+      return imageUrl; // Return the image URL
+    } catch (e) {
+      print('Error uploading image: $e');
+      throw 'Image upload failed'; // Throw an exception in case of an error
     }
   }
 }

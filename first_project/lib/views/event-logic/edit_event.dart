@@ -2,8 +2,8 @@ import 'package:first_project/costume_widgets/color_manager.dart';
 import 'package:first_project/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
-import 'package:first_project/services/auth/auth_management.dart';
-import 'package:first_project/utils/utilities.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
@@ -64,10 +64,10 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    // final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    // _storeService = StoreService.firebase(providerManagement);
     // Retrieve the 'Event' object passed as an argument to this screen
     _event = ModalRoute.of(context)!.settings.arguments as Event;
     // Set the attributes of the retrieved  'Event' object;

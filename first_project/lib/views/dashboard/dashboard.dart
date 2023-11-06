@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/services/auth/auth_management.dart';
+import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/button_styles.dart';
-import 'package:first_project/utils/utilities.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../routes/routes.dart';
-import '../costume_widgets/drawer/my_drawer.dart';
-import '../models/group.dart';
-import '../models/user.dart';
+import '../../routes/routes.dart';
+import '../../costume_widgets/drawer/my_drawer.dart';
+import '../../models/group.dart';
+import '../../models/user.dart';
 
 //---------------------------------------------------------------- I would like to add 1 button to create a group so the user can add ppl to share a calendar, and above the button there will be a list of groups that the current user has and if there is no groups there will be a message saying "There is no groups available"
 
@@ -31,45 +31,12 @@ class _DashboardState extends State<Dashboard> {
 
   //*LOGIC FOR THE VIEW //
 
-  Future<List<Group>> _getUserGroups() async {
-    _currentUser = _authService.costumeUser;
-    if (_currentUser != null) {
-      List<Group>? fetchedGroups =
-          await fetchUserGroups(_currentUser!.groupIds);
-      return fetchedGroups;
-    }
-    return [];
-  }
+  Future<List<Group>> _getUserGroups(StoreService storeService) async {
+    _currentUser = _authService.costumeUser!;
 
-  Future<List<Group>> fetchUserGroups(List<String>? groupIds) async {
-    List<Group> groups = [];
-
-    if (groupIds != null) {
-      for (String groupId in groupIds) {
-        Group? group = await getGroupFromId(groupId);
-        groups.add(group!);
-      }
-    }
-
-    return groups;
-  }
-
-  Future<Group?> getGroupFromId(String groupId) async {
-    try {
-      DocumentSnapshot groupSnapshot = await FirebaseFirestore.instance
-          .collection('groups')
-          .doc(groupId)
-          .get();
-
-      if (groupSnapshot.exists) {
-        return Group.fromJson(groupSnapshot.data()! as Map<String, dynamic>);
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print('Error fetching group: $e');
-      return null;
-    }
+    List<Group>? fetchedGroups =
+        await storeService.fetchUserGroups(_currentUser?.groupIds);
+    return fetchedGroups;
   }
 
   @override
@@ -78,18 +45,7 @@ class _DashboardState extends State<Dashboard> {
     _authService = new AuthService.firebase();
     _currentUser = _authService.costumeUser;
     _userGroups = [];
-    _getUserGroups();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
-
-    // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    // _getUserGroups();
   }
 
   void _toggleScrollDirection() {
@@ -225,150 +181,160 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // SizedBox(width: 8), // Adding some space between icon and text
-              Text(
-                "Dashboard",
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          if (_currentUser?.hasNewNotifications == true)
-            IconButton(
-              icon: Stack(
-                alignment: Alignment.topRight,
-                children: [
-                  Icon(Icons.notifications),
-                  Icon(Icons.brightness_1, size: 10, color: Colors.red),
-                ],
-              ),
-              onPressed: () {
-                // Open notifications screen
-                _currentUser?.hasNewNotifications = false;
-                _storeService.updateUser(_currentUser!);
-                setState(() {}); // Trigger UI update
-                Navigator.pushNamed(context, showNotifications);
-              },
-            )
-          else
-            IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {
-                // Open notifications screen
-                Navigator.pushNamed(context, showNotifications);
-              },
+    return Consumer<ProviderManagement>(
+        builder: (context, providerManagement, child) {
+      // Access the list of groups from providerData.
+      final List<Group> groups = providerManagement.groups;
+      // Initialize _storeService using data from providerManagement.
+      final providerData = providerManagement;
+      _storeService = StoreService.firebase(providerData);
+      return Scaffold(
+        appBar: AppBar(
+          title: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // SizedBox(width: 8), // Adding some space between icon and text
+                Text(
+                  "Dashboard",
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-        ],
-      ),
-      drawer: MyDrawer(),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Groups",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(
-                                  width: 10), // Add space between text and icon
-                              GestureDetector(
-                                onTap:
-                                    _toggleScrollDirection, // Toggle the scroll direction
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.dashboard,
-                                    // Add your icon properties here
+          ),
+          actions: [
+            if (_currentUser?.hasNewNotifications == true)
+              IconButton(
+                icon: Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    Icon(Icons.notifications),
+                    Icon(Icons.brightness_1, size: 10, color: Colors.red),
+                  ],
+                ),
+                onPressed: () {
+                  // Open notifications screen
+                  _currentUser?.hasNewNotifications = false;
+                  _storeService.updateUser(_currentUser!);
+                  setState(() {}); // Trigger UI update
+                  Navigator.pushNamed(context, showNotifications);
+                },
+              )
+            else
+              IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: () {
+                  // Open notifications screen
+                  Navigator.pushNamed(context, showNotifications);
+                },
+              ),
+          ],
+        ),
+        drawer: MyDrawer(),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      child: Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Groups",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Container(
-                    height: _scrollDirection == Axis.vertical ? 500 : 130,
-                    child: FutureBuilder<List<Group>>(
-                      future: _getUserGroups(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          // Display a loading indicator while waiting for the data.
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          // Handle any errors that occur during the data retrieval.
-                          return Center(
-                              child: Text("Error: ${snapshot.error}"));
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          // Handle the case where there are no groups available.
-                          return Center(
-                            child: Text(
-                              "NO GROUP/S FOUND/S",
-                              style: TextStyle(fontSize: 15),
+                                SizedBox(
+                                    width:
+                                        10), // Add space between text and icon
+                                GestureDetector(
+                                  onTap:
+                                      _toggleScrollDirection, // Toggle the scroll direction
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      Icons.dashboard,
+                                      // Add your icon properties here
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        } else {
-                          // Data is available, display the list of groups.
-                          List<Group> userGroups = snapshot.data!;
-                          return ListView.builder(
-                            scrollDirection: _scrollDirection,
-                            itemCount: userGroups.length,
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () async {
-                                  Group _group = userGroups[index];
-                                  User _groupOwner = await _storeService
-                                      .getOwnerFromGroup(_group);
-                                  showProfileAlertDialog(
-                                      context, _group, _groupOwner);
-                                },
-                                child: buildCard(userGroups[index]),
-                              );
-                            },
-                          );
-                        }
-                      },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 20),
+                    Container(
+                      height: _scrollDirection == Axis.vertical ? 500 : 130,
+                      child: FutureBuilder<List<Group>>(
+                        future: Future.value(
+                            Provider.of<ProviderManagement>(context).groups),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            // Display a loading indicator while waiting for the data.
+                            return Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            // Handle any errors that occur during the data retrieval.
+                            return Center(
+                                child: Text("Error: ${snapshot.error}"));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            // Handle the case where there are no groups available.
+                            return Center(
+                              child: Text(
+                                "NO GROUP/S FOUND/S",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                            );
+                          } else {
+                            // Data is available, display the list of groups.
+                            List<Group> userGroups = snapshot.data!;
+                            return ListView.builder(
+                              scrollDirection: _scrollDirection,
+                              itemCount: userGroups.length,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                  onTap: () async {
+                                    Group _group = userGroups[index];
+                                    User _groupOwner = await _storeService
+                                        .getOwnerFromGroup(_group);
+                                    showProfileAlertDialog(
+                                        context, _group, _groupOwner);
+                                  },
+                                  child: buildCard(userGroups[index]),
+                                );
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _createGroup();
-        },
-        child: Icon(Icons.group_add_rounded),
-      ),
-    );
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _createGroup();
+          },
+          child: Icon(Icons.group_add_rounded),
+        ),
+      );
+    });
   }
 
   void showProfileAlertDialog(BuildContext context, Group group, User owner) {
@@ -431,12 +397,9 @@ class _DashboardState extends State<Dashboard> {
             TextButton(
               onPressed: () async {
                 // Edit group logic here
-                Navigator.of(context).pop();
                 Group? groupUpdated =
                     await _storeService.getGroupFromId(group.id);
-                // Navigator.pushNamed(context, editGroup,
-                //     arguments: groupUpdated);
-                Navigator.pushNamed(context, createGroupData,
+                Navigator.pushNamed(context, editGroupData,
                     arguments: groupUpdated);
               },
               child: Text('Edit'),
