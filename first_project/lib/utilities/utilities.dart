@@ -122,15 +122,20 @@ class Utilities {
     }
   }
 
-  static Future<String> pickAndUploadImageGroup(Group group, String imagePath) async {
+  static Future<String> pickAndUploadImageGroup(
+      String groupID, XFile? imageFile) async {
+    if (imageFile == null) {
+      throw 'No image file selected'; // Handle the case where no image is selected
+    }
+
     try {
       // Reference to the Firebase Storage bucket where you want to upload the image
       final storageReference = firebase_storage.FirebaseStorage.instance
           .ref()
-          .child('group_images/${group.id}.jpg');
+          .child('group_images/${groupID}.jpg');
 
-      // Upload the image to Firebase Storage using the provided image path
-      await storageReference.putFile(File(imagePath));
+      // Upload the image to Firebase Storage using the provided XFile
+      await storageReference.putFile(File(imageFile.path));
 
       // Get the download URL of the uploaded image
       final imageUrl = await storageReference.getDownloadURL();

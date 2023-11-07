@@ -203,7 +203,7 @@ class FireStoreProvider implements StoreProvider {
       await _firestore.collection('groups').doc(group.id).set(groupData);
 
       //Now we are gonna create a new URL reference for the group's image and update it
-      _updatePhotoURLForGroup(group);
+      // _updatePhotoURLForGroup(group);
 
       // Update the current user's group IDs
       final currentUser = AuthService.firebase().costumeUser;
@@ -218,15 +218,15 @@ class FireStoreProvider implements StoreProvider {
     }
   }
 
-  Future<void> _updatePhotoURLForGroup(Group group) async {
-    String photo = group.photo;
-    if (photo.isNotEmpty) {
-      String imageURL =
-          await Utilities.pickAndUploadImageGroup(group, group.photo);
-      group.photo = imageURL;
-      await updateGroup(group);
-    }
-  }
+  // Future<void> _updatePhotoURLForGroup(Group group) async {
+  //   String photo = group.photo;
+  //   if (photo.isNotEmpty) {
+  //     String imageURL =
+  //         await Utilities.pickAndUploadImageGroup(group, group.photo);
+  //     group.photo = imageURL;
+  //     await updateGroup(group);
+  //   }
+  // }
 
   Future<void> _createNotificationsForGroups(
       Group group, User currentUser) async {
@@ -268,7 +268,7 @@ class FireStoreProvider implements StoreProvider {
     try {
       await groupReference.update(groupData);
       //Now we are gonna create a new URL reference for the group's image and update it
-      _updatePhotoURLForGroup(group);
+      // _updatePhotoURLForGroup(group);
       _providerManagement.updateGroup(group);
       
     } catch (e) {

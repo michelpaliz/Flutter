@@ -200,6 +200,14 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       List<User> users = [];
       users.add(_currentUser!);
 
+      //Now we are going to create the link of the image selected for the group
+      String imageURL = "";
+
+      if (_selectedImage != null) {
+        imageURL =
+            await Utilities.pickAndUploadImageGroup(groupId, _selectedImage);
+      }
+
       // Create the group object with the appropriate attributes
       Group group = Group(
           id: groupId,
@@ -210,7 +218,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
           users: users, // Include the list of users in the group
           createdTime: DateTime.now(),
           description: _groupDescription,
-          photo: _selectedImage.toString());
+          photo: imageURL);
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.addGroup(group);
@@ -242,24 +250,23 @@ class _CreateGroupDataState extends State<CreateGroupData> {
               children: [
                 GestureDetector(
                   onTap: _pickImage,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey,
-                    ),
-                    child: Center(
-                      child: _selectedImage != null
-                          ? Image.file(File(_selectedImage!.path))
-                          : Icon(
-                              Icons.add_a_photo,
-                              size: 50,
-                              color: Colors.white,
-                            ),
-                    ),
+                  child: CircleAvatar(
+                    radius: 50, // Adjust the size as needed
+                    backgroundColor:
+                        _selectedImage != null ? Colors.transparent : null,
+                    backgroundImage: _selectedImage != null
+                        ? FileImage(File(_selectedImage!.path))
+                        : null,
+                    child: _selectedImage == null
+                        ? Icon(
+                            Icons.add_a_photo,
+                            size: 50,
+                            color: Colors.white,
+                          )
+                        : null, // Hide the Icon when there's an image
                   ),
                 ),
+
                 SizedBox(height: 10),
                 Text(
                   'Put an image for your group',

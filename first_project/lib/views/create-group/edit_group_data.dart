@@ -1,21 +1,17 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/models/calendar.dart';
 import 'package:first_project/models/group.dart';
-import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/views/service_provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/create-group/create_group_search_bar.dart';
-import 'package:first_project/views/dashboard/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 
 class EditGroupData extends StatefulWidget {
   final Group group;
@@ -36,6 +32,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
   late final Group _group;
+  String _imageURL = "";
 
   @override
   void initState() {
@@ -43,6 +40,9 @@ class _EditGroupDataState extends State<EditGroupData> {
     _group = widget.group;
     _groupName = _group.groupName;
     _groupDescription = _group.description;
+    if (_group.photo.isNotEmpty) {
+      _imageURL = _group.photo;
+    }
     _selectedImage = _group.photo.isEmpty
         ? null
         : XFile(
@@ -186,6 +186,13 @@ class _EditGroupDataState extends State<EditGroupData> {
     try {
       //** CREATING THE GROUP*/
 
+      //Now we are going to create the link of the image selected for the group
+
+      if (_selectedImage != null) {
+        _imageURL =
+            await Utilities.pickAndUploadImageGroup(_group.id, _selectedImage);
+      }
+
       // Create the group object with the appropriate attributes
       Group updateGroup = Group(
           id: _group.id,
@@ -196,7 +203,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           users: _group.users, // Include the list of users in the group
           createdTime: DateTime.now(),
           description: _groupDescription,
-          photo: _selectedImage.toString());
+          photo: _imageURL);
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.updateGroup(updateGroup);
@@ -239,69 +246,25 @@ class _EditGroupDataState extends State<EditGroupData> {
                   children: [
                     GestureDetector(
                       onTap: _pickImage,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey,
-                        ),
-                        child: GestureDetector(
-                          onTap: _pickImage,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey,
-                            ),
-                            child: Center(
-                                child: GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.grey,
-                                ),
-                                child: Center(
-                                  child: GestureDetector(
-                                    onTap: _pickImage,
-                                    child: _selectedImage != null
-                                        ? ClipOval(
-                                            // Wrap the Image.file with ClipOval
-                                            child: Image.file(
-                                                File(_selectedImage!.path)),
-                                          )
-                                        : _group.photo.isNotEmpty
-                                            ? ClipOval(
-                                                // Wrap the CachedNetworkImage with ClipOval
-                                                child: CachedNetworkImage(
-                                                  imageUrl: _group.photo,
-                                                  placeholder: (context, url) =>
-                                                      CircularProgressIndicator(),
-                                                  errorWidget:
-                                                      (context, url, error) =>
-                                                          Icon(
-                                                    Icons.error,
-                                                    color: Colors.red,
-                                                  ),
-                                                ),
-                                              )
-                                            : Icon(
-                                                Icons.add_a_photo,
-                                                size: 50,
-                                                color: Colors.white,
-                                              ),
-                                  ),
-                                ),
-                              ),
-                            )),
-                          ),
-                        ),
+                      child: CircleAvatar(
+                        radius: 50, // Adjust the size as needed
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: _imageURL.isNotEmpty
+                            ? CachedNetworkImageProvider(_imageURL)
+                                as ImageProvider<Object>?
+                            : _selectedImage != null
+                                ? FileImage(File(_selectedImage!.path))
+                                : null,
+                        child: _imageURL.isEmpty && _selectedImage == null
+                            ? Icon(
+                                Icons.add_a_photo,
+                                size: 50,
+                                color: Colors.white,
+                              )
+                            : null, // Hide the Icon when there's an image
                       ),
                     ),
+
                     SizedBox(height: 10),
                     Text(
                       'Put an image for your group',
