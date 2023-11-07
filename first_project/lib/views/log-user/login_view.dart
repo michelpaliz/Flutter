@@ -1,8 +1,8 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/routes/routes.dart';
-import 'package:first_project/costume_widgets/text_field_widget.dart';
+import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/styles/costume_widgets/text_field_widget.dart';
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';

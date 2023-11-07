@@ -1,5 +1,5 @@
 import 'package:first_project/models/user.dart';
-import 'package:first_project/views/service_provider/provider_management.dart';
+import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/auth_repository.dart';
 import 'package:first_project/services/auth/auth_user.dart';
 import 'package:first_project/services/auth/implements/auth_provider.dart';

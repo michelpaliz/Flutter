@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:first_project/costume_widgets/color_manager.dart';
+import 'package:first_project/styles/costume_widgets/color_manager.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/models/user.dart';

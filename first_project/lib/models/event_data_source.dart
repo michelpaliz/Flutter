@@ -1,4 +1,4 @@
-import 'package:first_project/costume_widgets/color_manager.dart';
+import 'package:first_project/styles/costume_widgets/color_manager.dart';
 import 'package:first_project/models/event.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';

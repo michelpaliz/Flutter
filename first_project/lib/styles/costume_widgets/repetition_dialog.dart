@@ -1,4 +1,4 @@
-import 'package:first_project/costume_widgets/number_selector.dart';
+import 'package:first_project/styles/costume_widgets/number_selector.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';

@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/views/service_provider/provider_management.dart';
+
+import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/button_styles.dart';
@@ -7,8 +7,8 @@ import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../routes/routes.dart';
-import '../../costume_widgets/drawer/my_drawer.dart';
+import '../../enums/routes/routes.dart';
+import '../../styles/costume_widgets/drawer/my_drawer.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
 

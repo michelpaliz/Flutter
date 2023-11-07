@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/costume_widgets/costume_search_bar.dart';
+import 'package:first_project/styles/costume_widgets/costume_search_bar.dart';
 import 'package:first_project/models/user.dart';
 import 'package:flutter/material.dart';
 

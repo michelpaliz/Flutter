@@ -1,4 +1,4 @@
-import 'package:first_project/views/service_provider/provider_management.dart';
+import 'package:first_project/views/provider/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
