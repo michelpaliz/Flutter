@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/views/provider/provider_management.dart';
-import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';

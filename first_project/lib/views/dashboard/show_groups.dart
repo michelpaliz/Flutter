@@ -1,9 +1,8 @@
-
 import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/button_styles.dart';
-import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +11,7 @@ import '../../styles/costume_widgets/drawer/my_drawer.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
 
-//---------------------------------------------------------------- I would like to add 1 button to create a group so the user can add ppl to share a calendar, and above the button there will be a list of groups that the current user has and if there is no groups there will be a message saying "There is no groups available"
+//---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
 class ShowGroups extends StatefulWidget {
   const ShowGroups({super.key});
@@ -186,7 +185,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               children: [
                 // SizedBox(width: 8), // Adding some space between icon and text
                 Text(
-                  "Dashboard",
+                  "Groups",
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -229,19 +228,33 @@ class _ShowGroupsState extends State<ShowGroups> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
+                      margin: const EdgeInsets.only(top: 16),
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 50, right: 50),
+                        child: Center(
+                          child: Text(
+                            "Welcome to the groups view ${Utilities.capitalize(_currentUser!.name)} here you can see the groups you are in",
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'lato'),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
                       child: Stack(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top: 20.0),
+                            padding: const EdgeInsets.only(top: 16.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Groups",
+                                  "Change View",
                                   style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
                                   ),
                                 ),
                                 SizedBox(

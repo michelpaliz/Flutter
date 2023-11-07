@@ -3,7 +3,7 @@ import 'package:first_project/styles/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/views/provider/provider_management.dart';
-import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';

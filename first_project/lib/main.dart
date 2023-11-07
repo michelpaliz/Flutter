@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/routeLogger.dart';
 import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/my-lib/utilities.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/views/calendar-group/group_details.dart';
@@ -9,7 +10,7 @@ import 'package:first_project/views/calendar-group/group_settings.dart';
 import 'package:first_project/views/create-group/create_group_data.dart';
 import 'package:first_project/views/create-group/edit_group.dart';
 import 'package:first_project/views/create-group/edit_group_data.dart';
-import 'package:first_project/views/dashboard/show-groups.dart';
+import 'package:first_project/views/dashboard/show_groups.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -32,7 +33,8 @@ import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // Load custom fonts
+  await Utilities.loadCustomFonts();
   // Initialize Firebase
   try {
     await Firebase.initializeApp();

@@ -9,7 +9,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import '../../styles/textfield_styles.dart';
-import '../../utilities/show_error_dialog.dart';
+import '../../my-lib/show_error_dialog.dart';
 
 // ======= LOGIN =========
 class LoginViewState extends StatefulWidget {
