@@ -62,7 +62,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
       onTap: () {
         switch (section) {
           case DrawerSections.dashboard:
-            Navigator.pushNamed(context, dashboard);
+            Navigator.pushNamed(context, showGroups);
             break;
           case DrawerSections.notes_view:
             Navigator.pushNamed(context, userCalendar);

@@ -14,14 +14,14 @@ import '../../models/user.dart';
 
 //---------------------------------------------------------------- I would like to add 1 button to create a group so the user can add ppl to share a calendar, and above the button there will be a list of groups that the current user has and if there is no groups there will be a message saying "There is no groups available"
 
-class Dashboard extends StatefulWidget {
-  const Dashboard({super.key});
+class ShowGroups extends StatefulWidget {
+  const ShowGroups({super.key});
 
   @override
-  State<Dashboard> createState() => _DashboardState();
+  State<ShowGroups> createState() => _ShowGroupsState();
 }
 
-class _DashboardState extends State<Dashboard> {
+class _ShowGroupsState extends State<ShowGroups> {
   User? _currentUser;
   late List<Group>? _userGroups;
   late StoreService _storeService;
@@ -158,16 +158,6 @@ class _DashboardState extends State<Dashboard> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      Text(
-                        group.description, // Description
-                        style: TextStyle(
-                          fontSize: 16,
-                          color:
-                              Color.fromARGB(255, 48, 133, 141), // Change color
-                          fontWeight: FontWeight.bold, // Make it bold
-                          fontFamily: 'Lato', // Use Lato font family
-                        ),
-                      ),
                     ],
                   ),
                 ),
