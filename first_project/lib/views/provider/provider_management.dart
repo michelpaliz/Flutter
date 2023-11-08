@@ -5,32 +5,38 @@ import 'package:first_project/models/user.dart';
 import 'package:flutter/foundation.dart';
 
 class ProviderManagement extends ChangeNotifier {
-  User? _user;
+  User? _currentUser;
   List<Group> _groups = [];
 
-  User? get user => _user;
-  List<Group> get groups => _groups;
+  User? get user => _currentUser;
+  List<Group> get setGroups => _groups;
 
   ProviderManagement({
     required User user,
   }) {
-    _user = user;
+    _currentUser = user;
   }
 
-  set groups(groups) {
+  set setGroups(groups) {
     _groups = groups;
+  }
+
+  // Method to set the currentUser
+  void setCurrentUser(User? user) {
+    _currentUser = user;
+    notifyListeners(); // Notify the listeners (providers) of the change
   }
 
   // Initialize the user and groups
   void initialize(User user, List<Group> groups) {
-    _user = user;
+    _currentUser = user;
     _groups = groups;
     notifyListeners();
   }
 
   // Update the user and notify listeners
   void updateUser(User newUser) {
-    _user = newUser;
+    _currentUser = newUser;
     notifyListeners();
   }
 

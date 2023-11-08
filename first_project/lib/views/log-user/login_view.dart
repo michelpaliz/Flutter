@@ -1,30 +1,37 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/enums/routes/routes.dart';
-import 'package:first_project/styles/costume_widgets/text_field_widget.dart';
 import 'package:first_project/enums/color_properties.dart';
+import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/models/group.dart';
+import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
+import 'package:first_project/styles/costume_widgets/text_field_widget.dart';
+import 'package:first_project/views/provider/provider_management.dart';
 import 'package:flutter/material.dart';
-import '../../styles/textfield_styles.dart';
+import 'package:provider/provider.dart';
+
 import '../../my-lib/show_error_dialog.dart';
+import '../../styles/textfield_styles.dart';
 
 // ======= LOGIN =========
-class LoginViewState extends StatefulWidget {
-  const LoginViewState({Key? key}) : super(key: key);
+class LoginView extends StatefulWidget {
+  const LoginView({Key? key}) : super(key: key);
 
   @override
-  State<LoginViewState> createState() => _LoginViewState();
+  State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginViewState> {
+class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   bool buttonHovered = false; // Added buttonHovered variable
   late ButtonStyle _myCustomButtonStyle;
   late final AuthService _authService;
+  late final StoreService _storeService;
 
   @override
   void initState() {
@@ -107,8 +114,16 @@ class _LoginViewState extends State<LoginViewState> {
                             .logIn(email: email, password: password);
                         final user = _authService.currentUser;
                         bool emailVerified = user?.isEmailVerified ?? false;
-                        devtools.log(emailVerified.toString());
+
                         if (emailVerified) {
+                          User? customUser =
+                              await _authService.generateUserCustomeModel();
+
+                          // Update the currentUser within your ProviderManagement
+                          Provider.of<ProviderManagement>(context,
+                                  listen: false)
+                              .setCurrentUser(customUser);
+
                           Navigator.of(context)
                               .pushReplacementNamed(userCalendar);
                         } else {

@@ -200,8 +200,7 @@ class AuthProvider implements AuthRepository {
         return _currentUser; // Return the populated user object
       }
     }
-    throw Exception(
-        "User data not found"); // Throw an exception when the user doesn't exist
+    return null; // Return null when the user data is not found
   }
 
 // Fetch user data from Firestore based on the provided email

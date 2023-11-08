@@ -1,9 +1,7 @@
 import 'package:first_project/models/user.dart';
-import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/auth_repository.dart';
 import 'package:first_project/services/auth/auth_user.dart';
 import 'package:first_project/services/auth/implements/auth_provider.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
 
 class AuthService implements AuthRepository {
 final AuthRepository provider;
@@ -16,7 +14,6 @@ final AuthRepository provider;
     _instance ??= AuthService._(AuthProvider());
     return _instance!;
   }
-
 
   @override
   Future<String> createUser({

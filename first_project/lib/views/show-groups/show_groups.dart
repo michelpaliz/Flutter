@@ -115,10 +115,11 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
 
   //** UI FOR THE VIEW */
-  Widget buildCard(
-    Group group,
-  ) {
+  Widget buildCard(Group group, bool isHovered) {
     String formattedDate = DateFormat('yyyy-MM-dd').format(group.createdTime);
+    Color backgroundColor = isHovered
+        ? Color.fromARGB(255, 135, 199, 220)
+        : Color.fromARGB(255, 255, 255, 255); // Sky blue when hovered, grey when not
 
     return Container(
       child: Card(
@@ -131,39 +132,58 @@ class _ShowGroupsState extends State<ShowGroups> {
               User _groupOwner = await _storeService.getOwnerFromGroup(group);
               showProfileAlertDialog(context, group, _groupOwner);
             },
-            child: Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(8.0), // Add padding
-                  child: Icon(Icons.group, size: 32, color: Colors.blue),
-                ),
-                SizedBox(width: 8), // Add some spacing
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment:
-                        MainAxisAlignment.center, // Center vertically
-                    children: [
-                      Text(formattedDate),
-                      SizedBox(height: 10), // Add vertical spacing
-                      Text(
-                        group.groupName.toUpperCase(), // Uppercase group name
-                        style: TextStyle(
-                          fontSize: 16,
-                          color:
-                              Color.fromARGB(255, 48, 133, 141), // Change color
-                          fontWeight: FontWeight.bold, // Make it bold
-                          fontFamily: 'Lato', // Use Lato font family
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                    ],
+            child: MouseRegion(
+              onEnter: (_) {
+                // Add your hover effect here (e.g., change the background color).
+                setState(() {
+                  isHovered = true;
+                });
+              },
+              onExit: (_) {
+                // Reset the hover effect when the mouse exits.
+                setState(() {
+                  isHovered = false;
+                });
+              },
+              child: Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(right: 3, left: 4), // Add padding
+                    child: Icon(Icons.group, size: 32, color: Colors.blue),
                   ),
-                ),
-              ],
+                  SizedBox(width: 8), // Add some spacing
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment:
+                            MainAxisAlignment.center, // Center vertically
+                        children: [
+                          Text(formattedDate),
+                          SizedBox(height: 10), // Add vertical spacing
+                          Text(
+                            group.groupName
+                                .toUpperCase(), // Uppercase group name
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color.fromARGB(
+                                  255, 48, 133, 141), // Change color
+                              fontWeight: FontWeight.bold, // Make it bold
+                              fontFamily: 'lato', // Use Lato font family
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
+        color: backgroundColor,
       ),
     );
   }
@@ -173,7 +193,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     return Consumer<ProviderManagement>(
         builder: (context, providerManagement, child) {
       // Access the list of groups from providerData.
-      final List<Group> groups = providerManagement.groups;
+      final List<Group> groups = providerManagement.setGroups;
       // Initialize _storeService using data from providerManagement.
       final providerData = providerManagement;
       _storeService = StoreService.firebase(providerData);
@@ -228,16 +248,25 @@ class _ShowGroupsState extends State<ShowGroups> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      margin: const EdgeInsets.only(top: 16),
+                      margin: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 195, 219, 230), // Replace with your desired sky background color
+                        borderRadius: BorderRadius.circular(
+                            20.0), // Adjust the radius for rounded corners
+                        border: Border.all(
+                            color: const Color.fromARGB(255, 185, 210, 231), width: 2.0), // Border styling
+                      ),
+                      padding: EdgeInsets.all(16.0),
                       child: Container(
-                        padding: const EdgeInsets.only(left: 50, right: 50),
+                        padding: const EdgeInsets.only(left: 5, right: 5),
                         child: Center(
                           child: Text(
-                            "Welcome to the groups view ${Utilities.capitalize(_currentUser!.name)} here you can see the groups you are in",
+                            "Welcome ${Utilities.capitalize(_currentUser!.name)} here you can see the groups you are into",
                             style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'lato'),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'lato',
+                            ),
                           ),
                         ),
                       ),
@@ -282,7 +311,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                       height: _scrollDirection == Axis.vertical ? 500 : 130,
                       child: FutureBuilder<List<Group>>(
                         future: Future.value(
-                            Provider.of<ProviderManagement>(context).groups),
+                            Provider.of<ProviderManagement>(context).setGroups),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -308,7 +337,9 @@ class _ShowGroupsState extends State<ShowGroups> {
                               scrollDirection: _scrollDirection,
                               itemCount: userGroups.length,
                               itemBuilder: (context, index) {
-                                return GestureDetector(
+                                bool isHovered = false;
+
+                                return InkWell(
                                   onTap: () async {
                                     Group _group = userGroups[index];
                                     User _groupOwner = await _storeService
@@ -316,7 +347,28 @@ class _ShowGroupsState extends State<ShowGroups> {
                                     showProfileAlertDialog(
                                         context, _group, _groupOwner);
                                   },
-                                  child: buildCard(userGroups[index]),
+                                  onHover: (hovering) {
+                                    // Set the hover state
+                                    setState(() {
+                                      isHovered = hovering;
+                                    });
+                                  },
+                                  child: MouseRegion(
+                                    onEnter: (_) {
+                                      // Add your hover effect here (e.g., change the background color).
+                                      setState(() {
+                                        isHovered = true;
+                                      });
+                                    },
+                                    onExit: (_) {
+                                      // Reset the hover effect when the mouse exits.
+                                      setState(() {
+                                        isHovered = false;
+                                      });
+                                    },
+                                    child:
+                                        buildCard(userGroups[index], isHovered),
+                                  ),
                                 );
                               },
                             );

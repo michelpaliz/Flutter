@@ -10,7 +10,7 @@ import 'package:first_project/views/calendar-group/group_settings.dart';
 import 'package:first_project/views/create-group/create_group_data.dart';
 import 'package:first_project/views/create-group/edit_group.dart';
 import 'package:first_project/views/create-group/edit_group_data.dart';
-import 'package:first_project/views/dashboard/show_groups.dart';
+import 'package:first_project/views/show-groups/show_groups.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -55,37 +55,45 @@ void main() async {
   // Generate the custom user model
   User? customUser = await authService.generateUserCustomeModel();
 
-  // Set the custom user model in AuthService
-  authService.costumeUser = customUser;
+// Check if customUser is null
+  if (customUser == null) {
+    // User is new or not logged in, direct them to the login screen
+    runApp(
+      MyApp(currentUser: customUser),
+    );
+  } else {
+    // Set the custom user model in AuthService
+    authService.costumeUser = customUser;
 
-  // Create an instance of ProviderManagement
-  final providerManagement = ProviderManagement(user: customUser!);
+    // Create an instance of ProviderManagement
+    final providerManagement = ProviderManagement(user: customUser);
 
-  // Initialize the StoreService by providing the ProviderManagement
-  StoreService storeService = StoreService.firebase(providerManagement);
+    // Initialize the StoreService by providing the ProviderManagement
+    StoreService storeService = StoreService.firebase(providerManagement);
 
-  //Fetched user groups for the provider
+    //Fetched user groups for the provider
 
-  List<Group>? fetchedGroups =
-      await storeService.fetchUserGroups(customUser.groupIds);
+    List<Group>? fetchedGroups =
+        await storeService.fetchUserGroups(customUser.groupIds);
 
-  //Set the user groups into the service
-  providerManagement.groups = fetchedGroups;
+    //Set the user groups into the service
+    providerManagement.setGroups = fetchedGroups;
 
-  // Create an instance of AppServices to provide the StoreService
-  AppServices appServices = AppServices(providerManagement, storeService);
+    // Create an instance of AppServices to provide the StoreService
+    AppServices appServices = AppServices(providerManagement, storeService);
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ProviderManagement>.value(
-            value: appServices.providerManagement),
-        Provider<AppServices>.value(
-            value: appServices), // Provide AppServices at the root level
-      ],
-      child: MyApp(currentUser: customUser),
-    ),
-  );
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ProviderManagement>.value(
+              value: appServices.providerManagement),
+          Provider<AppServices>.value(
+              value: appServices), // Provide AppServices at the root level
+        ],
+        child: MyApp(currentUser: customUser),
+      ),
+    );
+  }
 }
 
 //** UI for my view */
@@ -109,7 +117,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         settings: (context) => const Settings(),
-        loginRoute: (context) => const LoginViewState(),
+        loginRoute: (context) => const LoginView(),
         registerRoute: (context) => const RegisterView(),
         userCalendar: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
@@ -182,7 +190,7 @@ class MyApp extends StatelessWidget {
               .shrink(); // Return an empty widget or handle the error
         }
       },
-      home: isLoggedIn ? const ShowGroups() : const LoginViewState(),
+      home: isLoggedIn ? const ShowGroups() : const LoginView(),
     );
   }
 }

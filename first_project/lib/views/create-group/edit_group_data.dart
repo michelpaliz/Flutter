@@ -248,7 +248,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                       onTap: _pickImage,
                       child: CircleAvatar(
                         radius: 50, // Adjust the size as needed
-                        backgroundColor: Colors.transparent,
+                        backgroundColor:
+                            _selectedImage != null ? Colors.transparent : null,
                         backgroundImage: _imageURL.isNotEmpty
                             ? CachedNetworkImageProvider(_imageURL)
                                 as ImageProvider<Object>?

@@ -70,7 +70,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     NotificationUser ntOwner = NotificationUser(
         id: notification.id,
         ownerId: notification.ownerId,
-        title: 'New user added to $notification.title group ',
+        title:  "New User Added to ${notification.title.toUpperCase()} Group",
         message:
             '${currentUser!.name} has accepted your invitation to join the group',
         timestamp: DateTime.now());
