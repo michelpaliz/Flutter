@@ -7,7 +7,7 @@ import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/my-lib/utilities.dart';
-import 'package:first_project/views/create-group/create_group_search_bar.dart';
+import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';

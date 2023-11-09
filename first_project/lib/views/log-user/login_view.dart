@@ -3,6 +3,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/main.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
@@ -10,6 +11,9 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/app_bar_styles.dart';
 import 'package:first_project/styles/costume_widgets/text_field_widget.dart';
+import 'package:first_project/views/log-user/login_init.dart';
+import 'package:first_project/views/log-user/main_init.dart';
+import 'package:first_project/views/provider/app_services.dart';
 import 'package:first_project/views/provider/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +36,8 @@ class _LoginViewState extends State<LoginView> {
   late ButtonStyle _myCustomButtonStyle;
   late final AuthService _authService;
   late final StoreService _storeService;
+  late final MainInitializer _mainInitializer;
+  late LoginInitializer _loginInitializer;
 
   @override
   void initState() {
@@ -40,6 +46,18 @@ class _LoginViewState extends State<LoginView> {
     _email = TextEditingController();
     _password = TextEditingController();
     _myCustomButtonStyle = ColorProperties.defaultButton();
+    // Initialize the MainInitializer with necessary dependencies
+    _mainInitializer = MainInitializer(
+      providerManagement: ProviderManagement(
+          user:
+              null), // You can pass null initially, as it will be updated later
+      storeService: StoreService.firebase(ProviderManagement(user: null)),
+    );
+    _loginInitializer = LoginInitializer(
+      authService: _authService,
+      providerManagement: _mainInitializer.providerManagement,
+      storeService: _mainInitializer.storeService,
+    );
   }
 
   @override
@@ -109,27 +127,23 @@ class _LoginViewState extends State<LoginView> {
                     onPressed: () async {
                       final email = _email.text;
                       final password = _password.text;
+
                       try {
-                        await AuthService.firebase()
-                            .logIn(email: email, password: password);
-                        final user = _authService.currentUser;
-                        bool emailVerified = user?.isEmailVerified ?? false;
+                        await _loginInitializer.initializeUserAndServices(
+                            email, password);
 
-                        if (emailVerified) {
-                          User? customUser =
-                              await _authService.generateUserCustomeModel();
+                        // Update the user property in ProviderManagement
+                        _mainInitializer.providerManagement.setCurrentUser(
+                            _loginInitializer.providerManagement.user);
 
-                          // Update the currentUser within your ProviderManagement
-                          Provider.of<ProviderManagement>(context,
-                                  listen: false)
-                              .setCurrentUser(customUser);
-
-                          Navigator.of(context)
-                              .pushReplacementNamed(userCalendar);
-                        } else {
-                          Navigator.of(context)
-                              .pushReplacementNamed(verifyEmailRoute);
-                        }
+                        // Navigate to the main part of your app
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => MyApp(
+                                currentUser:
+                                    _loginInitializer.providerManagement.user),
+                          ),
+                        );
                       } on UserNotFoundAuthException {
                         await showErrorDialog(context, 'User not found');
                       } on WrongPasswordAuthException {

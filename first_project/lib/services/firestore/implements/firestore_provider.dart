@@ -208,6 +208,8 @@ class FireStoreProvider implements StoreProvider {
       final currentUser = AuthService.firebase().costumeUser;
       currentUser!.groupIds.add(group.id);
       await updateUser(currentUser);
+      _providerManagement.updateUser(currentUser);
+      _providerManagement.addGroup(group);
 
       // Create notifications for group members
       await _createNotificationsForGroups(group, currentUser);
@@ -269,7 +271,6 @@ class FireStoreProvider implements StoreProvider {
       //Now we are gonna create a new URL reference for the group's image and update it
       // _updatePhotoURLForGroup(group);
       _providerManagement.updateGroup(group);
-      
     } catch (e) {
       print("Error updating group: $e");
       // Handle the error appropriately, e.g., show a snackbar or alert to the user.
@@ -420,6 +421,9 @@ class FireStoreProvider implements StoreProvider {
         },
       );
 
+      Group? groupFetched = await getGroupFromId(groupId);
+      _providerManagement.removeGroupById(groupFetched!);
+
       // Delete the group document
       await groupEventCollections.doc(groupId).delete();
     } catch (error) {
@@ -569,5 +573,4 @@ class FireStoreProvider implements StoreProvider {
       rethrow; // Rethrow the error for higher-level handling if needed.
     }
   }
-
 }

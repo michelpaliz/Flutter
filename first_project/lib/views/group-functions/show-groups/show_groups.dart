@@ -6,10 +6,10 @@ import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../enums/routes/routes.dart';
-import '../../styles/costume_widgets/drawer/my_drawer.dart';
-import '../../models/group.dart';
-import '../../models/user.dart';
+import '../../../enums/routes/routes.dart';
+import '../../../styles/costume_widgets/drawer/my_drawer.dart';
+import '../../../models/group.dart';
+import '../../../models/user.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -119,7 +119,8 @@ class _ShowGroupsState extends State<ShowGroups> {
     String formattedDate = DateFormat('yyyy-MM-dd').format(group.createdTime);
     Color backgroundColor = isHovered
         ? Color.fromARGB(255, 135, 199, 220)
-        : Color.fromARGB(255, 255, 255, 255); // Sky blue when hovered, grey when not
+        : Color.fromARGB(
+            255, 255, 255, 255); // Sky blue when hovered, grey when not
 
     return Container(
       child: Card(
@@ -250,11 +251,13 @@ class _ShowGroupsState extends State<ShowGroups> {
                     Container(
                       margin: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 195, 219, 230), // Replace with your desired sky background color
+                        color: Color.fromARGB(255, 195, 219,
+                            230), // Replace with your desired sky background color
                         borderRadius: BorderRadius.circular(
                             20.0), // Adjust the radius for rounded corners
                         border: Border.all(
-                            color: const Color.fromARGB(255, 185, 210, 231), width: 2.0), // Border styling
+                            color: const Color.fromARGB(255, 185, 210, 231),
+                            width: 2.0), // Border styling
                       ),
                       padding: EdgeInsets.all(16.0),
                       child: Container(
@@ -309,70 +312,58 @@ class _ShowGroupsState extends State<ShowGroups> {
                     SizedBox(height: 20),
                     Container(
                       height: _scrollDirection == Axis.vertical ? 500 : 130,
-                      child: FutureBuilder<List<Group>>(
-                        future: Future.value(
-                            Provider.of<ProviderManagement>(context).setGroups),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            // Display a loading indicator while waiting for the data.
-                            return Center(child: CircularProgressIndicator());
-                          } else if (snapshot.hasError) {
-                            // Handle any errors that occur during the data retrieval.
-                            return Center(
-                                child: Text("Error: ${snapshot.error}"));
-                          } else if (!snapshot.hasData ||
-                              snapshot.data!.isEmpty) {
-                            // Handle the case where there are no groups available.
+                      child: Consumer<ProviderManagement>(
+                        builder: (context, providerManagement, child) {
+                          List<Group> userGroups = providerManagement.setGroups;
+
+                          if (userGroups.isEmpty) {
                             return Center(
                               child: Text(
                                 "NO GROUP/S FOUND/S",
                                 style: TextStyle(fontSize: 15),
                               ),
                             );
-                          } else {
-                            // Data is available, display the list of groups.
-                            List<Group> userGroups = snapshot.data!;
-                            return ListView.builder(
-                              scrollDirection: _scrollDirection,
-                              itemCount: userGroups.length,
-                              itemBuilder: (context, index) {
-                                bool isHovered = false;
+                          }
 
-                                return InkWell(
-                                  onTap: () async {
-                                    Group _group = userGroups[index];
-                                    User _groupOwner = await _storeService
-                                        .getOwnerFromGroup(_group);
-                                    showProfileAlertDialog(
-                                        context, _group, _groupOwner);
-                                  },
-                                  onHover: (hovering) {
-                                    // Set the hover state
+                          return ListView.builder(
+                            scrollDirection: _scrollDirection,
+                            itemCount: userGroups.length,
+                            itemBuilder: (context, index) {
+                              bool isHovered = false;
+
+                              return InkWell(
+                                onTap: () async {
+                                  Group _group = userGroups[index];
+                                  User _groupOwner = await _storeService
+                                      .getOwnerFromGroup(_group);
+                                  showProfileAlertDialog(
+                                      context, _group, _groupOwner);
+                                },
+                                onHover: (hovering) {
+                                  // Set the hover state
+                                  setState(() {
+                                    isHovered = hovering;
+                                  });
+                                },
+                                child: MouseRegion(
+                                  onEnter: (_) {
+                                    // Add your hover effect here (e.g., change the background color).
                                     setState(() {
-                                      isHovered = hovering;
+                                      isHovered = true;
                                     });
                                   },
-                                  child: MouseRegion(
-                                    onEnter: (_) {
-                                      // Add your hover effect here (e.g., change the background color).
-                                      setState(() {
-                                        isHovered = true;
-                                      });
-                                    },
-                                    onExit: (_) {
-                                      // Reset the hover effect when the mouse exits.
-                                      setState(() {
-                                        isHovered = false;
-                                      });
-                                    },
-                                    child:
-                                        buildCard(userGroups[index], isHovered),
-                                  ),
-                                );
-                              },
-                            );
-                          }
+                                  onExit: (_) {
+                                    // Reset the hover effect when the mouse exits.
+                                    setState(() {
+                                      isHovered = false;
+                                    });
+                                  },
+                                  child:
+                                      buildCard(userGroups[index], isHovered),
+                                ),
+                              );
+                            },
+                          );
                         },
                       ),
                     ),

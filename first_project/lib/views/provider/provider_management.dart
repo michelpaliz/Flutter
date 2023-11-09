@@ -12,7 +12,7 @@ class ProviderManagement extends ChangeNotifier {
   List<Group> get setGroups => _groups;
 
   ProviderManagement({
-    required User user,
+    required User? user,
   }) {
     _currentUser = user;
   }
@@ -47,8 +47,8 @@ class ProviderManagement extends ChangeNotifier {
   }
 
   // Remove a group from the list
-  void removeGroup(Group group) {
-    _groups.remove(group);
+  void removeGroupById(Group group) {
+    _groups.removeWhere((group) => group.id == group.id);
     notifyListeners();
   }
 
