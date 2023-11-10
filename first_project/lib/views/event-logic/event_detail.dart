@@ -1,4 +1,4 @@
-import 'package:first_project/styles/costume_widgets/custom_text_field.dart';
+import 'package:first_project/styles/view-item-styles/custom_text_field.dart';
 import 'package:first_project/models/event.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

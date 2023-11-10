@@ -1,13 +1,13 @@
 import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/styles/button_styles.dart';
+import 'package:first_project/styles/view-item-styles/button_styles.dart';
 import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../enums/routes/routes.dart';
-import '../../../styles/costume_widgets/drawer/my_drawer.dart';
+import '../../../styles/drawer-style/my_drawer.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 

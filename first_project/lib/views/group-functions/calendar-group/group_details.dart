@@ -1,5 +1,5 @@
 import 'dart:developer' as devtools show log;
-import 'package:first_project/styles/costume_widgets/color_manager.dart';
+import 'package:first_project/my-lib/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:first_project/models/user.dart';
@@ -10,11 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../../enums/routes/routes.dart';
-import '../../styles/costume_widgets/drawer/my_drawer.dart';
-import '../../models/event.dart';
-import '../../models/group.dart';
-import '../../services/firestore/implements/firestore_service.dart';
+import '../../../enums/routes/routes.dart';
+import '../../../styles/drawer-style/my_drawer.dart';
+import '../../../models/event.dart';
+import '../../../models/group.dart';
+import '../../../services/firestore/implements/firestore_service.dart';
 
 class GroupDetails extends StatefulWidget {
   final Group group;

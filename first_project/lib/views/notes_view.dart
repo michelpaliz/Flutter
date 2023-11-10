@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 import 'package:first_project/enums/routes/routes.dart';
-import 'package:first_project/styles/costume_widgets/color_manager.dart';
-import 'package:first_project/styles/costume_widgets/drawer/my_drawer.dart';
+import 'package:first_project/my-lib/color_manager.dart';
+import 'package:first_project/styles/drawer-style/my_drawer.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:first_project/views/provider/provider_management.dart';

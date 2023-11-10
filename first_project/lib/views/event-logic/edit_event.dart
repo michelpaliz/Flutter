@@ -1,4 +1,4 @@
-import 'package:first_project/styles/costume_widgets/color_manager.dart';
+import 'package:first_project/my-lib/color_manager.dart';
 import 'package:first_project/styles/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/event.dart';
 import '../../services/firestore/implements/firestore_service.dart';
-import '../../styles/app_bar_styles.dart';
+import '../../styles/view-item-styles/app_bar_styles.dart';
 
 //*
 class EditNoteScreen extends StatefulWidget {

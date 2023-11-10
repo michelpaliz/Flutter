@@ -1,4 +1,4 @@
-import 'package:first_project/styles/button_styles.dart';
+import 'package:first_project/styles/view-item-styles/button_styles.dart';
 import 'package:flutter/material.dart';
 
 class ColorProperties {

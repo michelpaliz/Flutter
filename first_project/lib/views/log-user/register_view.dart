@@ -1,15 +1,15 @@
 // ======= REGISTER =========
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/styles/costume_widgets/text_field_widget.dart';
+import 'package:first_project/styles/view-item-styles/text_field_widget.dart';
 import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/styles/app_bar_styles.dart';
+import 'package:first_project/styles/view-item-styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../enums/routes/routes.dart';
 import '../../services/auth/auth_exceptions.dart';
 import '../../services/auth/implements/auth_service.dart';
-import '../../styles/textfield_styles.dart';
-import '../../my-lib/show_error_dialog.dart';
+import '../../styles/view-item-styles/textfield_styles.dart';
+import '../../styles/costume_widgets/show_error_dialog.dart';
 import 'dart:developer' as devtools show log;
 
 class RegisterView extends StatefulWidget {

@@ -1,4 +1,4 @@
-import 'package:first_project/styles/costume_widgets/drawer/my_drawer.dart';
+import 'package:first_project/styles/drawer-style/my_drawer.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/views/notes_view.dart';

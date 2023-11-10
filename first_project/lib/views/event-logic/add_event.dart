@@ -1,4 +1,4 @@
-import 'package:first_project/styles/costume_widgets/color_manager.dart';
+import 'package:first_project/my-lib/color_manager.dart';
 import 'package:first_project/styles/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/views/provider/provider_management.dart';
@@ -12,7 +12,7 @@ import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
 import '../../services/firestore/implements/firestore_service.dart';
-import '../../styles/app_bar_styles.dart';
+import '../../styles/view-item-styles/app_bar_styles.dart';
 
 class EventNoteWidget extends StatefulWidget {
   final User? user;
@@ -67,9 +67,28 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
+    _selectedStartDate = DateTime.now();
+    _selectedEndDate = DateTime.now();
+    // _eventController = TextEditingController();
+    _loadEvents(); // Load events from shared preferences or other source
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = StoreService.firebase(providerManagement);
+  }
+
+  @override
   void dispose() {
-    _storeService =
-        StoreService.firebase(Provider.of<ProviderManagement>(context));
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
@@ -82,16 +101,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     _descriptionController.clear();
     _locationController.clear();
     _noteController.clear();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
-    _selectedStartDate = DateTime.now();
-    _selectedEndDate = DateTime.now();
-    // _eventController = TextEditingController();
-    _loadEvents(); // Load events from shared preferences or other source
   }
 
 /**

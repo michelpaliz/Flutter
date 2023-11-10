@@ -9,8 +9,8 @@ import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/styles/app_bar_styles.dart';
-import 'package:first_project/styles/costume_widgets/text_field_widget.dart';
+import 'package:first_project/styles/view-item-styles/app_bar_styles.dart';
+import 'package:first_project/styles/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:first_project/views/log-user/main_init.dart';
 import 'package:first_project/views/provider/app_services.dart';
@@ -18,8 +18,8 @@ import 'package:first_project/views/provider/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../my-lib/show_error_dialog.dart';
-import '../../styles/textfield_styles.dart';
+import '../../styles/costume_widgets/show_error_dialog.dart';
+import '../../styles/view-item-styles/textfield_styles.dart';
 
 // ======= LOGIN =========
 class LoginView extends StatefulWidget {
