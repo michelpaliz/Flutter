@@ -1,4 +1,5 @@
 import 'package:first_project/models/group.dart';
+import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:first_project/models/user.dart';
 
@@ -7,9 +8,11 @@ import 'package:flutter/foundation.dart';
 class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
   List<Group> _groups = [];
+  ThemeData _themeData = lightTheme;
 
   User? get user => _currentUser;
   List<Group> get setGroups => _groups;
+  ThemeData get themeData => _themeData;
 
   ProviderManagement({
     required User? user,
@@ -59,5 +62,11 @@ class ProviderManagement extends ChangeNotifier {
       _groups[index] = updatedGroup;
       notifyListeners();
     }
+  }
+  
+  // Toggle the theme
+  void toggleTheme() {
+    _themeData = (_themeData == lightTheme) ? darkTheme : lightTheme;
+    notifyListeners();
   }
 }

@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/models/event.dart';
-import 'package:first_project/models/routeLogger.dart';
 import 'package:first_project/enums/routes/routes.dart';
 import 'package:first_project/my-lib/utilities.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
@@ -10,7 +9,6 @@ import 'package:first_project/views/group-functions/calendar-group/group_setting
 import 'package:first_project/views/group-functions/create_group_data.dart';
 import 'package:first_project/views/group-functions/edit_group.dart';
 import 'package:first_project/views/group-functions/edit_group_data.dart';
-import 'package:first_project/views/log-user/main_init.dart';
 import 'package:first_project/views/group-functions/show-groups/show_groups.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
@@ -19,8 +17,8 @@ import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/log-user/register_view.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
-import 'package:first_project/views/provider/app_services.dart';
 import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/views/provider/theme_preference_provider.dart';
 import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +65,8 @@ void main() async {
     // Set the custom user model in AuthService
     authService.costumeUser = customUser;
 
-    // Create an instance of ProviderManagement
+    // Create instances of providers
+    final themePreferenceProvider = ThemePreferenceProvider();
     final providerManagement = ProviderManagement(user: customUser);
 
     // Initialize the StoreService by providing the ProviderManagement
@@ -85,6 +84,9 @@ void main() async {
         providers: [
           ChangeNotifierProvider<ProviderManagement>.value(
             value: providerManagement,
+          ),
+          ChangeNotifierProvider<ThemePreferenceProvider>.value(
+            value: themePreferenceProvider,
           ),
           Provider<StoreService>.value(value: storeService),
         ],
@@ -139,192 +141,90 @@ class _MyAppState extends State<MyApp> {
     final User? currentUser = providerManagement.user;
     final bool isLoggedIn = currentUser != null;
 
-    return MaterialApp(
-      // ... (rest of your MaterialApp code)
-      routes: {
-        // ... (your existing routes)
+    return Consumer<ThemePreferenceProvider>(
+        builder: (context, themeProvider, child) {
+      return MaterialApp(
+        theme: themeProvider.themeData,
+        // ... other MaterialApp properties
+        routes: {
+          // ... (your existing routes)
 
-        settings: (context) => const Settings(),
-        loginRoute: (context) => const LoginView(),
-        registerRoute: (context) => const RegisterView(),
-        userCalendar: (context) => const NotesView(),
-        verifyEmailRoute: (context) => const VerifyEmailView(),
-        editEvent: (context) {
-          final event = ModalRoute.of(context)?.settings.arguments as Event?;
-          if (event != null) {
-            return EditNoteScreen(event: event);
-          }
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
-        },
-        showGroups: (context) => ShowGroups(),
-        createGroupData: (context) => CreateGroupData(),
-        showNotifications: (context) => ShowNotifications(),
-        groupSettings: (context) {
-          final group = ModalRoute.of(context)?.settings.arguments as Group?;
-          if (group != null) {
-            return GroupSettings(group: group);
-          }
-          // Handle the case when no group is passed
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
-        },
-        editGroup: (context) {
-          final group = ModalRoute.of(context)?.settings.arguments as Group?;
-          if (group != null) {
-            return EditGroup(group: group);
-          }
-          // Handle the case when no group is passed
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
-        },
-        groupCalendar: (context) {
-          final group = ModalRoute.of(context)?.settings.arguments as Group?;
-          if (group != null) {
-            return GroupDetails(group: group);
-          }
-          // Handle the case when no group is passed
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
-        },
-        addEvent: (context) {
-          final dynamic arg = ModalRoute.of(context)?.settings.arguments;
+          settings: (context) => const Settings(),
+          loginRoute: (context) => const LoginView(),
+          registerRoute: (context) => const RegisterView(),
+          userCalendar: (context) => const NotesView(),
+          verifyEmailRoute: (context) => const VerifyEmailView(),
+          editEvent: (context) {
+            final event = ModalRoute.of(context)?.settings.arguments as Event?;
+            if (event != null) {
+              return EditNoteScreen(event: event);
+            }
+            return SizedBox
+                .shrink(); // Return an empty widget or handle the error
+          },
+          showGroups: (context) => ShowGroups(),
+          createGroupData: (context) => CreateGroupData(),
+          showNotifications: (context) => ShowNotifications(),
+          groupSettings: (context) {
+            final group = ModalRoute.of(context)?.settings.arguments as Group?;
+            if (group != null) {
+              return GroupSettings(group: group);
+            }
+            // Handle the case when no group is passed
+            return SizedBox
+                .shrink(); // Return an empty widget or handle the error
+          },
+          editGroup: (context) {
+            final group = ModalRoute.of(context)?.settings.arguments as Group?;
+            if (group != null) {
+              return EditGroup(group: group);
+            }
+            // Handle the case when no group is passed
+            return SizedBox
+                .shrink(); // Return an empty widget or handle the error
+          },
+          groupCalendar: (context) {
+            final group = ModalRoute.of(context)?.settings.arguments as Group?;
+            if (group != null) {
+              return GroupDetails(group: group);
+            }
+            // Handle the case when no group is passed
+            return SizedBox
+                .shrink(); // Return an empty widget or handle the error
+          },
+          addEvent: (context) {
+            final dynamic arg = ModalRoute.of(context)?.settings.arguments;
 
-          User? user;
-          Group? group;
+            User? user;
+            Group? group;
 
-          if (arg is User) {
-            user = arg;
-          } else if (arg is Group) {
-            group = arg;
-          }
+            if (arg is User) {
+              user = arg;
+            } else if (arg is Group) {
+              group = arg;
+            }
 
-          return EventNoteWidget(user: user, group: group);
-        },
-        eventDetail: (context) {
-          final event = ModalRoute.of(context)?.settings.arguments as Event?;
-          if (event != null) {
-            return EventDetail(event: event);
+            return EventNoteWidget(user: user, group: group);
+          },
+          eventDetail: (context) {
+            final event = ModalRoute.of(context)?.settings.arguments as Event?;
+            if (event != null) {
+              return EventDetail(event: event);
+            }
+            return SizedBox
+                .shrink(); // Return an empty widget or handle the error
+          },
+          editGroupData: (context) {
+            final group = ModalRoute.of(context)?.settings.arguments as Group?;
+            if (group != null) {
+              return EditGroupData(group: group);
+            }
+            return SizedBox
+                .shrink(); // Return an empty widget or handle the error
           }
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
         },
-        editGroupData: (context) {
-          final group = ModalRoute.of(context)?.settings.arguments as Group?;
-          if (group != null) {
-            return EditGroupData(group: group);
-          }
-          return SizedBox
-              .shrink(); // Return an empty widget or handle the error
-        }
-      },
-      home: isLoggedIn ? const ShowGroups() : const LoginView(),
-    );
+        home: isLoggedIn ? const ShowGroups() : const LoginView(),
+      );
+    });
   }
 }
-
-
-// class MyApp extends StatelessWidget {
-//   final User? currentUser;
-
-//   const MyApp({Key? key, this.currentUser}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final providerManagement = Provider.of<ProviderManagement>(context);
-//     final User? currentUser = providerManagement.user;
-//      //Set the user groups into the service
-//      //Fetched user groups for the provider
-//     List<Group>? fetchedGroups =
-//         await storeService.fetchUserGroups(customUser.groupIds);
-//     providerManagement.setGroups = fetchedGroups;
-
-//     final bool isLoggedIn = currentUser != null;
-
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       navigatorObservers: [RouteLogger()],
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       routes: {
-//         settings: (context) => const Settings(),
-//         loginRoute: (context) => const LoginView(),
-//         registerRoute: (context) => const RegisterView(),
-//         userCalendar: (context) => const NotesView(),
-//         verifyEmailRoute: (context) => const VerifyEmailView(),
-//         editEvent: (context) {
-//           final event = ModalRoute.of(context)?.settings.arguments as Event?;
-//           if (event != null) {
-//             return EditNoteScreen(event: event);
-//           }
-//           return SizedBox
-//               .shrink(); // Return an empty widget or handle the error
-//         },
-//         showGroups: (context) => ShowGroups(),
-//         createGroupData: (context) => CreateGroupData(),
-//         showNotifications: (context) => ShowNotifications(),
-//         groupSettings: (context) {
-//           final group = ModalRoute.of(context)?.settings.arguments as Group?;
-//           if (group != null) {
-//             return GroupSettings(group: group);
-//           }
-//           // Handle the case when no group is passed
-//           return SizedBox
-//               .shrink(); // Return an empty widget or handle the error
-//         },
-//         editGroup: (context) {
-//           final group = ModalRoute.of(context)?.settings.arguments as Group?;
-//           if (group != null) {
-//             return EditGroup(group: group);
-//           }
-//           // Handle the case when no group is passed
-//           return SizedBox
-//               .shrink(); // Return an empty widget or handle the error
-//         },
-//         groupCalendar: (context) {
-//           final group = ModalRoute.of(context)?.settings.arguments as Group?;
-//           if (group != null) {
-//             return GroupDetails(group: group);
-//           }
-//           // Handle the case when no group is passed
-//           return SizedBox
-//               .shrink(); // Return an empty widget or handle the error
-//         },
-//         addEvent: (context) {
-//           final dynamic arg = ModalRoute.of(context)?.settings.arguments;
-
-//           User? user;
-//           Group? group;
-
-//           if (arg is User) {
-//             user = arg;
-//           } else if (arg is Group) {
-//             group = arg;
-//           }
-
-//           return EventNoteWidget(user: user, group: group);
-//         },
-//         eventDetail: (context) {
-//           final event = ModalRoute.of(context)?.settings.arguments as Event?;
-//           if (event != null) {
-//             return EventDetail(event: event);
-//           }
-//           return SizedBox
-//               .shrink(); // Return an empty widget or handle the error
-//         },
-//         editGroupData: (context) {
-//           final group = ModalRoute.of(context)?.settings.arguments as Group?;
-//           if (group != null) {
-//             return EditGroupData(group: group);
-//           }
-//           return SizedBox
-//               .shrink(); // Return an empty widget or handle the error
-//         }
-//       },
-//       home: isLoggedIn ? const ShowGroups() : const LoginView(),
-//     );
-//   }
-// }
-
-
