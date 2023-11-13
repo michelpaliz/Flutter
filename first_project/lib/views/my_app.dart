@@ -27,9 +27,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class MyApp extends StatefulWidget {
-  final User? currentUser;
+  final User currentUser;
 
-  const MyApp({Key? key, this.currentUser}) : super(key: key);
+  const MyApp({Key? key, required this.currentUser}) : super(key: key);
 
   @override
   _MyAppState createState() => _MyAppState();

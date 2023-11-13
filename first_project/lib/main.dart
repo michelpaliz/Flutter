@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/my-lib/utilities.dart';
+import 'package:first_project/services/auth/implements/auth_provider.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/views/log-user/login_view.dart';
@@ -15,6 +16,35 @@ import 'models/group.dart';
 import 'models/user.dart';
 // ...
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Utilities.loadCustomFonts();
+  try {
+    await Firebase.initializeApp();
+  } catch (error) {
+    print('Error initializing Firebase: $error');
+  }
+
+  final AuthService authService = AuthService.firebase();
+  // Set the custom user model in AuthService
+  User? user = await AuthProvider().generateUserCustomeModel();
+
+  if (user == null) {
+    runApp(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => LoginView(
+            onLoginSuccess: (user) {
+              AppInitializer.goToMain(context, user);
+            },
+          ),
+        ),
+      ),
+    );
+  } else {
+    AppInitializer.goToMainDirectly(user);
+  }
+}
 
 class AppInitializer {
   static void goToMain(BuildContext context, User user) async {
@@ -57,26 +87,42 @@ class AppInitializer {
       ),
     );
   }
-}
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Utilities.loadCustomFonts();
-  try {
-    await Firebase.initializeApp();
-  } catch (error) {
-    print('Error initializing Firebase: $error');
-  }
+  static void goToMainDirectly(User user) async {
+    final AuthService authService = AuthService.firebase();
+    ProviderManagement? providerManagement;
+    ThemePreferenceProvider? themePreferenceProvider;
 
-  runApp(
-    MaterialApp(
-      home: Builder(
-        builder: (context) => LoginView(
-          onLoginSuccess: (user) {
-            AppInitializer.goToMain(context, user);
-          },
-        ),
+    // Set the custom user model in AuthService
+    authService.costumeUser = user;
+    providerManagement = ProviderManagement(user: user);
+
+    // Create instances of providers
+    themePreferenceProvider = ThemePreferenceProvider();
+
+    // Initialize the StoreService by providing the ProviderManagement
+    StoreService storeService = StoreService.firebase(providerManagement);
+
+    // Fetched user groups for the provider
+    List<Group>? fetchedGroups =
+        await storeService.fetchUserGroups(authService.costumeUser?.groupIds);
+
+    // Set the user groups into the service
+    providerManagement.setGroups = fetchedGroups;
+
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ProviderManagement>.value(
+            value: providerManagement,
+          ),
+          ChangeNotifierProvider<ThemePreferenceProvider>.value(
+            value: themePreferenceProvider,
+          ),
+          Provider<StoreService>.value(value: storeService),
+        ],
+        child: MyApp(currentUser: user),
       ),
-    ),
-  );
+    );
+  }
 }
