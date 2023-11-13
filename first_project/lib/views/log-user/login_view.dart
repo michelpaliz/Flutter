@@ -35,7 +35,6 @@ class _LoginViewState extends State<LoginView> {
   bool buttonHovered = false; // Added buttonHovered variable
   late ButtonStyle _myCustomButtonStyle;
   late final AuthService _authService;
-  late final StoreService _storeService;
   late final MainInitializer _mainInitializer;
   late LoginInitializer _loginInitializer;
 
@@ -148,15 +147,6 @@ class _LoginViewState extends State<LoginView> {
 
                         _mainInitializer.initializeUserGroup(userFetched);
 
-                        // Update the user property in ProviderManagement
-                        // providerManagement.setCurrentUser(
-                        //     _loginInitializer.providerManagement.user);
-
-                        // Navigate to the main part of your app
-                        // Navigator.of(context)
-                        //     .popUntil((route) => route.isFirst);
-
-                        // Call the callback to notify the main application
                         widget.onLoginSuccess(userFetched);
                       } on UserNotFoundAuthException {
                         await showErrorDialog(context, 'User not found');
