@@ -112,15 +112,30 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
 }
 
 //*LOG OUT LOGIC */
+// Add this variable to your class to track logout state
+bool _loggingOut = false;
 
 Future<void> _handleLogout(BuildContext context) async {
-  final shouldLogout = await showLogOutDialog(context);
-  if (shouldLogout) {
-    await AuthService.firebase().logOut();
+    if (!_loggingOut) {
+      _loggingOut = true;
 
-    Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
+      try {
+        final shouldLogout = await showLogOutDialog(context);
+        if (shouldLogout) {
+          await AuthService.firebase().logOut();
+          
+          // Navigate to the login screen and remove all other routes
+          Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
+        }
+      } finally {
+        _loggingOut = false;
+      }
+    }
   }
-}
+
+
+
+
 
 Future<bool> showLogOutDialog(BuildContext context) {
   return showDialog<bool>(
