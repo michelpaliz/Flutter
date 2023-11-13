@@ -403,9 +403,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                   }
                 },
                 scheduleViewSettings: ScheduleViewSettings(
+
                   appointmentItemHeight: 70,
                 ),
                 viewHeaderStyle: ViewHeaderStyle(
+                  dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
                   backgroundColor: Color.fromARGB(255, 180, 237,
                       248), // Change the background color of the month header
                   dayTextStyle: TextStyle(
@@ -425,6 +427,8 @@ class _GroupDetailsState extends State<GroupDetails> {
                         child: Text(
                           details.date.day.toString(),
                           style: TextStyle(
+                              color: Colors.black,
+                              fontFamily: 'lato',
                               fontWeight: FontWeight.bold,
                               fontStyle: FontStyle.italic),
                         ),
@@ -436,11 +440,12 @@ class _GroupDetailsState extends State<GroupDetails> {
                           220), // Use the default background color for other days.
                       child: Center(
                         child: Text(details.date.day.toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                            style: TextStyle(fontFamily: 'lato', color: Colors.black)),
                       ),
                     );
                   }
                 },
+                
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
                   showAgenda: true,
@@ -451,6 +456,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   appointmentDisplayCount: 5,
                   showTrailingAndLeadingDates: false,
                   navigationDirection: MonthNavigationDirection.vertical,
+
                 ),
                 appointmentBuilder:
                     (BuildContext context, CalendarAppointmentDetails details) {
@@ -799,7 +805,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                       icon: Icon(
                         Icons.add,
                         color: Colors.white,
-                        size: 30, // Adjust the icon size as needed
+                        size: 25, // Adjust the icon size as needed
                       ),
                       onPressed: () {
                         Navigator.pushNamed(context, addEvent,
@@ -810,7 +816,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
               ),
             SizedBox(
-              height: 5,
+              height: 15,
             )
           ],
         ));

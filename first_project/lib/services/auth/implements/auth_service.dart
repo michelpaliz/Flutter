@@ -62,6 +62,7 @@ final AuthRepository provider;
   set costumeUser(User? user) {
     if (user != null) {
       provider.costumeUser = user;
+      
     }
   }
 }

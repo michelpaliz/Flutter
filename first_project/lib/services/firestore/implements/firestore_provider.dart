@@ -219,16 +219,6 @@ class FireStoreProvider implements StoreProvider {
     }
   }
 
-  // Future<void> _updatePhotoURLForGroup(Group group) async {
-  //   String photo = group.photo;
-  //   if (photo.isNotEmpty) {
-  //     String imageURL =
-  //         await Utilities.pickAndUploadImageGroup(group, group.photo);
-  //     group.photo = imageURL;
-  //     await updateGroup(group);
-  //   }
-  // }
-
   Future<void> _createNotificationsForGroups(
       Group group, User currentUser) async {
     // Create notification details

@@ -1,3 +1,4 @@
+import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../enums/routes/routes.dart';
@@ -56,6 +57,8 @@ Widget MyDrawerList(BuildContext context) {
 
 Widget menuItem(BuildContext context, DrawerSections section, String name,
     IconData iconData, bool selected) {
+  Color textColor = ThemeColors.getTextColor(context);
+
   return Padding(
     padding: EdgeInsets.symmetric(vertical: 8.0),
     child: InkWell(
@@ -87,7 +90,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
                 child: Icon(
                   iconData,
                   size: 20,
-                  color: Colors.black,
+                  color: textColor,
                 ),
               ),
             ),
@@ -97,7 +100,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
                     EdgeInsets.only(left: 35.0), // Adjust the desired spacing
                 child: Text(
                   name,
-                  style: TextStyle(color: Colors.black, fontSize: 16),
+                  style: TextStyle(color: textColor, fontSize: 16),
                 ),
               ),
             ),
@@ -114,6 +117,7 @@ Future<void> _handleLogout(BuildContext context) async {
   final shouldLogout = await showLogOutDialog(context);
   if (shouldLogout) {
     await AuthService.firebase().logOut();
+
     Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
   }
 }

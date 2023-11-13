@@ -249,9 +249,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: AppBarStyles.themeData,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: Text('Event Note Widget'),
         ),
@@ -570,7 +568,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }

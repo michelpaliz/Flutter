@@ -25,6 +25,9 @@ class LoginInitializer {
 
       authService.costumeUser = customUser;
 
+      //We set the new user to the provider 
+      providerManagement.setCurrentUser(customUser);
+
       List<Group>? fetchedGroups =
           await storeService.fetchUserGroups(customUser?.groupIds);
 

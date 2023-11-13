@@ -3,8 +3,6 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/routes.dart';
-import 'package:first_project/main.dart';
-import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
@@ -13,7 +11,7 @@ import 'package:first_project/styles/view-item-styles/app_bar_styles.dart';
 import 'package:first_project/styles/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:first_project/views/log-user/main_init.dart';
-import 'package:first_project/views/provider/app_services.dart';
+import 'package:first_project/views/my_app.dart';
 import 'package:first_project/views/provider/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +21,9 @@ import '../../styles/view-item-styles/textfield_styles.dart';
 
 // ======= LOGIN =========
 class LoginView extends StatefulWidget {
-  const LoginView({Key? key}) : super(key: key);
+  final Function(User) onLoginSuccess;
+
+  const LoginView({Key? key, required this.onLoginSuccess}) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -69,6 +69,9 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    // final ProviderManagement providerManagement =
+    //     Provider.of<ProviderManagement>(context, listen: false);
+
     return Theme(
       data: AppBarStyles.themeData,
       child: Scaffold(
@@ -132,18 +135,29 @@ class _LoginViewState extends State<LoginView> {
                         await _loginInitializer.initializeUserAndServices(
                             email, password);
 
+                        User? userFetched =
+                            _loginInitializer.providerManagement.user;
+
+                        if (userFetched == null) {
+                          throw UserNotFoundAuthException();
+                        }
+
                         // Update the user property in ProviderManagement
-                        _mainInitializer.providerManagement.setCurrentUser(
-                            _loginInitializer.providerManagement.user);
+                        _mainInitializer.providerManagement
+                            .setCurrentUser(userFetched);
+
+                        _mainInitializer.initializeUserGroup(userFetched);
+
+                        // Update the user property in ProviderManagement
+                        // providerManagement.setCurrentUser(
+                        //     _loginInitializer.providerManagement.user);
 
                         // Navigate to the main part of your app
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => MyApp(
-                                currentUser:
-                                    _loginInitializer.providerManagement.user),
-                          ),
-                        );
+                        // Navigator.of(context)
+                        //     .popUntil((route) => route.isFirst);
+
+                        // Call the callback to notify the main application
+                        widget.onLoginSuccess(userFetched);
                       } on UserNotFoundAuthException {
                         await showErrorDialog(context, 'User not found');
                       } on WrongPasswordAuthException {

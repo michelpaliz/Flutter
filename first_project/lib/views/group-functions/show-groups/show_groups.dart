@@ -1,3 +1,4 @@
+import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
@@ -27,7 +28,8 @@ class _ShowGroupsState extends State<ShowGroups> {
   late AuthService _authService;
   // VARIABLE FOR THE UI
   Axis _scrollDirection = Axis.vertical;
-
+  late Color textColor;
+  late Color cardBackgroundColor;
   //*LOGIC FOR THE VIEW //
 
   Future<List<Group>> _getUserGroups(StoreService storeService) async {
@@ -116,9 +118,11 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   //** UI FOR THE VIEW */
   Widget buildCard(Group group, bool isHovered) {
+    textColor = ThemeColors.getTextColor(context);
+    cardBackgroundColor = ThemeColors.getCardBackgroundColor(context);
     String formattedDate = DateFormat('yyyy-MM-dd').format(group.createdTime);
     Color backgroundColor = isHovered
-        ? Color.fromARGB(255, 135, 199, 220)
+        ? Color.fromARGB(57, 145, 182, 195)
         : Color.fromARGB(
             255, 255, 255, 255); // Sky blue when hovered, grey when not
 
@@ -161,7 +165,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                         mainAxisAlignment:
                             MainAxisAlignment.center, // Center vertically
                         children: [
-                          Text(formattedDate),
+                          Text(formattedDate,style: TextStyle(fontFamily: 'lato', color: Colors.black),),
                           SizedBox(height: 10), // Add vertical spacing
                           Text(
                             group.groupName
@@ -193,6 +197,8 @@ class _ShowGroupsState extends State<ShowGroups> {
   Widget build(BuildContext context) {
     return Consumer<ProviderManagement>(
         builder: (context, providerManagement, child) {
+      Color containerBackgroundColor =
+          ThemeColors.getContainerBackgroundColor(context);
       // Access the list of groups from providerData.
       final List<Group> groups = providerManagement.setGroups;
       // Initialize _storeService using data from providerManagement.
@@ -251,8 +257,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                     Container(
                       margin: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 195, 219,
-                            230), // Replace with your desired sky background color
+                        color: containerBackgroundColor,
                         borderRadius: BorderRadius.circular(
                             20.0), // Adjust the radius for rounded corners
                         border: Border.all(
@@ -330,8 +335,9 @@ class _ShowGroupsState extends State<ShowGroups> {
                             itemCount: userGroups.length,
                             itemBuilder: (context, index) {
                               bool isHovered = false;
-
+    
                               return InkWell(
+
                                 onTap: () async {
                                   Group _group = userGroups[index];
                                   User _groupOwner = await _storeService
@@ -409,7 +415,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               Text(
                 "${DateFormat('yyyy-MM-dd').format(group.createdTime)}",
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: textColor,
                 ),
               ),
               SizedBox(height: 15),
