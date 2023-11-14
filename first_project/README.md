@@ -50,9 +50,9 @@ You can customize the event's repetition using the following options:
 This refined event management system grants you precise control over your events and timetables within the "Calendar" app, ensuring your commitments are effortlessly organized and tracked.
 
 
-## Photos of the application is not yet finished some changes will be applied until I finished the application.
+## Photos of the application are not yet finished; some changes will be applied until I finish the application.
 
-![Alt text](<Screenshot from 2023-11-14 22-22-22.png>)
+<img src="Screenshot from 2023-11-14 22-22-22.png" alt="Alt text" height="300">
 
 
 
