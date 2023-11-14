@@ -52,8 +52,28 @@ This refined event management system grants you precise control over your events
 
 ## Photos of the application are not yet finished; some changes will be applied until I finish the application.
 
+
+
+### Register view image 
+<img src="Screenshot from 2023-11-14 22-34-40.png" alt="Alt text" height="300">
+
+### Login view image
 <img src="Screenshot from 2023-11-14 22-22-22.png" alt="Alt text" height="300">
 
+### Menu view image
+<img src="image.png" alt="Alt text" height="300">
+
+### Display group list view image
+<img src="Screenshot from 2023-11-14 22-28-55.png" alt="Alt text" height="300">
+
+### Calendar view image
+<img src="Screenshot from 2023-11-14 22-35-33.png" alt="Alt text" height="300">
+
+### Edit event view image 
+<img src="Screenshot from 2023-11-14 22-36-59.png" alt="Alt text" height="300">
+
+### Add event view image
+<img src="Screenshot from 2023-11-14 22-36-24.png" alt="Alt text" height="300">
 
 
 ## Initial Version of the Calendar Application
