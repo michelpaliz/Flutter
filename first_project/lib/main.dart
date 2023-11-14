@@ -19,68 +19,62 @@ import 'models/user.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Utilities.loadCustomFonts();
+  await initializeApp();
+}
+
+Future<void> initializeApp() async {
   try {
     await Firebase.initializeApp();
+    await Utilities.loadCustomFonts();
   } catch (error) {
-    print('Error initializing Firebase: $error');
+    print('Error initializing app: $error');
+    // Handle error appropriately
+    return;
   }
-
   final AuthService authService = AuthService.firebase();
-  // Set the custom user model in AuthService
-  User? user = await AuthProvider().generateUserCustomeModel();
+  User? user = await authService.generateUserCustomeModel();
 
   if (user == null) {
     runApp(
       MaterialApp(
         home: Builder(
           builder: (context) => LoginView(
-            onLoginSuccess: (user) {
-              AppInitializer.goToMain(context, user);
+            onLoginSuccess: (user) async {
+              await AppInitializer.goToMain(context, user);
             },
           ),
         ),
       ),
     );
   } else {
-    AppInitializer.goToMainDirectly(user);
+    await AppInitializer.goToMainDirectly(user);
   }
 }
 
 class AppInitializer {
-  static void goToMain(BuildContext context, User user) async {
-    final AuthService authService = AuthService.firebase();
-    ProviderManagement? providerManagement;
-    ThemePreferenceProvider? themePreferenceProvider;
+  static ProviderManagement? providerManagement;
+  static ThemePreferenceProvider? themePreferenceProvider;
+  static StoreService? storeService; // Declare storeService
 
-    // Set the custom user model in AuthService
-    authService.costumeUser = user;
-    providerManagement = ProviderManagement(user: user);
-
-    // Create instances of providers
-    themePreferenceProvider = ThemePreferenceProvider();
-
-    // Initialize the StoreService by providing the ProviderManagement
-    StoreService storeService = StoreService.firebase(providerManagement);
-
-    // Fetched user groups for the provider
-    List<Group>? fetchedGroups =
-        await storeService.fetchUserGroups(authService.costumeUser?.groupIds);
-
-    // Set the user groups into the service
-    providerManagement.setGroups = fetchedGroups;
+  /// Navigates to the main application, initializing necessary services and providers.
+  static Future<void> goToMain(BuildContext context, User user) async {
+    await setServices(user);
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => MultiProvider(
           providers: [
+            // Provide the ProviderManagement instance using ChangeNotifierProvider
             ChangeNotifierProvider<ProviderManagement>.value(
               value: providerManagement!,
             ),
+            // Provide the ThemePreferenceProvider instance using ChangeNotifierProvider
             ChangeNotifierProvider<ThemePreferenceProvider>.value(
               value: themePreferenceProvider!,
             ),
-            Provider<StoreService>.value(value: storeService),
+            // Provide the StoreService instance using Provider
+            Provider<StoreService>.value(value: storeService!),
           ],
           child: MyApp(currentUser: user),
         ),
@@ -88,41 +82,45 @@ class AppInitializer {
     );
   }
 
-  static void goToMainDirectly(User user) async {
-    final AuthService authService = AuthService.firebase();
-    ProviderManagement? providerManagement;
-    ThemePreferenceProvider? themePreferenceProvider;
-
-    // Set the custom user model in AuthService
-    authService.costumeUser = user;
-    providerManagement = ProviderManagement(user: user);
-
-    // Create instances of providers
-    themePreferenceProvider = ThemePreferenceProvider();
-
-    // Initialize the StoreService by providing the ProviderManagement
-    StoreService storeService = StoreService.firebase(providerManagement);
-
-    // Fetched user groups for the provider
-    List<Group>? fetchedGroups =
-        await storeService.fetchUserGroups(authService.costumeUser?.groupIds);
-
-    // Set the user groups into the service
-    providerManagement.setGroups = fetchedGroups;
+  /// Directly initializes the main application, skipping the login view.
+  static Future<void> goToMainDirectly(User user) async {
+    await setServices(user);
 
     runApp(
       MultiProvider(
         providers: [
+          // Provide the ProviderManagement instance using ChangeNotifierProvider
           ChangeNotifierProvider<ProviderManagement>.value(
-            value: providerManagement,
+            value: providerManagement!,
           ),
+          // Provide the ThemePreferenceProvider instance using ChangeNotifierProvider
           ChangeNotifierProvider<ThemePreferenceProvider>.value(
-            value: themePreferenceProvider,
+            value: themePreferenceProvider!,
           ),
-          Provider<StoreService>.value(value: storeService),
+          // Provide the StoreService instance using Provider
+          Provider<StoreService>.value(value: storeService!),
         ],
         child: MyApp(currentUser: user),
       ),
     );
+  }
+
+  /// Initializes necessary services and sets up providers.
+  static Future<void> setServices(User user) async {
+    final AuthService authService = AuthService.firebase();
+
+    // Initialize the ProviderManagement instance
+    providerManagement = ProviderManagement(user: user);
+    // Initialize the ThemePreferenceProvider instance
+    themePreferenceProvider = ThemePreferenceProvider();
+    // Initialize the StoreService instance
+    storeService = StoreService.firebase(providerManagement!);
+
+    // Fetch user groups for the provider
+    List<Group>? fetchedGroups =
+        await storeService!.fetchUserGroups(authService.costumeUser?.groupIds);
+
+    // Set the fetched user groups into the ProviderManagement
+    providerManagement!.setGroups = fetchedGroups;
   }
 }

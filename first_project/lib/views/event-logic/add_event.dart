@@ -27,13 +27,13 @@ class EventNoteWidget extends StatefulWidget {
 
 class _EventNoteWidgetState extends State<EventNoteWidget> {
   //** LOGIC VARIABLES  */
-  final User? user;
-  final Group? group;
+  User? _user;
+  Group? _group;
   Event? event;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
   // late TextEditingController _eventController;
-  List<Event> eventList = [];
+  List<Event> _eventList = [];
   //** CONTROLLERS  */
   late StoreService _storeService;
   TextEditingController _titleController = TextEditingController();
@@ -46,24 +46,26 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   final double toggleWidth = 50.0; // Width of the toggle button (constant)
   var selectedDayOfWeek;
   late bool isRepetitive = false;
-  bool? isAllDay = false;
-  String selectedRepetition = 'Daily'; // Default repetition is daily
-  late RecurrenceRule? recurrenceRule = null;
+  // bool? _isAllDay = false;
+  // String _selectedRepetition = 'Daily'; // Default repetition is daily
+  late RecurrenceRule? _recurrenceRule = null;
   //We define the default colors for the event object
-  late Color selectedEventColor;
-  final colorList = ColorManager.eventColors;
+  late Color _selectedEventColor;
+  final _colorList = ColorManager.eventColors;
 
   //** LOGIC FOR THE VIEW */////////
-  _EventNoteWidgetState({this.user, this.group}) {
-    if (user != null) {
+  _EventNoteWidgetState({User? user, Group? group}) : _user = user, _group = group {
+    if (_user != null) {
       // Initialize eventList based on user
-      eventList = user!.events; // Example: user.events if User has events list
-    } else if (group != null) {
+      _user = user;
+      _eventList = _user!.events; 
+    } else if (_group != null) {
       // Initialize eventList based on group
-      eventList = group!
-          .calendar.events; // Example: group.events if Group has events list
+      _group = group;
+      _eventList = _group!
+          .calendar.events; 
     }
-    selectedEventColor = colorList.last;
+    _selectedEventColor = _colorList.last;
   }
 
   @override
@@ -108,7 +110,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
  */
   Future<void> _loadEvents() async {
     setState(() {
-      eventList = eventList.reversed.take(100).toList();
+      _eventList = _eventList.reversed.take(100).toList();
     });
     // SharedPrefsUtils.storeUser(user!);
   }
@@ -178,39 +180,39 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
         title: _titleController.text,
-        groupId: group?.id, // Set the groupId if adding to a group's events
-        recurrenceRule: recurrenceRule,
+        groupId: _group?.id, // Set the groupId if adding to a group's events
+        recurrenceRule: _recurrenceRule,
         localization: extractedText,
         allDay: event?.allDay ?? false,
         description: _descriptionController.text,
-        eventColorIndex: ColorManager().getColorIndex(selectedEventColor),
+        eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
       );
 
-      bool isStartHourUnique = eventList.every((e) =>
+      bool isStartHourUnique = _eventList.every((e) =>
           e.startDate.hour != newEvent.startDate.hour ||
           e.startDate.day != newEvent.startDate.day);
-      bool allowRepetitiveHours = group!.repetitiveEvents;
+      bool allowRepetitiveHours = _group!.repetitiveEvents;
       if (isStartHourUnique && allowRepetitiveHours) {
         setState(() {
-          eventList.add(newEvent);
+          _eventList.add(newEvent);
         });
 
-        if (user != null) {
-          List<Event> userEvents = user!.events;
+        if (_user != null) {
+          List<Event> userEvents = _user!.events;
           userEvents.add(newEvent);
-          user!.events = userEvents;
+          _user!.events = userEvents;
 
-          await _storeService.updateUser(user!);
+          await _storeService.updateUser(_user!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Event added successfully!')),
           );
-        } else if (group != null) {
-          List<Event> groupEvents = group!.calendar.events;
+        } else if (_group != null) {
+          List<Event> groupEvents = _group!.calendar.events;
           groupEvents.add(newEvent);
-          group?.calendar.events = groupEvents;
+          _group?.calendar.events = groupEvents;
 
-          await _storeService.updateGroup(group!);
+          await _storeService.updateGroup(_group!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Event added to group successfully!')),
@@ -269,13 +271,13 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DropdownButtonFormField<Color>(
-                      value: selectedEventColor,
+                      value: _selectedEventColor,
                       onChanged: (color) {
                         setState(() {
-                          selectedEventColor = color!;
+                          _selectedEventColor = color!;
                         });
                       },
-                      items: colorList.map((color) {
+                      items: _colorList.map((color) {
                         String colorName = ColorManager.getColorName(
                             color); // Get the name of the color
                         return DropdownMenuItem<Color>(
@@ -502,7 +504,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                             return RepetitionDialog(
                                 selectedStartDate: _selectedStartDate,
                                 selectedEndDate: _selectedEndDate,
-                                initialRecurrenceRule: recurrenceRule);
+                                initialRecurrenceRule: _recurrenceRule);
                           },
                         );
                         if (result != null && result.isNotEmpty) {
@@ -513,7 +515,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                           setState(() {
                             isRepetitive = updatedIsRepetitive;
                             if (updatedRecurrenceRule != null) {
-                              recurrenceRule = updatedRecurrenceRule;
+                              _recurrenceRule = updatedRecurrenceRule;
                             }
                           });
                         }

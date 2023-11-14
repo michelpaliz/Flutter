@@ -68,9 +68,6 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    // final ProviderManagement providerManagement =
-    //     Provider.of<ProviderManagement>(context, listen: false);
-
     return Theme(
       data: AppBarStyles.themeData,
       child: Scaffold(

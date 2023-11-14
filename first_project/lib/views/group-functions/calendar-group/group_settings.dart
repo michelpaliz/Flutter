@@ -23,7 +23,6 @@ class _GroupSettingsState extends State<GroupSettings> {
   @override
   void initState() {
     super.initState();
-    _initializeData();
   }
 
     @override
@@ -35,6 +34,8 @@ class _GroupSettingsState extends State<GroupSettings> {
 
     // Initialize the _storeService using the providerManagement.
     _storeService = StoreService.firebase(providerManagement);
+
+    _initializeData();
   }
 
   Future<void> _initializeData() async {

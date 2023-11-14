@@ -36,8 +36,8 @@ class _EditGroupState extends State<EditGroup> {
     _groupNameController = TextEditingController(text: widget.group.groupName);
     _selectedUsers = List.from(widget.group.users);
   }
-  
-    @override
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 

@@ -3,6 +3,7 @@ import 'package:first_project/my-lib/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/views/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -334,6 +335,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   @override
   Widget build(BuildContext context) {
+    Color textColor = ThemeColors.getTextColor(context);
     _screenWidth = MediaQuery.of(context).size.width;
     // Set the globalVariable based on the screen size
     if (_screenWidth < 600) {
@@ -403,11 +405,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                   }
                 },
                 scheduleViewSettings: ScheduleViewSettings(
-
                   appointmentItemHeight: 70,
                 ),
                 viewHeaderStyle: ViewHeaderStyle(
-                  dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
+                  dateTextStyle:
+                      TextStyle(fontFamily: 'lato', color: Colors.black),
                   backgroundColor: Color.fromARGB(255, 180, 237,
                       248), // Change the background color of the month header
                   dayTextStyle: TextStyle(
@@ -440,12 +442,13 @@ class _GroupDetailsState extends State<GroupDetails> {
                           220), // Use the default background color for other days.
                       child: Center(
                         child: Text(details.date.day.toString(),
-                            style: TextStyle(fontFamily: 'lato', color: Colors.black)),
+                            style: TextStyle(
+                                fontFamily: 'lato', color: Colors.black)),
                       ),
                     );
                   }
                 },
-                
+
                 // Customize other properties as needed
                 monthViewSettings: MonthViewSettings(
                   showAgenda: true,
@@ -456,7 +459,6 @@ class _GroupDetailsState extends State<GroupDetails> {
                   appointmentDisplayCount: 5,
                   showTrailingAndLeadingDates: false,
                   navigationDirection: MonthNavigationDirection.vertical,
-
                 ),
                 appointmentBuilder:
                     (BuildContext context, CalendarAppointmentDetails details) {
@@ -567,7 +569,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                       fontSize: 15,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: Colors.black,
+                                                      color: textColor,
                                                     ),
                                                   ),
                                                   Text(
@@ -577,7 +579,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                       fontSize: 15,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: Colors.black,
+                                                      color: textColor,
                                                     ),
                                                   ),
                                                 ],
@@ -595,7 +597,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                 '${event.startDate.hour}-${event.startDate.minute}  -',
                                                 style: TextStyle(
                                                   fontSize: 15,
-                                                  color: Colors.black,
+                                                  color: textColor,
                                                 ),
                                               ),
                                               SizedBox(width: 8),
@@ -603,7 +605,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                 '${event.endDate.hour}-${event.endDate.minute}',
                                                 style: TextStyle(
                                                   fontSize: 15,
-                                                  color: Colors.black,
+                                                  color: textColor,
                                                 ),
                                               ),
                                             ],
@@ -626,7 +628,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                 event.title,
                                                 style: TextStyle(
                                                   fontSize: 16,
-                                                  color: Colors.black,
+                                                  color: textColor,
                                                 ),
                                               ),
                                               SizedBox(width: 10),
@@ -679,7 +681,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                 'No events found for this date',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Colors.black,
+                                  color: textColor,
                                 ),
                               ),
                             );
@@ -734,7 +736,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                             '${event.startDate.hour}-${event.startDate.minute}  -',
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: Colors.black,
+                                              color: textColor,
                                             ),
                                           ),
                                           SizedBox(width: 8),
@@ -742,7 +744,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                             '${event.endDate.hour}-${event.endDate.minute}',
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: Colors.black,
+                                              color: textColor,
                                             ),
                                           ),
                                         ],
@@ -764,7 +766,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.black,
+                                              color: textColor,
                                             ),
                                           ),
                                         ),

@@ -53,7 +53,7 @@ class _MyAppState extends State<MyApp> {
 
     try {
       List<Group>? groups =
-          await storeService.fetchUserGroups(widget.currentUser?.groupIds);
+          await storeService.fetchUserGroups(widget.currentUser.groupIds);
       providerManagement.setGroups = groups;
       setState(() {
         fetchedGroups = groups;
@@ -65,8 +65,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final providerManagement = Provider.of<ProviderManagement>(context);
-    final User? currentUser = providerManagement.user;
+    // final providerManagement = Provider.of<ProviderManagement>(context);
+    // final User? currentUser = providerManagement.user;
     // final bool isLoggedIn = currentUser != null;
 
     return Consumer<ThemePreferenceProvider>(
