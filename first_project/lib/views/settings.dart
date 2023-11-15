@@ -1,7 +1,7 @@
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
-import 'package:first_project/views/provider/theme_preference_provider.dart';
+import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

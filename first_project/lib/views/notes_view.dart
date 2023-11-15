@@ -5,7 +5,7 @@ import 'package:first_project/my-lib/color_manager.dart';
 import 'package:first_project/styles/drawer-style/my_drawer.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
-import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

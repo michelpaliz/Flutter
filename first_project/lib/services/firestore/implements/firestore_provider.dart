@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
-import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
@@ -16,10 +16,10 @@ import '../Ifirestore_provider.dart';
 class FireStoreProvider implements StoreProvider {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthService _authService;
-  final ProviderManagement _providerManagement;
+  final ProviderManagement? _providerManagement;
 
   FireStoreProvider({
-    required ProviderManagement providerManagement,
+    ProviderManagement? providerManagement,
   })  : _authService = AuthService.firebase(),
         _providerManagement = providerManagement;
 
@@ -52,7 +52,7 @@ class FireStoreProvider implements StoreProvider {
         }
 
         // Use _providerManagement here
-        _providerManagement.updateUser(user);
+        _providerManagement?.updateUser(user);
 
         return 'User has been updated';
       }
@@ -208,8 +208,8 @@ class FireStoreProvider implements StoreProvider {
       final currentUser = AuthService.firebase().costumeUser;
       currentUser!.groupIds.add(group.id);
       await updateUser(currentUser);
-      _providerManagement.updateUser(currentUser);
-      _providerManagement.addGroup(group);
+      _providerManagement?.updateUser(currentUser);
+      _providerManagement?.addGroup(group);
 
       // Create notifications for group members
       await _createNotificationsForGroups(group, currentUser);
@@ -260,7 +260,7 @@ class FireStoreProvider implements StoreProvider {
       await groupReference.update(groupData);
       //Now we are gonna create a new URL reference for the group's image and update it
       // _updatePhotoURLForGroup(group);
-      _providerManagement.updateGroup(group);
+      _providerManagement?.updateGroup(group);
     } catch (e) {
       print("Error updating group: $e");
       // Handle the error appropriately, e.g., show a snackbar or alert to the user.
@@ -412,7 +412,7 @@ class FireStoreProvider implements StoreProvider {
       );
 
       Group? groupFetched = await getGroupFromId(groupId);
-      _providerManagement.removeGroupById(groupFetched!);
+      _providerManagement?.removeGroupById(groupFetched!);
 
       // Delete the group document
       await groupEventCollections.doc(groupId).delete();

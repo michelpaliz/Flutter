@@ -1,7 +1,7 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/firestore/implements/firestore_provider.dart';
 
 import '../../../models/event.dart';
@@ -17,7 +17,7 @@ class StoreService extends StoreProvider {
   static StoreService? _instance;
 
   // Factory method to get the single instance of StoreService
-factory StoreService.firebase(ProviderManagement providerManagement) {
+factory StoreService.firebase(ProviderManagement? providerManagement) {
     if (_instance == null) {
       _instance = StoreService._(FireStoreProvider(providerManagement: providerManagement));
     }

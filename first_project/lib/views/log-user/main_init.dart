@@ -1,7 +1,7 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/provider/provider_management.dart';
 
 class MainInitializer {
   final ProviderManagement providerManagement;

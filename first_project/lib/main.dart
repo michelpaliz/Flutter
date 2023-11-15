@@ -1,13 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/my-lib/utilities.dart';
-import 'package:first_project/services/auth/implements/auth_provider.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/my_app.dart';
-import 'package:first_project/views/provider/provider_management.dart';
-import 'package:first_project/views/provider/theme_preference_provider.dart';
+import 'package:first_project/provider/provider_management.dart';
+import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as devtools show log;
 //** Logic for my view */
 // main.dart
 import 'package:provider/provider.dart';
@@ -39,7 +39,9 @@ Future<void> initializeApp() async {
       MaterialApp(
         home: Builder(
           builder: (context) => LoginView(
+            //We call here the callBack from the loginView
             onLoginSuccess: (user) async {
+              devtools.log('This is the register user from the login $user');
               await AppInitializer.goToMain(context, user);
             },
           ),

@@ -4,9 +4,9 @@ import 'package:first_project/services/auth/auth_user.dart';
 import 'package:first_project/services/auth/implements/auth_provider.dart';
 
 class AuthService implements AuthRepository {
-final AuthRepository provider;
+final AuthRepository repository;
 
-  const AuthService._(this.provider);
+  const AuthService._(this.repository);
 
   static AuthService? _instance; // Singleton instance
 
@@ -22,7 +22,7 @@ final AuthRepository provider;
     required String email,
     required String password,
   }) =>
-      provider.createUser(
+      repository.createUser(
         userName: userName,
         email: email,
         password: password,
@@ -30,39 +30,38 @@ final AuthRepository provider;
       );
 
   @override
-  AuthUser? get currentUser => provider.currentUser;
+  AuthUser? get currentUser => repository.currentUser;
 
   @override
   Future<AuthUser> logIn({
     required String email,
     required String password,
   }) =>
-      provider.logIn(
+      repository.logIn(
         email: email,
         password: password,
       );
 
   @override
-  Future<void> logOut() => provider.logOut();
+  Future<void> logOut() => repository.logOut();
 
   @override
-  Future<void> sendEmailVerification() => provider.sendEmailVerification();
+  Future<void> sendEmailVerification() => repository.sendEmailVerification();
 
   @override
-  Future<void> initialize() => provider.initialize();
+  Future<void> initialize() => repository.initialize();
 
   @override
   Future<User?> generateUserCustomeModel() =>
-      provider.generateUserCustomeModel();
+      repository.generateUserCustomeModel();
 
   @override
-  User? get costumeUser => provider.costumeUser;
+  User? get costumeUser => repository.costumeUser;
 
   @override
   set costumeUser(User? user) {
     if (user != null) {
-      provider.costumeUser = user;
-      
+      repository.costumeUser = user;
     }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
@@ -12,7 +13,7 @@ import 'package:first_project/styles/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:first_project/views/log-user/main_init.dart';
 import 'package:first_project/views/my_app.dart';
-import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/provider/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,7 +36,6 @@ class _LoginViewState extends State<LoginView> {
   bool buttonHovered = false; // Added buttonHovered variable
   late ButtonStyle _myCustomButtonStyle;
   late final AuthService _authService;
-  late final MainInitializer _mainInitializer;
   late LoginInitializer _loginInitializer;
 
   @override
@@ -45,18 +45,9 @@ class _LoginViewState extends State<LoginView> {
     _email = TextEditingController();
     _password = TextEditingController();
     _myCustomButtonStyle = ColorProperties.defaultButton();
-    // Initialize the MainInitializer with necessary dependencies
-    _mainInitializer = MainInitializer(
-      providerManagement: ProviderManagement(
-          user:
-              null), // You can pass null initially, as it will be updated later
-      storeService: StoreService.firebase(ProviderManagement(user: null)),
-    );
     _loginInitializer = LoginInitializer(
-      authService: _authService,
-      providerManagement: _mainInitializer.providerManagement,
-      storeService: _mainInitializer.storeService,
-    );
+        authService: _authService,
+        storeService: StoreService.firebase(ProviderManagement(user: null)));
   }
 
   @override
@@ -131,20 +122,18 @@ class _LoginViewState extends State<LoginView> {
                         await _loginInitializer.initializeUserAndServices(
                             email, password);
 
-                        User? userFetched =
-                            _loginInitializer.providerManagement.user;
+                        User? userFetched = _loginInitializer.getUser;
 
                         if (userFetched == null) {
                           throw UserNotFoundAuthException();
                         }
-
-                        // Update the user property in ProviderManagement
-                        _mainInitializer.providerManagement
-                            .setCurrentUser(userFetched);
-
-                        _mainInitializer.initializeUserGroup(userFetched);
-
+                        devtools.log(
+                            'This is the user fetched from the login $userFetched');
                         widget.onLoginSuccess(userFetched);
+                        print('Login successful. Navigating to main screen...');
+                        await AppInitializer.goToMain(context, userFetched);
+                        print('Navigation to main screen completed.');
+
                       } on UserNotFoundAuthException {
                         await showErrorDialog(context, 'User not found');
                       } on WrongPasswordAuthException {

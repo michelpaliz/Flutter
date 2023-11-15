@@ -19,8 +19,8 @@ import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/log-user/register_view.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
-import 'package:first_project/views/provider/provider_management.dart';
-import 'package:first_project/views/provider/theme_preference_provider.dart';
+import 'package:first_project/provider/provider_management.dart';
+import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:flutter/material.dart';
@@ -42,10 +42,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     // Fetch user groups asynchronously in the initState
-    fetchUserGroups();
+    loadData();
   }
 
-  Future<void> fetchUserGroups() async {
+  Future<void> loadData() async {
     final providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     final StoreService storeService =
@@ -65,9 +65,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // final providerManagement = Provider.of<ProviderManagement>(context);
-    // final User? currentUser = providerManagement.user;
-    // final bool isLoggedIn = currentUser != null;
 
     return Consumer<ThemePreferenceProvider>(
         builder: (context, themeProvider, child) {
@@ -76,9 +73,8 @@ class _MyAppState extends State<MyApp> {
           // ... other MaterialApp properties
           routes: {
             settings: (context) => const Settings(),
-            // loginRoute: (context) => const LoginView(onLoginSuccess: (User ) {  },),
             loginRoute: (context) => LoginView(onLoginSuccess: (user) {
-              AppInitializer.goToMain(context, user);
+              // AppInitializer.goToMain(context, user);
             }),
             registerRoute: (context) => const RegisterView(),
             userCalendar: (context) => const NotesView(),

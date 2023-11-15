@@ -1,5 +1,5 @@
 import 'package:first_project/styles/themes/theme_colors.dart';
-import 'package:first_project/views/provider/provider_management.dart';
+import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/view-item-styles/button_styles.dart';
@@ -11,6 +11,7 @@ import '../../../enums/routes/routes.dart';
 import '../../../styles/drawer-style/my_drawer.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
+import 'dart:developer' as devtools show log;
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -31,22 +32,12 @@ class _ShowGroupsState extends State<ShowGroups> {
   late Color textColor;
   late Color cardBackgroundColor;
   //*LOGIC FOR THE VIEW //
-
-  Future<List<Group>> _getUserGroups(StoreService storeService) async {
-    _currentUser = _authService.costumeUser!;
-
-    List<Group>? fetchedGroups =
-        await storeService.fetchUserGroups(_currentUser?.groupIds);
-    return fetchedGroups;
-  }
-
   @override
   void initState() {
     super.initState();
     _authService = new AuthService.firebase();
     _currentUser = _authService.costumeUser;
     _userGroups = [];
-    // _getUserGroups();
   }
 
   void _toggleScrollDirection() {
@@ -57,9 +48,6 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
 
   void _createGroup() {
-    // Implement the create group functionality similar to the previous example.
-    // Add the newly created group ID to the currentUser's groupIds list, and then update the userGroups list.
-    // Don't forget to call setState() after updating the userGroups list.
     Navigator.pushNamed(context, createGroupData);
     // Call setState to trigger a UI update
     setState(() {});
@@ -165,7 +153,11 @@ class _ShowGroupsState extends State<ShowGroups> {
                         mainAxisAlignment:
                             MainAxisAlignment.center, // Center vertically
                         children: [
-                          Text(formattedDate,style: TextStyle(fontFamily: 'lato', color: Colors.black),),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                                fontFamily: 'lato', color: Colors.black),
+                          ),
                           SizedBox(height: 10), // Add vertical spacing
                           Text(
                             group.groupName
@@ -201,6 +193,8 @@ class _ShowGroupsState extends State<ShowGroups> {
           ThemeColors.getContainerBackgroundColor(context);
       // Access the list of groups from providerData.
       final List<Group> groups = providerManagement.setGroups;
+
+      devtools.log('This is group list: ' + groups.toString());
       // Initialize _storeService using data from providerManagement.
       final providerData = providerManagement;
       _storeService = StoreService.firebase(providerData);
@@ -335,9 +329,8 @@ class _ShowGroupsState extends State<ShowGroups> {
                             itemCount: userGroups.length,
                             itemBuilder: (context, index) {
                               bool isHovered = false;
-    
-                              return InkWell(
 
+                              return InkWell(
                                 onTap: () async {
                                   Group _group = userGroups[index];
                                   User _groupOwner = await _storeService
