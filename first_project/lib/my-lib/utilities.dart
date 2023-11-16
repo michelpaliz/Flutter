@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart'; // Import the http package
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -108,4 +109,25 @@ class Utilities {
     }
     return input[0].toUpperCase() + input.substring(1);
   }
+
+  static Future<Locale> getUserLocale() async {
+  try {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low);
+
+    if (position.latitude >= -56.0 && position.latitude <= 11.0 &&
+        position.longitude >= -77.8 && position.longitude <= -34.8) {
+      // User is in South America
+      return Locale('es');
+    } else {
+      // User is not in South America
+      return Locale('en');
+    }
+  } catch (e) {
+    // Handle exceptions, e.g., if location services are not available
+    print("Error getting user location: $e");
+    return Locale('en'); // Default to English in case of error
+  }
+}
+
 }

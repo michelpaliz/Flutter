@@ -1,0 +1,11 @@
+{
+    "language": "English",
+    "@language":{
+        "description": "The current language"
+    },
+
+    "changeView":"Change the view",
+    "@changeView":{
+        "description": "Change View"
+    }
+}

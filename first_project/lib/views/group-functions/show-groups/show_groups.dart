@@ -12,6 +12,7 @@ import '../../../styles/drawer-style/my_drawer.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import 'dart:developer' as devtools show log;
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -283,7 +284,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Change View",
+                                  AppLocalizations.of(context)!.changeView,
                                   style: TextStyle(
                                     fontSize: 12,
                                   ),

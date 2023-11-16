@@ -1,7 +1,7 @@
 //** UI for my view */
 
 import 'package:first_project/enums/routes/routes.dart';
-import 'package:first_project/main.dart';
+import 'package:first_project/l10n/l10n.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
@@ -12,7 +12,6 @@ import 'package:first_project/views/event-logic/event_detail.dart';
 import 'package:first_project/views/group-functions/calendar-group/group_details.dart';
 import 'package:first_project/views/group-functions/calendar-group/group_settings.dart';
 import 'package:first_project/views/group-functions/create_group_data.dart';
-import 'package:first_project/views/group-functions/edit_group.dart';
 import 'package:first_project/views/group-functions/edit_group_data.dart';
 import 'package:first_project/views/group-functions/show-groups/show_groups.dart';
 import 'package:first_project/views/log-user/login_view.dart';
@@ -25,6 +24,8 @@ import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class MyApp extends StatefulWidget {
   final User currentUser;
@@ -65,17 +66,22 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     return Consumer<ThemePreferenceProvider>(
-        builder: (context, themeProvider, child) {
-      return MaterialApp(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
           theme: themeProvider.themeData,
-          // ... other MaterialApp properties
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: L10n.all,
           routes: {
             settings: (context) => const Settings(),
             loginRoute: (context) => LoginView(onLoginSuccess: (user) {
-              // AppInitializer.goToMain(context, user);
-            }),
+                  // AppInitializer.goToMain(context, user);
+                }),
             registerRoute: (context) => const RegisterView(),
             userCalendar: (context) => const NotesView(),
             verifyEmailRoute: (context) => const VerifyEmailView(),
@@ -105,7 +111,7 @@ class _MyAppState extends State<MyApp> {
               final group =
                   ModalRoute.of(context)?.settings.arguments as Group?;
               if (group != null) {
-                return EditGroup(group: group);
+                return EditGroupData(group: group);
               }
               // Handle the case when no group is passed
               return SizedBox
@@ -154,7 +160,9 @@ class _MyAppState extends State<MyApp> {
                   .shrink(); // Return an empty widget or handle the error
             }
           },
-          home: const ShowGroups());
-    });
+          home: ShowGroups(), // Update with your home widget
+        );
+      },
+    );
   }
 }

@@ -7,6 +7,7 @@ import 'package:first_project/views/my_app.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'dart:developer' as devtools show log;
 //** Logic for my view */
 // main.dart
@@ -22,10 +23,13 @@ void main() async {
   await initializeApp();
 }
 
+
+
 Future<void> initializeApp() async {
   try {
     await Firebase.initializeApp();
     await Utilities.loadCustomFonts();
+    // Load translations
   } catch (error) {
     print('Error initializing app: $error');
     // Handle error appropriately
@@ -33,6 +37,7 @@ Future<void> initializeApp() async {
   }
   final AuthService authService = AuthService.firebase();
   User? user = await authService.generateUserCustomeModel();
+
 
   if (user == null) {
     runApp(

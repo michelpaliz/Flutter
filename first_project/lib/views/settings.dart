@@ -3,6 +3,7 @@ import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:provider/provider.dart';
 
 class Settings extends StatefulWidget {
@@ -57,12 +58,12 @@ class _SettingsState extends State<Settings> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text("Settings"),
+            title: Text(FlutterI18n.translate(context, "settings")),
           ),
           body: ListView(
             children: <Widget>[
               ListTile(
-                title: Text("User Name"),
+                title: Text(FlutterI18n.translate(context, "settings.userName")),
                 subtitle: Text(userName),
                 onTap: () {
                   // Implement a dialog or form to allow the user to change their name
@@ -70,29 +71,23 @@ class _SettingsState extends State<Settings> {
                 },
               ),
               ListTile(
-                title: Text("Change Password"),
+                title: Text(FlutterI18n.translate(context, "settings.changePassword")),
                 onTap: () {
                   // Implement a dialog or form to allow the user to change their password
                   // Update the 'newPassword' and 'confirmPassword' variables when the user makes changes
                 },
               ),
               ListTile(
-                title: Text("Dark Mode"),
+                title: Text(FlutterI18n.translate(context, "settings.darkMode")),
                 trailing: Switch(
-                  value:
-                      Provider.of<ThemePreferenceProvider>(context).themeData ==
-                          darkTheme,
+                  value: themeProvider.themeData == darkTheme,
                   onChanged: (value) {
-                    Provider.of<ThemePreferenceProvider>(context, listen: false)
-                        .toggleTheme();
+                    themeProvider.toggleTheme();
                   },
                 ),
               ),
               ListTile(
-                title: Text("Language"),
-                // subtitle: Text(themeProvider.themeData == darkTheme
-                //     ? "Spanish"
-                //     : "English"),
+                title: Text(FlutterI18n.translate(context, "settings.language")),
                 onTap: () {
                   // Implement a dialog or form to allow the user to change the language
                   // Update the 'isSpanishSelected' variable when the user makes changes
@@ -105,3 +100,4 @@ class _SettingsState extends State<Settings> {
     );
   }
 }
+
