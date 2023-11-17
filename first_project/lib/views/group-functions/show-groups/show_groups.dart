@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../enums/routes/routes.dart';
-import '../../../styles/drawer-style/my_drawer.dart';
+import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import 'dart:developer' as devtools show log;
@@ -264,7 +264,9 @@ class _ShowGroupsState extends State<ShowGroups> {
                         padding: const EdgeInsets.only(left: 5, right: 5),
                         child: Center(
                           child: Text(
-                            "Welcome ${Utilities.capitalize(_currentUser!.name)} here you can see the groups you are into",
+                            AppLocalizations.of(context)!.welcomeGroupView(
+                              Utilities.capitalize(_currentUser!.name),
+                            ),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

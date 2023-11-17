@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../enums/routes/routes.dart';
 import '../../services/auth/implements/auth_service.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //* GLOBAL VARIABLES */
 
@@ -59,6 +60,8 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
     IconData iconData, bool selected) {
   Color textColor = ThemeColors.getTextColor(context);
 
+  String translatedName = _getTranslatedTitle(context, name);
+
   return Padding(
     padding: EdgeInsets.symmetric(vertical: 8.0),
     child: InkWell(
@@ -99,7 +102,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
                 padding:
                     EdgeInsets.only(left: 35.0), // Adjust the desired spacing
                 child: Text(
-                  name,
+                  translatedName,
                   style: TextStyle(color: textColor, fontSize: 16),
                 ),
               ),
@@ -109,6 +112,24 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
       ),
     ),
   );
+}
+
+String _getTranslatedTitle(BuildContext context, String key) {
+  final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
+
+  switch (key) {
+    case 'Groups':
+      return appLocalizations.groups;
+    case 'Calendar':
+      return appLocalizations.calendar;
+    case 'Settings':
+      return appLocalizations.settings;
+    case 'Log out':
+      return appLocalizations.logout;
+    // Add more cases as needed
+    default:
+      return key; // Default to the original key if not found
+  }
 }
 
 //*LOG OUT LOGIC */

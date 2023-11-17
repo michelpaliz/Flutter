@@ -1,4 +1,16 @@
 {
-    "language": "Espanol",
-    "changeView": "Cambia la vista"
+    "userName": "Nombre de Usuario",
+    "changePassword": "Cambiar contraseña",
+    "darkMode": "Modo oscuro",
+    "groups": "Grupos",
+    "calendar": "Calendario",
+    "settings": "Configuracion",
+    "logout": "Cerrar sesion",
+    "goodMorning": "Buenos dias",
+    "goodAfternoon": "Buenas tardes",
+    "goodEvening": "Bunas noches",
+    "language": "Español",
+    "changeView": "Cambiar la vista",
+    "welcomeGroupView": "Bienvenido {username}, aquí puedes ver la lista de grupos a los que perteneces."
+
 }

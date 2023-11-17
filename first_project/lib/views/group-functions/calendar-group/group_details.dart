@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../../enums/routes/routes.dart';
-import '../../../styles/drawer-style/my_drawer.dart';
+import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/event.dart';
 import '../../../models/group.dart';
 import '../../../services/firestore/implements/firestore_service.dart';

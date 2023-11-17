@@ -1,11 +1,29 @@
 {
-    "language": "English",
-    "@language":{
+    "userName": "User name",
+    "changePassword": "Change Password",
+    "darkMode": "Dark Mode",
+    "groups": "Groups",
+    "calendar": "Calendar",
+    "settings": "Settings",
+    "logout": "Log out",
+    "goodMorning": "Good Morning",
+    "goodAfternoon": "Good Afternoon",
+    "goodEvening": "Good Evening",
+    "language": "Current language",
+    "@language": {
         "description": "The current language"
     },
-
-    "changeView":"Change the view",
-    "@changeView":{
+    "changeView": "Change the view",
+    "@changeView": {
         "description": "Change View"
+    },
+    "welcomeGroupView": "Welcome {username} here you can see the list of groups that you are part of.",
+    "@welcome": {
+        "description": "Welcome to the group view",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
     }
 }
