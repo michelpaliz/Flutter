@@ -1,16 +1,57 @@
 {
-    "userName": "Nombre de Usuario",
-    "changePassword": "Cambiar contraseña",
-    "darkMode": "Modo oscuro",
+    "darkMode": "Modo Oscuro",
     "groups": "Grupos",
     "calendar": "Calendario",
-    "settings": "Configuracion",
-    "logout": "Cerrar sesion",
-    "goodMorning": "Buenos dias",
-    "goodAfternoon": "Buenas tardes",
-    "goodEvening": "Bunas noches",
-    "language": "Español",
-    "changeView": "Cambiar la vista",
-    "welcomeGroupView": "Bienvenido {username}, aquí puedes ver la lista de grupos a los que perteneces."
-
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "groupData": "Datos del Grupo",
+    "notifications": "Notificaciones",
+    "goodMorning": "Buenos Días",
+    "goodAfternoon": "Buenas Tardes",
+    "goodEvening": "Buenas Noches",
+    "language": "Idioma Actual",
+    "@language": {
+        "description": "El idioma actual"
+    },
+    "changeView": "Cambiar la Vista",
+    "@changeView": {
+        "description": "Cambiar Vista"
+    },
+    "welcomeGroupView": "Bienvenido {username}, aquí puedes ver la lista de grupos a los que perteneces.",
+    "@welcome": {
+        "description": "Bienvenido a la vista del grupo",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "zeroNotifications": "No hay notificaciones disponibles",
+    "goToCalendar": "Ir al calendario",
+    "groupName": "Ingrese el nombre del grupo",
+    "groupDescription": "Ingrese la descripción del grupo",
+    "addPplGroup": "Agregar personas a tu grupo",
+    "addUser": "Agregar usuario aquí",
+    "administrator": "Administrador",
+    "coAdministrator": "Co-Administrador",
+    "member": "Miembro",
+    "saveGroup": "Guardar el grupo",
+    "addImageGroup": "Agregar imagen para el grupo",
+    "removeEvent": "¿Estás seguro de que quieres eliminar este evento?",
+    "removeGroup": "¿Estás seguro de que quieres eliminar este grupo?",
+    "removeCalendar": "¿Estás seguro de que quieres eliminar este calendario?",
+    "groupCreated": "El grupo ha sido creado",
+    "eventEdited": "El evento ha sido editado",
+    "name": "Nombre",
+    "userName": "Nombre de Usuario",
+    "currentPassword": "Ingresa tu contraseña actual",
+    "newPassword": "Actualiza tu contraseña actual",
+    "confirmPassword": "Confirmar contraseña",
+    "password": "Contraseña",
+    "register": "Registrar",
+    "login": "Iniciar Sesión",
+    "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
+    "changePassword": "Cambiar Contraseña",
+    "notRegistered": "¿Todavía no estás registrado? No te preocupes, regístrate aquí.",
+    "alreadyRegistered": "¿Ya estás registrado? Inicia sesión aquí."
 }

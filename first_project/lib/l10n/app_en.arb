@@ -1,11 +1,11 @@
 {
-    "userName": "User name",
-    "changePassword": "Change Password",
     "darkMode": "Dark Mode",
     "groups": "Groups",
     "calendar": "Calendar",
     "settings": "Settings",
     "logout": "Log out",
+    "groupData": "Group Data",
+    "notifications": "Notifications",
     "goodMorning": "Good Morning",
     "goodAfternoon": "Good Afternoon",
     "goodEvening": "Good Evening",
@@ -25,5 +25,99 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "zeroNotifications": "No notifications available",
+    "goToCalendar": "Go to the calendar",
+    "groupName": "Enter group name",
+    "groupDescription": "Enter group description",
+    "addPplGroup": "Add people to your group",
+    "addUser": "Add user here",
+    "administrator": "Administrator",
+    "coAdministrator": "Co-Administrator",
+    "member": "Member",
+    "saveGroup": "Save the group",
+    "addImageGroup": "Add image for the group",
+    "removeEvent": "Are you sure you want to remove this event ?",
+    "removeGroup": "Are you sure you want to remove this group ?",
+    "removeCalendar": "Are you sure you want to remove this calendar ?",
+    "groupCreated": "The group has been created",
+    "eventEdited": "The event has been edited",
+    "name": "Name",
+    "userName": "User name",
+    "currentPassword": "Insert your current password",
+    "newPassword": "Update your current password",
+    "confirmPassword": "Confirm password",
+    "password": "Password",
+    "register": "Register",
+    "login": "Login",
+    "logoutMessage": "Are you sure you want to log out ?",
+    "changePassword": "Change Password",
+    "notRegistered": "Not registered yet?, Don't worry register here.",
+    "alreadyRegistered": "Already registered?, Login here.",
+    "tittle": "Tittle",
+    "description": "Description",
+    "note": "Note",
+    "repetitionEvent": "Repetition for the event",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "repetitionDetails": "Repetition details",
+    "dailyRepetitionInf": "This event will repeat every {concurrenceDay} day",
+    "@dailyRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "username": {
+                "type": "Integer"
+            }
+        }
+    },
+    "every": "Every:",
+    "dailys": "daily(s)",
+    "weeklys": "weekly(s)",
+    "untilDate": "Until Date: ",
+    "notSelected": "Not Selected",
+    "specifyRepeatInterval": "Please specify repeat interval",
+    "startDate": "Start Date: ",
+    "endDate": "End Date: ",
+    "noDaysSelected": "No Days Selected",
+    "weeklyRepetitionInf": "This event will repeat every {concurrenceWeeks} weeks.",
+    "@weeklyRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "username": {
+                "type": "Integer"
+            }
+        }
+    },
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun",
+    "errorSelectedDays": "The day of the event is {selectedDays} should coincide with one of the selected day/s.",
+    "@errorSelectedDays": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "monthlyRepetitionInf": "This event will repeat on the {selectedDay} day should every {months} month(s) ",
+    "@monthlyRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            },
+            "months": {
+                "type": "String"
+            }
+        }
+    },
+    "confirm": "Confirm",
+    "cancel": "Cancel"
 }
