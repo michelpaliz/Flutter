@@ -13,15 +13,16 @@ import 'package:first_project/styles/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:flutter/material.dart';
-
 import '../../styles/costume_widgets/show_error_dialog.dart';
 import '../../styles/view-item-styles/textfield_styles.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 // ======= LOGIN =========
 class LoginView extends StatefulWidget {
-  final Function(User) onLoginSuccess;
+  // final Function(User) onLoginSuccess;
 
-  const LoginView({Key? key, required this.onLoginSuccess}) : super(key: key);
+  // const LoginView({Key? key, required this.onLoginSuccess}) : super(key: key);
+    const LoginView({Key? key }) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -77,7 +78,7 @@ class _LoginViewState extends State<LoginView> {
                 const SizedBox(height: 30),
                 Center(
                   child: Text(
-                    'LOGIN',
+                    AppLocalizations.of(context)!.login,
                     style: TextStyle(
                       fontSize: 37,
                       fontWeight: FontWeight.bold,
@@ -90,7 +91,7 @@ class _LoginViewState extends State<LoginView> {
                 TextFieldWidget(
                   controller: _email,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                    hintText: 'Introduce your email',
+                    hintText: AppLocalizations.of(context)!.emailHint,
                     labelText: 'Email',
                     suffixIcon: Icons.email,
                   ),
@@ -100,8 +101,8 @@ class _LoginViewState extends State<LoginView> {
                 TextFieldWidget(
                   controller: _password,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                      hintText: 'Introduce your password',
-                      labelText: 'Password',
+                      hintText:  AppLocalizations.of(context)!.passwordHint,
+                      labelText: AppLocalizations.of(context)!.password,
                       suffixIcon: Icons.lock),
                   keyboardType: TextInputType.text,
                   obscureText: true,
@@ -126,17 +127,17 @@ class _LoginViewState extends State<LoginView> {
                         }
                         devtools.log(
                             'This is the user fetched from the login $userFetched');
-                        widget.onLoginSuccess(userFetched);
+                        // widget.onLoginSuccess(userFetched);
                         print('Login successful. Navigating to main screen...');
-                        await AppInitializer.goToMain(context, userFetched);
+                        await AppInitializer.goToMain(context,userFetched);
                         print('Navigation to main screen completed.');
 
                       } on UserNotFoundAuthException {
-                        await showErrorDialog(context, 'User not found');
+                        await showErrorDialog(context, AppLocalizations.of(context)!.userNotFound);
                       } on WrongPasswordAuthException {
-                        await showErrorDialog(context, 'Wrong credentials');
+                        await showErrorDialog(context, AppLocalizations.of(context)!.wrongCredentials);
                       } on GenericAuthException {
-                        await showErrorDialog(context, 'Authentication error');
+                        await showErrorDialog(context, AppLocalizations.of(context)!.authError);
                       }
                     },
                     style: _myCustomButtonStyle,
@@ -152,7 +153,7 @@ class _LoginViewState extends State<LoginView> {
                           buttonHovered = false;
                         });
                       },
-                      child: const Text('LOGIN',
+                      child: Text(AppLocalizations.of(context)!.login,
                           style: TextStyle(color: Colors.white)),
                     ),
                   ),
@@ -161,7 +162,7 @@ class _LoginViewState extends State<LoginView> {
                     onPressed: () {
                       Navigator.pushNamed(context, registerRoute);
                     },
-                    child: const Text('Not registered yet ? Register here.')),
+                    child: Text(AppLocalizations.of(context)!.notRegistered)),
               ],
             ),
           ),

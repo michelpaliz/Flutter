@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemePreferenceProvider with ChangeNotifier {
-  late ThemeData _themeData;
+  ThemeData _themeData = lightTheme; // Set an initial default value
   static const String _themeKey = 'theme_preference';
 
   ThemePreferenceProvider() {
@@ -17,30 +17,24 @@ class ThemePreferenceProvider with ChangeNotifier {
 
   ThemeData get themeData => _themeData;
 
-  // Load the theme from shared preferences
   Future<ThemeData?> _loadThemeFromPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? themePreference = prefs.getString(_themeKey);
     
-    print('Loaded Theme Preference: $themePreference'); // Add this line to check the loaded theme preference
-    
-    // Return the corresponding ThemeData or null if not found
+    print('Loaded Theme Preference: $themePreference');
+
     return themePreference == 'dark' ? darkTheme : lightTheme;
   }
 
-
-  // Save the selected theme to shared preferences
   void _saveThemeToPreferences(String themePreference) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(_themeKey, themePreference);
   }
 
-// Toggle the theme and save the preference
-void toggleTheme() {
-  _themeData = (_themeData == lightTheme) ? darkTheme : lightTheme;
-  _saveThemeToPreferences(_themeData == lightTheme ? 'light' : 'dark');
-  print('Current Theme: $_themeData'); // Add this line to check the current theme
-  notifyListeners();
-}
-
+  void toggleTheme() {
+    _themeData = (_themeData == lightTheme) ? darkTheme : lightTheme;
+    _saveThemeToPreferences(_themeData == lightTheme ? 'light' : 'dark');
+    print('Current Theme: $_themeData');
+    notifyListeners();
+  }
 }

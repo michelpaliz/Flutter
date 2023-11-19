@@ -12,7 +12,7 @@ import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
 import '../../services/firestore/implements/firestore_service.dart';
-import '../../styles/view-item-styles/app_bar_styles.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class EventNoteWidget extends StatefulWidget {
   final User? user;
@@ -205,7 +205,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           await _storeService.updateUser(_user!);
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Event added successfully!')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
           );
         } else if (_group != null) {
           List<Event> groupEvents = _group!.calendar.events;
@@ -215,7 +215,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           await _storeService.updateGroup(_group!);
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Event added to group successfully!')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.eventAddedGroup)),
           );
         }
 
@@ -225,9 +225,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Duplicate Start Date'),
-              content: Text(
-                  'An event with the same start hour and day already exists.'),
+              title: Text(AppLocalizations.of(context)!.repetitionEvent),
+              content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
               actions: [
                 TextButton(
                   child: Text('OK'),
@@ -242,7 +241,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Event note cannot be empty!')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.errorEventNote)),
       );
     }
 
@@ -253,7 +252,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Event Note Widget'),
+          title:  Text(AppLocalizations.of(context)!.event),
         ),
         body: SingleChildScrollView(
           // Wrap the Scaffold with SingleChildScrollView
@@ -263,7 +262,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choose the color of the event:',
+                AppLocalizations.of(context)!.chooseEventColor,
                   style: TextStyle(
                       fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),
                 ),
@@ -310,7 +309,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                     TextFormField(
                       controller: _titleController,
                       decoration: InputDecoration(
-                        labelText: 'Title (max 15 characters)',
+                        labelText: AppLocalizations.of(context)!.title(15),
                       ),
                       maxLength: 15,
                     ),
@@ -442,7 +441,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                   textFieldConfiguration: TextFieldConfiguration(
                     controller: _locationController,
                     decoration: InputDecoration(
-                      labelText: 'Location',
+                      labelText: AppLocalizations.of(context)!.location,
                     ),
                   ),
                   suggestionsCallback: (pattern) async {
@@ -466,7 +465,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 TextFormField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
-                    labelText: 'Description (max 100 characters)',
+                    labelText: AppLocalizations.of(context)!.description(100),
                   ),
                   maxLength: 100,
                 ),
@@ -477,7 +476,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 TextFormField(
                   controller: _noteController,
                   decoration: InputDecoration(
-                    labelText: 'Note (max 50 characters)',
+                    labelText:  AppLocalizations.of(context)!.note(50),
                   ),
                   maxLength: 50,
                 ),
@@ -488,7 +487,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                 Row(
                   children: [
                     Text(
-                      "Repetition for the event",
+                      AppLocalizations.of(context)!.repetitionDetails,
                       style: TextStyle(
                         fontSize: 15,
                       ),
@@ -563,7 +562,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                         _reloadScreen();
                       }
                     },
-                    child: Text('Add Event'),
+                    child: Text(AppLocalizations.of(context)!.addEvent),
                   ),
                 ),
               ],

@@ -2,12 +2,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/my-lib/utilities.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/my_app.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
 import 'dart:developer' as devtools show log;
 //** Logic for my view */
 // main.dart
@@ -23,8 +21,6 @@ void main() async {
   await initializeApp();
 }
 
-
-
 Future<void> initializeApp() async {
   try {
     await Firebase.initializeApp();
@@ -38,24 +34,25 @@ Future<void> initializeApp() async {
   final AuthService authService = AuthService.firebase();
   User? user = await authService.generateUserCustomeModel();
 
-
-  if (user == null) {
-    runApp(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => LoginView(
-            //We call here the callBack from the loginView
-            onLoginSuccess: (user) async {
-              devtools.log('This is the register user from the login $user');
-              await AppInitializer.goToMain(context, user);
-            },
-          ),
-        ),
-      ),
-    );
-  } else {
-    await AppInitializer.goToMainDirectly(user);
-  }
+  devtools.log("THIS IS THE MAIN $user");
+  await AppInitializer.goToMainDirectly(user);
+  // if (user == null) {
+  //   runApp(
+  //     MaterialApp(
+  //         home: Builder(
+  //           builder: (context) => LoginView(
+  //             //We call here the callBack from the loginView
+  //             onLoginSuccess: (user) async {
+  //               devtools.log('This is the register user from the login $user');
+  //               await AppInitializer.goToMain(context, user);
+  //             },
+  //           ),
+  //         ),
+  //         routes: {registerRoute: (context) => const RegisterView()}),
+  //   );
+  // } else {
+  //   await AppInitializer.goToMainDirectly(user);
+  // }
 }
 
 class AppInitializer {
@@ -90,7 +87,7 @@ class AppInitializer {
   }
 
   /// Directly initializes the main application, skipping the login view.
-  static Future<void> goToMainDirectly(User user) async {
+  static Future<void> goToMainDirectly(User? user) async {
     await setServices(user);
 
     runApp(
@@ -113,7 +110,7 @@ class AppInitializer {
   }
 
   /// Initializes necessary services and sets up providers.
-  static Future<void> setServices(User user) async {
+  static Future<void> setServices(User? user) async {
     final AuthService authService = AuthService.firebase();
 
     // Initialize the ProviderManagement instance

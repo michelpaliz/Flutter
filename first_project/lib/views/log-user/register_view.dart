@@ -11,6 +11,7 @@ import '../../services/auth/implements/auth_service.dart';
 import '../../styles/view-item-styles/textfield_styles.dart';
 import '../../styles/costume_widgets/show_error_dialog.dart';
 import 'dart:developer' as devtools show log;
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -79,7 +80,7 @@ class _RegisterViewState extends State<RegisterView> {
                 const SizedBox(height: 30),
                 Center(
                   child: Text(
-                    'REGISTER',
+                    AppLocalizations.of(context)!.register,
                     style: TextStyle(
                       fontSize: 37,
                       fontWeight: FontWeight.bold,
@@ -92,8 +93,8 @@ class _RegisterViewState extends State<RegisterView> {
                 TextFieldWidget(
                   controller: _userNameController,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                    hintText: 'Enter your username (e.g., john_doe123)',
-                    labelText: 'User Name',
+                    hintText: AppLocalizations.of(context)!.userNameHint,
+                    labelText: AppLocalizations.of(context)!.userName,
                     suffixIcon: Icons.verified_user_rounded,
                   ),
                   keyboardType: TextInputType.text,
@@ -107,8 +108,8 @@ class _RegisterViewState extends State<RegisterView> {
                 TextFieldWidget(
                   controller: _nameController,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                      hintText: 'Enter your name',
-                      labelText: 'Name',
+                      hintText: AppLocalizations.of(context)!.nameHint,
+                      labelText: AppLocalizations.of(context)!.name,
                       suffixIcon: Icons.person),
                   keyboardType: TextInputType.text,
                   inputFormatters: [
@@ -121,7 +122,7 @@ class _RegisterViewState extends State<RegisterView> {
                 TextFieldWidget(
                   controller: _email,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                    hintText: 'Introduce your email',
+                    hintText: AppLocalizations.of(context)!.emailHint,
                     labelText: 'Email',
                     suffixIcon: Icons.email,
                   ),
@@ -131,8 +132,8 @@ class _RegisterViewState extends State<RegisterView> {
                 TextFieldWidget(
                   controller: _password,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                      hintText: 'Introduce your password',
-                      labelText: 'Password',
+                      hintText: AppLocalizations.of(context)!.passwordHint,
+                      labelText: AppLocalizations.of(context)!.password,
                       suffixIcon: Icons.lock),
                   keyboardType: TextInputType.text,
                   obscureText: true,
@@ -141,8 +142,8 @@ class _RegisterViewState extends State<RegisterView> {
                 TextFieldWidget(
                   controller: _confirmPassword,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                      hintText: 'Introduce again password',
-                      labelText: 'Confirm password',
+                      hintText: AppLocalizations.of(context)!.confirmPassword,
+                      labelText: AppLocalizations.of(context)!.confirmPassword,
                       suffixIcon: Icons.lock),
                   keyboardType: TextInputType.text,
                   obscureText: true,
@@ -162,13 +163,13 @@ class _RegisterViewState extends State<RegisterView> {
 
                       if (password != confirmPassword) {
                         await showErrorDialog(
-                            context, 'Passwords do not match');
+                            context, AppLocalizations.of(context)!.passwordNotMatch);
                         return;
                       }
                       if (await _isUserNameTaken(userName)) {
                         // Inform the user that the user name is already taken
                         await showErrorDialog(
-                            context, 'The user name is already taken');
+                            context, AppLocalizations.of(context)!.userNameTaken);
                         return;
                       }
 
@@ -186,14 +187,14 @@ class _RegisterViewState extends State<RegisterView> {
                         Navigator.of(context).pushNamedAndRemoveUntil(
                             verifyEmailRoute, (route) => false);
                       } on WeakPasswordException {
-                        await showErrorDialog(context, 'weak password');
+                        await showErrorDialog(context, AppLocalizations.of(context)!.weakPassword);
                       } on EmailAlreadyUseAuthException {
-                        await showErrorDialog(context, 'Email already in use');
+                        await showErrorDialog(context, AppLocalizations.of(context)!.emailTaken );
                       } on InvalidEmailAuthException {
                         await showErrorDialog(
-                            context, 'This is an invalid email address');
+                            context, AppLocalizations.of(context)!.invalidEmail);
                       } on GenericAuthException {
-                        await showErrorDialog(context, 'Registration error');
+                        await showErrorDialog(context, AppLocalizations.of(context)!.registrationError);
                       }
                       ;
                       if (registrationStatus != null) {
@@ -229,8 +230,8 @@ class _RegisterViewState extends State<RegisterView> {
                           buttonHovered = false;
                         });
                       },
-                      child: const Text(
-                        'Register',
+                      child: Text(
+                        AppLocalizations.of(context)!.register,
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -256,13 +257,13 @@ class _RegisterViewState extends State<RegisterView> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                              text: 'Already registered? ',
+                              text: AppLocalizations.of(context)!.alreadyRegistered,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
                               )),
                           TextSpan(
-                            text: 'Login here.',
+                            text: AppLocalizations.of(context)!.login,
                             style: TextStyle(
                               color: Colors.blue,
                               fontWeight: FontWeight.bold,

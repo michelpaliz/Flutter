@@ -5,6 +5,7 @@ import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:provider/provider.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class Settings extends StatefulWidget {
   const Settings({Key? key});
@@ -58,12 +59,12 @@ class _SettingsState extends State<Settings> {
       builder: (context, themeProvider, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(FlutterI18n.translate(context, "settings")),
+            title: Text(AppLocalizations.of(context)!.settings),
           ),
           body: ListView(
             children: <Widget>[
               ListTile(
-                title: Text(FlutterI18n.translate(context, "settings.userName")),
+                title: Text(AppLocalizations.of(context)!.userName),
                 subtitle: Text(userName),
                 onTap: () {
                   // Implement a dialog or form to allow the user to change their name
@@ -71,27 +72,20 @@ class _SettingsState extends State<Settings> {
                 },
               ),
               ListTile(
-                title: Text(FlutterI18n.translate(context, "settings.changePassword")),
+                title: Text(AppLocalizations.of(context)!.newPassword),
                 onTap: () {
                   // Implement a dialog or form to allow the user to change their password
                   // Update the 'newPassword' and 'confirmPassword' variables when the user makes changes
                 },
               ),
               ListTile(
-                title: Text(FlutterI18n.translate(context, "settings.darkMode")),
+                title: Text(AppLocalizations.of(context)!.darkMode),
                 trailing: Switch(
                   value: themeProvider.themeData == darkTheme,
                   onChanged: (value) {
                     themeProvider.toggleTheme();
                   },
                 ),
-              ),
-              ListTile(
-                title: Text(FlutterI18n.translate(context, "settings.language")),
-                onTap: () {
-                  // Implement a dialog or form to allow the user to change the language
-                  // Update the 'isSpanishSelected' variable when the user makes changes
-                },
               ),
             ],
           ),

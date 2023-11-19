@@ -16,6 +16,7 @@ import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/event.dart';
 import '../../../models/group.dart';
 import '../../../services/firestore/implements/firestore_service.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class GroupDetails extends StatefulWidget {
   final Group group;
@@ -159,6 +160,7 @@ class _GroupDetailsState extends State<GroupDetails> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Confirm Removal'),
+          //  AppLocalizations.of(context)!.changeView,
           content: Text('Are you sure you want to remove this event?'),
           actions: [
             TextButton(
@@ -511,9 +513,12 @@ class _GroupDetailsState extends State<GroupDetails> {
                                       context: context,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
-                                          title: Text('Permission Denied'),
+                                          title: Text(
+                                              AppLocalizations.of(context)!
+                                                  .permissionDenied),
                                           content: Text(
-                                              'You are not an administrator to remove this item.'),
+                                              AppLocalizations.of(context)!
+                                                  .permissionDeniedInf),
                                           actions: <Widget>[
                                             TextButton(
                                               child: Text('OK'),

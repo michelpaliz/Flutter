@@ -28,10 +28,28 @@
     },
     "zeroNotifications": "No notifications available",
     "goToCalendar": "Go to the calendar",
-    "groupName": "Enter group name",
-    "groupDescription": "Enter group description",
+    "groupName": "Group name (max {maxChar} characters)  ",
+    "@groupName": {
+        "description": "Note form",
+        "placeholders": {
+            "maxChar": {
+                "type": "int"
+            }
+        }
+    },
+
+    "groupDescription": "Group description (max {maxChar} characters)  ",
+    "@groupDescription": {
+        "description": "Note form",
+        "placeholders": {
+            "maxChar": {
+                "type": "int"
+            }
+        }
+    },
     "addPplGroup": "Add people to your group",
     "addUser": "Add user here",
+    "addEvent": "Add event",
     "administrator": "Administrator",
     "coAdministrator": "Co-Administrator",
     "member": "Member",
@@ -41,7 +59,12 @@
     "removeGroup": "Are you sure you want to remove this group ?",
     "removeCalendar": "Are you sure you want to remove this calendar ?",
     "groupCreated": "The group has been created",
+    "eventCreated": "The event has been created",
     "eventEdited": "The event has been edited",
+    "eventAddedGroup": "The event has been added to the group",
+    "event": "Event",
+    "chooseEventColor": "Choose the color of the event:",
+    "errorEventNote": "Event note cannot be empty!",
     "name": "Name",
     "userName": "User name",
     "currentPassword": "Insert your current password",
@@ -50,14 +73,54 @@
     "password": "Password",
     "register": "Register",
     "login": "Login",
+    "userNameHint": "Enter your username (e.g., john_doe123)",
+    "nameHint": "Enter your name",
+    "emailHint": "Introduce your email",
+    "passwordHint": "Enter your password",
+    "confirmPasswordHint": "Enter your password again",
     "logoutMessage": "Are you sure you want to log out ?",
+    "passwordNotMatch": "Passwords do not match",
+    "userNameTaken": "The user name is already taken",
+    "weakPassword": "Weak Password",
+    "emailTaken": "The email is already taken",
+    "invalidEmail": "This is an invalid email address",
+    "registrationError": "Registration error",
+    "userNotFound": "The user is not found",
+    "wrongCredentials": "Wrong credentials",
+    "authError": "Authentication error",
     "changePassword": "Change Password",
     "notRegistered": "Not registered yet?, Don't worry register here.",
     "alreadyRegistered": "Already registered?, Login here.",
-    "tittle": "Tittle",
-    "description": "Description",
-    "note": "Note",
-    "repetitionEvent": "Repetition for the event",
+    "title": "Title (max {maxChar} characters)  ",
+    "@tittle": {
+        "description": "Title form",
+        "placeholders": {
+            "maxChar": {
+                "type": "int"
+            }
+        }
+    },
+    "description": "Description (max {maxChar} characters)  ",
+    "@description": {
+        "description": "Description form",
+        "placeholders": {
+            "maxChar": {
+                "type": "int"
+            }
+        }
+    },
+    "note": "Note (max {maxChar} characters)  ",
+    "@note": {
+        "description": "Note form",
+        "placeholders": {
+            "maxChar": {
+                "type": "int"
+            }
+        }
+    },
+    "location": "Location",
+    "repetitionEvent": "Duplicate Start Date'",
+    "repetitionEventInfo" : "An event with the same start hour and day already exists.",
     "daily": "Daily",
     "weekly": "Weekly",
     "monthly": "Monthly",
@@ -67,8 +130,8 @@
     "@dailyRepetitionInf": {
         "description": "Concurrence for the event",
         "placeholders": {
-            "username": {
-                "type": "Integer"
+            "concurrenceDay": {
+                "type": "int"
             }
         }
     },
@@ -85,8 +148,8 @@
     "@weeklyRepetitionInf": {
         "description": "Concurrence for the event",
         "placeholders": {
-            "username": {
-                "type": "Integer"
+            "concurrenceWeeks": {
+                "type": "int"
             }
         }
     },
@@ -101,23 +164,30 @@
     "@errorSelectedDays": {
         "description": "Concurrence for the event",
         "placeholders": {
-            "username": {
+            "selectedDays": {
                 "type": "String"
             }
         }
     },
-    "monthlyRepetitionInf": "This event will repeat on the {selectedDay} day should every {months} month(s) ",
+    "monthlyRepetitionInf": "This event will repeat on the {selectedDay} day every {months} month(s) ",
     "@monthlyRepetitionInf": {
         "description": "Concurrence for the event",
         "placeholders": {
-            "username": {
+            "selectedDay": {
                 "type": "String"
             },
             "months": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "confirmation": "Confirmation",
+    "removeConfirmation": "Confirm to remove",
+    "permissionDenied": "Permission Denied",
+    "permissionDeniedInf": "You are not an administrator to remove this item." 
+
+
+
 }

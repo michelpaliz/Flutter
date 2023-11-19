@@ -2,15 +2,13 @@ import 'package:first_project/my-lib/color_manager.dart';
 import 'package:first_project/styles/costume_widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
-import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../../models/event.dart';
 import '../../services/firestore/implements/firestore_service.dart';
-import '../../styles/view-item-styles/app_bar_styles.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //*
 class EditNoteScreen extends StatefulWidget {
@@ -140,7 +138,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
         // You can handle success or navigate back to the previous screen
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Event edited successfully!')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
         );
         // Navigator.pop(context, updatedEvent);
       } catch (error) {
@@ -151,9 +149,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Duplicate Start Date'),
-            content: Text(
-                'An event with the same start hour and day already exists.'),
+            title: Text(AppLocalizations.of(context)!.repetitionEvent),
+            content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
             actions: [
               TextButton(
                 child: Text('OK'),
@@ -214,7 +211,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Event Note Widget'),
+        title: Text(AppLocalizations.of(context)!.event),
       ),
       body: SingleChildScrollView(
         // Wrap the Scaffold with SingleChildScrollView
@@ -224,7 +221,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Choose the color of the event:',
+                AppLocalizations.of(context)!.chooseEventColor,
                 style: TextStyle(
                     fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),
               ),
@@ -270,7 +267,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
               TextFormField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                  labelText: 'Title (max 15 characters)',
+                  labelText: AppLocalizations.of(context)!.title(15),
                 ),
                 maxLength: 15,
               ),
@@ -401,7 +398,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                 textFieldConfiguration: TextFieldConfiguration(
                   controller: _locationController,
                   decoration: InputDecoration(
-                    labelText: 'Location',
+                    labelText: AppLocalizations.of(context)!.location,
                   ),
                 ),
                 suggestionsCallback: (pattern) async {
@@ -425,7 +422,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                  labelText: 'Description (max 100 characters)',
+                  labelText: AppLocalizations.of(context)!.description(100),
                 ),
                 maxLength: 100,
               ),
@@ -436,7 +433,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
               TextFormField(
                 controller: _noteController,
                 decoration: InputDecoration(
-                  labelText: 'Note (max 50 characters)',
+                  labelText: AppLocalizations.of(context)!.note(50),
                 ),
                 maxLength: 50,
               ),
@@ -447,7 +444,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
               Row(
                 children: [
                   Text(
-                    "Repetition for the event",
+                    AppLocalizations.of(context)!.repetitionDetails,
                     style: TextStyle(
                       fontSize: 15,
                     ),
@@ -523,7 +520,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                       _saveEditedEvent();
                     }
                   },
-                  child: Text('Edit Event'),
+                  child: Text(AppLocalizations.of(context)!.addEvent),
                 ),
               ),
             ],
