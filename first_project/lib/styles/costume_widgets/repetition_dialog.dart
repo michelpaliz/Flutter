@@ -3,6 +3,7 @@ import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class RepetitionDialog extends StatefulWidget {
   final DateTime selectedStartDate;
@@ -43,7 +44,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedStartDate = widget.selectedStartDate; // Initialize with the provided value
+    _selectedStartDate =
+        widget.selectedStartDate; // Initialize with the provided value
     _selectedEndDate = widget.selectedEndDate;
     // After the dialog is shown, you can print the routes
     // Fill up variables if initialRecurrenceRule is not null
@@ -126,7 +128,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     DateTime.now(); // Replace this with your date
                 final weekdayName = getWeekdayName(_selectedStartDate);
                 print('Weekday name: $weekdayName');
-                return 'The day of the event is  ${weekdayName} should coincide with one of the selected days.';
+                return AppLocalizations.of(context)!
+                    .errorSelectedDays(weekdayName);
               }
               break;
             case 'Yearly':
@@ -134,13 +137,13 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           }
 
           if (repeatInterval == 0) {
-            return 'Please specify the repeat interval.';
+            return AppLocalizations.of(context)!.specifyRepeatInterval;
           }
           if (_selectedStartDate.day != _selectedEndDate.day) {
             return 'Start and end dates must be the same day for the event to repeat';
           }
           if (untilDate == null) {
-            return 'Please specify the until date.';
+            return AppLocalizations.of(context)!.untilDate;
           }
 
           return null; // Input is valid
@@ -192,18 +195,26 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               if (selectedDayNames.length > 1) {
                 final lastDay = selectedDayNames.removeLast();
                 final customDaysOfWeekString = selectedDayNames.join(', ');
-                repeatMessage =
-                    'This event will repeat every $repeatInterval week(s) on $customDaysOfWeekString, and $lastDay';
+                repeatMessage = AppLocalizations.of(context)!
+                    .weeklyRepetitionInf(
+                        repeatInterval!, customDaysOfWeekString, "", lastDay);
+                // repeatMessage =
+                //     'This event will repeat every $repeatInterval week(s) on $customDaysOfWeekString, and $lastDay';
               } else if (selectedDayNames.length == 1) {
-                repeatMessage =
-                    'This event will repeat every $repeatInterval week(s) on ${selectedDayNames.first}';
+                // repeatMessage =
+                //     'This event will repeat every $repeatInterval week(s) on ${selectedDayNames.first}';
+                repeatMessage = AppLocalizations.of(context)!
+                    .weeklyRepetitionInf1(
+                        repeatInterval!, selectedDayNames.first);
               } else {
                 repeatMessage = 'No days selected';
               }
               break;
             case 'Monthly':
-              repeatMessage =
-                  'This event will repeat on the $formattedDate day every $repeatInterval month(s)';
+              repeatMessage = AppLocalizations.of(context)!
+                  .monthlyRepetitionInf(formattedDate, repeatInterval!);
+              // repeatMessage =
+              //     'This event will repeat on the $formattedDate day every $repeatInterval month(s)';
               break;
             case 'Yearly':
               repeatMessage =
@@ -218,7 +229,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
             children: [
               SizedBox(height: 15.0),
               Center(
-                child: Text('REPETITION DETAILS',
+                child: Text(AppLocalizations.of(context)!.repetitionDetails,
                     style: TextStyle(
                       fontSize: 14,
                     )),
@@ -236,7 +247,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               Row(
                 children: [
                   Text(
-                    'Every: ',
+                    AppLocalizations.of(context)!.every,
                     style: TextStyle(
                       fontSize: 14,
                     ),
@@ -268,7 +279,9 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
         return AlertDialog(
           title: Center(
-            child: Text('SELECT REPETITION', style: TextStyle(fontSize: 18)),
+            child: Text(
+                AppLocalizations.of(context)!.selectRepetition.toUpperCase(),
+                style: TextStyle(fontSize: 18)),
           ),
           content: SingleChildScrollView(
             // Add SingleChildScrollView here
@@ -397,7 +410,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                       });
                     },
                   ),
-                  Text('Repeats Until: ', style: TextStyle(fontSize: 14)),
+                  Text(AppLocalizations.of(context)!.untilDate,
+                      style: TextStyle(fontSize: 14)),
                   if (!isForever)
                     InkWell(
                       onTap: () async {
@@ -430,9 +444,13 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 // Display the selected "Until Date"
                 if (!isForever)
                   Text(
+                    // untilDate == null
+                    //     ? 'Until Date: Not Selected'
+                    //     : 'Until Date: ${DateFormat('yyyy-MM-dd').format(untilDate!)}', // Format the date
                     untilDate == null
-                        ? 'Until Date: Not Selected'
-                        : 'Until Date: ${DateFormat('yyyy-MM-dd').format(untilDate!)}', // Format the date
+                        ? AppLocalizations.of(context)!.utilDateNotSelected
+                        : AppLocalizations.of(context)!.untilDateSelected(
+                            DateFormat('yyyy-MM-dd').format(untilDate!)),
                     style: TextStyle(fontSize: 14),
                   ),
 
@@ -455,7 +473,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               onPressed: () {
                 _goBackToParentView(null, false);
               },
-              child: Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -514,7 +532,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                   _goBackToParentView(recurrenceRule, true);
                 }
               },
-              child: Text('Confirm'),
+              child: Text(AppLocalizations.of(context)!.confirm),
             ),
           ],
         );

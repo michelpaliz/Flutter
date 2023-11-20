@@ -37,7 +37,6 @@
             }
         }
     },
-
     "groupDescription": "Group description (max {maxChar} characters)  ",
     "@groupDescription": {
         "description": "Note form",
@@ -120,7 +119,7 @@
     },
     "location": "Location",
     "repetitionEvent": "Duplicate Start Date'",
-    "repetitionEventInfo" : "An event with the same start hour and day already exists.",
+    "repetitionEventInfo": "An event with the same start hour and day already exists.",
     "daily": "Daily",
     "weekly": "Weekly",
     "monthly": "Monthly",
@@ -139,17 +138,58 @@
     "dailys": "daily(s)",
     "weeklys": "weekly(s)",
     "untilDate": "Until Date: ",
+    "untilDateSelected": "Until Date: {untilDate} ",
+    "@untilDateSelected": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "untilDate": {
+                "type": "String"
+            }
+        }
+    },
     "notSelected": "Not Selected",
+    "utilDateNotSelected": "Until Date: Not Selected",
     "specifyRepeatInterval": "Please specify repeat interval",
+    "selectOneDayAtLeast": "Please select at least one day of the week.",
+    "datesMustBeSame": "Start and end dates must be the same day for the event to repeat",
     "startDate": "Start Date: ",
     "endDate": "End Date: ",
     "noDaysSelected": "No Days Selected",
-    "weeklyRepetitionInf": "This event will repeat every {concurrenceWeeks} weeks.",
+    "selectRepetition": "Select repetition",
+    "selectDay": "Select Day: ",
+    "dayRepetitionInf": "This event will repeat every {concurrenceWeeks} day.",
+    "@dayRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "concurrenceWeeks": {
+                "type": "int"
+            }
+        }
+    },
+    "weeklyRepetitionInf": "This event will repeat every {concurrenceWeeks} week(s) on {customDaysOfWeekString}, and {lastDay} ",
     "@weeklyRepetitionInf": {
         "description": "Concurrence for the event",
         "placeholders": {
             "concurrenceWeeks": {
                 "type": "int"
+            },
+            "customDaysOfWeeksString": {
+                "type": "String"
+            },
+            "lastDay": {
+                "type": "String"
+            }
+        }
+    },
+    "weeklyRepetitionInf1": "This event will repeat every {repeatInterval} week(s) on ${selectedDayNames}",
+    "@weeklyRepetitionInf1": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "repeatInterval": {
+                "type": "int"
+            },
+            "selectedDayNames": {
+                "type": "String"
             }
         }
     },
@@ -181,13 +221,22 @@
             }
         }
     },
+    "yearlyRepetitionInf": "This event will repeat on the {selectedDay} day every {months} year(s) ",
+    "@yearlyRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "selectedDay": {
+                "type": "String"
+            },
+            "months": {
+                "type": "int"
+            }
+        }
+    },
     "confirm": "Confirm",
     "cancel": "Cancel",
     "confirmation": "Confirmation",
     "removeConfirmation": "Confirm to remove",
     "permissionDenied": "Permission Denied",
-    "permissionDeniedInf": "You are not an administrator to remove this item." 
-
-
-
+    "permissionDeniedInf": "You are not an administrator to remove this item."
 }
