@@ -342,7 +342,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                                     5.0), // Adjust the border radius as needed
                               ),
                               child: Text(
-                                'Start Date',
+                                AppLocalizations.of(context)!.startDate,
                                 style: TextStyle(
                                     fontSize: 15, color: Colors.black),
                               ),
@@ -394,7 +394,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                                     5.0), // Adjust the border radius as needed
                               ),
                               child: Text(
-                                'End Date',
+                                AppLocalizations.of(context)!.endDate,
                                 style: TextStyle(
                                     fontSize: 15, color: Colors.black),
                               ),

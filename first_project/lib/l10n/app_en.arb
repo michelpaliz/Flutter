@@ -137,6 +137,8 @@
     "every": "Every:",
     "dailys": "daily(s)",
     "weeklys": "weekly(s)",
+    "monthlies": "monthly(s)",
+    "yearlys": "year(s)",
     "untilDate": "Until Date: ",
     "untilDateSelected": "Until Date: {untilDate} ",
     "@untilDateSelected": {
@@ -226,10 +228,10 @@
         "description": "Concurrence for the event",
         "placeholders": {
             "selectedDay": {
-                "type": "String"
+                "type": "int"
             },
             "months": {
-                "type": "int"
+                "type": "String"
             }
         }
     },

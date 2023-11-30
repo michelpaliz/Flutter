@@ -38,7 +38,60 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
   String getWeekdayName(DateTime date) {
     final weekdayName = DateFormat('EEEE').format(date);
-    return weekdayName;
+    final translatedName = translateDayAbbreviation(weekdayName.toLowerCase());
+    return translatedName;
+  }
+
+  // Inside your AppLocalizations class
+  String translateDayAbbreviation(String dayAbbreviation) {
+    switch (dayAbbreviation.toLowerCase()) {
+      case 'mon':
+        return AppLocalizations.of(context)!.mon;
+      case 'tue':
+        return AppLocalizations.of(context)!.tue;
+      case 'wed':
+        return AppLocalizations.of(context)!.wed;
+      case 'thu':
+        return AppLocalizations.of(context)!.thu;
+      case 'fri':
+        return AppLocalizations.of(context)!.fri;
+      case 'sat':
+        return AppLocalizations.of(context)!.sat;
+      case 'sun':
+        return AppLocalizations.of(context)!.sun;
+      default:
+        return dayAbbreviation;
+    }
+  }
+
+  String getTranslatedFrequency(String frequency) {
+    switch (frequency) {
+      case 'Daily':
+        return AppLocalizations.of(context)!.daily;
+      case 'Weekly':
+        return AppLocalizations.of(context)!.weekly;
+      case 'Monthly':
+        return AppLocalizations.of(context)!.monthly;
+      case 'Yearly':
+        return AppLocalizations.of(context)!.yearly;
+      default:
+        return '';
+    }
+  }
+
+  String getTranslatedSpecificFrecuency(String frequency) {
+    switch (frequency) {
+      case 'Daily':
+        return AppLocalizations.of(context)!.dailys;
+      case 'Weekly':
+        return AppLocalizations.of(context)!.weeklys;
+      case 'Monthly':
+        return AppLocalizations.of(context)!.monthlies;
+      case 'Yearly':
+        return AppLocalizations.of(context)!.yearlys;
+      default:
+        return '';
+    }
   }
 
   @override
@@ -82,16 +135,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(onTap: () async {
-      // await showDialog(
-      //   context: context,
-      //   builder: (BuildContext context) {
-      //     return RepetitionDialog(
-      //       selectedStartDate: _selectedStartDate,
-      //     );
-      //   },
-      // );
-    }, child: StatefulBuilder(
+    return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         // Function to get the maximum repeat value based on the selected frequency
         int getMaxRepeatValue(String frequency) {
@@ -118,7 +162,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               break;
             case 'Weekly':
               if (selectedDays.isEmpty) {
-                return 'Please select at least one day of the week.';
+                return AppLocalizations.of(context)!.selectOneDayAtLeast;
               }
               final eventDayAbbreviation = CustomDayOfWeek.getPattern(
                   DateFormat('EEEE', 'en_US').format(_selectedStartDate));
@@ -140,7 +184,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
             return AppLocalizations.of(context)!.specifyRepeatInterval;
           }
           if (_selectedStartDate.day != _selectedEndDate.day) {
-            return 'Start and end dates must be the same day for the event to repeat';
+            return AppLocalizations.of(context)!.datesMustBeSame;
           }
           if (untilDate == null) {
             return AppLocalizations.of(context)!.untilDate;
@@ -169,13 +213,10 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           final formattedDate =
               DateFormat('d of MMMM').format(_selectedStartDate);
 
-          // Sort the selected day names based on the custom order
-          // Create a list of day names based on the selected days of the week
           final selectedDayNames = selectedDays
               .map((day) => day.toString().split('.').last)
               .toList();
 
-          // Sort the selected day names based on the custom order
           selectedDayNames.sort((a, b) {
             final orderA = localCustomDaysOfWeek
                 .firstWhere((customDay) => customDay.name == a)
@@ -188,42 +229,38 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
           switch (selectedFrequency) {
             case 'Daily':
-              repeatMessage =
-                  'This event will repeat every $repeatInterval day';
+              repeatMessage = AppLocalizations.of(context)!
+                  .dayRepetitionInf(repeatInterval!);
               break;
             case 'Weekly':
               if (selectedDayNames.length > 1) {
                 final lastDay = selectedDayNames.removeLast();
-                final customDaysOfWeekString = selectedDayNames.join(', ');
+                final mySelectedDays = selectedDayNames.join(', ');
                 repeatMessage = AppLocalizations.of(context)!
                     .weeklyRepetitionInf(
-                        repeatInterval!, customDaysOfWeekString, "", lastDay);
-                // repeatMessage =
-                //     'This event will repeat every $repeatInterval week(s) on $customDaysOfWeekString, and $lastDay';
+                        repeatInterval!, mySelectedDays, "", lastDay);
               } else if (selectedDayNames.length == 1) {
-                // repeatMessage =
-                //     'This event will repeat every $repeatInterval week(s) on ${selectedDayNames.first}';
                 repeatMessage = AppLocalizations.of(context)!
                     .weeklyRepetitionInf1(
                         repeatInterval!, selectedDayNames.first);
               } else {
-                repeatMessage = 'No days selected';
+                repeatMessage = AppLocalizations.of(context)!.noDaysSelected;
               }
               break;
+
             case 'Monthly':
               repeatMessage = AppLocalizations.of(context)!
                   .monthlyRepetitionInf(formattedDate, repeatInterval!);
-              // repeatMessage =
-              //     'This event will repeat on the $formattedDate day every $repeatInterval month(s)';
               break;
             case 'Yearly':
-              repeatMessage =
-                  'This event will repeat every $repeatInterval year(s) on $formattedDate day';
+              // repeatMessage =
+              //     'This event will repeat every $repeatInterval year(s) on $formattedDate day';
+              repeatMessage = AppLocalizations.of(context)!
+                  .yearlyRepetitionInf(repeatInterval!, formattedDate);
               break;
             default:
               repeatMessage = '';
           }
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -233,10 +270,10 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     style: TextStyle(
                       fontSize: 14,
                     )),
-              ), // Add space above the title
-              SizedBox(height: 8.0), // Add space above the informative message
+              ),
+              SizedBox(height: 8.0),
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0), // Add padding
+                padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   repeatMessage,
                   style: TextStyle(
@@ -252,10 +289,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                       fontSize: 14,
                     ),
                   ),
-                  // Recreate the NumberSelector widget with a new key
                   NumberSelector(
-                    key: Key(
-                        selectedFrequency), // Use the selectedFrequency as the key
+                    key: Key(selectedFrequency),
                     value: repeatInterval,
                     minValue: 0,
                     maxValue: getMaxRepeatValue(selectedFrequency),
@@ -266,7 +301,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     },
                   ),
                   Text(
-                    ' ${selectedFrequency.toLowerCase()}(s)',
+                    // ' ${getTranslatedFrequency(selectedFrequency)}(s)',
+                    ' ${getTranslatedSpecificFrecuency(selectedFrequency)}',
                     style: TextStyle(
                       fontSize: 14,
                     ),
@@ -310,7 +346,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                               : Color.fromARGB(255, 212, 234, 248),
                         ),
                         child: Text(
-                          frequency,
+                          getTranslatedFrequency(frequency),
                           style: TextStyle(
                             fontSize: 13, // Adjust the font size here
                             color: isSelected ? Colors.white : Colors.black,
@@ -330,8 +366,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Center(
-                        child:
-                            Text('Select Day:', style: TextStyle(fontSize: 14)),
+                        child: Text(AppLocalizations.of(context)!.selectDay,
+                            style: TextStyle(fontSize: 14)),
                       ),
                       SizedBox(height: 8), // Add some spacing
                       Wrap(
@@ -365,8 +401,9 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                               ),
                               alignment: Alignment.center,
                               child: Text(
-                                day.name.substring(
-                                    0, 3), // Use day.name to get the day's name
+                                translateDayAbbreviation(
+                                    day.name.substring(0, 3)),
+                                // Use the translation method for the day's name
                                 style: TextStyle(
                                   fontSize: 14,
                                   color:
@@ -430,7 +467,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                         }
                       },
                       child: Text(
-                        'Select Date',
+                        AppLocalizations.of(context)!.selectDay,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.blue, // Change the text color here
@@ -537,6 +574,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           ],
         );
       },
-    ));
+    );
   }
 }
