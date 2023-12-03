@@ -1,4 +1,6 @@
+import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class CustomSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -19,12 +21,14 @@ class CustomSearchBar extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       decoration: InputDecoration(
-        labelText: 'Search by user name',
+        labelText: AppLocalizations.of(context)!.searchPerson,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
+          borderRadius:
+              BorderRadius.circular(20.0), // Adjust the border radius as needed
         ),
         filled: true,
-        fillColor: Color.fromARGB(255, 255, 255, 255), // Background color
+        fillColor: ThemeColors.getContainerBackgroundColor(
+            context), // Background color
         prefixIcon: MouseRegion(
           onEnter: (_) {
             onSearch(); // Perform search when the icon is clicked

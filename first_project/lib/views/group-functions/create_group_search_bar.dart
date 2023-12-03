@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/styles/view-item-styles/costume_search_bar.dart';
+import 'package:first_project/styles/themes/theme_colors.dart';
+import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
 import 'package:first_project/models/user.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -165,7 +166,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                   horizontal: 10, vertical: 5),
                               margin: EdgeInsets.only(right: 15),
                               decoration: BoxDecoration(
-                                color: Colors.grey[300],
+                                color: ThemeColors.getContainerBackgroundColor(
+                                    context),
                                 borderRadius: BorderRadius.circular(5),
                               ),
                               child: Center(
@@ -184,10 +186,11 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                               icon: Icon(Icons.arrow_drop_down),
                               iconSize: 24,
                               elevation: 16,
-                              style: TextStyle(color: Colors.black),
+                              style: TextStyle(
+                                  color: ThemeColors.getTextColor(context)),
                               underline: Container(
                                 height: 2,
-                                color: Colors.black,
+                                color: ThemeColors.getTextColor(context),
                               ),
                               items: [
                                 DropdownMenuItem<String>(

@@ -271,5 +271,7 @@
     "requiredTextFields": "Group name and description are required.",
     "groupNameRequired": "Group name cannot be empty",
     "groupEdited": "Group edited successfully!",
-    "failedToEditGroup": "Failed to edit the group. Please try again"
+    "failedToEditGroup": "Failed to edit the group. Please try again",
+    "searchPerson": "Search by user name"
+
 }

@@ -2,7 +2,7 @@ import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
-import 'package:first_project/styles/view-item-styles/button_styles.dart';
+import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
 import 'package:first_project/my-lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

@@ -1,15 +1,15 @@
 // ======= REGISTER =========
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/styles/view-item-styles/text_field_widget.dart';
+import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/styles/view-item-styles/app_bar_styles.dart';
+import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../enums/routes/routes.dart';
 import '../../services/auth/auth_exceptions.dart';
 import '../../services/auth/implements/auth_service.dart';
-import '../../styles/view-item-styles/textfield_styles.dart';
-import '../../styles/costume_widgets/show_error_dialog.dart';
+import '../../styles/widgets/view-item-styles/textfield_styles.dart';
+import '../../styles/widgets/show_error_dialog.dart';
 import 'dart:developer' as devtools show log;
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
@@ -162,14 +162,14 @@ class _RegisterViewState extends State<RegisterView> {
                       String? registrationStatus;
 
                       if (password != confirmPassword) {
-                        await showErrorDialog(
-                            context, AppLocalizations.of(context)!.passwordNotMatch);
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.passwordNotMatch);
                         return;
                       }
                       if (await _isUserNameTaken(userName)) {
                         // Inform the user that the user name is already taken
-                        await showErrorDialog(
-                            context, AppLocalizations.of(context)!.userNameTaken);
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.userNameTaken);
                         return;
                       }
 
@@ -187,14 +187,17 @@ class _RegisterViewState extends State<RegisterView> {
                         Navigator.of(context).pushNamedAndRemoveUntil(
                             verifyEmailRoute, (route) => false);
                       } on WeakPasswordException {
-                        await showErrorDialog(context, AppLocalizations.of(context)!.weakPassword);
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.weakPassword);
                       } on EmailAlreadyUseAuthException {
-                        await showErrorDialog(context, AppLocalizations.of(context)!.emailTaken );
-                      } on InvalidEmailAuthException {
                         await showErrorDialog(
-                            context, AppLocalizations.of(context)!.invalidEmail);
+                            context, AppLocalizations.of(context)!.emailTaken);
+                      } on InvalidEmailAuthException {
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.invalidEmail);
                       } on GenericAuthException {
-                        await showErrorDialog(context, AppLocalizations.of(context)!.registrationError);
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.registrationError);
                       }
                       ;
                       if (registrationStatus != null) {
@@ -257,7 +260,8 @@ class _RegisterViewState extends State<RegisterView> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                              text: AppLocalizations.of(context)!.alreadyRegistered,
+                              text: AppLocalizations.of(context)!
+                                  .alreadyRegistered,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,

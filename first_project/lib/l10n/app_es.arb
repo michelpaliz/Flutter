@@ -71,7 +71,7 @@
     "weekly": "Semanal",
     "monthly": "Mensual",
     "yearly": "Anual",
-    "repetitionDetails": "Detalles de la repetición",
+    "repetitionDetails": "Detalles de repetición",
     "dailyRepetitionInf": "Este evento se repetirá cada {concurrenceDay} día",
     "every": "Cada:",
     "dailys": "día(s)",
@@ -119,5 +119,6 @@
     "requiredTextFields": "El nombre y la descripción del group son requeridos",
     "groupNameRequired": "El nombre del grupo no puede estar vacio",
     "groupEdited": "Groupo editado exitosamente !",
-    "failedToEditGroup": "Fallo al editar el grupo, por favor intentalo de nuevo."
+    "failedToEditGroup": "Fallo al editar el grupo, por favor intentalo de nuevo.",
+    "searchPerson": "Buscar por nombre de usuario"
 }   

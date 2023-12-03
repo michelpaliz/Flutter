@@ -229,7 +229,7 @@ class _EditGroupDataState extends State<EditGroupData> {
         // final storeService = Provider.of<StoreService>(context);
         // _storeService = storeService;
         final TITLE_MAX_LENGHT = 25;
-        final DESCRIPTION_MAX_LENGHT = 100;
+        final DESCRIPTION_MAX_LENGTH = 100;
         // Initialize _storeService using data from providerManagement.
         final providerData =
             providerManagement; // Adjust this to access the necessary data.
@@ -309,11 +309,11 @@ class _EditGroupDataState extends State<EditGroupData> {
                             null, // Allow the text field to have unlimited lines
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(
-                              DESCRIPTION_MAX_LENGHT), // Adjust the limit based on an average word length
+                              DESCRIPTION_MAX_LENGTH), // Adjust the limit based on an average word length
                         ],
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!
-                              .textFieldDescription(DESCRIPTION_MAX_LENGHT),
+                              .textFieldDescription(DESCRIPTION_MAX_LENGTH),
                           border: OutlineInputBorder(),
                         ),
                       ),

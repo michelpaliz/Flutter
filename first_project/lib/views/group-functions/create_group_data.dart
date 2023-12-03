@@ -24,7 +24,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   String _groupName = '';
   String _groupDescription = '';
   XFile? _selectedImage;
-  TextEditingController _searchController = TextEditingController();
   late StoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
