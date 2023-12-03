@@ -347,7 +347,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     }
     return Scaffold(
         appBar: AppBar(
-          title: Text('CALENDAR'),
+          title: Text(AppLocalizations.of(context)!.calendar.toUpperCase()),
           actions: [
             IconButton(
               icon: Icon(Icons.settings),

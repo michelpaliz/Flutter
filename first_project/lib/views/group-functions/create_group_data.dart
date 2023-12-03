@@ -1,9 +1,8 @@
 import 'dart:io';
-
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/calendar.dart';
 import 'package:first_project/models/group.dart';
-import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
@@ -101,14 +100,14 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         // Group creation was successful, show a success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Group created successfully!'),
+            content: Text(AppLocalizations.of(context)!.groupCreated),
           ),
         );
       } else {
         // Group creation failed, show an error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create the group. Please try again.'),
+            content: Text(AppLocalizations.of(context)!.failedToCreateGroup),
           ),
         );
       }
@@ -122,7 +121,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         builder: (context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text('Group name and description are required.'),
+            content: Text(AppLocalizations.of(context)!.requiredTextFields),
             actions: <Widget>[
               TextButton(
                 child: Text('OK'),
@@ -145,7 +144,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       // Show a message to the user that they cannot remove themselves
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('You cannot remove yourself from the group.'),
+          content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
           duration: Duration(seconds: 2),
         ),
       );
@@ -175,7 +174,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Group name cannot be empty'),
+          content: Text(AppLocalizations.of(context)!.groupNameRequired),
           duration: Duration(seconds: 2),
         ),
       );
@@ -224,7 +223,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       await _storeService.addGroup(group);
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Group created successfully!')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.groupCreated)),
       );
 
       return true; // Return true to indicate that the group creation was successful.
@@ -241,7 +240,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     final DESCRIPTION_MAX_LENGHT = 100;
     return Scaffold(
         appBar: AppBar(
-          title: Text('Group Data'),
+          title: Text(AppLocalizations.of(context)!.groupData),
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -269,7 +268,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
                 SizedBox(height: 10),
                 Text(
-                  'Put an image for your group',
+                  AppLocalizations.of(context)!.putGroupImage,
                   style: TextStyle(color: Colors.grey),
                 ),
                 SizedBox(height: 10),
@@ -287,8 +286,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                           TITLE_MAX_LENGHT), // Set the maximum length here
                     ],
                     decoration: InputDecoration(
-                      labelText:
-                          'Enter group name (Limit: $TITLE_MAX_LENGHT characters)',
+                      labelText: AppLocalizations.of(context)!
+                          .textFieldGroupName(TITLE_MAX_LENGHT),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -308,8 +307,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                           DESCRIPTION_MAX_LENGHT), // Adjust the limit based on an average word length
                     ],
                     decoration: InputDecoration(
-                      labelText:
-                          'Enter group description (Limit: $DESCRIPTION_MAX_LENGHT characters)',
+                      labelText: AppLocalizations.of(context)!
+                          .textFieldDescription(DESCRIPTION_MAX_LENGHT),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -319,7 +318,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Add people to your group',
+                      AppLocalizations.of(context)!.addPplGroup,
                       style: TextStyle(color: Colors.grey),
                     ),
                     SizedBox(
@@ -338,7 +337,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                     padding: const EdgeInsets.all(16.0),
                                     child: Center(
                                       child: Text(
-                                        "ADD A NEW USER TO YOUR GROUP",
+                                        AppLocalizations.of(context)!
+                                            .addNewUser,
                                         style: TextStyle(
                                           fontFamily: 'Lato',
                                           fontSize: 15,
@@ -358,7 +358,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    child: Text("Close"),
+                                    child: Text(
+                                        AppLocalizations.of(context)!.close),
                                   ),
                                 ],
                               ),
@@ -367,7 +368,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                         );
                       },
                       child: Center(
-                        child: Text('Add user'),
+                        child: Text(AppLocalizations.of(context)!.addUser),
                       ),
                     ),
                   ],
@@ -416,7 +417,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                               },
                             );
                           } else {
-                            return Text('User not found');
+                            return Text(
+                                AppLocalizations.of(context)!.userNotFound);
                           }
                         },
                       );
@@ -443,7 +445,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                   children: [
                     Icon(Icons.group_add_rounded),
                     SizedBox(width: 8),
-                    Text('Save Group', style: TextStyle(color: Colors.white)),
+                    Text(AppLocalizations.of(context)!.saveGroup,
+                        style: TextStyle(color: Colors.white)),
                   ],
                 ),
                 style: ColorProperties.defaultButton(),

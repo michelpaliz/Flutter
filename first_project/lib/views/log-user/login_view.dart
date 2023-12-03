@@ -1,6 +1,5 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
-
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/routes.dart';
 import 'package:first_project/main.dart';
@@ -19,10 +18,7 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 // ======= LOGIN =========
 class LoginView extends StatefulWidget {
-  // final Function(User) onLoginSuccess;
-
-  // const LoginView({Key? key, required this.onLoginSuccess}) : super(key: key);
-    const LoginView({Key? key }) : super(key: key);
+  const LoginView({Key? key}) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -101,7 +97,7 @@ class _LoginViewState extends State<LoginView> {
                 TextFieldWidget(
                   controller: _password,
                   decoration: TextFieldStyles.saucyInputDecoration(
-                      hintText:  AppLocalizations.of(context)!.passwordHint,
+                      hintText: AppLocalizations.of(context)!.passwordHint,
                       labelText: AppLocalizations.of(context)!.password,
                       suffixIcon: Icons.lock),
                   keyboardType: TextInputType.text,
@@ -129,15 +125,17 @@ class _LoginViewState extends State<LoginView> {
                             'This is the user fetched from the login $userFetched');
                         // widget.onLoginSuccess(userFetched);
                         print('Login successful. Navigating to main screen...');
-                        await AppInitializer.goToMain(context,userFetched);
+                        await AppInitializer.goToMain(context, userFetched);
                         print('Navigation to main screen completed.');
-
                       } on UserNotFoundAuthException {
-                        await showErrorDialog(context, AppLocalizations.of(context)!.userNotFound);
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.userNotFound);
                       } on WrongPasswordAuthException {
-                        await showErrorDialog(context, AppLocalizations.of(context)!.wrongCredentials);
+                        await showErrorDialog(context,
+                            AppLocalizations.of(context)!.wrongCredentials);
                       } on GenericAuthException {
-                        await showErrorDialog(context, AppLocalizations.of(context)!.authError);
+                        await showErrorDialog(
+                            context, AppLocalizations.of(context)!.authError);
                       }
                     },
                     style: _myCustomButtonStyle,

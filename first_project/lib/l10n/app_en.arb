@@ -47,7 +47,7 @@
         }
     },
     "addPplGroup": "Add people to your group",
-    "addUser": "Add user here",
+    "addUser": "Add user",
     "addEvent": "Add event",
     "administrator": "Administrator",
     "coAdministrator": "Co-Administrator",
@@ -57,7 +57,8 @@
     "removeEvent": "Are you sure you want to remove this event ?",
     "removeGroup": "Are you sure you want to remove this group ?",
     "removeCalendar": "Are you sure you want to remove this calendar ?",
-    "groupCreated": "The group has been created",
+    "groupCreated": "Group created successfully!",
+    "failedToCreateGroup": "Failed to create the group",
     "eventCreated": "The event has been created",
     "eventEdited": "The event has been edited",
     "eventAddedGroup": "The event has been added to the group",
@@ -84,7 +85,7 @@
     "emailTaken": "The email is already taken",
     "invalidEmail": "This is an invalid email address",
     "registrationError": "Registration error",
-    "userNotFound": "The user is not found",
+    "userNotFound": "User not found",
     "wrongCredentials": "Wrong credentials",
     "authError": "Authentication error",
     "changePassword": "Change Password",
@@ -235,10 +236,40 @@
             }
         }
     },
+
+    "textFieldGroupName": "Enter group name (Limit: {TITLE_MAX_LENGHT} characters) ",
+    "@textFieldGroupName": {
+        "description": "Textfield for the group name",
+        "placeholders": {
+            "TITLE_MAX_LENGHT": {
+                "type": "int"
+            }
+        }
+    },
+    "textFieldDescription": "Enter group description (Limit: {DESCRIPTION_MAX_LENGHT} characters)",
+    "@textFieldDescription": {
+        "description": "Textfield for the group description",
+        "placeholders": {
+            "DESCRIPTION_MAX_LENGHT": {
+                "type": "int"
+            }
+        }
+    },
+
+    "edit": "Edit",
+    "remove": "Remove",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "confirmation": "Confirmation",
     "removeConfirmation": "Confirm to remove",
     "permissionDenied": "Permission Denied",
-    "permissionDeniedInf": "You are not an administrator to remove this item."
+    "permissionDeniedInf": "You are not an administrator to remove this item.",
+    "putGroupImage":"Put an image for the group",
+    "close": "close",
+    "addNewUser": "Add a new user to your group",
+    "cannotRemoveYourself": "You cannot remove yourself from the group",
+    "requiredTextFields": "Group name and description are required.",
+    "groupNameRequired": "Group name cannot be empty",
+    "groupEdited": "Group edited successfully!",
+    "failedToEditGroup": "Failed to edit the group. Please try again"
 }

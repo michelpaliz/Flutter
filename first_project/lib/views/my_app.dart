@@ -13,7 +13,7 @@ import 'package:first_project/views/group-functions/calendar-group/group_details
 import 'package:first_project/views/group-functions/calendar-group/group_settings.dart';
 import 'package:first_project/views/group-functions/create_group_data.dart';
 import 'package:first_project/views/group-functions/edit_group_data.dart';
-import 'package:first_project/views/group-functions/show-groups/show_groups.dart';
+import 'package:first_project/views/group-functions/show_groups.dart';
 import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/log-user/register_view.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';

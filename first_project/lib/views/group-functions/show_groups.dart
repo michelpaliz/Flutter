@@ -25,7 +25,6 @@ class ShowGroups extends StatefulWidget {
 
 class _ShowGroupsState extends State<ShowGroups> {
   User? _currentUser;
-  late List<Group>? _userGroups;
   late StoreService _storeService;
   late AuthService _authService;
   // VARIABLE FOR THE UI
@@ -38,7 +37,6 @@ class _ShowGroupsState extends State<ShowGroups> {
     super.initState();
     _authService = new AuthService.firebase();
     _currentUser = _authService.costumeUser;
-    _userGroups = [];
   }
 
   void _toggleScrollDirection() {
@@ -428,8 +426,10 @@ class _ShowGroupsState extends State<ShowGroups> {
                   children: [
                     Icon(Icons.calendar_month_rounded),
                     SizedBox(width: 8),
-                    Text('Go to calendar',
-                        style: TextStyle(color: Colors.white)),
+                    Text(
+                      AppLocalizations.of(context)!.goToCalendar,
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ],
                 ),
                 style: ButtonStyles.saucyButtonStyle(
@@ -443,22 +443,21 @@ class _ShowGroupsState extends State<ShowGroups> {
           ),
           actions: [
             TextButton(
-              onPressed: () async {
-                // Edit group logic here
-                Group? groupUpdated =
-                    await _storeService.getGroupFromId(group.id);
-                Navigator.pushNamed(context, editGroupData,
-                    arguments: groupUpdated);
-              },
-              child: Text('Edit'),
-            ),
+                onPressed: () async {
+                  // Edit group logic here
+                  Group? groupUpdated =
+                      await _storeService.getGroupFromId(group.id);
+                  Navigator.pushNamed(context, editGroupData,
+                      arguments: groupUpdated);
+                },
+                child: Text(AppLocalizations.of(context)!.edit)),
             TextButton(
               onPressed: () {
                 // Remove group logic here
                 Navigator.of(context).pop();
                 _showDeleteConfirmationDialog(group);
               },
-              child: Text('Remove'),
+              child: Text(AppLocalizations.of(context)!.remove),
             ),
           ],
         );

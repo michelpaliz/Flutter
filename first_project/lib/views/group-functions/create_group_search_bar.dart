@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/styles/view-item-styles/costume_search_bar.dart';
 import 'package:first_project/models/user.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class CreateGroupSearchBar extends StatefulWidget {
   final Function(List<User> userInGroup, Map<String, String> userRoles)
@@ -39,7 +40,6 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       });
     }
   }
-  
 
   void _searchUser(String username) async {
     try {
@@ -81,7 +81,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
           if (!_selectedUsers.contains(user.userName)) {
             _selectedUsers.add(user.userName);
             _userInGroup.add(user);
-            userRoles[user.userName] ='Member'; // Set the default role for the new user
+            userRoles[user.userName] =
+                'Member'; // Set the default role for the new user
             widget.onDataChanged(_userInGroup, userRoles);
           }
         });
@@ -104,7 +105,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       // Show a message to the user that they cannot remove themselves
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('You cannot remove yourself from the group.'),
+          content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
           duration: Duration(seconds: 2),
         ),
       );
@@ -189,11 +190,6 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                 color: Colors.black,
                               ),
                               items: [
-                                // DropdownMenuItem<String>(
-                                //     value: 'Administrator',
-                                //     child: Center(
-                                //         child: Text('Administrator',
-                                //             style: TextStyle(fontSize: 14)))),
                                 DropdownMenuItem<String>(
                                   value: 'Co-Administrator',
                                   child: Center(
@@ -262,7 +258,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
         else
           Center(
             child: Text(
-              "User not found.",
+              AppLocalizations.of(context)!.userNotFound,
               style: TextStyle(
                 fontSize: 16,
               ),

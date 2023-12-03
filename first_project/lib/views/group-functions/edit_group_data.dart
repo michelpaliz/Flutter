@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class EditGroupData extends StatefulWidget {
   final Group group;
@@ -102,14 +103,14 @@ class _EditGroupDataState extends State<EditGroupData> {
         // Group creation was successful, show a success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Group edited successfully!'),
+            content: Text(AppLocalizations.of(context)!.groupEdited),
           ),
         );
       } else {
         // Group creation failed, show an error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to edit the group. Please try again.'),
+            content: Text(AppLocalizations.of(context)!.failedToEditGroup),
           ),
         );
       }
@@ -123,7 +124,7 @@ class _EditGroupDataState extends State<EditGroupData> {
         builder: (context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text('Group name and description are required.'),
+            content: Text(AppLocalizations.of(context)!.requiredTextFields),
             actions: <Widget>[
               TextButton(
                 child: Text('OK'),
@@ -146,7 +147,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       // Show a message to the user that they cannot remove themselves
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('You cannot remove yourself from the group.'),
+          content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
           duration: Duration(seconds: 2),
         ),
       );
@@ -176,7 +177,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Group name cannot be empty'),
+          content: Text(AppLocalizations.of(context)!.groupNameRequired),
           duration: Duration(seconds: 2),
         ),
       );
@@ -210,7 +211,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Group edited successfully!')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.groupEdited)),
       );
 
       return true; // Return true to indicate that the group creation was successful.
@@ -237,7 +238,7 @@ class _EditGroupDataState extends State<EditGroupData> {
         // Rest of your build method...
         return Scaffold(
             appBar: AppBar(
-              title: Text('Group Data'),
+              title: Text(AppLocalizations.of(context)!.groupData),
             ),
             body: SingleChildScrollView(
               child: Padding(
@@ -268,7 +269,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
                     SizedBox(height: 10),
                     Text(
-                      'Put an image for your group',
+                      AppLocalizations.of(context)!.putGroupImage,
                       style: TextStyle(color: Colors.grey),
                     ),
                     SizedBox(height: 10),
@@ -288,8 +289,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                           LengthLimitingTextInputFormatter(TITLE_MAX_LENGHT),
                         ],
                         decoration: InputDecoration(
-                          labelText:
-                              'Enter group name (Limit: $TITLE_MAX_LENGHT characters)',
+                          labelText: AppLocalizations.of(context)!
+                              .textFieldGroupName(TITLE_MAX_LENGHT),
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -311,8 +312,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                               DESCRIPTION_MAX_LENGHT), // Adjust the limit based on an average word length
                         ],
                         decoration: InputDecoration(
-                          labelText:
-                              'Enter group description (Limit: $DESCRIPTION_MAX_LENGHT characters)',
+                          labelText: AppLocalizations.of(context)!
+                              .textFieldDescription(DESCRIPTION_MAX_LENGHT),
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -322,7 +323,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Add people to your group',
+                          AppLocalizations.of(context)!.addPplGroup,
                           style: TextStyle(color: Colors.grey),
                         ),
                         SizedBox(
@@ -341,7 +342,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                                         padding: const EdgeInsets.all(16.0),
                                         child: Center(
                                           child: Text(
-                                            "ADD A NEW USER TO YOUR GROUP",
+                                            AppLocalizations.of(context)!
+                                                .addPplGroup,
                                             style: TextStyle(
                                               fontFamily: 'Lato',
                                               fontSize: 15,
@@ -361,7 +363,9 @@ class _EditGroupDataState extends State<EditGroupData> {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: Text("Close"),
+                                        child: Text(
+                                            AppLocalizations.of(context)!
+                                                .close),
                                       ),
                                     ],
                                   ),
@@ -370,7 +374,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                             );
                           },
                           child: Center(
-                            child: Text('Add user'),
+                            child: Text(AppLocalizations.of(context)!.addUser),
                           ),
                         ),
                       ],
@@ -420,7 +424,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                                   },
                                 );
                               } else {
-                                return Text('User not found');
+                                return Text(
+                                    AppLocalizations.of(context)!.userNotFound);
                               }
                             },
                           );
@@ -447,7 +452,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                       children: [
                         Icon(Icons.group_add_rounded),
                         SizedBox(width: 8),
-                        Text('Edit Group',
+                        Text(AppLocalizations.of(context)!.edit,
                             style: TextStyle(color: Colors.white)),
                       ],
                     ),
