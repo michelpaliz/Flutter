@@ -58,17 +58,17 @@ class _ShowGroupsState extends State<ShowGroups> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Confirm Delete"),
-          content: Text("Are you sure you want to delete this group?"),
+          title: Text(AppLocalizations.of(context)!.confirm),
+          content: Text(AppLocalizations.of(context)!.groupDeletedSuccessfully),
           actions: <Widget>[
             TextButton(
-              child: Text("Cancel"),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(context).pop(false); // Cancel the deletion
               },
             ),
             TextButton(
-              child: Text("Delete"),
+              child: Text(AppLocalizations.of(context)!.delete),
               onPressed: () {
                 Navigator.of(context).pop(true); // Confirm the deletion
               },
@@ -86,7 +86,8 @@ class _ShowGroupsState extends State<ShowGroups> {
         // Show a success message using a SnackBar
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text("Group deleted successfully!"),
+            content:
+                Text(AppLocalizations.of(context)!.groupDeletedSuccessfully),
           ),
         );
 
@@ -205,7 +206,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               children: [
                 // SizedBox(width: 8), // Adding some space between icon and text
                 Text(
-                  "Groups",
+                  AppLocalizations.of(context)!.groups,
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -319,7 +320,9 @@ class _ShowGroupsState extends State<ShowGroups> {
                           if (userGroups.isEmpty) {
                             return Center(
                               child: Text(
-                                "NO GROUP/S FOUND/S",
+                                AppLocalizations.of(context)!
+                                    .noGroupsAvailable
+                                    .toUpperCase(),
                                 style: TextStyle(fontSize: 15),
                               ),
                             );

@@ -236,7 +236,6 @@
             }
         }
     },
-
     "textFieldGroupName": "Enter group name (Limit: {TITLE_MAX_LENGHT} characters) ",
     "@textFieldGroupName": {
         "description": "Textfield for the group name",
@@ -255,7 +254,6 @@
             }
         }
     },
-
     "edit": "Edit",
     "remove": "Remove",
     "confirm": "Confirm",
@@ -264,7 +262,7 @@
     "removeConfirmation": "Confirm to remove",
     "permissionDenied": "Permission Denied",
     "permissionDeniedInf": "You are not an administrator to remove this item.",
-    "putGroupImage":"Put an image for the group",
+    "putGroupImage": "Put an image for the group",
     "close": "close",
     "addNewUser": "Add a new user to your group",
     "cannotRemoveYourself": "You cannot remove yourself from the group",
@@ -272,6 +270,10 @@
     "groupNameRequired": "Group name cannot be empty",
     "groupEdited": "Group edited successfully!",
     "failedToEditGroup": "Failed to edit the group. Please try again",
-    "searchPerson": "Search by user name"
-
+    "searchPerson": "Search by user name",
+    "delete": "Delete",
+    "confirmRemovalMessage": "Are you sure you want to delete this group?",
+    "confirmRemoval": "Confirm Removal",
+    "groupDeletedSuccessfully": "Group deleted successfully!",
+    "noGroupsAvailable": "NO GROUP/S FOUND/S"
 }

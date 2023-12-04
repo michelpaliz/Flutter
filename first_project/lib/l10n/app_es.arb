@@ -110,7 +110,7 @@
     "removeConfirmation": "Confirmar para eliminar",
     "permissionDenied": "Permiso denegado",
     "permissionDeniedInf": "No eres administrador para poder eliminar.",
-    "putGroupImage":"Añade una imagen al grupo ",
+    "putGroupImage": "Añade una imagen al grupo ",
     "textFieldGroupName": "Nombre del grupo (Limite: {TITLE_MAX_LENGHT} caracteres) ",
     "textFieldDescription": "Descripción del grupo (Limite: {DESCRIPTION_MAX_LENGHT} caracteres)",
     "close": "Cerrar",
@@ -120,5 +120,10 @@
     "groupNameRequired": "El nombre del grupo no puede estar vacio",
     "groupEdited": "Groupo editado exitosamente !",
     "failedToEditGroup": "Fallo al editar el grupo, por favor intentalo de nuevo.",
-    "searchPerson": "Buscar por nombre de usuario"
-}   
+    "searchPerson": "Buscar por nombre de usuario",
+    "delete": "Eliminar",
+    "confirmRemovalMessage": "¿Estás seguro de que deseas eliminar este grupo?",
+    "confirmRemoval": "Confirmar Eliminación",
+    "groupDeletedSuccessfully": "¡Grupo eliminado exitosamente!",
+    "noGroupsAvailable": "No hay grupos disponibles"
+}
