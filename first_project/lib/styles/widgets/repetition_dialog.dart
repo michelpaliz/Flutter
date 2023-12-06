@@ -4,6 +4,7 @@ import 'package:first_project/models/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'dart:developer' as devtools show log;
 
 class RepetitionDialog extends StatefulWidget {
   final DateTime selectedStartDate;
@@ -103,6 +104,38 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
       default:
         return '';
     }
+  }
+
+  String _getTranslatedFrequency1(String frequency) {
+    // Remove brackets from the input string
+    String daysString = frequency.replaceAll('[', '').replaceAll(']', '');
+
+    // Split the remaining string into individual day strings
+    List<String> daysList = daysString.split(', ');
+
+    // Translate each day and join them into a single string
+    String translatedDays = daysList.map((day) {
+      switch (day) {
+        case 'Monday':
+          return AppLocalizations.of(context)!.monday;
+        case 'Tuesday':
+          return AppLocalizations.of(context)!.tuesday;
+        case 'Wednesday':
+          return AppLocalizations.of(context)!.wednesday;
+        case 'Thursday':
+          return AppLocalizations.of(context)!.thursday;
+        case 'Friday':
+          return AppLocalizations.of(context)!.friday;
+        case 'Saturday':
+          return AppLocalizations.of(context)!.saturday;
+        case 'Sunday':
+          return AppLocalizations.of(context)!.sunday;
+        default:
+          return '';
+      }
+    }).join(', ');
+
+    return translatedDays;
   }
 
   // Method to fill up variables when initialRecurrenceRule is not null
@@ -236,9 +269,14 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               if (selectedDayNames.length > 1) {
                 final lastDay = selectedDayNames.removeLast();
                 final mySelectedDays = selectedDayNames.join(', ');
+                devtools.log("Selected days " + mySelectedDays);
+                devtools.log("Last day" + lastDay);
+                String translateSelectedDays =
+                    _getTranslatedFrequency1(mySelectedDays);
+                String translatedLastDay = _getTranslatedFrequency1(lastDay);
                 repeatMessage = AppLocalizations.of(context)!
-                    .weeklyRepetitionInf(
-                        repeatInterval!, mySelectedDays, "", lastDay);
+                    .weeklyRepetitionInf(repeatInterval!, "", translatedLastDay,
+                        translateSelectedDays);
               } else if (selectedDayNames.length == 1) {
                 repeatMessage = AppLocalizations.of(context)!
                     .weeklyRepetitionInf1(

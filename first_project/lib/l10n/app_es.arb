@@ -126,5 +126,12 @@
     "confirmRemovalMessage": "¿Estás seguro de que deseas eliminar este grupo?",
     "confirmRemoval": "Confirmar Eliminación",
     "groupDeletedSuccessfully": "¡Grupo eliminado exitosamente!",
-    "noGroupsAvailable": "No hay grupos disponibles"
+    "noGroupsAvailable": "No hay grupos disponibles",
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miercoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sabado",
+    "sunday": "Domingo"
 }
