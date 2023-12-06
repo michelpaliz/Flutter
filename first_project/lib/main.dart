@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/lib/utilities.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/views/my_app.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/provider/theme_preference_provider.dart';
@@ -58,7 +58,7 @@ Future<void> initializeApp() async {
 class AppInitializer {
   static ProviderManagement? providerManagement;
   static ThemePreferenceProvider? themePreferenceProvider;
-  static StoreService? storeService; // Declare storeService
+  static FirestoreService? storeService; // Declare storeService
 
   /// Navigates to the main application, initializing necessary services and providers.
   static Future<void> goToMain(BuildContext context, User user) async {
@@ -78,7 +78,7 @@ class AppInitializer {
               value: themePreferenceProvider!,
             ),
             // Provide the StoreService instance using Provider
-            Provider<StoreService>.value(value: storeService!),
+            Provider<FirestoreService>.value(value: storeService!),
           ],
           child: MyApp(currentUser: user),
         ),
@@ -102,7 +102,7 @@ class AppInitializer {
             value: themePreferenceProvider!,
           ),
           // Provide the StoreService instance using Provider
-          Provider<StoreService>.value(value: storeService!),
+          Provider<FirestoreService>.value(value: storeService!),
         ],
         child: MyApp(currentUser: user),
       ),
@@ -118,7 +118,7 @@ class AppInitializer {
     // Initialize the ThemePreferenceProvider instance
     themePreferenceProvider = ThemePreferenceProvider();
     // Initialize the StoreService instance
-    storeService = StoreService.firebase(providerManagement!);
+    storeService = FirestoreService.firebase(providerManagement!);
 
     // Fetch user groups for the provider
     List<Group>? fetchedGroups =

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/user.dart';
 import '../../services/auth/implements/auth_service.dart';
-import '../../services/firestore/implements/firestore_service.dart';
+import '../../services/firestore_database/implements/firestore_service.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class MyHeaderDrawer extends StatefulWidget {
@@ -19,7 +19,7 @@ class MyHeaderDrawer extends StatefulWidget {
 
 class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   AuthService _authService = new AuthService.firebase();
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   User? _currentUser;
   // Define a variable to store the selected image.
   XFile? _selectedImage;
@@ -42,7 +42,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
   }
 
   // Function to pick an image from the gallery

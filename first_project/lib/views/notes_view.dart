@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../models/event.dart';
 import '../models/user.dart';
-import '../services/firestore/implements/firestore_service.dart';
+import '../services/firestore_database/implements/firestore_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -29,7 +29,7 @@ class NotesViewState extends State<NotesView> {
   late AuthService _authService;
   late User userOrGroupObject;
   late DateTime _selectedDate;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   late List<Appointment> _appointments;
   late CalendarView _selectedView;
   late CalendarController _controller;

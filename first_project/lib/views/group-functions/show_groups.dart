@@ -1,7 +1,7 @@
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
 import 'package:first_project/lib/utilities.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,7 @@ class ShowGroups extends StatefulWidget {
 
 class _ShowGroupsState extends State<ShowGroups> {
   User? _currentUser;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   late AuthService _authService;
   // VARIABLE FOR THE UI
   Axis _scrollDirection = Axis.vertical;
@@ -197,7 +197,7 @@ class _ShowGroupsState extends State<ShowGroups> {
       devtools.log('This is group list: ' + groups.toString());
       // Initialize _storeService using data from providerManagement.
       final providerData = providerManagement;
-      _storeService = StoreService.firebase(providerData);
+      _storeService = FirestoreService.firebase(providerData);
       return Scaffold(
         appBar: AppBar(
           title: Center(

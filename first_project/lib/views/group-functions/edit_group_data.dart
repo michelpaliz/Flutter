@@ -5,7 +5,7 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/lib/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   String _groupDescription = '';
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
@@ -233,7 +233,7 @@ class _EditGroupDataState extends State<EditGroupData> {
         // Initialize _storeService using data from providerManagement.
         final providerData =
             providerManagement; // Adjust this to access the necessary data.
-        _storeService = StoreService.firebase(providerData);
+        _storeService = FirestoreService.firebase(providerData);
 
         // Rest of your build method...
         return Scaffold(

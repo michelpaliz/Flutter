@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
-import '../../services/firestore/implements/firestore_service.dart';
+import '../../services/firestore_database/implements/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class EventNoteWidget extends StatefulWidget {
@@ -34,7 +34,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   late DateTime _selectedEndDate;
   List<Event> _eventList = [];
   //** CONTROLLERS  */
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController =
       TextEditingController(); // Add the controller for the description
@@ -83,7 +83,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
   }
 
   @override

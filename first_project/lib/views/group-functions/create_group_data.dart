@@ -6,7 +6,7 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/lib/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   String _groupName = '';
   String _groupDescription = '';
   XFile? _selectedImage;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
@@ -53,7 +53,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
   }
 
   void _onDataChanged(

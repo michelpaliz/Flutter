@@ -15,7 +15,7 @@ import '../../../enums/routes/routes.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/event.dart';
 import '../../../models/group.dart';
-import '../../../services/firestore/implements/firestore_service.dart';
+import '../../../services/firestore_database/implements/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class GroupDetails extends StatefulWidget {
@@ -31,7 +31,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   late Group _group;
   late List<Event> _events;
   late DateTime _selectedDate;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   late AuthService _authService;
   var _userOrGroupObject;
   late List<Appointment> _appointments;
@@ -67,7 +67,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
   }
 
   Future<void> _getEventsListFromGroup() async {

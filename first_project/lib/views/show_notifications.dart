@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/notification_user.dart';
 import '../models/user.dart';
 import '../services/auth/implements/auth_service.dart';
-import '../services/firestore/implements/firestore_service.dart';
+import '../services/firestore_database/implements/firestore_service.dart';
 
 class ShowNotifications extends StatefulWidget {
   const ShowNotifications({super.key});
@@ -16,7 +16,7 @@ class ShowNotifications extends StatefulWidget {
 
 class _ShowNotificationsState extends State<ShowNotifications> {
   AuthService authService = new AuthService.firebase();
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   User? currentUser;
 
   //** LOGIC FOR THE VIEW */
@@ -35,7 +35,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
   }
 
   void getCurrentUser() {

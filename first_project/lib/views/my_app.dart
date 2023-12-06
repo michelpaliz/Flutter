@@ -5,7 +5,7 @@ import 'package:first_project/l10n/l10n.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -53,8 +53,8 @@ class _MyAppState extends State<MyApp> {
   Future<void> loadData() async {
     final providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
-    final StoreService storeService =
-        Provider.of<StoreService>(context, listen: false);
+    final FirestoreService storeService =
+        Provider.of<FirestoreService>(context, listen: false);
 
     try {
       List<Group>? groups =

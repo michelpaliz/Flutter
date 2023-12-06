@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import '../../models/event.dart';
-import '../../services/firestore/implements/firestore_service.dart';
+import '../../services/firestore_database/implements/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //*
@@ -38,7 +38,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   late Color _selectedEventColor;
   late List<Color> _colorList;
   late Group _group;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
 
   @override
   void initState() {

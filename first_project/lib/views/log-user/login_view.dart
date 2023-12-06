@@ -6,7 +6,7 @@ import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
@@ -41,7 +41,8 @@ class _LoginViewState extends State<LoginView> {
     _myCustomButtonStyle = ColorProperties.defaultButton();
     _loginInitializer = LoginInitializer(
         authService: _authService,
-        storeService: StoreService.firebase(ProviderManagement(user: null)));
+        storeService:
+            FirestoreService.firebase(ProviderManagement(user: null)));
   }
 
   @override

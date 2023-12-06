@@ -1,7 +1,7 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +16,7 @@ class GroupSettings extends StatefulWidget {
 
 class _GroupSettingsState extends State<GroupSettings> {
   late bool _repetitiveEvents;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   late User groupOwner;
   late Group group;
 
@@ -25,7 +25,7 @@ class _GroupSettingsState extends State<GroupSettings> {
     super.initState();
   }
 
-    @override
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -33,7 +33,7 @@ class _GroupSettingsState extends State<GroupSettings> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
 
     _initializeData();
   }

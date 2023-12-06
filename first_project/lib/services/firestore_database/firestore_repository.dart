@@ -3,7 +3,7 @@ import '../../models/group.dart';
 import '../../models/notification_user.dart';
 import '../../models/user.dart';
 
-abstract class StoreProvider {
+abstract class FirestoreRepository {
   Future<List<Event>> removeEvent(String eventId);
   Future<String> updateUser(User user);
   Future<void> updateEvent(Event event);
@@ -16,10 +16,11 @@ abstract class StoreProvider {
   Future<User?> getUserById(String userId);
   Future<List<Group>> fetchUserGroups(List<String>? groupIds);
   Future<void> deleteGroup(String groupId);
-  Future<User?> getUserByName(String userName); 
+  Future<User?> getUserByName(String userName);
   Future<void> removeAll(User user, Group group);
   Future<User> getOwnerFromGroup(Group group);
   Future<Event?> getEventFromGroupById(String eventId, String groupId);
   Future<Event?> getEventFromUserById(User user, String eventId);
   Future<User?> getUserByUserName(String userName);
+  Future<void> changeUserName(String newUserName);
 }

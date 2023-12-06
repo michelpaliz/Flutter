@@ -2,7 +2,7 @@ import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/exceptions/password_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/implements/firestore_service.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/provider/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,7 @@ class _SettingsState extends State<Settings> {
   late AuthService _authService = AuthService.firebase();
   late User? currentUser;
   late ThemePreferenceProvider _themePreferenceProvider;
-  late StoreService _storeService;
+  late FirestoreService _storeService;
   TextEditingController _currentPassword = TextEditingController();
   TextEditingController _newPasswordController = TextEditingController();
   TextEditingController _confirmPasswordController = TextEditingController();
@@ -46,7 +46,7 @@ class _SettingsState extends State<Settings> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = StoreService.firebase(providerManagement);
+    _storeService = FirestoreService.firebase(providerManagement);
   }
 
   // Load user-specific settings

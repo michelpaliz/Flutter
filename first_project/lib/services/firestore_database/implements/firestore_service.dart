@@ -2,28 +2,29 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/services/firestore/implements/firestore_provider.dart';
+import 'package:first_project/services/firestore_database/implements/firestore_provider.dart';
 
 import '../../../models/event.dart';
-import '../Ifirestore_provider.dart';
+import '../firestore_repository.dart';
 
-class StoreService extends StoreProvider {
-  final StoreProvider provider;
+class FirestoreService extends FirestoreRepository {
+  final FirestoreRepository provider;
 
   // Private constructor for the Singleton pattern
-  StoreService._(this.provider);
+  FirestoreService._(this.provider);
 
   // Static field to hold the single instance of StoreService
-  static StoreService? _instance;
+  static FirestoreService? _instance;
 
   // Factory method to get the single instance of StoreService
-factory StoreService.firebase(ProviderManagement? providerManagement) {
+  factory FirestoreService.firebase(ProviderManagement? providerManagement) {
     if (_instance == null) {
-      _instance = StoreService._(FireStoreProvider(providerManagement: providerManagement));
+      _instance = FirestoreService._(
+          FirestoreProvider(providerManagement: providerManagement));
     }
     return _instance!;
   }
-  
+
   /**when you call removeEvent on an instance of StoreService, it will delegate the call to the underlying FireStoreProvider and execute its removeEvent method. */
   @override
   Future<List<Event>> removeEvent(String eventId) =>
@@ -88,5 +89,10 @@ factory StoreService.firebase(ProviderManagement? providerManagement) {
       provider.getEventFromUserById(user, eventId);
 
   @override
-  Future<User?> getUserByUserName(String userName) => provider.getUserByUserName(userName);
+  Future<User?> getUserByUserName(String userName) =>
+      provider.getUserByUserName(userName);
+
+  @override
+  Future<void> changeUserName(String newUserName) =>
+      provider.getUserByUserName(newUserName);
 }

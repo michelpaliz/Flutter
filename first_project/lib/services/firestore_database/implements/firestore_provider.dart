@@ -1,24 +1,23 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore/firestore_exceptions.dart';
+import 'package:first_project/services/firestore_database/exceptions/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import '../../../models/event.dart';
 import '../../../models/notification_user.dart';
 import '../../../models/user.dart';
-import '../Ifirestore_provider.dart';
+import '../firestore_repository.dart';
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
-class FireStoreProvider implements StoreProvider {
+class FirestoreProvider implements FirestoreRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthService _authService;
   final ProviderManagement? _providerManagement;
 
-  FireStoreProvider({
+  FirestoreProvider({
     ProviderManagement? providerManagement,
   })  : _authService = AuthService.firebase(),
         _providerManagement = providerManagement;
@@ -562,5 +561,11 @@ class FireStoreProvider implements StoreProvider {
       print("Error retrieving user: $e");
       rethrow; // Rethrow the error for higher-level handling if needed.
     }
+  }
+
+  @override
+  Future<void> changeUserName(String newUserName) {
+    // TODO: implement changeUserName
+    throw UnimplementedError();
   }
 }
