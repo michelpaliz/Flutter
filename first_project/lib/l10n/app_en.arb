@@ -212,30 +212,6 @@
             }
         }
     },
-    "monthlyRepetitionInf": "This event will repeat on the {selectedDay} day every {months} month(s) ",
-    "@monthlyRepetitionInf": {
-        "description": "Concurrence for the event",
-        "placeholders": {
-            "selectedDay": {
-                "type": "String"
-            },
-            "months": {
-                "type": "int"
-            }
-        }
-    },
-    "yearlyRepetitionInf": "This event will repeat on the {selectedDay} day every {months} year(s) ",
-    "@yearlyRepetitionInf": {
-        "description": "Concurrence for the event",
-        "placeholders": {
-            "selectedDay": {
-                "type": "int"
-            },
-            "months": {
-                "type": "String"
-            }
-        }
-    },
     "textFieldGroupName": "Enter group name (Limit: {TITLE_MAX_LENGHT} characters) ",
     "@textFieldGroupName": {
         "description": "Textfield for the group name",
@@ -250,6 +226,30 @@
         "description": "Textfield for the group description",
         "placeholders": {
             "DESCRIPTION_MAX_LENGHT": {
+                "type": "int"
+            }
+        }
+    },
+    "monthlyRepetitionInf": "This event will repeat on the {selectDay} day every {repeatInterval} month(s) ",
+    "@monthlyRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "selectedDay": {
+                "type": "String"
+            },
+            "repeatInterval": {
+                "type": "int"
+            }
+        }
+    },
+    "yearlyRepetitionInf": "This event will repeat on the {selectDay} day every {repeatInterval} year(s) ",
+    "@yearlyRepetitionInf": {
+        "description": "Concurrence for the event",
+        "placeholders": {
+            "selectedDay": {
+                "type": "String"
+            },
+            "repeatInterval": {
                 "type": "int"
             }
         }
@@ -276,5 +276,4 @@
     "confirmRemoval": "Confirm Removal",
     "groupDeletedSuccessfully": "Group deleted successfully!",
     "noGroupsAvailable": "NO GROUP/S FOUND/S"
-
 }

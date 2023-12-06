@@ -230,7 +230,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           switch (selectedFrequency) {
             case 'Daily':
               repeatMessage = AppLocalizations.of(context)!
-                  .dayRepetitionInf(repeatInterval!);
+                  .dailyRepetitionInf(repeatInterval!);
               break;
             case 'Weekly':
               if (selectedDayNames.length > 1) {
@@ -249,14 +249,17 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               break;
 
             case 'Monthly':
+              // repeatMessage =
+              //     'This event will repeat every $repeatInterval year(s) on $formattedDate day';
               repeatMessage = AppLocalizations.of(context)!
-                  .monthlyRepetitionInf(formattedDate, repeatInterval!);
+                  .monthlyRepetitionInf(
+                      formattedDate, repeatInterval!, repeatInterval!);
               break;
             case 'Yearly':
               // repeatMessage =
               //     'This event will repeat every $repeatInterval year(s) on $formattedDate day';
-              repeatMessage = AppLocalizations.of(context)!
-                  .yearlyRepetitionInf(repeatInterval!, formattedDate);
+              repeatMessage = AppLocalizations.of(context)!.yearlyRepetitionInf(
+                  formattedDate, repeatInterval!, repeatInterval!);
               break;
             default:
               repeatMessage = '';
@@ -287,7 +290,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                   Text(
                     AppLocalizations.of(context)!.every,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                   NumberSelector(
@@ -305,7 +308,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     // ' ${getTranslatedFrequency(selectedFrequency)}(s)',
                     ' ${_getTranslatedSpecificFrequency(selectedFrequency)}',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ],
