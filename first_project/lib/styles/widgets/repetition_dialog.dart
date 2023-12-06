@@ -36,14 +36,25 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   bool isRepeated = false;
   var validationError;
 
-  String getWeekdayName(DateTime date) {
+  @override
+  void initState() {
+    super.initState();
+    _selectedStartDate =
+        widget.selectedStartDate; // Initialize with the provided value
+    _selectedEndDate = widget.selectedEndDate;
+    // After the dialog is shown, you can print the routes
+    // Fill up variables if initialRecurrenceRule is not null
+    _fillVariablesFromInitialRecurrenceRule(widget.initialRecurrenceRule);
+  }
+
+  String _getWeekdayName(DateTime date) {
     final weekdayName = DateFormat('EEEE').format(date);
-    final translatedName = translateDayAbbreviation(weekdayName.toLowerCase());
+    final translatedName = _translateDayAbbreviation(weekdayName.toLowerCase());
     return translatedName;
   }
 
   // Inside your AppLocalizations class
-  String translateDayAbbreviation(String dayAbbreviation) {
+  String _translateDayAbbreviation(String dayAbbreviation) {
     switch (dayAbbreviation.toLowerCase()) {
       case 'mon':
         return AppLocalizations.of(context)!.mon;
@@ -64,7 +75,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     }
   }
 
-  String getTranslatedFrequency(String frequency) {
+  String _getTranslatedFrequency(String frequency) {
     switch (frequency) {
       case 'Daily':
         return AppLocalizations.of(context)!.daily;
@@ -79,7 +90,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     }
   }
 
-  String getTranslatedSpecificFrecuency(String frequency) {
+  String _getTranslatedSpecificFrequency(String frequency) {
     switch (frequency) {
       case 'Daily':
         return AppLocalizations.of(context)!.dailys;
@@ -94,19 +105,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedStartDate =
-        widget.selectedStartDate; // Initialize with the provided value
-    _selectedEndDate = widget.selectedEndDate;
-    // After the dialog is shown, you can print the routes
-    // Fill up variables if initialRecurrenceRule is not null
-    fillVariablesFromInitialRecurrenceRule(widget.initialRecurrenceRule);
-  }
-
   // Method to fill up variables when initialRecurrenceRule is not null
-  void fillVariablesFromInitialRecurrenceRule(RecurrenceRule? rule) {
+  void _fillVariablesFromInitialRecurrenceRule(RecurrenceRule? rule) {
     setState(() {
       if (rule != null) {
         selectedFrequency = rule.name;
@@ -138,7 +138,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         // Function to get the maximum repeat value based on the selected frequency
-        int getMaxRepeatValue(String frequency) {
+        int _getMaxRepeatValue(String frequency) {
           switch (frequency) {
             case 'Daily':
               return 500;
@@ -153,8 +153,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           }
         }
 
-        // Function to validate user input
-        String? validateInput() {
+        /** Function to validate the user input based on the date interval so it will indicate the errors if proceeds */
+        String? _validateInput() {
           switch (selectedFrequency) {
             case 'Daily':
               break;
@@ -170,7 +170,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                   .contains(CustomDayOfWeek.fromString(eventDayAbbreviation))) {
                 final _selectedStartDate =
                     DateTime.now(); // Replace this with your date
-                final weekdayName = getWeekdayName(_selectedStartDate);
+                final weekdayName = _getWeekdayName(_selectedStartDate);
                 print('Weekday name: $weekdayName');
                 return AppLocalizations.of(context)!
                     .errorSelectedDays(weekdayName);
@@ -193,11 +193,11 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           return null; // Input is valid
         }
 
-        validationError = validateInput();
+        validationError = _validateInput();
 
         // Reset the NumberSelector value when frequency changes based on the rules
         if (previousFrequency != selectedFrequency) {
-          final maxRepeatValue = getMaxRepeatValue(selectedFrequency);
+          final maxRepeatValue = _getMaxRepeatValue(selectedFrequency);
 
           if (repeatInterval! > maxRepeatValue) {
             repeatInterval = maxRepeatValue;
@@ -207,7 +207,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
         previousFrequency = selectedFrequency;
 
         // Define a function to build the "Repeat Every" row
-        Widget buildRepeatEveryRow() {
+        Widget _buildRepeatEveryRow() {
           String repeatMessage;
 
           final formattedDate =
@@ -261,6 +261,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
             default:
               repeatMessage = '';
           }
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -293,7 +294,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     key: Key(selectedFrequency),
                     value: repeatInterval,
                     minValue: 0,
-                    maxValue: getMaxRepeatValue(selectedFrequency),
+                    maxValue: _getMaxRepeatValue(selectedFrequency),
                     onChanged: (value) {
                       setState(() {
                         repeatInterval = value;
@@ -302,7 +303,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                   ),
                   Text(
                     // ' ${getTranslatedFrequency(selectedFrequency)}(s)',
-                    ' ${getTranslatedSpecificFrecuency(selectedFrequency)}',
+                    ' ${_getTranslatedSpecificFrequency(selectedFrequency)}',
                     style: TextStyle(
                       fontSize: 14,
                     ),
@@ -346,7 +347,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                               : Color.fromARGB(255, 212, 234, 248),
                         ),
                         child: Text(
-                          getTranslatedFrequency(frequency),
+                          _getTranslatedFrequency(frequency),
                           style: TextStyle(
                             fontSize: 13, // Adjust the font size here
                             color: isSelected ? Colors.white : Colors.black,
@@ -357,7 +358,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                   }).toList(),
                 ),
                 // Add the day selection row if selectedFrequency is 'Weekly'
-                if (selectedFrequency == 'Weekly') buildRepeatEveryRow(),
+                if (selectedFrequency == 'Weekly') _buildRepeatEveryRow(),
                 // Add the day selection row if selectedFrequency is not Daily, Monthly, or Yearly
                 if (selectedFrequency != 'Daily' &&
                     selectedFrequency != 'Monthly' &&
@@ -401,7 +402,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                               ),
                               alignment: Alignment.center,
                               child: Text(
-                                translateDayAbbreviation(
+                                _translateDayAbbreviation(
                                     day.name.substring(0, 3)),
                                 // Use the translation method for the day's name
                                 style: TextStyle(
@@ -417,9 +418,9 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     ],
                   ),
                 // Optional input for day of month (for Daily)
-                if (selectedFrequency == 'Daily') buildRepeatEveryRow(),
-                if (selectedFrequency == 'Monthly') buildRepeatEveryRow(),
-                if (selectedFrequency == 'Yearly') buildRepeatEveryRow(),
+                if (selectedFrequency == 'Daily') _buildRepeatEveryRow(),
+                if (selectedFrequency == 'Monthly') _buildRepeatEveryRow(),
+                if (selectedFrequency == 'Yearly') _buildRepeatEveryRow(),
                 // Row(
                 //   children: <Widget>[
                 //     Checkbox(

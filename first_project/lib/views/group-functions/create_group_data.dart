@@ -235,8 +235,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
   @override
   Widget build(BuildContext context) {
-    final TITLE_MAX_LENGHT = 25;
-    final DESCRIPTION_MAX_LENGHT = 100;
+    final TITLE_MAX_LENGTH = 25;
+    final DESCRIPTION_MAX_LENGTH = 100;
     return Scaffold(
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.groupData),
@@ -282,11 +282,11 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                     },
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(
-                          TITLE_MAX_LENGHT), // Set the maximum length here
+                          TITLE_MAX_LENGTH), // Set the maximum length here
                     ],
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!
-                          .textFieldGroupName(TITLE_MAX_LENGHT),
+                          .textFieldGroupName(TITLE_MAX_LENGTH),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -303,11 +303,11 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                         null, // Allow the text field to have unlimited lines
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(
-                          DESCRIPTION_MAX_LENGHT), // Adjust the limit based on an average word length
+                          DESCRIPTION_MAX_LENGTH), // Adjust the limit based on an average word length
                     ],
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!
-                          .textFieldDescription(DESCRIPTION_MAX_LENGHT),
+                          .textFieldDescription(DESCRIPTION_MAX_LENGTH),
                       border: OutlineInputBorder(),
                     ),
                   ),

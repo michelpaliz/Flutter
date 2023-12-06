@@ -60,15 +60,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Access the inherited widget in the didChangeDependencies method.
-    // final providerManagement = Provider.of<ProviderManagement>(context);
-
-    // Initialize the _storeService using the providerManagement.
-    // _storeService = StoreService.firebase(providerManagement);
-    // Retrieve the 'Event' object passed as an argument to this screen
     _event = ModalRoute.of(context)!.settings.arguments as Event;
-    // Set the attributes of the retrieved  'Event' object;
     _noteController.text = _event.note ?? '';
     _selectedStartDate = _event.startDate;
     _selectedEndDate = _event.endDate;
@@ -299,7 +291,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                                   5.0), // Adjust the border radius as needed
                             ),
                             child: Text(
-                              'Start Date',
+                              AppLocalizations.of(context)!.startDate,
                               style:
                                   TextStyle(fontSize: 15, color: Colors.black),
                             ),
@@ -351,7 +343,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                                   5.0), // Adjust the border radius as needed
                             ),
                             child: Text(
-                              'End Date',
+                              AppLocalizations.of(context)!.endDate,
                               style:
                                   TextStyle(fontSize: 15, color: Colors.black),
                             ),
