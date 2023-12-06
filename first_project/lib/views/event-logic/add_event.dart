@@ -1,8 +1,8 @@
-import 'package:first_project/my-lib/color_manager.dart';
+import 'package:first_project/lib/color_manager.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/my-lib/utilities.dart';
+import 'package:first_project/lib/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';

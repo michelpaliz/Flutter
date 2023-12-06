@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
-import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/firestore_exceptions.dart';

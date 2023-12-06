@@ -4,7 +4,7 @@ import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/routes.dart';
 import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';

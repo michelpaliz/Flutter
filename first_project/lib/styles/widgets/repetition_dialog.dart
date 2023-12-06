@@ -106,7 +106,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     }
   }
 
-  String _getTranslatedFrequency1(String frequency) {
+  String _getTranslatedFrequencyDays(String frequency) {
     // Remove brackets from the input string
     String daysString = frequency.replaceAll('[', '').replaceAll(']', '');
 
@@ -272,8 +272,8 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 devtools.log("Selected days " + mySelectedDays);
                 devtools.log("Last day" + lastDay);
                 String translateSelectedDays =
-                    _getTranslatedFrequency1(mySelectedDays);
-                String translatedLastDay = _getTranslatedFrequency1(lastDay);
+                    _getTranslatedFrequencyDays(mySelectedDays);
+                String translatedLastDay = _getTranslatedFrequencyDays(lastDay);
                 repeatMessage = AppLocalizations.of(context)!
                     .weeklyRepetitionInf(repeatInterval!, "", translatedLastDay,
                         translateSelectedDays);

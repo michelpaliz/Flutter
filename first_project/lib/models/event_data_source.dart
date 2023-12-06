@@ -1,4 +1,4 @@
-import 'package:first_project/my-lib/color_manager.dart';
+import 'package:first_project/lib/color_manager.dart';
 import 'package:first_project/models/event.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';

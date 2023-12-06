@@ -1,6 +1,7 @@
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
+
 class LoginInitializer {
   final AuthService authService;
   final StoreService storeService;
@@ -17,7 +18,7 @@ class LoginInitializer {
     bool emailVerified = user?.isEmailVerified ?? false;
 
     if (emailVerified) {
-      User? customUser = await authService.generateUserCustomeModel();
+      User? customUser = await authService.generateUserCustomModel();
       authService.costumeUser = customUser;
       userFetched = authService.costumeUser;
     }

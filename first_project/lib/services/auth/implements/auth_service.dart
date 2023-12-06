@@ -4,7 +4,7 @@ import 'package:first_project/services/auth/auth_user.dart';
 import 'package:first_project/services/auth/implements/auth_provider.dart';
 
 class AuthService implements AuthRepository {
-final AuthRepository repository;
+  final AuthRepository repository;
 
   const AuthService._(this.repository);
 
@@ -52,8 +52,8 @@ final AuthRepository repository;
   Future<void> initialize() => repository.initialize();
 
   @override
-  Future<User?> generateUserCustomeModel() =>
-      repository.generateUserCustomeModel();
+  Future<User?> generateUserCustomModel() =>
+      repository.generateUserCustomModel();
 
   @override
   User? get costumeUser => repository.costumeUser;
@@ -64,4 +64,9 @@ final AuthRepository repository;
       repository.costumeUser = user;
     }
   }
+
+  @override
+  Future<void> changePassword(
+          String currentPassword, String newPassword, String confirmPassword) =>
+      repository.changePassword(currentPassword, newPassword, confirmPassword);
 }

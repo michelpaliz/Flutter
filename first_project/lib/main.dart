@@ -1,5 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/my-lib/utilities.dart';
+import 'package:first_project/lib/utilities.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore/implements/firestore_service.dart';
 import 'package:first_project/views/my_app.dart';
@@ -32,7 +32,7 @@ Future<void> initializeApp() async {
     return;
   }
   final AuthService authService = AuthService.firebase();
-  User? user = await authService.generateUserCustomeModel();
+  User? user = await authService.generateUserCustomModel();
 
   devtools.log("THIS IS THE MAIN $user");
   await AppInitializer.goToMainDirectly(user);

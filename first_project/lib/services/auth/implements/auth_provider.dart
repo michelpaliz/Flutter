@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException;
+    show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/services/auth/auth_exceptions.dart';
+import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/services/auth/auth_user.dart';
+import 'package:first_project/services/auth/exceptions/password_exceptions.dart';
 import '../../../firebase_options.dart';
 import '../../../models/user.dart';
 import '../auth_repository.dart';
@@ -187,7 +187,7 @@ class AuthProvider implements AuthRepository {
   }
 
   @override
-  Future<User?> generateUserCustomeModel() async {
+  Future<User?> generateUserCustomModel() async {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser != null) {
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
@@ -233,6 +233,47 @@ class AuthProvider implements AuthRepository {
   set costumeUser(User? userUpdated) {
     if (userUpdated != null) {
       _currentUser = userUpdated;
+    }
+  }
+
+  @override
+  Future<void> changePassword(String currentPassword, String newPassword,
+      String confirmPassword) async {
+    try {
+      // Get the current user from Firebase Authentication
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      // Check if the user is signed in
+      if (currentUser != null) {
+        // Reauthenticate the user
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: currentUser.email!,
+          password: currentPassword,
+        );
+
+        try {
+          await currentUser.reauthenticateWithCredential(credential);
+        } catch (reauthError) {
+          // If reauthentication fails, throw an exception
+          throw CurrentPasswordMismatchException();
+        }
+
+        // Check if the new password and confirmation password match
+        if (newPassword != confirmPassword) {
+          throw PasswordMismatchException();
+        }
+
+        // Update the user's password
+        await currentUser.updatePassword(newPassword);
+      } else {
+        // User is not signed in
+        print("User not signed in.");
+        throw UserNotSignedInException();
+      }
+    } catch (error) {
+      // Handle specific errors during the password change
+      print("Error changing password: $error");
+      rethrow; // Rethrow the error for further handling
     }
   }
 }

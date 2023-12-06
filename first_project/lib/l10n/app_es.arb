@@ -133,5 +133,6 @@
     "thursday": "Jueves",
     "friday": "Viernes",
     "saturday": "Sabado",
-    "sunday": "Domingo"
+    "sunday": "Domingo",
+    "save": "Guardar"
 }
