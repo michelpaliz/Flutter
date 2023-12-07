@@ -93,6 +93,6 @@ class FirestoreService extends FirestoreRepository {
       provider.getUserByUserName(userName);
 
   @override
-  Future<void> changeUserName(String newUserName) =>
-      provider.getUserByUserName(newUserName);
+  Future<void> changeUsername(String newUserName) =>
+      provider.changeUsername(newUserName);
 }

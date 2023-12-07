@@ -22,5 +22,5 @@ abstract class FirestoreRepository {
   Future<Event?> getEventFromGroupById(String eventId, String groupId);
   Future<Event?> getEventFromUserById(User user, String eventId);
   Future<User?> getUserByUserName(String userName);
-  Future<void> changeUserName(String newUserName);
+  Future<void> changeUsername(String newUserName);
 }

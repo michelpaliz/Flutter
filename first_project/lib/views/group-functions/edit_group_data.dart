@@ -6,7 +6,7 @@ import 'package:first_project/models/user.dart';
 import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
-import 'package:first_project/lib/utilities.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -228,7 +228,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       builder: (context, providerManagement, child) {
         // final storeService = Provider.of<StoreService>(context);
         // _storeService = storeService;
-        final TITLE_MAX_LENGHT = 25;
+        final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
         // Initialize _storeService using data from providerManagement.
         final providerData =
@@ -286,11 +286,11 @@ class _EditGroupDataState extends State<EditGroupData> {
                           }
                         },
                         inputFormatters: [
-                          LengthLimitingTextInputFormatter(TITLE_MAX_LENGHT),
+                          LengthLimitingTextInputFormatter(TITLE_MAX_LENGTH),
                         ],
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!
-                              .textFieldGroupName(TITLE_MAX_LENGHT),
+                              .textFieldGroupName(TITLE_MAX_LENGTH),
                           border: OutlineInputBorder(),
                         ),
                       ),

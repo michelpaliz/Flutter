@@ -79,7 +79,7 @@
     "monthlies": "mes(s)",
     "yearlys": "año(s)",
     "untilDate": "Fecha limite: ",
-    "untilDateSelected": "Until Date: {untilDate} ",
+    "untilDateSelected": "Fecha limite: {untilDate} ",
     "notSelected": "No Seleccionado",
     "specifyRepeatInterval": "Por favor, especifique el intervalo de repetición",
     "selectOneDayAtLeast": "Por favor, seleccione al menos un dia de la semana",
@@ -100,7 +100,6 @@
     "sat": "Sáb",
     "sun": "Dom",
     "errorSelectedDays": "El día del evento es {selectedDays} y debería coincidir con uno de los días seleccionados.",
-        
     "monthlyRepetitionInf": "Este evento se repetirá el día {selectedDay} cada {repeatInterval} mes(es)",
     "yearlyRepetitionInf": "Este evento se repetirá el día {selectedDay} cada {repeatInterval} año(s) ",
     "edit": "Editar",
@@ -134,5 +133,19 @@
     "friday": "Viernes",
     "saturday": "Sabado",
     "sunday": "Domingo",
-    "save": "Guardar"
+    "save": "Guardar",
+    "groupNameText": "Nombre del grupo",
+    "groupOwner": "Propietario del grupo",
+    "enableRepetitiveEvents": "Habilitar repetición de eventos",
+    "passwordChangedSuccessfully": "Contraseña cambiada exitosamente",
+    "currentPasswordIncorrect": "La contraseña actual es incorrecta. Por favor, inténtalo de nuevo.",
+    "newPasswordConfirmationError": "La nueva contraseña y la confirmación de contraseña no coinciden.",
+    "changedPasswordError": "Error al cambiar la contraseña. Por favor, inténtalo de nuevo.",
+    "passwordContainsUnwantedChar": "La contraseña contiene caracteres no deseados.",
+    "changeUsername": "Cambiar nombre de perfil",
+    "usernameAlreadyTaken": "Nombre de usuario ya está en uso. Elija otro.",
+    "errorUnwantedCharactersUsername": "Caracteres no válidos en el nombre de usuario. Por favor, use solo caracteres alfanuméricos y guiones bajos.",
+    "errorChangingUsername": "Error al cambiar el nombre de usuario. Por favor, inténtelo de nuevo más tarde.",
+    "errorChangingPassword": "Error al cambiar la contraseña. Por favor, inténtelo de nuevo.",
+    "successChangingUsername": "Nombre de usuario actualizado !"
 }

@@ -1,5 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/lib/utilities.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/views/my_app.dart';

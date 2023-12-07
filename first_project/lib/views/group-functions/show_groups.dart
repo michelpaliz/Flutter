@@ -3,7 +3,7 @@ import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
-import 'package:first_project/lib/utilities.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

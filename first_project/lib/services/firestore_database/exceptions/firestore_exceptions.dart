@@ -5,3 +5,11 @@ class UserNotFoundException implements Exception {
 class EventNotFoundException implements Exception {
   final String message = 'Event not found.';
 }
+
+class UsernameAlreadyTakenException implements Exception {
+  final String message = "Username already taken ";
+}
+
+class unwantedCharactersUsername implements Exception {
+  final String message = "Username contains invalid characters ";
+}

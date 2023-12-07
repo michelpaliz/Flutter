@@ -564,8 +564,55 @@ class FirestoreProvider implements FirestoreRepository {
   }
 
   @override
-  Future<void> changeUserName(String newUserName) {
-    // TODO: implement changeUserName
-    throw UnimplementedError();
+  Future<void> changeUsername(String newUserName) async {
+    try {
+      // Get the current user
+      final user = _authService.costumeUser;
+
+      if (user != null) {
+        // Check if the new username is already taken
+        bool isUsernameTaken = await _isUsernameAlreadyTaken(newUserName);
+
+        if (isUsernameTaken) {
+          // Handle the case where the username is already taken
+          // You can throw an exception, log the error, or handle it as needed
+          print('Error: Username is already taken. Choose a different one.');
+          throw UsernameAlreadyTakenException();
+        }
+
+        // Update the userName field in Firestore
+        await _firestore.collection('users').doc(user.email).update({
+          'userName': newUserName,
+        });
+
+        // Optionally, update any other fields in your custom user object
+        user.userName = newUserName;
+
+        // Save the updated user object to your AuthService or wherever it is managed
+        _authService.costumeUser = user;
+      }
+    } catch (error) {
+      // Handle errors, you may want to log or rethrow the error
+      print("Error changing user name: $error");
+      throw error;
+    }
+  }
+
+// Function to check if a username is already taken
+  Future<bool> _isUsernameAlreadyTaken(String username) async {
+    try {
+      // Query Firestore to check if the username exists in the 'users' collection
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('userName', isEqualTo: username)
+          .get();
+
+      // If the querySnapshot is not empty, the username is already taken
+      return querySnapshot.docs.isNotEmpty;
+    } catch (error) {
+      // Handle errors, log or rethrow the error as needed
+      print("Error checking if username is already taken: $error");
+      throw error;
+    }
   }
 }
