@@ -297,5 +297,6 @@
     "usernameAlreadyTaken":"Username is already taken. Choose a different one.",
     "errorUnwantedCharactersUsername": "Invalid characters in the username. Please use only alphanumeric characters and underscores.",
     "errorChangingUsername": "Error changing username. Please try again later.",
-    "errorChangingPassword": "Failed to change password. Please try again."
-}
+    "errorChangingPassword": "Failed to change password. Please try again.",
+    "errorUsernameLength": "Error Username should be between 6 char and 10 char "
+}       

@@ -147,5 +147,6 @@
     "errorUnwantedCharactersUsername": "Caracteres no válidos en el nombre de usuario. Por favor, use solo caracteres alfanuméricos y guiones bajos.",
     "errorChangingUsername": "Error al cambiar el nombre de usuario. Por favor, inténtelo de nuevo más tarde.",
     "errorChangingPassword": "Error al cambiar la contraseña. Por favor, inténtelo de nuevo.",
-    "successChangingUsername": "Nombre de usuario actualizado !"
+    "successChangingUsername": "Nombre de usuario actualizado !",
+    "errorUsernameLength": "Error: El nombre de usuario debe tener entre 6 y 10 caracteres."
 }

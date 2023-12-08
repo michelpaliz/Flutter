@@ -581,7 +581,7 @@ class FirestoreProvider implements FirestoreRepository {
         }
 
         // Update the userName field in Firestore
-        await _firestore.collection('users').doc(user.email).update({
+        await _firestore.collection('users').doc(user.id).update({
           'userName': newUserName,
         });
 
@@ -590,6 +590,8 @@ class FirestoreProvider implements FirestoreRepository {
 
         // Save the updated user object to your AuthService or wherever it is managed
         _authService.costumeUser = user;
+
+        _providerManagement!.updateUser(user);
       }
     } catch (error) {
       // Handle errors, you may want to log or rethrow the error

@@ -172,6 +172,10 @@ class _SettingsState extends State<Settings> {
         return AppLocalizations.of(context)!.errorUnwantedCharactersUsername;
       }
 
+      if (newUsername.length < 6 || newUsername.length > 10) {
+        return AppLocalizations.of(context)!.errorUsernameLength;
+      }
+
       // Assuming _storeService.changeUserName returns a Future<void>
       await _storeService.changeUsername(newUsername);
 

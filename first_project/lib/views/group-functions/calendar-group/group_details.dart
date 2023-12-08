@@ -592,7 +592,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                             ],
                                           ),
                                         ),
-                                        SizedBox(height: 4),
+                                        SizedBox(height: 3),
                                         Container(
                                           margin: EdgeInsets.only(
                                               left: 16), // Add left margin
@@ -628,11 +628,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                 color: ColorManager().getColor(
                                                     event.eventColorIndex),
                                               ),
-                                              SizedBox(width: 8),
+                                              SizedBox(width: 7),
                                               Text(
                                                 event.title,
                                                 style: TextStyle(
-                                                  fontSize: 16,
+                                                  fontSize: 15,
                                                   color: textColor,
                                                 ),
                                               ),
