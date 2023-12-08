@@ -9,7 +9,7 @@
     "goodMorning": "Buenos Días",
     "goodAfternoon": "Buenas Tardes",
     "goodEvening": "Buenas Noches",
-    "language": "Idioma Actual",
+    "language": "es",
     "changeView": "Cambiar la Vista",
     "welcomeGroupView": "Bienvenido {username}, aquí puedes ver la lista de grupos a los que perteneces.",
     "zeroNotifications": "No hay notificaciones disponibles",
@@ -102,7 +102,7 @@
     "errorSelectedDays": "El día del evento es {selectedDays} y debería coincidir con uno de los días seleccionados.",
     "monthlyRepetitionInf": "Este evento se repetirá el día {selectedDay} cada {repeatInterval} mes(es)",
     "yearlyRepetitionInf": "Este evento se repetirá el día {selectedDay} cada {repeatInterval} año(s) ",
-    "edit": "Editar",
+    "edit": "Guardar edición",
     "remove": "Eliminar",
     "confirm": "Confirmar",
     "cancel": "Cancelar",
@@ -148,5 +148,6 @@
     "errorChangingUsername": "Error al cambiar el nombre de usuario. Por favor, inténtelo de nuevo más tarde.",
     "errorChangingPassword": "Error al cambiar la contraseña. Por favor, inténtelo de nuevo.",
     "successChangingUsername": "Nombre de usuario actualizado !",
-    "errorUsernameLength": "Error: El nombre de usuario debe tener entre 6 y 10 caracteres."
+    "errorUsernameLength": "Error: El nombre de usuario debe tener entre 6 y 10 caracteres.",
+    "formatDate": "{date}"
 }

@@ -1,4 +1,5 @@
 import 'dart:developer' as devtools show log;
+import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
@@ -161,16 +162,16 @@ class _GroupDetailsState extends State<GroupDetails> {
         return AlertDialog(
           title: Text('Confirm Removal'),
           //  AppLocalizations.of(context)!.changeView,
-          content: Text('Are you sure you want to remove this event?'),
+          content: Text(AppLocalizations.of(context)!.removeEvent),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
             ),
             TextButton(
-              child: Text('Remove'),
+              child: Text(AppLocalizations.of(context)!.remove),
               onPressed: () async {
                 Navigator.of(context).pop(true);
                 confirmed = true;
@@ -566,10 +567,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                                               Row(
                                                 children: [
                                                   Text(
-                                                    DateFormat(
-                                                            'EEE, MMM d  -  ')
-                                                        .format(
-                                                            event.startDate),
+                                                    AppLocalizationsMethods.of(
+                                                                context)
+                                                            ?.formatDate(event
+                                                                .startDate) ??
+                                                        '',
                                                     style: TextStyle(
                                                       fontSize: 15,
                                                       fontWeight:
@@ -577,9 +579,13 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                       color: textColor,
                                                     ),
                                                   ),
+                                                  Text(" - "),
                                                   Text(
-                                                    DateFormat('EEE, MMM d')
-                                                        .format(event.endDate),
+                                                    AppLocalizationsMethods.of(
+                                                                context)
+                                                            ?.formatDate(event
+                                                                .endDate) ??
+                                                        '',
                                                     style: TextStyle(
                                                       fontSize: 15,
                                                       fontWeight:

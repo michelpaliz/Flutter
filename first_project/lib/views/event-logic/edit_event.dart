@@ -1,3 +1,4 @@
+import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
@@ -6,6 +7,7 @@ import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/event.dart';
 import '../../services/firestore_database/implements/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -60,6 +62,10 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+    // Initialize the _storeService using the providerManagement.
+    _storeService = FirestoreService.firebase(providerManagement);
     _event = ModalRoute.of(context)!.settings.arguments as Event;
     _noteController.text = _event.note ?? '';
     _selectedStartDate = _event.startDate;
@@ -512,7 +518,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                       _saveEditedEvent();
                     }
                   },
-                  child: Text(AppLocalizations.of(context)!.addEvent),
+                  child: Text(AppLocalizations.of(context)!.edit),
                 ),
               ),
             ],
