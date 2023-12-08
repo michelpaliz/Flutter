@@ -579,7 +579,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                                                       color: textColor,
                                                     ),
                                                   ),
-                                                  Text(" - "),
+                                                  Text("  -  "),
                                                   Text(
                                                     AppLocalizationsMethods.of(
                                                                 context)
@@ -605,7 +605,11 @@ class _GroupDetailsState extends State<GroupDetails> {
                                           child: Row(
                                             children: [
                                               Text(
-                                                '${event.startDate.hour}-${event.startDate.minute}  -',
+                                                AppLocalizationsMethods.of(
+                                                            context)!
+                                                        .formatHours(
+                                                            event.startDate) +
+                                                    "   - ",
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   color: textColor,
@@ -613,7 +617,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                                               ),
                                               SizedBox(width: 8),
                                               Text(
-                                                '${event.endDate.hour}-${event.endDate.minute}',
+                                                AppLocalizationsMethods.of(
+                                                        context)!
+                                                    .formatHours(event.endDate),
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   color: textColor,

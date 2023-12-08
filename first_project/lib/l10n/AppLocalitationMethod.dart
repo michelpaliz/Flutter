@@ -24,6 +24,10 @@ class AppLocalizationsMethods {
   String formatDate(DateTime date) {
     return DateFormat('EEE, MMM d', currentLanguage).format(date);
   }
+
+  String formatHours(DateTime date) {
+    return DateFormat('hh:mm a', currentLanguage).format(date);
+  }
 }
 
 class _AppLocalizationsDelegate
