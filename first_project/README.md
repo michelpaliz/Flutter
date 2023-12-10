@@ -1,7 +1,11 @@
 # AUTHOR: Michael Paliz Morales
 
 ## Introduction
-The concept for this calendar application, aptly named "Calendar," stemmed from the common need for companies to streamline their task management processes in a more asynchronous and efficient manner. I embarked on creating this application with the primary goal of assisting companies in achieving better self-management and facilitating smoother collaboration among their employees.
+Introducing "Paliz's Calendar" – a personalized solution born from the heart of a family company striving for improved management and seamless collaboration. This unique calendar application was crafted with the specific purpose of addressing the challenges faced by our own family business.
+As the founder of Paliz's Calendar, I understood the importance of streamlining task management processes within a family company. Recognizing the need for a more asynchronous and efficient approach, I set out to create an application that not only met our organizational needs but also aimed to empower other family businesses like ours.
+Our journey began with the genuine desire to enhance self-management and foster smoother collaboration among our dedicated team members. Paliz's Calendar is not just a product; it's a reflection of the values we hold dear within our family company – efficiency, teamwork, and a commitment to achieving our collective goals.
+Every feature, every detail of this application is infused with the understanding of the unique dynamics that family businesses face. Whether it's coordinating schedules, managing tasks, or simply staying connected, Paliz's Calendar is designed to be a reliable companion on the journey to better management.
+Join us on this venture towards enhanced productivity, improved communication, and a more connected and harmonious work environment. Paliz's Calendar is more than just an app; it's a testament to the spirit of family businesses striving for excellence in every aspect of their operations.
 
 ## Basic Usage
 In the realm of work, every project and task typically follows a specific schedule or routine. Consequently, organizations require a means for their employees to manage these schedules effectively. This is precisely where the "Calendar" application comes into play. It provides companies with a solution to enhance collaboration by utilizing a shared calendar, enabling teams to work asynchronously while adhering to their schedules.

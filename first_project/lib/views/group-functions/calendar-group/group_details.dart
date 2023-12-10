@@ -52,7 +52,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     _group = widget.group; // Access the passed group
     _users = _group.userRoles; // Access the
     _events = [];
-    _selectedDate = DateTime.now().toLocal();
+    _selectedDate = DateTime.now().toUtc();
     _selectedView = CalendarView.month;
     _controller = CalendarController();
     _authService = AuthService.firebase();
@@ -194,13 +194,17 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   /** This method is responsible for retrieving a list of events that occur on a specific date, which is passed as the date parameter. */
   List<Event> _getEventsForDate(DateTime date) {
-    final List<Event> eventsForDate = _events.where((event) {
-      final DateTime eventStartDate = event.startDate.toLocal();
-      final DateTime eventEndDate = event.endDate.toLocal();
+    // Convert the input date to UTC to ensure consistent comparisons
+    final DateTime utcDate = DateTime.utc(date.year, date.month, date.day);
 
-      // Check if the event falls on the selected date
-      return eventStartDate.isBefore(date.add(Duration(days: 1))) &&
-          eventEndDate.isAfter(date);
+    final List<Event> eventsForDate = _events.where((event) {
+      // Convert event start and end dates to UTC
+      final DateTime eventStartDate = event.startDate.toUtc();
+      final DateTime eventEndDate = event.endDate.toUtc();
+
+      // Check if the event falls on the selected date in UTC
+      return eventStartDate.isBefore(utcDate.add(Duration(days: 1))) &&
+          eventEndDate.isAfter(utcDate);
     }).toList();
 
     return eventsForDate;
@@ -264,8 +268,8 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Create a new instance of Appointment for the specific instance
     final appointment = Appointment(
       id: event.id, // Generate a unique ID for the appointment
-      startTime: startDate, // Generate
-      endTime: endDate, // Generate
+      startTime: startDate.toUtc(), // Generate
+      endTime: endDate.toUtc(), // Generate
       // startTimeZone: 'Europe/Madrid',
       // endTimeZone: 'Europe/Madrid',
       subject: event.description ?? "",
@@ -398,12 +402,16 @@ class _GroupDetailsState extends State<GroupDetails> {
                   if (details.date != null) {
                     // Use Future.delayed to schedule the state update after the build is complete
                     Future.delayed(Duration.zero, () {
+                      // Convert the selected date to UTC to ensure consistent comparisons
+                      DateTime selectedDateUtc = details.date!.toUtc();
+
                       // Update the selected date when the user selects a date
                       setState(() {
-                        _selectedDate = details.date!.toLocal();
+                        _selectedDate = selectedDateUtc.toUtc();
                       });
-                      // Fetch events for the selected date
-                      _getEventsForDate(_selectedDate);
+
+                      // Fetch events for the selected date (converted to UTC)
+                      _getEventsForDate(selectedDateUtc);
                     });
                   }
                 },
