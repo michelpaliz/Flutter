@@ -1,5 +1,6 @@
 const loginRoute = "/login/";
 const registerRoute = '/register/';
+const passwordRecoveryRoute = "/password-recovery/";
 const userCalendar = "/user-notes/";
 const verifyEmailRoute = '/verify-email;';
 const addEvent = '/add-event';
@@ -15,3 +16,4 @@ const createGroupData ='/create-group-data';
 const createGroupSearchBar = '/create-group-search-bar';
 const homePage = '/home-page';
 const editGroupData = '/edit-group-data';
+

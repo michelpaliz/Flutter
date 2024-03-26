@@ -254,7 +254,7 @@
             }
         }
     },
-    "edit": "Save Edit",
+    "edit": "Edit",
     "remove": "Remove",
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -307,5 +307,6 @@
             "example": "11/10/2021",
             "description": "Balance date"
         }
-    }
+    },
+    "forgotPassword": "Recover here your password."
 }

@@ -1,20 +1,22 @@
 // ----THIS IS NEW -----
 import 'dart:developer' as devtools show log;
+
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/routes.dart';
 import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/provider/provider_management.dart';
 import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/services/auth/implements/auth_service.dart';
 import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
 import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
-import 'package:first_project/provider/provider_management.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
+
 import '../../styles/widgets/show_error_dialog.dart';
 import '../../styles/widgets/view-item-styles/textfield_styles.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 // ======= LOGIN =========
 class LoginView extends StatefulWidget {
@@ -112,7 +114,6 @@ class _LoginViewState extends State<LoginView> {
                     onPressed: () async {
                       final email = _email.text;
                       final password = _password.text;
-
                       try {
                         await _loginInitializer.initializeUserAndServices(
                             email, password);
@@ -157,6 +158,12 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                 ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, passwordRecoveryRoute);
+                    },
+                    child: Text(AppLocalizations.of(context)!.forgotPassword,
+                        style: TextStyle(color: Colors.blue))),
                 TextButton(
                     onPressed: () {
                       Navigator.pushNamed(context, registerRoute);

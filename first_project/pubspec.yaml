@@ -71,8 +71,6 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
-    - assets/flutter_i18n/en.json
-    - assets/flutter_i18n/es.json
     - assets/images/login_image.png
     - assets/images/beach_image.png
     - assets/images/person_profile.png

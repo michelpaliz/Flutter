@@ -15,6 +15,7 @@ import 'package:first_project/views/group-functions/create_group_data.dart';
 import 'package:first_project/views/group-functions/edit_group_data.dart';
 import 'package:first_project/views/group-functions/show_groups.dart';
 import 'package:first_project/views/log-user/login_view.dart';
+import 'package:first_project/views/log-user/recover_password.dart';
 import 'package:first_project/views/log-user/register_view.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
@@ -88,6 +89,7 @@ class _MyAppState extends State<MyApp> {
               //     }),
               loginRoute: (context) => LoginView(),
               registerRoute: (context) => const RegisterView(),
+              passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
               userCalendar: (context) => const NotesView(),
               verifyEmailRoute: (context) => const VerifyEmailView(),
               editEvent: (context) {
@@ -165,6 +167,7 @@ class _MyAppState extends State<MyApp> {
                     .shrink(); // Return an empty widget or handle the error
               }
             },
+
             home: isLogged == true
                 ? ShowGroups()
                 : LoginView(
