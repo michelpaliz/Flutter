@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "first_project",
-            "request": "launch",
+            "request": "launch",/*  */
             "type": "dart"
         },
         {
@@ -24,7 +24,7 @@
             "name": "Flutter - Device",
             "request": "launch",
             "type": "dart",
-            "deviceId": "R5CT803PHBD"
+            "deviceId": "2312DRAABG"
           }
     ]
 }

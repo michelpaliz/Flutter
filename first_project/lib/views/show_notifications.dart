@@ -1,11 +1,11 @@
-import 'package:first_project/provider/provider_management.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/notification_user.dart';
 import '../models/user.dart';
-import '../services/auth/implements/auth_service.dart';
-import '../services/firestore_database/implements/firestore_service.dart';
+import '../services/auth/logic_backend/auth_service.dart';
+import '../services/firestore_database/logic_backend/firestore_service.dart';
 
 class ShowNotifications extends StatefulWidget {
   const ShowNotifications({super.key});

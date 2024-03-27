@@ -5,11 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart'
     show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/services/auth/auth_user.dart';
+import 'package:first_project/services/auth/logic_backend/auth_user.dart';
 import 'package:first_project/services/auth/exceptions/password_exceptions.dart';
 import '../../../firebase_options.dart';
 import '../../../models/user.dart';
-import '../auth_repository.dart';
+import 'auth_repository.dart';
 
 class AuthProvider implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;

@@ -69,4 +69,11 @@ class ProviderManagement extends ChangeNotifier {
     _themeData = (_themeData == lightTheme) ? darkTheme : lightTheme;
     notifyListeners();
   }
+
+
+  // // Get updated group by ID
+  // Group getUpdatedGroup(String groupId) {
+  //   return _groups.firstWhere((group) => group.id == groupId,
+  //       orElse: () => throw Exception('Group not found with ID: $groupId'));
+  // }
 }

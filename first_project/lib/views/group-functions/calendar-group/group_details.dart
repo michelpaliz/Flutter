@@ -5,8 +5,8 @@ import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
-import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +16,7 @@ import '../../../enums/routes/routes.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/event.dart';
 import '../../../models/group.dart';
-import '../../../services/firestore_database/implements/firestore_service.dart';
+import '../../../services/firestore_database/logic_backend/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class GroupDetails extends StatefulWidget {

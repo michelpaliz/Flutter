@@ -1,6 +1,6 @@
 import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
 import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:flutter/material.dart';

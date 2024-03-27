@@ -3,9 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'dart:developer' as devtools show log;
 
 class EditGroupData extends StatefulWidget {
   final Group group;
@@ -94,6 +95,8 @@ class _EditGroupDataState extends State<EditGroupData> {
     // Add your logic here
   }
 
+  // ** EDIT GROUP **
+
   void _editGroup() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
       bool groupCreated =
@@ -166,11 +169,61 @@ class _EditGroupDataState extends State<EditGroupData> {
       setState(() {
         _userRoles.remove(fetchedUserName);
       });
-      print('Remove user: $fetchedUserName');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User $fetchedUserName removed from the group.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     } else {
-      print('User not found in the group: $fetchedUserName');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('User $fetchedUserName not found in the group.'),
+        duration: Duration(seconds: 2),
+      ));
     }
   }
+  // void _removeUser(String fetchedUserName) {
+  //   // Check if the user is the current user before attempting to remove
+  //   if (fetchedUserName == _currentUser?.userName) {
+  //     print('Cannot remove current user: $fetchedUserName');
+  //     // Show a message to the user that they cannot remove themselves
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
+  //         duration: Duration(seconds: 2),
+  //       ),
+  //     );
+  //     return;
+  //   }
+
+  //   print('This is the group $_userInGroup');
+
+  //   int initialLength = _userInGroup.length;
+  //   _userInGroup.removeWhere(
+  //       (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
+
+  //   if (_userInGroup.length < initialLength) {
+  //     _updateUserInGroup(_userInGroup);
+  //     setState(() {
+  //       _userRoles.remove(fetchedUserName);
+  //     });
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('User $fetchedUserName removed from the group.'),
+  //         duration: Duration(seconds: 2),
+  //       ),
+  //     );
+  //     print('Remove user: $fetchedUserName');
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('User $fetchedUserName not found in the group.'),
+  //         duration: Duration(seconds: 2),
+  //       ),
+  //     );
+  //     print('User not found in the group: $fetchedUserName');
+  //   }
+  // }
 
   Future<bool> _creatingGroup() async {
     if (_groupName.trim().isEmpty) {
@@ -234,6 +287,10 @@ class _EditGroupDataState extends State<EditGroupData> {
         final providerData =
             providerManagement; // Adjust this to access the necessary data.
         _storeService = FirestoreService.firebase(providerData);
+        // Access the updated group from providerManagement
+        // Access ProviderManagement to get updated group
+
+        // final Group groupState = providerManagement.getUpdatedGroup(groupId);
 
         // Rest of your build method...
         return Scaffold(
@@ -245,6 +302,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                 padding: const EdgeInsets.all(15.0),
                 child: Column(
                   children: [
+                    // ** SHOW GROUP'S IMAGE ** 
                     GestureDetector(
                       onTap: _pickImage,
                       child: CircleAvatar(
@@ -268,11 +326,14 @@ class _EditGroupDataState extends State<EditGroupData> {
                     ),
 
                     SizedBox(height: 10),
+
+                    // ** ADD AN IMAGE FOR THE GROUP ** 
                     Text(
                       AppLocalizations.of(context)!.putGroupImage,
                       style: TextStyle(color: Colors.grey),
                     ),
                     SizedBox(height: 10),
+                    // ** PUT YOUR GROUP NAME ** 
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
@@ -295,6 +356,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                         ),
                       ),
                     ),
+                    // ** PUT YOUR GROUP'S DESCRIPTION ** 
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
@@ -319,6 +381,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                       ),
                     ),
                     SizedBox(height: 10),
+                    // ** ADD USER FOR THE GROUP ** `
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -382,14 +445,16 @@ class _EditGroupDataState extends State<EditGroupData> {
 
                     SizedBox(height: 10),
 
+                    // ** UPDATE USER LIST **
                     if (_userRoles.isNotEmpty)
                       Column(
                         children: _userRoles.keys.map((userName) {
                           final roleValue = _userRoles[userName];
-
                           return FutureBuilder<User?>(
                             future: _storeService.getUserByName(userName),
                             builder: (context, snapshot) {
+                              devtools
+                                  .log('This is username fetched $userName');
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return CircularProgressIndicator(); // Loading indicator
@@ -407,6 +472,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                         Utilities.buildProfileImage(
                                             user?.photoUrl),
                                   ),
+                                  // ** REMOVE USER **
                                   trailing: GestureDetector(
                                     onTap: () {
                                       // Add your remove action here

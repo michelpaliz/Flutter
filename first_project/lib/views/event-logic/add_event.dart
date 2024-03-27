@@ -1,7 +1,7 @@
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/models/recurrence_rule.dart';
-import 'package:first_project/provider/provider_management.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
-import '../../services/firestore_database/implements/firestore_service.dart';
+import '../../services/firestore_database/logic_backend/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class EventNoteWidget extends StatefulWidget {

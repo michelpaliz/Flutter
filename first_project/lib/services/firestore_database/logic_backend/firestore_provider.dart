@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/exceptions/firestore_exceptions.dart';
 import 'package:first_project/services/user/user_provider.dart';
 import '../../../models/event.dart';
 import '../../../models/notification_user.dart';
 import '../../../models/user.dart';
-import '../firestore_repository.dart';
+import 'firestore_repository.dart';
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FirestoreProvider implements FirestoreRepository {
@@ -22,45 +22,7 @@ class FirestoreProvider implements FirestoreRepository {
   })  : _authService = AuthService.firebase(),
         _providerManagement = providerManagement;
 
-  /** Here I update the user and also if he is in groups  */
-  @override
-  Future<String> updateUser(User user) async {
-    try {
-      CollectionReference userCollection =
-          FirebaseFirestore.instance.collection('users');
-
-      QuerySnapshot userQuerySnapshot = await userCollection
-          .where('email', isEqualTo: user.email)
-          .limit(1)
-          .get();
-
-      if (userQuerySnapshot.docs.isNotEmpty) {
-        DocumentReference userRef = userQuerySnapshot.docs.first.reference;
-
-        await userRef.update(user.toJson()); // Update the user document
-
-        User? currentUser = _authService.costumeUser;
-
-        if (currentUser!.id == user.id) {
-          _authService.costumeUser = user;
-
-          // Update the user in his groups
-          if (user.groupIds.isNotEmpty) {
-            updateUserInGroups(user);
-          }
-        }
-
-        // Use _providerManagement here
-        _providerManagement?.updateUser(user);
-
-        return 'User has been updated';
-      }
-
-      return 'User not found';
-    } catch (error) {
-      throw Exception('Error updating user in Firestore: $error');
-    }
-  }
+  // ** HANDLE EVENT DATA ***
 
   Future<void> updateEvent(Event event) async {
     try {
@@ -168,6 +130,8 @@ class FirestoreProvider implements FirestoreRepository {
     return []; // Return an empty list if no update was performed
   }
 
+  // ** HANDLE NOTIFICATIONS DATA **
+
   @override
   Future<void> addNotification(User user, NotificationUser notification) async {
     try {
@@ -188,33 +152,6 @@ class FirestoreProvider implements FirestoreRepository {
       updateUserInGroups(user);
     } catch (e) {
       print('Error adding notification: $e');
-    }
-  }
-
-  @override
-  Future<void> addGroup(Group group) async {
-    try {
-      // Serialize the group object to JSON
-      final groupData = group.toJson();
-
-      // Create the group document in the 'groups' collection
-      await _firestore.collection('groups').doc(group.id).set(groupData);
-
-      //Now we are gonna create a new URL reference for the group's image and update it
-      // _updatePhotoURLForGroup(group);
-
-      // Update the current user's group IDs
-      final currentUser = AuthService.firebase().costumeUser;
-      currentUser!.groupIds.add(group.id);
-      await updateUser(currentUser);
-      _providerManagement?.updateUser(currentUser);
-      _providerManagement?.addGroup(group);
-
-      // Create notifications for group members
-      await _createNotificationsForGroups(group, currentUser);
-    } catch (e) {
-      print('Error adding group: $e');
-      throw 'Failed to add the group';
     }
   }
 
@@ -247,6 +184,35 @@ class FirestoreProvider implements FirestoreRepository {
     }
   }
 
+  // ** HANDLE GROUP DATA  **
+
+  @override
+  Future<void> addGroup(Group group) async {
+    try {
+      // Serialize the group object to JSON
+      final groupData = group.toJson();
+
+      // Create the group document in the 'groups' collection
+      await _firestore.collection('groups').doc(group.id).set(groupData);
+
+      //Now we are gonna create a new URL reference for the group's image and update it
+      // _updatePhotoURLForGroup(group);
+
+      // Update the current user's group IDs
+      final currentUser = AuthService.firebase().costumeUser;
+      currentUser!.groupIds.add(group.id);
+      await updateUser(currentUser);
+      _providerManagement?.updateUser(currentUser);
+      _providerManagement?.addGroup(group);
+
+      // Create notifications for group members
+      await _createNotificationsForGroups(group, currentUser);
+    } catch (e) {
+      print('Error adding group: $e');
+      throw 'Failed to add the group';
+    }
+  }
+
   @override
   Future<void> updateGroup(Group group) async {
     final groupData = group.toJson(); // Serialize the entire Group object
@@ -257,9 +223,15 @@ class FirestoreProvider implements FirestoreRepository {
     // Update the document with the new data
     try {
       await groupReference.update(groupData);
-      //Now we are gonna create a new URL reference for the group's image and update it
+      // Now we are gonna create a new URL reference for the group's image and update it
       // _updatePhotoURLForGroup(group);
       _providerManagement?.updateGroup(group);
+      // We now update the user's groups ids in case the user a new user has been added
+      for (var user in group.users) {
+        // Get the first user which is the new user
+        var updatedUser = group.users.firstWhere((u) => u.id == user.id);
+        updateUser(updatedUser);
+      }
     } catch (e) {
       print("Error updating group: $e");
       // Handle the error appropriately, e.g., show a snackbar or alert to the user.
@@ -285,20 +257,34 @@ class FirestoreProvider implements FirestoreRepository {
     }
   }
 
+  /**
+   * @param user
+   * @return This function ensures that whenever a user's information is updated, the changes are reflected in all groups they belong to, ensuring consistency across the application.
+   */
   @override
   Future<void> updateUserInGroups(User user) async {
     // Iterate through the user's group IDs and update each group's user list
     for (String groupId in user.groupIds.toList()) {
-      Group? group = await getGroupFromId(
-          groupId); // Replace with your logic to fetch the group
+      // Retrieve the group object corresponding to the groupId
+      Group? group = await getGroupFromId(groupId);
+
+      // Check if the group is found
       if (group != null) {
+        // Find the index of the user within the group's users list
         int userIndex = group.users.indexWhere((u) => u.id == user.id);
+
+        // If the user is found within the group
         if (userIndex != -1) {
+          // Create a copy of the group's users list
           List<User> updatedUsers = List.from(group.users);
+
+          // Update the user data within the group's users list
           updatedUsers[userIndex] = user;
 
+          // Replace the group's users list with the updated list
           group.users = updatedUsers;
 
+          // Update the group with the modified user list
           await updateGroup(
               group); // Replace with your logic to update the group
         }
@@ -331,26 +317,6 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Update the group in Firestore
       await updateGroup(groupFetched);
-    }
-  }
-
-  @override
-  Future<User?> getUserById(String userId) async {
-    try {
-      DocumentSnapshot userSnapshot =
-          await _firestore.collection('users').doc(userId).get();
-      if (userSnapshot.exists) {
-        // Parse the data from the snapshot
-        Map<String, dynamic> userData =
-            userSnapshot.data() as Map<String, dynamic>;
-        return User.fromJson(userData); // Use the fromJson factory method
-      } else {
-        // User not found
-        return null;
-      }
-    } catch (error) {
-      print('Error fetching user: $error');
-      return null;
     }
   }
 
@@ -424,31 +390,7 @@ class FirestoreProvider implements FirestoreRepository {
   }
 
   @override
-  Future<User?> getUserByName(String userName) async {
-    try {
-      QuerySnapshot querySnapshot = await _firestore
-          .collection('users')
-          .where('userName', isEqualTo: userName)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        // Assuming you want to return the first user found with the given username
-        DocumentSnapshot userSnapshot = querySnapshot.docs.first;
-        Map<String, dynamic> userData =
-            userSnapshot.data() as Map<String, dynamic>;
-        return User.fromJson(userData);
-      } else {
-        // User not found
-        return null;
-      }
-    } catch (error) {
-      print('Error fetching user by name: $error');
-      return null;
-    }
-  }
-
-  @override
-  Future<void> removeAll(User user, Group group) async {
+  Future<void> removeUserInGroup(User user, Group group) async {
     try {
       // Remove the user from the group's list
       List<User> updatedUsers =
@@ -457,6 +399,9 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Remove the group ID from the user's data
       user.groupIds.remove(group.id);
+
+      //Remove the user from the user roles list in the group
+      group.userRoles.remove(user.id);
 
       // Update both the user and the group in Firestore
       await updateUser(user);
@@ -510,6 +455,92 @@ class FirestoreProvider implements FirestoreRepository {
       rethrow;
     }
     return null;
+  }
+
+  // ** HANDLE USER DATA ***
+
+  /** Here I update the user and also if he is in groups  */
+  @override
+  Future<String> updateUser(User user) async {
+    try {
+      CollectionReference userCollection =
+          FirebaseFirestore.instance.collection('users');
+
+      QuerySnapshot userQuerySnapshot = await userCollection
+          .where('email', isEqualTo: user.email)
+          .limit(1)
+          .get();
+
+      if (userQuerySnapshot.docs.isNotEmpty) {
+        DocumentReference userRef = userQuerySnapshot.docs.first.reference;
+
+        await userRef.update(user.toJson()); // Update the user document
+
+        User? currentUser = _authService.costumeUser;
+
+        if (currentUser!.id == user.id) {
+          _authService.costumeUser = user;
+
+          // Update the user in his groups
+          if (user.groupIds.isNotEmpty) {
+            updateUserInGroups(user);
+          }
+        }
+
+        // Use _providerManagement here
+        _providerManagement?.updateUser(user);
+
+        return 'User has been updated';
+      }
+
+      return 'User not found';
+    } catch (error) {
+      throw Exception('Error updating user in Firestore: $error');
+    }
+  }
+
+  @override
+  Future<User?> getUserById(String userId) async {
+    try {
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('users').doc(userId).get();
+      if (userSnapshot.exists) {
+        // Parse the data from the snapshot
+        Map<String, dynamic> userData =
+            userSnapshot.data() as Map<String, dynamic>;
+        return User.fromJson(userData); // Use the fromJson factory method
+      } else {
+        // User not found
+        return null;
+      }
+    } catch (error) {
+      print('Error fetching user: $error');
+      return null;
+    }
+  }
+
+  @override
+  Future<User?> getUserByName(String userName) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('userName', isEqualTo: userName)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Assuming you want to return the first user found with the given username
+        DocumentSnapshot userSnapshot = querySnapshot.docs.first;
+        Map<String, dynamic> userData =
+            userSnapshot.data() as Map<String, dynamic>;
+        return User.fromJson(userData);
+      } else {
+        // User not found
+        return null;
+      }
+    } catch (error) {
+      print('Error fetching user by name: $error');
+      return null;
+    }
   }
 
   @override

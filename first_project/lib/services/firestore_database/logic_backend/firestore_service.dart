@@ -1,17 +1,17 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/services/firestore_database/implements/firestore_provider.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/services/firestore_database/logic_backend/firestore_provider.dart';
 
 import '../../../models/event.dart';
-import '../firestore_repository.dart';
+import 'firestore_repository.dart';
 
 class FirestoreService extends FirestoreRepository {
-  final FirestoreRepository provider;
+  final FirestoreRepository repository;
 
   // Private constructor for the Singleton pattern
-  FirestoreService._(this.provider);
+  FirestoreService._(this.repository);
 
   // Static field to hold the single instance of StoreService
   static FirestoreService? _instance;
@@ -28,71 +28,71 @@ class FirestoreService extends FirestoreRepository {
   /**when you call removeEvent on an instance of StoreService, it will delegate the call to the underlying FireStoreProvider and execute its removeEvent method. */
   @override
   Future<List<Event>> removeEvent(String eventId) =>
-      provider.removeEvent(eventId);
+      repository.removeEvent(eventId);
 
   @override
-  Future<String> updateUser(User user) => provider.updateUser(user);
+  Future<String> updateUser(User user) => repository.updateUser(user);
 
   @override
-  Future<void> updateEvent(Event event) => provider.updateEvent(event);
+  Future<void> updateEvent(Event event) => repository.updateEvent(event);
 
   @override
   Future<void> addNotification(User user, NotificationUser notification) =>
-      provider.addNotification(user, notification);
+      repository.addNotification(user, notification);
 
   @override
-  Future<void> addGroup(Group group) => provider.addGroup(group);
+  Future<void> addGroup(Group group) => repository.addGroup(group);
 
   @override
-  Future<void> updateGroup(Group group) => provider.updateGroup(group);
+  Future<void> updateGroup(Group group) => repository.updateGroup(group);
 
   @override
   Future<Group?> getGroupFromId(String groupId) =>
-      provider.getGroupFromId(groupId);
+      repository.getGroupFromId(groupId);
 
   @override
   Future<void> updateUserInGroups(User user) =>
-      provider.updateUserInGroups(user);
+      repository.updateUserInGroups(user);
 
   @override
   Future<void> addUserToGroup(User user, NotificationUser notification) =>
-      provider.addUserToGroup(user, notification);
+      repository.addUserToGroup(user, notification);
 
   @override
-  Future<User?> getUserById(String userId) => provider.getUserById(userId);
+  Future<User?> getUserById(String userId) => repository.getUserById(userId);
 
   @override
   Future<List<Group>> fetchUserGroups(List<String>? groupIds) =>
-      provider.fetchUserGroups(groupIds);
+      repository.fetchUserGroups(groupIds);
 
   @override
-  Future<void> deleteGroup(String groupId) => provider.deleteGroup(groupId);
+  Future<void> deleteGroup(String groupId) => repository.deleteGroup(groupId);
 
   @override
   Future<User?> getUserByName(String userName) =>
-      provider.getUserByName(userName);
+      repository.getUserByName(userName);
 
   @override
-  Future<void> removeAll(User user, Group group) =>
-      provider.removeAll(user, group);
+  Future<void> removeUserInGroup(User user, Group group) =>
+      repository.removeUserInGroup(user, group);
 
   @override
   Future<User> getOwnerFromGroup(Group group) =>
-      provider.getOwnerFromGroup(group);
+      repository.getOwnerFromGroup(group);
 
   @override
   Future<Event?> getEventFromGroupById(String eventId, String groupId) =>
-      provider.getEventFromGroupById(eventId, groupId);
+      repository.getEventFromGroupById(eventId, groupId);
 
   @override
   Future<Event?> getEventFromUserById(User user, String eventId) =>
-      provider.getEventFromUserById(user, eventId);
+      repository.getEventFromUserById(user, eventId);
 
   @override
   Future<User?> getUserByUserName(String userName) =>
-      provider.getUserByUserName(userName);
+      repository.getUserByUserName(userName);
 
   @override
   Future<void> changeUsername(String newUserName) =>
-      provider.changeUsername(newUserName);
+      repository.changeUsername(newUserName);
 }

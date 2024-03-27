@@ -1,6 +1,6 @@
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 
 class LoginInitializer {
   final AuthService authService;

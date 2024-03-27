@@ -1,10 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/services/auth/implements/auth_service.dart';
-import 'package:first_project/services/firestore_database/implements/firestore_service.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/views/my_app.dart';
-import 'package:first_project/provider/provider_management.dart';
-import 'package:first_project/provider/theme_preference_provider.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManangement/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 //** Logic for my view */
@@ -33,6 +33,7 @@ Future<void> initializeApp() async {
   }
   final AuthService authService = AuthService.firebase();
   User? user = await authService.generateUserCustomModel();
+
 
   devtools.log("THIS IS THE MAIN $user");
   await AppInitializer.goToMainDirectly(user);

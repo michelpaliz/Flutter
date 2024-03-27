@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../enums/routes/routes.dart';
 import '../../services/auth/exceptions/auth_exceptions.dart';
-import '../../services/auth/implements/auth_service.dart';
+import '../../services/auth/logic_backend/auth_service.dart';
 import '../../styles/widgets/view-item-styles/textfield_styles.dart';
 import '../../styles/widgets/show_error_dialog.dart';
 import 'dart:developer' as devtools show log;
