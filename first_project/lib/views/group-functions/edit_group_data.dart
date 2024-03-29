@@ -69,6 +69,8 @@ class _EditGroupDataState extends State<EditGroupData> {
     });
   }
 
+  // ** PICK IMAGE ***
+
   // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
@@ -82,18 +84,13 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  void onSearch(String query) {
-    // You can perform your search action with the 'query' parameter
-    print('Search query: $query');
-    // Add your logic here
-  }
-
   // ** EDIT GROUP **
 
-  void _editGroup() async {
+  // ** Here we update or create the group's data 
+  void _updateGroupMessage() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
       bool groupCreated =
-          await _creatingGroup(); // Call _creatingGroup and await the result
+          await _creatingGroup_UpdatingGroup(); // Call _creatingGroup and await the result
 
       if (groupCreated) {
         // Group creation was successful, show a success message
@@ -177,7 +174,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
-  Future<bool> _creatingGroup() async {
+  Future<bool> _creatingGroup_UpdatingGroup() async {
     if (_groupName.trim().isEmpty) {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
       ScaffoldMessenger.of(context).showSnackBar(
@@ -464,7 +461,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                 child: Container(
                   child: TextButton(
                     onPressed: () {
-                      _editGroup();
+                      _updateGroupMessage();
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
