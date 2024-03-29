@@ -46,20 +46,36 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
   // **SEARCH USER FUNCTIONS **
 
+  /// Updates the search results based on the provided [username].
+  ///
+  /// This method searches for users whose usernames contain the provided [username]
+  /// using a case-insensitive contains operation. It updates the [searchResults]
+  /// list with the names of found users.
+  ///
+  /// Parameters:
+  /// - [username]: The username to search for.
+  ///
+  /// Throws:
+  /// - An error if any error occurs during the search process.
   void _searchUser(String username) async {
     try {
+      // Query Firestore to find users whose usernames contain the provided username
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('userName', isEqualTo: username)
+          .where('userName', isGreaterThanOrEqualTo: username.toLowerCase())
+          .where('userName', isLessThan: username.toLowerCase() + 'z')
           .get();
 
+      // Extract usernames from the query results
       final List<String> foundUsers =
           querySnapshot.docs.map((doc) => doc['userName'] as String).toList();
 
+      // Update the search results list
       setState(() {
         searchResults = foundUsers;
       });
 
+      // Print a message if no users are found
       if (searchResults.isEmpty) {
         print('User not found');
       }
@@ -153,6 +169,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ** SHOW THE USER LIST SELECTED WITHIN THE DIALOG **
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
@@ -177,6 +194,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                             ),
                           ),
                           if (selectedUser == _currentUser!.userName)
+                            // ** Show the administrator of the group first
                             Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
@@ -196,6 +214,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                 ),
                               ),
                             )
+                          //** Show the other members  */
                           else
                             DropdownButton<String>(
                               value: userRole,
@@ -222,6 +241,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                           style: TextStyle(fontSize: 14))),
                                 ),
                               ],
+                              //*Adding roles for the user selected **
                               onChanged: (newValue) {
                                 setState(() {
                                   userRoles[selectedUser] = newValue!;

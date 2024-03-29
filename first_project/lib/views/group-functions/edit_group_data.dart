@@ -273,11 +273,6 @@ class _EditGroupDataState extends State<EditGroupData> {
         final providerData =
             providerManagement; // Adjust this to access the necessary data.
         _storeService = FirestoreService.firebase(providerData);
-        // Access the updated group from providerManagement
-        // Access ProviderManagement to get updated group
-
-        // final Group groupState = providerManagement.getUpdatedGroup(groupId);
-
         // Rest of your build method...
         return Scaffold(
             appBar: AppBar(
