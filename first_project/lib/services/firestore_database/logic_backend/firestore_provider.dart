@@ -389,6 +389,20 @@ class FirestoreProvider implements FirestoreRepository {
     //We proceed to delete the events of the deleted group in the users collection
   }
 
+  /// Overrides the method to remove a user from a group in Firestore.
+  ///
+  /// This method removes the specified [user] from the [group] by updating both
+  /// the user and the group documents in Firestore.
+  ///
+  /// Parameters:
+  /// - [user]: The user to be removed from the group.
+  /// - [group]: The group from which the user will be removed.
+  ///
+  /// Returns:
+  /// - A `Future<void>` representing the asynchronous operation.
+  ///
+  /// Throws:
+  /// - An error if any error occurs during the removal process.
   @override
   Future<void> removeUserInGroup(User user, Group group) async {
     try {
@@ -400,7 +414,7 @@ class FirestoreProvider implements FirestoreRepository {
       // Remove the group ID from the user's data
       user.groupIds.remove(group.id);
 
-      //Remove the user from the user roles list in the group
+      // Remove the user from the user roles list in the group
       group.userRoles.remove(user.id);
 
       // Update both the user and the group in Firestore

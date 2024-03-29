@@ -1,19 +1,20 @@
+import 'dart:developer' as devtools show log;
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
-import 'dart:developer' as devtools show log;
 
 class EditGroupData extends StatefulWidget {
   final Group group;
@@ -55,7 +56,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     _userInGroup = _group.users;
   }
 
-
+  //Grab the updated data from the create_group_search_bar.dart screen
   void _onDataChanged(
       List<User> updatedUserInGroup, Map<String, String> updatedUserRoles) {
     // Print the new data before updating the state
@@ -86,7 +87,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
   // ** EDIT GROUP **
 
-  // ** Here we update or create the group's data 
+  // ** Here we update or create the group's data
   void _updateGroupMessage() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
       bool groupCreated =
@@ -132,8 +133,10 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  /** Remove the user using the index of the list  */
-  void _removeUser(String fetchedUserName) {
+  //** REMOVE AN USER */
+
+  // Function to remove a user from the group
+  void _removeUser(BuildContext context, String fetchedUserName) {
     // Check if the user is the current user before attempting to remove
     if (fetchedUserName == _currentUser?.userName) {
       print('Cannot remove current user: $fetchedUserName');
@@ -147,18 +150,49 @@ class _EditGroupDataState extends State<EditGroupData> {
       return;
     }
 
-    print('This is the group $_userInGroup');
+    // Show a confirmation dialog before removing the user
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Removal'),
+          content: Text(
+              'Are you sure you want to remove user $fetchedUserName from the group?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Perform the removal action if confirmed
+                _performUserRemoval(fetchedUserName);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+// Function to perform the removal of a user from the group
+  void _performUserRemoval(String fetchedUserName) {
     int indexToRemove = _userInGroup.indexWhere(
         (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
 
     if (indexToRemove != -1) {
-      List<User> updatedUserInGroup = List.from(_userInGroup);
-      updatedUserInGroup.removeAt(indexToRemove);
+      User removedUser =
+          _userInGroup[indexToRemove]; // Get the user to be removed
       setState(() {
         _userRoles.remove(fetchedUserName);
-        _userInGroup.remove(updatedUserInGroup);
+        _userInGroup.removeAt(indexToRemove); // Remove the user from the list
       });
+      _storeService.removeUserInGroup(
+          removedUser, _group); // Remove user from server
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('User $fetchedUserName removed from the group.'),
@@ -166,10 +200,12 @@ class _EditGroupDataState extends State<EditGroupData> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('User $fetchedUserName not found in the group.'),
-        duration: Duration(seconds: 2),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User $fetchedUserName not found in the group.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -223,7 +259,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-    // ** UI FOR THE SCREEN ** 
+  // ** UI FOR THE SCREEN **
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +378,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                         SizedBox(
                           width: 15,
                         ),
+                        //Here we add a button to to add a user using a dialog
                         TextButton(
                           onPressed: () {
                             showDialog(
@@ -398,60 +435,91 @@ class _EditGroupDataState extends State<EditGroupData> {
                     // ** UPDATE USER LIST **
                     if (_userRoles.isNotEmpty)
                       Column(
-                        children: _userRoles.keys.map((userName) {
-                          final roleValue = _userRoles[userName];
-                          return FutureBuilder<User?>(
-                            future: _storeService.getUserByName(userName),
-                            builder: (context, snapshot) {
-                              devtools
-                                  .log('This is username fetched $userName');
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return CircularProgressIndicator(); // Loading indicator
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else if (snapshot.hasData) {
-                                final user = snapshot.data;
+                        children: (() {
+                          // Separate the administrator's username
+                          String?
+                              administratorUserName; // Initialize a variable to store the administrator's username
+                          Map<String, String> otherUserRoles =
+                              {}; // Initialize a map to store usernames and roles other than the administrator
 
-                                return ListTile(
-                                  title: Text(userName),
-                                  subtitle: Text(roleValue!),
-                                  leading: CircleAvatar(
-                                    radius: 30, // Adjust the size as needed
-                                    backgroundImage:
-                                        Utilities.buildProfileImage(
-                                            user?.photoUrl),
-                                  ),
-                                  // ** REMOVE USER **
-                                  trailing: GestureDetector(
-                                    onTap: () {
-                                      // Add your remove action here
-                                      setState(() {
-                                        _removeUser(userName);
-                                      });
-                                    },
-                                    child: Icon(
-                                      Icons.clear,
-                                      color: Colors.red,
+                          // Iterate through the user roles to find the administrator's username
+                          _userRoles.forEach((key, value) {
+                            if (value == 'Administrator') {
+                              administratorUserName =
+                                  key; // Store the administrator's username
+                            } else {
+                              otherUserRoles[key] =
+                                  value; // Store other usernames and roles
+                            }
+                          });
+
+                          // Sort the other usernames alphabetically
+                          List<String> sortedOtherUserNames =
+                              otherUserRoles.keys.toList()..sort();
+
+                          // Construct the final list of usernames
+                          List<String> sortedUserNames = [];
+                          if (administratorUserName != null) {
+                            sortedUserNames.add(
+                                administratorUserName!); // Add the administrator's username first
+                          }
+                          sortedUserNames.addAll(
+                              sortedOtherUserNames); // Add other usernames sorted alphabetically
+
+                          return sortedUserNames.map((userName) {
+                            final roleValue = _userRoles[userName];
+                            return FutureBuilder<User?>(
+                              future: _storeService.getUserByName(userName),
+                              builder: (context, snapshot) {
+                                devtools
+                                    .log('This is username fetched $userName');
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return CircularProgressIndicator(); // Loading indicator
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else if (snapshot.hasData) {
+                                  final user = snapshot.data;
+
+                                  return ListTile(
+                                    title: Text(userName),
+                                    subtitle: Text(roleValue!),
+                                    leading: CircleAvatar(
+                                      radius: 30, // Adjust the size as needed
+                                      backgroundImage:
+                                          Utilities.buildProfileImage(
+                                              user?.photoUrl),
                                     ),
-                                  ),
-                                  onTap: () {
-                                    // Add any action you want when the role is tapped
-                                  },
-                                );
-                              } else {
-                                return Text(
-                                    AppLocalizations.of(context)!.userNotFound);
-                              }
-                            },
-                          );
-                        }).toList(),
+                                    // ** REMOVE USER **
+                                    trailing: GestureDetector(
+                                      onTap: () {
+                                        // Add your remove action here
+                                        _removeUser(context,
+                                            userName); // Remove setState from here
+                                      },
+                                      child: Icon(
+                                        Icons.clear,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      // Add any action you want when the role is tapped
+                                    },
+                                  );
+                                } else {
+                                  return Text(AppLocalizations.of(context)!
+                                      .userNotFound);
+                                }
+                              },
+                            );
+                          }).toList();
+                        })(),
                       )
                     else
-                      Text("No user roles available"),
-                    SizedBox(
-                        height:
-                            15), // Add spacing between the user roles list and the button
+                      Text(
+                          "No user roles available") // Display message if no user roles available
+
+                    // Add spacing between the user roles list and the button
                   ],
                 ),
               ),
