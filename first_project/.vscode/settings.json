@@ -5,5 +5,8 @@
         "BYMONTH",
         "BYMONTHDAY",
         "Firestore"
-    ]
+    ],
+    "editor.codeActionsOnSave": {
+        
+    }
 }

@@ -36,6 +36,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   late List<User> _userInGroup;
   late final Group _group;
   String _imageURL = "";
+  Map<String, Future<User?>> userFutures = {}; //Needs to be outside the build (ui state) to avoid loading
 
   @override
   void initState() {
@@ -225,7 +226,6 @@ class _EditGroupDataState extends State<EditGroupData> {
     try {
       //** CREATING THE GROUP*/
       //Now we are going to create the link of the image selected for the group
-
       if (_selectedImage != null) {
         _imageURL =
             await Utilities.pickAndUploadImageGroup(_group.id, _selectedImage);
@@ -245,6 +245,10 @@ class _EditGroupDataState extends State<EditGroupData> {
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.updateGroup(updateGroup);
+
+      // Send notifications for the newly added users
+      await _storeService.createNotification_When_Creating_Group(
+          updateGroup, _currentUser!);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -428,91 +432,91 @@ class _EditGroupDataState extends State<EditGroupData> {
                     SizedBox(height: 10),
 
                     // ** UPDATE USER LIST **
-                    if (_userRoles.isNotEmpty)
-                      Column(
-                        children: (() {
-                          // Separate the administrator's username
-                          String?
-                              administratorUserName; // Initialize a variable to store the administrator's username
-                          Map<String, String> otherUserRoles =
-                              {}; // Initialize a map to store usernames and roles other than the administrator
+                    // Initialize a map to store the futures for each username
 
-                          // Iterate through the user roles to find the administrator's username
-                          _userRoles.forEach((key, value) {
-                            if (value == 'Administrator') {
-                              administratorUserName =
-                                  key; // Store the administrator's username
-                            } else {
-                              otherUserRoles[key] =
-                                  value; // Store other usernames and roles
-                            }
-                          });
+                    Column(
+                      children: _userRoles.isNotEmpty
+                          ? (() {
+                              // Separate the administrator's username
+                              String? administratorUserName;
+                              Map<String, String> otherUserRoles = {};
 
-                          // Sort the other usernames alphabetically
-                          List<String> sortedOtherUserNames =
-                              otherUserRoles.keys.toList()..sort();
-
-                          // Construct the final list of usernames
-                          List<String> sortedUserNames = [];
-                          if (administratorUserName != null) {
-                            sortedUserNames.add(
-                                administratorUserName!); // Add the administrator's username first
-                          }
-                          sortedUserNames.addAll(
-                              sortedOtherUserNames); // Add other usernames sorted alphabetically
-
-                          return sortedUserNames.map((userName) {
-                            final roleValue = _userRoles[userName];
-                            return FutureBuilder<User?>(
-                              future: _storeService.getUserByName(userName),
-                              builder: (context, snapshot) {
-                                devtools
-                                    .log('This is username fetched $userName');
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return CircularProgressIndicator(); // Loading indicator
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else if (snapshot.hasData) {
-                                  final user = snapshot.data;
-
-                                  return ListTile(
-                                    title: Text(userName),
-                                    subtitle: Text(roleValue!),
-                                    leading: CircleAvatar(
-                                      radius: 30, // Adjust the size as needed
-                                      backgroundImage:
-                                          Utilities.buildProfileImage(
-                                              user?.photoUrl),
-                                    ),
-                                    // ** REMOVE USER **
-                                    trailing: GestureDetector(
-                                      onTap: () {
-                                        // Add your remove action here
-                                        _removeUser(context,
-                                            userName); // Remove setState from here
-                                      },
-                                      child: Icon(
-                                        Icons.clear,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      // Add any action you want when the role is tapped
-                                    },
-                                  );
+                              _userRoles.forEach((key, value) {
+                                if (value == 'Administrator') {
+                                  administratorUserName = key;
                                 } else {
-                                  return Text(AppLocalizations.of(context)!
-                                      .userNotFound);
+                                  otherUserRoles[key] = value;
                                 }
-                              },
-                            );
-                          }).toList();
-                        })(),
-                      )
-                    else
-                      Text(
-                          "No user roles available") // Display message if no user roles available
+                              });
+
+                              List<String> sortedOtherUserNames =
+                                  otherUserRoles.keys.toList()..sort();
+
+                              List<String> sortedUserNames = [];
+                              if (administratorUserName != null) {
+                                sortedUserNames.add(administratorUserName!);
+                              }
+                              sortedUserNames.addAll(sortedOtherUserNames);
+
+                              List<Widget> userTiles = [];
+                              for (String userName in sortedUserNames) {
+                                final roleValue = _userRoles[userName];
+
+                                // Check if a future already exists for this username
+                                if (!userFutures.containsKey(userName)) {
+                                  // If not, create a new future
+                                  userFutures[userName] =
+                                      _storeService.getUserByName(userName);
+                                }
+
+                                // Use the existing future for this username
+                                userTiles.add(FutureBuilder<User?>(
+                                  future: userFutures[userName],
+                                  builder: (context, snapshot) {
+                                    devtools.log(
+                                        'This is username fetched $userName');
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return CircularProgressIndicator(); // Loading indicator
+                                    } else if (snapshot.hasError) {
+                                      return Text('Error: ${snapshot.error}');
+                                    } else if (snapshot.hasData) {
+                                      final user = snapshot.data;
+
+                                      return ListTile(
+                                        title: Text(userName),
+                                        subtitle: Text(roleValue!),
+                                        leading: CircleAvatar(
+                                          radius: 30,
+                                          backgroundImage:
+                                              Utilities.buildProfileImage(
+                                                  user?.photoUrl),
+                                        ),
+                                        trailing: GestureDetector(
+                                          onTap: () {
+                                            _removeUser(context, userName);
+                                          },
+                                          child: Icon(
+                                            Icons.clear,
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                        onTap: () {},
+                                      );
+                                    } else {
+                                      return Text(
+                                        AppLocalizations.of(context)!
+                                            .userNotFound,
+                                      );
+                                    }
+                                  },
+                                ));
+                              }
+
+                              return userTiles;
+                            })()
+                          : [Text("No user roles available")],
+                    )
 
                     // Add spacing between the user roles list and the button
                   ],

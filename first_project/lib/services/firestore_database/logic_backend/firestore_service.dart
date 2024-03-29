@@ -95,4 +95,8 @@ class FirestoreService extends FirestoreRepository {
   @override
   Future<void> changeUsername(String newUserName) =>
       repository.changeUsername(newUserName);
+
+  @override
+  Future<void> createNotification_When_Creating_Group(Group group, User user) =>
+      repository.createNotification_When_Creating_Group(group, user);
 }
