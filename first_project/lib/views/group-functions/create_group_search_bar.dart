@@ -10,11 +10,13 @@ class CreateGroupSearchBar extends StatefulWidget {
       onDataChanged;
   final User? user;
 
+// The onDataChanged callback function is invoked with updated user and role data.
   CreateGroupSearchBar({required this.onDataChanged, required this.user});
   @override
   _CreateGroupSearchBarState createState() => _CreateGroupSearchBarState();
 }
 
+// ** IN THIS SCREEN WE ONLY UPDATE THE SEARCH BAR SCREEN WE SHOULD'T ADD OR REMOVE USERS HERE TO FIRESTORE **
 class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   List<String> searchResults = [];
   Map<String, String> userRoles = {};
@@ -42,6 +44,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
+  // **SEARCH USER FUNCTIONS **
+
   void _searchUser(String username) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
@@ -65,6 +69,18 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   }
 
 /** Add an user using the selectedUsers list */
+  /**
+    // It attempts to retrieve user data from a Firestore collection named 'users' where the username matches the provided username.
+    // If a user with the provided username is found:
+    //     The user data is extracted from the Firestore document.
+    //     A User object is created from the retrieved data.
+    //     If the user is not already in the _selectedUsers list:
+    //         The user's username is added to the _selectedUsers list.
+    //         The user object is added to the _userInGroup list.
+    //         A default role of 'Member' is assigned to the user in the userRoles map.
+    //         The onDataChanged callback function is invoked with updated user and role data.
+    // If no user is found with the provided username, a message is printed indicating that the user was not found.
+   */
   void addUser(String username) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance

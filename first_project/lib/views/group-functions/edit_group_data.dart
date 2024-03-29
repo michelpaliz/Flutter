@@ -55,11 +55,6 @@ class _EditGroupDataState extends State<EditGroupData> {
     _userInGroup = _group.users;
   }
 
-  void _updateUserInGroup(List<User> updatedData) {
-    setState(() {
-      _userInGroup = updatedData;
-    });
-  }
 
   void _onDataChanged(
       List<User> updatedUserInGroup, Map<String, String> updatedUserRoles) {
@@ -70,10 +65,8 @@ class _EditGroupDataState extends State<EditGroupData> {
     // Update the state of CreateGroupData with the received data
     setState(() {
       _userRoles = updatedUserRoles;
+      _userInGroup = updatedUserInGroup;
     });
-
-    // Update the _userInGroup list using the helper function
-    _updateUserInGroup(updatedUserInGroup);
   }
 
   // Function to pick an image from the gallery
@@ -165,9 +158,9 @@ class _EditGroupDataState extends State<EditGroupData> {
     if (indexToRemove != -1) {
       List<User> updatedUserInGroup = List.from(_userInGroup);
       updatedUserInGroup.removeAt(indexToRemove);
-      _updateUserInGroup(updatedUserInGroup);
       setState(() {
         _userRoles.remove(fetchedUserName);
+        _userInGroup.remove(updatedUserInGroup);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -182,49 +175,8 @@ class _EditGroupDataState extends State<EditGroupData> {
       ));
     }
   }
-  // void _removeUser(String fetchedUserName) {
-  //   // Check if the user is the current user before attempting to remove
-  //   if (fetchedUserName == _currentUser?.userName) {
-  //     print('Cannot remove current user: $fetchedUserName');
-  //     // Show a message to the user that they cannot remove themselves
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
-  //         duration: Duration(seconds: 2),
-  //       ),
-  //     );
-  //     return;
-  //   }
 
-  //   print('This is the group $_userInGroup');
-
-  //   int initialLength = _userInGroup.length;
-  //   _userInGroup.removeWhere(
-  //       (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
-
-  //   if (_userInGroup.length < initialLength) {
-  //     _updateUserInGroup(_userInGroup);
-  //     setState(() {
-  //       _userRoles.remove(fetchedUserName);
-  //     });
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('User $fetchedUserName removed from the group.'),
-  //         duration: Duration(seconds: 2),
-  //       ),
-  //     );
-  //     print('Remove user: $fetchedUserName');
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('User $fetchedUserName not found in the group.'),
-  //         duration: Duration(seconds: 2),
-  //       ),
-  //     );
-  //     print('User not found in the group: $fetchedUserName');
-  //   }
-  // }
-
+  //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
   Future<bool> _creatingGroup() async {
     if (_groupName.trim().isEmpty) {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
@@ -239,7 +191,6 @@ class _EditGroupDataState extends State<EditGroupData> {
 
     try {
       //** CREATING THE GROUP*/
-
       //Now we are going to create the link of the image selected for the group
 
       if (_selectedImage != null) {
@@ -254,7 +205,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           ownerId: _currentUser!.id,
           userRoles: _userRoles,
           calendar: _group.calendar,
-          users: _group.users, // Include the list of users in the group
+          users: _userInGroup, // Include the list of users in the group
           createdTime: DateTime.now(),
           description: _groupDescription,
           photo: _imageURL);
@@ -274,6 +225,8 @@ class _EditGroupDataState extends State<EditGroupData> {
       return false; // Return false to indicate that the group creation failed.
     }
   }
+
+    // ** UI FOR THE SCREEN ** 
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +255,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                 padding: const EdgeInsets.all(15.0),
                 child: Column(
                   children: [
-                    // ** SHOW GROUP'S IMAGE ** 
+                    // ** SHOW GROUP'S IMAGE **
                     GestureDetector(
                       onTap: _pickImage,
                       child: CircleAvatar(
@@ -327,13 +280,13 @@ class _EditGroupDataState extends State<EditGroupData> {
 
                     SizedBox(height: 10),
 
-                    // ** ADD AN IMAGE FOR THE GROUP ** 
+                    // ** ADD AN IMAGE FOR THE GROUP **
                     Text(
                       AppLocalizations.of(context)!.putGroupImage,
                       style: TextStyle(color: Colors.grey),
                     ),
                     SizedBox(height: 10),
-                    // ** PUT YOUR GROUP NAME ** 
+                    // ** PUT YOUR GROUP'S NAME **
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
@@ -356,7 +309,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                         ),
                       ),
                     ),
-                    // ** PUT YOUR GROUP'S DESCRIPTION ** 
+                    // ** PUT YOUR GROUP'S DESCRIPTION **
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
