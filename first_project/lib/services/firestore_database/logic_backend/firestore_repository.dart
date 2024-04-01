@@ -23,6 +23,6 @@ abstract class FirestoreRepository {
   Future<Event?> getEventFromUserById(User user, String eventId);
   Future<User?> getUserByUserName(String userName);
   Future<void> changeUsername(String newUserName);
-  Future<void> createNotification_When_Creating_Group(Group group, User user);
+  Future<void> sendNotificationToUsers(Group group, User admin);
 
 }

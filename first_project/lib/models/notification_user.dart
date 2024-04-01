@@ -6,7 +6,6 @@ class NotificationUser {
   final DateTime _timestamp;
   final bool hasQuestion;
   final String question;
-  bool isAnswered;
 
   NotificationUser({
     required this.id,
@@ -16,8 +15,7 @@ class NotificationUser {
     required DateTime timestamp,
     // These attributes are set with default values and won't be required during initial creation.
     this.hasQuestion = false,
-    this.question = '',
-    this.isAnswered = false,
+    this.question = '', // Include the isAnswered field in the constructor
   }) : _timestamp = timestamp;
 
   DateTime parseTimestamp(String timestampString) {
@@ -35,7 +33,6 @@ class NotificationUser {
       timestamp: DateTime.parse(json['timestamp'] ?? ''),
       hasQuestion: json['hasQuestion'] ?? false,
       question: json['question'] ?? '',
-      isAnswered: json['isAnswered'] ?? false,
     );
   }
 
@@ -47,8 +44,8 @@ class NotificationUser {
       'message': message,
       'timestamp': _timestamp.toIso8601String(),
       'hasQuestion': hasQuestion,
-      'question': question,
-      'isAnswered': isAnswered,
+      'question':
+          question, // Include the isAnswered field in the JSON representation
     };
   }
 
@@ -61,7 +58,6 @@ class NotificationUser {
         'message: $message, '
         'timestamp: $_timestamp, '
         'hasQuestion: $hasQuestion, '
-        'question: $question, '
-        'isAnswered: $isAnswered)';
+        'question: $question';
   }
 }

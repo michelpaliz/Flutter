@@ -1,4 +1,5 @@
 import 'package:first_project/models/user.dart';
+import 'package:first_project/models/userInvitationStatus.dart';
 
 import 'calendar.dart';
 
@@ -10,9 +11,12 @@ class Group {
   final Calendar calendar; // Shared calendar for the group
   List<User> users;
   final DateTime createdTime; // Time the group was created
-  bool repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
+  bool
+      repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
   String description; // A description of the group
   String photo; // Add the new field for storing a photo link
+  Map<String, UserInviteStatus>?
+      invitedUsers; // New field to store invited users and their answers
 
   Group({
     required this.id,
@@ -24,14 +28,17 @@ class Group {
     required this.createdTime,
     this.repetitiveEvents = false,
     required this.description,
-    required this.photo, // Include the new field in the constructor
-  });
+    required this.photo,
+    Map<String, UserInviteStatus>?
+        invitedUsers, // Change the type to Map<String, Invitation>?
+  }) : invitedUsers = invitedUsers ?? {};
 
   Group copyWith({
     bool? repetitiveEvents,
     DateTime? createdTime,
     String? description,
-    String? photo, // Add the new field here
+    String? photo,
+    Map<String, UserInviteStatus>? invitedUsers,
   }) {
     return Group(
       id: this.id,
@@ -43,7 +50,8 @@ class Group {
       createdTime: createdTime ?? this.createdTime,
       repetitiveEvents: repetitiveEvents ?? this.repetitiveEvents,
       description: description ?? this.description,
-      photo: photo ?? this.photo, // Include the new field here
+      photo: photo ?? this.photo,
+      invitedUsers: invitedUsers ?? this.invitedUsers,
     );
   }
 
@@ -52,6 +60,12 @@ class Group {
     List<User> users = usersJson != null
         ? usersJson.map((userJson) => User.fromJson(userJson)).toList()
         : [];
+
+    Map<String, dynamic>? invitedUsersJson = json['invitedUsers'];
+    Map<String, UserInviteStatus>? invitedUsers = invitedUsersJson != null
+        ? invitedUsersJson.map(
+            (key, value) => MapEntry(key, UserInviteStatus.fromJson(value)))
+        : null;
 
     return Group(
       id: json['id'] ?? '',
@@ -66,12 +80,21 @@ class Group {
       repetitiveEvents: json['repetitiveEvents'] ?? false,
       description: json['description'] ?? '',
       photo: json['photo'] ?? '', // Parse the new field here
+      invitedUsers: invitedUsers,
     );
   }
 
   Map<String, dynamic> toJson() {
     List<Map<String, dynamic>> usersJson =
         users.map((user) => user.toJson()).toList();
+
+    Map<String, dynamic>? invitedUsersJson;
+    if (invitedUsers != null) {
+      invitedUsersJson = {};
+      invitedUsers!.forEach((key, value) {
+        invitedUsersJson![key] = value.toJson();
+      });
+    }
 
     return {
       'id': id,
@@ -84,6 +107,7 @@ class Group {
       'repetitiveEvents': repetitiveEvents,
       'description': description,
       'photo': photo, // Include the new field here
+      'invitedUsers': invitedUsersJson, // Include the invitedUsers field here
     };
   }
 

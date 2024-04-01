@@ -236,9 +236,10 @@ class _EditGroupDataState extends State<EditGroupData> {
           id: _group.id,
           groupName: _groupName,
           ownerId: _currentUser!.id,
-          userRoles: _userRoles,
+          userRoles: _userRoles,                               
           calendar: _group.calendar,
-          users: _userInGroup, // Include the list of users in the group
+          // users: _userInGroup, // We proceed to use the same users because the user needs to accept the invitation first in order to add them into the group.
+          users: _group.users, 
           createdTime: DateTime.now(),
           description: _groupDescription,
           photo: _imageURL);
@@ -247,7 +248,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       await _storeService.updateGroup(updateGroup);
 
       // Send notifications for the newly added users
-      await _storeService.createNotification_When_Creating_Group(
+      await _storeService.sendNotificationToUsers(
           updateGroup, _currentUser!);
 
       // Show a success message using a SnackBar

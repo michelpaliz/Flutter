@@ -157,85 +157,62 @@ class FirestoreProvider implements FirestoreRepository {
     }
   }
 
-  Future<void> createNotification_When_Creating_Group(
-      Group group, User currentUser) async {
-    // Check if the current user has the Administrator role in the group
-    bool isAdministrator = group.userRoles[currentUser.id] == 'Administrator';
+  Future<void> sendNotificationToUsers(Group group, User admin) async {
+    // Check if the admin is an Administrator based on invitedUsers
+    bool isAdministrator = group.invitedUsers!.containsKey(admin.id) &&
+        group.invitedUsers![admin.id]!.role == 'Administrator';
 
-    // Create notification details for regular users
-    final notificationTitle =
-        '${currentUser.name.toUpperCase()} invited you to a group';
-    final notificationMessage =
-        '${currentUser.name.toUpperCase()} invited you to this Group: ${group.groupName}';
-    final notificationQuestion = 'Would you like to join this group ?';
-
-    // Check if the current user is not an Administrator and does not already have a notification
-    if (!isAdministrator && !_hasNotification(currentUser, group.id)) {
-      // Create a new notification for regular users
-      final notification = _createNotification(
-        group.id,
-        currentUser.id,
-        notificationTitle,
-        notificationMessage,
-        notificationQuestion,
-      );
-
-      // Add the new notification to the user's notification list
-      currentUser.notifications.add(notification);
-      currentUser.hasNewNotifications = true;
-
-      // Update the user document in Firestore to reflect the changes
-      await updateUser(currentUser);
-    }
-
-    // If the current user is an Administrator, create a separate congratulatory notification
-    if (isAdministrator && !_hasNotification(currentUser, group.id)) {
-      // Create notification details for the Administrator
+    // Create congratulatory notification for the Administrator
+    if (isAdministrator) {
       final congratulatoryTitle = 'Congratulations!';
-      final congratulatoryMessage =
-          'You created the group: ${group.groupName}.';
-
-      // Create a congratulatory notification for the Administrator
-      final congratulatoryNotification = _createNotification(
-        group.id,
-        currentUser.id,
-        congratulatoryTitle,
-        congratulatoryMessage,
-        '',
+      final congratulatoryMessage = 'You created the group: ${group.groupName}';
+      final congratulatoryNotification = NotificationUser(
+        id: group.id,
+        ownerId: admin.id,
+        title: congratulatoryTitle,
+        message: congratulatoryMessage,
+        timestamp: DateTime.now(),
+        hasQuestion: false,
+        question: '',
       );
 
-      // Add the congratulatory notification to the Administrator's notification list
-      currentUser.notifications.add(congratulatoryNotification);
-      currentUser.hasNewNotifications = true;
+      // Add congratulatory notification to the Administrator's notification list
+      admin.notifications.add(congratulatoryNotification);
+      admin.hasNewNotifications = true;
 
-      // Update the Administrator's document in Firestore to reflect the changes
-      await updateUser(currentUser);
+      // Update Administrator's document in Firestore
+      await updateUser(admin);
     }
-  }
 
-// Helper function to check if the user already has a notification with the given group ID
-  bool _hasNotification(User user, String groupId) {
-    return user.notifications.any((notification) => notification.id == groupId);
-  }
+    // Loop through each user in the group
+    for (final userId in group.users) {
+      // Get the user details
+      User? user = await getUserById(userId.id);
 
-// Helper function to create a notification
-  NotificationUser _createNotification(
-    String id,
-    String ownerId,
-    String title,
-    String message,
-    String question,
-  ) {
-    return NotificationUser(
-      id: id,
-      ownerId: ownerId,
-      title: title,
-      message: message,
-      timestamp: DateTime.now(),
-      hasQuestion: !question.isEmpty,
-      question: question,
-      isAnswered: false,
-    );
+      // Create invitation notification for the user
+      final userNotificationTitle = 'Join ${group.groupName}';
+      final userNotificationMessage =
+          'You have been invited to join the group: ${group.groupName}';
+      final userNotificationQuestion = 'Would you like to join this group ?';
+
+      // Create notification for the user
+      final userNotification = NotificationUser(
+        id: group.id,
+        ownerId: user!.id,
+        title: userNotificationTitle,
+        message: userNotificationMessage,
+        timestamp: DateTime.now(),
+        hasQuestion: true,
+        question: userNotificationQuestion,
+      );
+
+      // Add notification to the user's list
+      user.notifications.add(userNotification);
+      user.hasNewNotifications = true;
+
+      // Update user document in Firestore
+      await updateUser(user);
+    }
   }
 
   // ** HANDLE GROUP DATA  **
@@ -260,7 +237,7 @@ class FirestoreProvider implements FirestoreRepository {
       _providerManagement?.addGroup(group);
 
       // Create notifications for group members
-      await createNotification_When_Creating_Group(group, currentUser);
+      await sendNotificationToUsers(group, currentUser);
     } catch (e) {
       print('Error adding group: $e');
       throw 'Failed to add the group';

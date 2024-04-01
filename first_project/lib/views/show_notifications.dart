@@ -94,7 +94,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index >= 0 &&
         index < currentUser!.notifications.length) {
       NotificationUser notification = currentUser!.notifications[index];
-      if (!notification.isAnswered && notification.question.isNotEmpty) {
+      if (notification.question.isNotEmpty ) {
         currentUser!.notifications[index].isAnswered = true;
         await _storeService.updateUser(currentUser!);
         addUserToGroup(notification);
@@ -117,7 +117,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index >= 0 &&
         index < currentUser!.notifications.length) {
       NotificationUser notification = currentUser!.notifications[index];
-      if (!notification.isAnswered && notification.question.isNotEmpty) {
+      if (notification.question.isNotEmpty ) {
         currentUser!.notifications[index].isAnswered = false;
         await _storeService.updateUser(currentUser!);
         addUserToGroup(notification);

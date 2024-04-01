@@ -1,8 +1,8 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_provider.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 
 import '../../../models/event.dart';
 import 'firestore_repository.dart';
@@ -97,6 +97,6 @@ class FirestoreService extends FirestoreRepository {
       repository.changeUsername(newUserName);
 
   @override
-  Future<void> createNotification_When_Creating_Group(Group group, User user) =>
-      repository.createNotification_When_Creating_Group(group, user);
+  Future<void> sendNotificationToUsers(Group group, User admin) =>
+      repository.sendNotificationToUsers(group, admin);
 }

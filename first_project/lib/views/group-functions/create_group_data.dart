@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:first_project/models/userInvitationStatus.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/calendar.dart';
@@ -206,17 +207,38 @@ class _CreateGroupDataState extends State<CreateGroupData> {
             await Utilities.pickAndUploadImageGroup(groupId, _selectedImage);
       }
 
+      //We are going to keep only the owner/administrator of the group in the group
+      // Filter and map admin users to their JSON representation
+      Map<String, String> adminUsersJson = Map.fromEntries(
+        _userRoles.entries.where((entry) => entry.value == 'Administrator'),
+      );
+
       // Create the group object with the appropriate attributes
       Group group = Group(
           id: groupId,
           groupName: _groupName,
           ownerId: _currentUser!.id,
-          userRoles: _userRoles,
+          userRoles: adminUsersJson,
           calendar: calendar,
-          users: users, // Include the list of users in the group
+          users: users,
+          invitedUsers: null,
           createdTime: DateTime.now(),
           description: _groupDescription,
           photo: imageURL);
+
+      Map<String, UserInviteStatus> invitations = {};
+
+      _userRoles.forEach((key, value) {
+        final invitationStatus = UserInviteStatus(
+          id: '$key',
+          role: '$value',
+          accepted: null, //It's null because the user hasn't answered yet
+        );
+        invitations[key] = invitationStatus;
+      });
+
+      //we update the group's invitedUsers property
+      group.invitedUsers = invitations;
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.addGroup(group);
@@ -246,6 +268,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
             padding: const EdgeInsets.all(15.0),
             child: Column(
               children: [
+                //*PICK IMAGE**
                 GestureDetector(
                   onTap: _pickImage,
                   child: CircleAvatar(
@@ -271,6 +294,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                   style: TextStyle(color: Colors.grey),
                 ),
                 SizedBox(height: 10),
+
+                //** GENERATE THE GROUP'S NAME */
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
@@ -291,6 +316,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                     ),
                   ),
                 ),
+                //** DESCRIPTION  */
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
@@ -313,6 +339,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                   ),
                 ),
                 SizedBox(height: 10),
+
+                //** ADD PEOPLE INTO THE GROUP */
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -374,6 +402,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                 ),
 
                 SizedBox(height: 10),
+
+                //*SELECT USER RULES
 
                 if (_userRoles.isNotEmpty)
                   Column(
