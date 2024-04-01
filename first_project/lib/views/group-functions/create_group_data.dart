@@ -229,12 +229,15 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       Map<String, UserInviteStatus> invitations = {};
 
       _userRoles.forEach((key, value) {
-        final invitationStatus = UserInviteStatus(
-          id: '$key',
-          role: '$value',
-          accepted: null, //It's null because the user hasn't answered yet
-        );
-        invitations[key] = invitationStatus;
+        // Check if the user's role is not "Administrator"
+        if (value != 'Administrator') {
+          final invitationStatus = UserInviteStatus(
+            id: '$key',
+            role: '$value',
+            accepted: null, // It's null because the user hasn't answered yet
+          );
+          invitations[key] = invitationStatus;
+        }
       });
 
       //we update the group's invitedUsers property
