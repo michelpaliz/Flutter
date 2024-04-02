@@ -159,11 +159,11 @@ class FirestoreProvider implements FirestoreRepository {
 
   Future<void> sendNotificationToUsers(Group group, User admin) async {
     // Check if the admin is an Administrator based on invitedUsers
-    bool isAdministrator = group.invitedUsers!.containsKey(admin.id) &&
-        group.invitedUsers![admin.id]!.role == 'Administrator';
+    bool isAdmin = group.userRoles.containsKey(admin.id) &&
+        group.userRoles[admin.id] == 'Administrator';
 
     // Create congratulatory notification for the Administrator
-    if (isAdministrator) {
+    if (isAdmin) {
       final congratulatoryTitle = 'Congratulations!';
       final congratulatoryMessage = 'You created the group: ${group.groupName}';
       final congratulatoryNotification = NotificationUser(
@@ -184,10 +184,10 @@ class FirestoreProvider implements FirestoreRepository {
       await updateUser(admin);
     }
 
-    // Loop through each user in the group
-    for (final userId in group.users) {
+    // Loop through each user ID in the invitedUsers map
+    for (final userName in group.invitedUsers!.keys) {
       // Get the user details
-      User? user = await getUserById(userId.id);
+      User? user = await getUserByUserName(userName);
 
       // Create invitation notification for the user
       final userNotificationTitle = 'Join ${group.groupName}';
@@ -198,7 +198,7 @@ class FirestoreProvider implements FirestoreRepository {
       // Create notification for the user
       final userNotification = NotificationUser(
         id: group.id,
-        ownerId: user!.id,
+        ownerId: admin.id,
         title: userNotificationTitle,
         message: userNotificationMessage,
         timestamp: DateTime.now(),
@@ -207,7 +207,7 @@ class FirestoreProvider implements FirestoreRepository {
       );
 
       // Add notification to the user's list
-      user.notifications.add(userNotification);
+      user!.notifications.add(userNotification);
       user.hasNewNotifications = true;
 
       // Update user document in Firestore
@@ -384,6 +384,7 @@ class FirestoreProvider implements FirestoreRepository {
       //This is the list of users
       List<dynamic> usersList = groupSnapshot['users'];
 
+      //Populate the list of users
       for (var userObj in usersList) {
         String userId = userObj['id'];
         groupUserIds.add(userId);
@@ -408,7 +409,7 @@ class FirestoreProvider implements FirestoreRepository {
       );
 
       Group? groupFetched = await getGroupFromId(groupId);
-      _providerManagement?.removeGroupById(groupFetched!);
+      _providerManagement?.removeGroup(groupFetched!);
 
       // Delete the group document
       await groupEventCollections.doc(groupId).delete();
@@ -547,19 +548,23 @@ class FirestoreProvider implements FirestoreRepository {
   @override
   Future<User?> getUserById(String userId) async {
     try {
-      DocumentSnapshot userSnapshot =
-          await _firestore.collection('users').doc(userId).get();
-      if (userSnapshot.exists) {
-        // Parse the data from the snapshot
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: userId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // We return the first user found with the given custom ID
+        DocumentSnapshot userSnapshot = querySnapshot.docs.first;
         Map<String, dynamic> userData =
             userSnapshot.data() as Map<String, dynamic>;
-        return User.fromJson(userData); // Use the fromJson factory method
+        return User.fromJson(userData);
       } else {
         // User not found
         return null;
       }
     } catch (error) {
-      print('Error fetching user: $error');
+      print('Error fetching user by custom ID: $error');
       return null;
     }
   }

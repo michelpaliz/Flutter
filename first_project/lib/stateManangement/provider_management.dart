@@ -1,9 +1,7 @@
 import 'package:first_project/models/group.dart';
+import 'package:first_project/models/user.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:flutter/material.dart';
-import 'package:first_project/models/user.dart';
-
-import 'package:flutter/foundation.dart';
 
 class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
@@ -50,7 +48,7 @@ class ProviderManagement extends ChangeNotifier {
   }
 
   // Remove a group from the list
-  void removeGroupById(Group group) {
+  void removeGroup(Group group) {
     _groups.removeWhere((group) => group.id == group.id);
     notifyListeners();
   }
