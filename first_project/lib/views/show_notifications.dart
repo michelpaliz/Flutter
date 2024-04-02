@@ -1,3 +1,5 @@
+import 'package:first_project/models/group.dart';
+import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -94,20 +96,27 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index >= 0 &&
         index < currentUser!.notifications.length) {
       NotificationUser notification = currentUser!.notifications[index];
-      if (notification.question.isNotEmpty ) {
-        currentUser!.notifications[index].isAnswered = true;
-        await _storeService.updateUser(currentUser!);
-        addUserToGroup(notification);
-        setState(() {});
-
-        sendNotificationToOwner(notification);
-
-        // Show a SnackBar with a confirmation message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Notification confirmed.'),
-          ),
-        );
+      if (notification.question.isNotEmpty) {
+        Group? group = await _storeService.getGroupFromId(notification.id);
+        Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
+        if (invitedUsers != null) {
+          for (final entry in invitedUsers.entries) {
+            String userName = entry.key;
+            UserInviteStatus inviteStatus = entry.value;
+            // Access the role
+            String role = inviteStatus.role;
+            // Update accepted to true
+            inviteStatus.accepted = true;
+            // Now you can use userName, role, and inviteStatus as needed
+            if (userName != currentUser!.userName) {
+              //We update the group first 
+              currentUser!.notifications[index].isAnswered = true;
+              await _storeService.updateUser(currentUser!);
+              //TODO I NEED TO ADD A NEW PARAMETER TO SPECIFY THE ROLE INTO THE GROUP'S USERS LIST
+              addUserToGroup(notification);
+            }
+          }
+        }
       }
     }
   }
@@ -117,7 +126,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index >= 0 &&
         index < currentUser!.notifications.length) {
       NotificationUser notification = currentUser!.notifications[index];
-      if (notification.question.isNotEmpty ) {
+      if (notification.question.isNotEmpty) {
         currentUser!.notifications[index].isAnswered = false;
         await _storeService.updateUser(currentUser!);
         addUserToGroup(notification);

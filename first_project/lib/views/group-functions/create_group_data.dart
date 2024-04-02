@@ -232,7 +232,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         // Check if the user's role is not "Administrator"
         if (value != 'Administrator') {
           final invitationStatus = UserInviteStatus(
-            id: '$key',
+            id: group.id,
             role: '$value',
             accepted: null, // It's null because the user hasn't answered yet
           );

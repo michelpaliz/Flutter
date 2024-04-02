@@ -157,10 +157,39 @@ class FirestoreProvider implements FirestoreRepository {
     }
   }
 
+  // ** HANDLE GROUP DATA  **
+
+  @override
+  Future<void> addGroup(Group group) async {
+    try {
+      // Serialize the group object to JSON
+      final groupData = group.toJson();
+
+      // Create the group document in the 'groups' collection
+      await _firestore.collection('groups').doc(group.id).set(groupData);
+
+      //Now we are gonna create a new URL reference for the group's image and update it
+      // _updatePhotoURLForGroup(group);
+
+      // Update the current user's group IDs
+      final currentUser = AuthService.firebase().costumeUser;
+      currentUser!.groupIds.add(group.id);
+      await updateUser(currentUser);
+      _providerManagement?.updateUser(currentUser);
+      _providerManagement?.addGroup(group);
+
+      // Create notifications for group members
+      await sendNotificationToUsers(group, currentUser);
+    } catch (e) {
+      print('Error adding group: $e');
+      throw 'Failed to add the group';
+    }
+  }
+
   Future<void> sendNotificationToUsers(Group group, User admin) async {
     // Check if the admin is an Administrator based on invitedUsers
-    bool isAdmin = group.userRoles.containsKey(admin.id) &&
-        group.userRoles[admin.id] == 'Administrator';
+    bool isAdmin = group.userRoles.containsKey(admin.userName) &&
+        group.userRoles[admin.userName] == 'Administrator';
 
     // Create congratulatory notification for the Administrator
     if (isAdmin) {
@@ -212,35 +241,6 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Update user document in Firestore
       await updateUser(user);
-    }
-  }
-
-  // ** HANDLE GROUP DATA  **
-
-  @override
-  Future<void> addGroup(Group group) async {
-    try {
-      // Serialize the group object to JSON
-      final groupData = group.toJson();
-
-      // Create the group document in the 'groups' collection
-      await _firestore.collection('groups').doc(group.id).set(groupData);
-
-      //Now we are gonna create a new URL reference for the group's image and update it
-      // _updatePhotoURLForGroup(group);
-
-      // Update the current user's group IDs
-      final currentUser = AuthService.firebase().costumeUser;
-      currentUser!.groupIds.add(group.id);
-      await updateUser(currentUser);
-      _providerManagement?.updateUser(currentUser);
-      _providerManagement?.addGroup(group);
-
-      // Create notifications for group members
-      await sendNotificationToUsers(group, currentUser);
-    } catch (e) {
-      print('Error adding group: $e');
-      throw 'Failed to add the group';
     }
   }
 
@@ -324,6 +324,7 @@ class FirestoreProvider implements FirestoreRepository {
   }
 
   /**Adds the user to the group introduced and it adds the groupId of the group in the user's groupsID */
+  //TODO LET'S ADD A NEW PARAMETER TO SPECIFY THE ROLE FOR THE USER IN THE GROUP */
   @override
   Future<void> addUserToGroup(
       User user, NotificationUser notificationUser) async {
@@ -331,7 +332,6 @@ class FirestoreProvider implements FirestoreRepository {
     if (!user.groupIds.contains(notificationUser.id)) {
       // The group ID is not already in the list, so we add it
       user.groupIds.add(notificationUser.id);
-
       // Update the user in Firestore
       await updateUser(user);
     }
