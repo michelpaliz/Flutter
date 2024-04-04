@@ -129,9 +129,12 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               await _storeService.updateUser(_currentUser!);
               _addUserToGroup(notification);
               //Update the group user roles list
+              // Map<String, String> userRole = {
+              //   "id": _currentUser!.userName,
+              //   "role": role
+              // };
               Map<String, String> userRole = {
-                "id": _currentUser!.userName,
-                "role": role
+                _currentUser!.userName : role
               };
               group?.userRoles.addEntries(userRole.entries);
               _storeService.updateGroup(group!);
@@ -208,7 +211,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               child: Text('No notifications available.'),
             )
           : ListView.builder(
-            //** SHOW THE NOTIFICATIONS AVAILABLE  */
+              //** SHOW THE NOTIFICATIONS AVAILABLE  */
               itemCount: _currentUser?.notifications.length,
               itemBuilder: (context, index) {
                 final notification = _currentUser!.notifications[index];
