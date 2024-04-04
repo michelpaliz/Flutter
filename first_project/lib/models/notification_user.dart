@@ -6,7 +6,7 @@ class NotificationUser {
   final DateTime _timestamp;
   final bool hasQuestion;
   final String question;
-  final bool isAnswered; // Add the isAnswered field
+  bool _isAnswered; // Change from final to non-final for setter
 
   NotificationUser({
     required this.id,
@@ -17,14 +17,23 @@ class NotificationUser {
     // These attributes are set with default values and won't be required during initial creation.
     this.hasQuestion = false,
     this.question = '', // Include the isAnswered field in the constructor
-    this.isAnswered = false, // Initialize the isAnswered field
-  }) : _timestamp = timestamp;
+    bool isAnswered = false, // Initialize the isAnswered field
+  })   : _timestamp = timestamp,
+        _isAnswered = isAnswered; // Initialize isAnswered field
 
   DateTime parseTimestamp(String timestampString) {
     return DateTime.parse(timestampString);
   }
 
   DateTime get timestamp => _timestamp;
+
+  // Getter method for isAnswered
+  bool get isAnswered => _isAnswered;
+
+  // Setter method for isAnswered
+  set isAnswered(bool answer) {
+    _isAnswered = answer;
+  }
 
   factory NotificationUser.fromJson(Map<String, dynamic> json) {
     return NotificationUser(
@@ -48,7 +57,8 @@ class NotificationUser {
       'timestamp': _timestamp.toIso8601String(),
       'hasQuestion': hasQuestion,
       'question': question,
-      'isAnswered': isAnswered, // Include the isAnswered field in the JSON representation
+      'isAnswered':
+          isAnswered, // Include the isAnswered field in the JSON representation
     };
   }
 

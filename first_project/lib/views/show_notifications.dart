@@ -19,14 +19,14 @@ class ShowNotifications extends StatefulWidget {
 class _ShowNotificationsState extends State<ShowNotifications> {
   AuthService authService = new AuthService.firebase();
   late FirestoreService _storeService;
-  User? currentUser;
+  User? _currentUser;
 
   //** LOGIC FOR THE VIEW */
 
   @override
   void initState() {
     super.initState();
-    getCurrentUser();
+    _getCurrentUser();
   }
 
   @override
@@ -40,62 +40,77 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     _storeService = FirestoreService.firebase(providerManagement);
   }
 
-  void getCurrentUser() {
+  void _getCurrentUser() {
     AuthService.firebase().generateUserCustomModel().then((User? fetchedUser) {
       if (fetchedUser != null) {
         setState(() {
-          currentUser = fetchedUser;
+          _currentUser = fetchedUser;
         });
       }
     });
   }
 
-  void addUserToGroup(NotificationUser notification) {
+  void _addUserToGroup(NotificationUser notification) {
     //Here we add the user to the group
-    _storeService.addUserToGroup(currentUser!, notification);
+    _storeService.addUserToGroup(_currentUser!, notification);
   }
 
   // Function to remove a notification at a given index
-  void removeNotification(int index) async {
-    if (currentUser != null &&
+  void _removeNotification(int index) async {
+    if (_currentUser != null &&
         index >= 0 &&
-        index < currentUser!.notifications.length) {
-      currentUser!.notifications.removeAt(index);
-      await _storeService.updateUser(currentUser!);
+        index < _currentUser!.notifications.length) {
+      _currentUser!.notifications.removeAt(index);
+      await _storeService.updateUser(_currentUser!);
       setState(() {});
     }
   }
 
-  void sendNotificationToOwner(NotificationUser notification) async {
-    //We create a notification for the owner to inform him that a guest has accepted the petition to join the group.
+  void _sendNotificationToAdmin(
+      NotificationUser notification, bool answer) async {
+    // Create a notification for the admin to inform them about the user's response to the invitation.
+    NotificationUser ntOwner;
 
-    NotificationUser ntOwner = NotificationUser(
+    if (answer) {
+      ntOwner = NotificationUser(
         id: notification.id,
         ownerId: notification.ownerId,
         title: "New User Added to ${notification.title.toUpperCase()} Group",
         message:
-            '${currentUser!.name} has accepted your invitation to join the group',
-        timestamp: DateTime.now());
+            '${_currentUser!.name} has accepted your invitation to join the group',
+        timestamp: DateTime.now(),
+      );
+    } else {
+      ntOwner = NotificationUser(
+        id: notification.id,
+        ownerId: notification.ownerId,
+        title: "New User Added to ${notification.title.toUpperCase()} Group",
+        message:
+            '${_currentUser!.name} has denied your invitation to join the group',
+        timestamp: DateTime.now(),
+      );
+    }
 
-    User? user = null;
-    //Now we look up for the owner who created the group and assign him this notification.
-    user = await _storeService.getUserById(notification.ownerId);
+    // Look up for the admin (owner) who created the group.
+    User? admin = await _storeService.getUserById(notification.ownerId);
 
-    //We add the notification to the user
-    user!.notifications.add(ntOwner);
+    if (admin != null) {
+      // Add the notification to the admin's notifications list.
+      admin.notifications.add(ntOwner);
 
-    //We update the hasNotification field
-    user.hasNewNotifications = true;
+      // Update the hasNotification field.
+      admin.hasNewNotifications = true;
 
-    //Now we proceed to update the user
-    _storeService.updateUser(user);
+      // Update the admin's information.
+      await _storeService.updateUser(admin);
+    }
   }
 
-  void handleConfirmation(int index) async {
-    if (currentUser != null &&
+  void _handleConfirmation(int index) async {
+    if (_currentUser != null &&
         index >= 0 &&
-        index < currentUser!.notifications.length) {
-      NotificationUser notification = currentUser!.notifications[index];
+        index < _currentUser!.notifications.length) {
+      NotificationUser notification = _currentUser!.notifications[index];
       if (notification.question.isNotEmpty) {
         Group? group = await _storeService.getGroupFromId(notification.id);
         Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
@@ -108,12 +123,28 @@ class _ShowNotificationsState extends State<ShowNotifications> {
             // Update accepted to true
             inviteStatus.accepted = true;
             // Now you can use userName, role, and inviteStatus as needed
-            if (userName != currentUser!.userName) {
-              //We update the group first 
-              currentUser!.notifications[index].isAnswered = true;
-              await _storeService.updateUser(currentUser!);
-              //TODO I NEED TO ADD A NEW PARAMETER TO SPECIFY THE ROLE INTO THE GROUP'S USERS LIST
-              addUserToGroup(notification);
+            if (userName == _currentUser!.userName) {
+              //We update the group first
+              _currentUser!.notifications[index].isAnswered = true;
+              await _storeService.updateUser(_currentUser!);
+              _addUserToGroup(notification);
+              //Update the group user roles list
+              Map<String, String> userRole = {
+                "id": _currentUser!.userName,
+                "role": role
+              };
+              group?.userRoles.addEntries(userRole.entries);
+              _storeService.updateGroup(group!);
+
+              //Send notification to admin
+              setState(() {});
+              _sendNotificationToAdmin(notification, true);
+              // Show a SnackBar with a denial message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Notification accepted .'),
+                ),
+              );
             }
           }
         }
@@ -121,18 +152,26 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
-  void handleNegation(int index) async {
-    if (currentUser != null &&
+  void _handleNegation(int index) async {
+    if (_currentUser != null &&
         index >= 0 &&
-        index < currentUser!.notifications.length) {
-      NotificationUser notification = currentUser!.notifications[index];
+        index < _currentUser!.notifications.length) {
+      NotificationUser notification = _currentUser!.notifications[index];
       if (notification.question.isNotEmpty) {
-        currentUser!.notifications[index].isAnswered = false;
-        await _storeService.updateUser(currentUser!);
-        addUserToGroup(notification);
+        Group? group = await _storeService.getGroupFromId(notification.id);
+        Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
+        if (invitedUsers != null) {
+          //we proceed to remove the invitation from the group user list
+          group!.invitedUsers!.remove(_currentUser!.name);
+        }
+        _currentUser!.notifications[index].isAnswered = true;
+        await _storeService.updateUser(_currentUser!);
+        _addUserToGroup(notification);
+
+        //SEND NOTIFICATION TO ADMIN
         setState(() {});
 
-        sendNotificationToOwner(notification);
+        _sendNotificationToAdmin(notification, false);
 
         // Show a SnackBar with a denial message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +192,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   @override
   Widget build(BuildContext context) {
     // getCurrentUser();
-    currentUser?.notifications.sort((a, b) {
+    _currentUser?.notifications.sort((a, b) {
       DateTime aTime = parseTimestamp(a.timestamp!.toString());
       DateTime bTime = parseTimestamp(b.timestamp!.toString());
 
@@ -164,14 +203,15 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       appBar: AppBar(
         title: Text('Notifications'),
       ),
-      body: currentUser?.notifications.isEmpty ?? true
+      body: _currentUser?.notifications.isEmpty ?? true
           ? Center(
               child: Text('No notifications available.'),
             )
           : ListView.builder(
-              itemCount: currentUser?.notifications.length,
+            //** SHOW THE NOTIFICATIONS AVAILABLE  */
+              itemCount: _currentUser?.notifications.length,
               itemBuilder: (context, index) {
-                final notification = currentUser!.notifications[index];
+                final notification = _currentUser!.notifications[index];
                 bool hasConfirmed = notification.isAnswered &&
                     notification.question.isNotEmpty &&
                     notification.isAnswered;
@@ -199,6 +239,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                       color: Colors.white,
                     ),
                   ),
+                  //** HANDLE NOTIFICATIONS WITHOUT QUESTIONS  */
                   confirmDismiss: (direction) async {
                     return await showDialog(
                       context: context,
@@ -230,9 +271,10 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                   onDismissed: (direction) {
                     // Remove the notification only if confirmed
                     if (direction == DismissDirection.endToStart) {
-                      removeNotification(index);
+                      _removeNotification(index);
                     }
                   },
+                  //** HANDLE NOTIFICATIONS WITH QUESTIONS  */
                   child: Card(
                     elevation: 2.0, // Adjust elevation as needed
                     margin: EdgeInsets.symmetric(
@@ -249,13 +291,13 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                           children: [
                             TextButton(
                               onPressed: () {
-                                handleConfirmation(index);
+                                _handleConfirmation(index);
                               },
                               child: Text("Confirm"),
                             ),
                             TextButton(
                               onPressed: () {
-                                handleNegation(index);
+                                _handleNegation(index);
                               },
                               child: Text("Negate"),
                             ),
