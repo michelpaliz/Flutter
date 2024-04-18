@@ -129,16 +129,11 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               await _storeService.updateUser(_currentUser!);
               _addUserToGroup(notification);
               //Update the group user roles list
-              // Map<String, String> userRole = {
-              //   "id": _currentUser!.userName,
-              //   "role": role
-              // };
               Map<String, String> userRole = {
                 _currentUser!.userName : role
               };
               group?.userRoles.addEntries(userRole.entries);
               _storeService.updateGroup(group!);
-
               //Send notification to admin
               setState(() {});
               _sendNotificationToAdmin(notification, true);

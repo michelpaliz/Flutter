@@ -36,7 +36,8 @@ class _EditGroupDataState extends State<EditGroupData> {
   late List<User> _userInGroup;
   late final Group _group;
   String _imageURL = "";
-  Map<String, Future<User?>> userFutures = {}; //Needs to be outside the build (ui state) to avoid loading
+  Map<String, Future<User?>> userFutures =
+      {}; //Needs to be outside the build (ui state) to avoid loading
 
   @override
   void initState() {
@@ -134,7 +135,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  //** REMOVE AN USER */
+  //** REMOVE USER */
 
   // Function to remove a user from the group
   void _removeUser(BuildContext context, String fetchedUserName) {
@@ -236,10 +237,10 @@ class _EditGroupDataState extends State<EditGroupData> {
           id: _group.id,
           groupName: _groupName,
           ownerId: _currentUser!.id,
-          userRoles: _userRoles,                               
+          userRoles: _userRoles,
           calendar: _group.calendar,
           // users: _userInGroup, // We proceed to use the same users because the user needs to accept the invitation first in order to add them into the group.
-          users: _group.users, 
+          users: _group.users,
           createdTime: DateTime.now(),
           description: _groupDescription,
           photo: _imageURL);
@@ -248,8 +249,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       await _storeService.updateGroup(updateGroup);
 
       // Send notifications for the newly added users
-      await _storeService.sendNotificationToUsers(
-          updateGroup, _currentUser!);
+      await _storeService.sendNotificationToUsers(updateGroup, _currentUser!);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -434,6 +434,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
                     // ** UPDATE USER LIST **
                     // Initialize a map to store the futures for each username
+                    //Here we can remove an user
 
                     Column(
                       children: _userRoles.isNotEmpty
@@ -493,15 +494,18 @@ class _EditGroupDataState extends State<EditGroupData> {
                                               Utilities.buildProfileImage(
                                                   user?.photoUrl),
                                         ),
-                                        trailing: GestureDetector(
-                                          onTap: () {
-                                            _removeUser(context, userName);
-                                          },
-                                          child: Icon(
-                                            Icons.clear,
-                                            color: Colors.red,
-                                          ),
-                                        ),
+                                        trailing: roleValue != 'Administrator'
+                                            ? GestureDetector(
+                                                onTap: () {
+                                                  _removeUser(
+                                                      context, userName);
+                                                },
+                                                child: Icon(
+                                                  Icons.clear,
+                                                  color: Colors.red,
+                                                ),
+                                              )
+                                            : null, // Null if user is an administrator
                                         onTap: () {},
                                       );
                                     } else {

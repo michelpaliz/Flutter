@@ -412,48 +412,77 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                   Column(
                     children: _userRoles.keys.map((userName) {
                       final roleValue = _userRoles[userName];
-
-                      return FutureBuilder<User?>(
-                        future: _storeService.getUserByName(userName),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return CircularProgressIndicator(); // Loading indicator
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else if (snapshot.hasData) {
-                            final user = snapshot.data;
-
-                            return ListTile(
-                              title: Text(userName),
-                              subtitle: Text(roleValue!),
-                              leading: CircleAvatar(
-                                radius: 30, // Adjust the size as needed
-                                backgroundImage:
-                                    Utilities.buildProfileImage(user?.photoUrl),
-                              ),
-                              trailing: GestureDetector(
-                                onTap: () {
-                                  // Add your remove action here
-                                  setState(() {
-                                    _removeUser(userName);
-                                  });
-                                },
-                                child: Icon(
-                                  Icons.clear,
-                                  color: Colors.red,
+                      if (roleValue == "Administrator") {
+                        return FutureBuilder<User?>(
+                          future: _storeService.getUserByName(userName),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CircularProgressIndicator(); // Loading indicator
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.hasData) {
+                              final user = snapshot.data;
+                              return ListTile(
+                                title: Text(userName),
+                                subtitle: Text(roleValue!),
+                                leading: CircleAvatar(
+                                  radius: 30, // Adjust the size as needed
+                                  backgroundImage: Utilities.buildProfileImage(
+                                      user?.photoUrl),
                                 ),
-                              ),
-                              onTap: () {
-                                // Add any action you want when the role is tapped
-                              },
-                            );
-                          } else {
-                            return Text(
-                                AppLocalizations.of(context)!.userNotFound);
-                          }
-                        },
-                      );
+                                onTap: () {
+                                  // Add any action you want when the role is tapped
+                                },
+                              );
+                            } else {
+                              return Text(
+                                  AppLocalizations.of(context)!.userNotFound);
+                            }
+                          },
+                        );
+                      } else {
+                        return FutureBuilder<User?>(
+                          future: _storeService.getUserByName(userName),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CircularProgressIndicator(); // Loading indicator
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.hasData) {
+                              final user = snapshot.data;
+                              return ListTile(
+                                title: Text(userName),
+                                subtitle: Text(roleValue!),
+                                leading: CircleAvatar(
+                                  radius: 30, // Adjust the size as needed
+                                  backgroundImage: Utilities.buildProfileImage(
+                                      user?.photoUrl),
+                                ),
+                                trailing: GestureDetector(
+                                  onTap: () {
+                                    // Add your remove action here
+                                    setState(() {
+                                      _removeUser(userName);
+                                    });
+                                  },
+                                  child: Icon(
+                                    Icons.clear,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                onTap: () {
+                                  // Add any action you want when the user is tapped
+                                },
+                              );
+                            } else {
+                              return Text(
+                                  AppLocalizations.of(context)!.userNotFound);
+                            }
+                          },
+                        );
+                      }
                     }).toList(),
                   )
                 else
@@ -465,6 +494,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
             ),
           ),
         ),
+        //** SAVE CREATED GROUP */
         bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
