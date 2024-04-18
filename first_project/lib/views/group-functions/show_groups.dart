@@ -212,6 +212,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               ],
             ),
           ),
+          //** Show notification icon  */
           actions: [
             if (_currentUser?.hasNewNotifications == true)
               IconButton(
@@ -241,6 +242,7 @@ class _ShowGroupsState extends State<ShowGroups> {
           ],
         ),
         drawer: MyDrawer(),
+        //** SHOW WELCOME MESSAGE FOR THE USER */
         body: Column(
           children: [
             Expanded(
@@ -394,6 +396,7 @@ class _ShowGroupsState extends State<ShowGroups> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              //** GROUP IMAGE */
               CircleAvatar(
                 radius: 30, // Adjust the size as needed
                 backgroundImage:
@@ -401,6 +404,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               ),
 
               SizedBox(height: 8), // Add some spacing
+              //** GROUP NAME */
               Text(
                 group.groupName,
                 style: TextStyle(
@@ -409,6 +413,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                 ),
               ),
               SizedBox(height: 8), // Add some spacing
+              //** GROUP DATE */
               Text(
                 "${DateFormat('yyyy-MM-dd').format(group.createdTime)}",
                 style: TextStyle(
@@ -416,6 +421,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                 ),
               ),
               SizedBox(height: 15),
+              //** GROUP CALENDAR */
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(
@@ -444,6 +450,8 @@ class _ShowGroupsState extends State<ShowGroups> {
               )
             ],
           ),
+
+          //** HERE ARE THE ACTIONS LIKE; EDIT GROUP AND REMOVE GROUP */
           actions: [
             TextButton(
                 onPressed: () async {

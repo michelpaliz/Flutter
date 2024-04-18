@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
@@ -33,6 +34,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
+    Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
   late List<User> _userInGroup;
   late final Group _group;
   String _imageURL = "";
@@ -55,6 +57,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
     // _userRoles[_currentUser!.userName] = 'Administrator';
     _userRoles = _group.userRoles;
+    _userRolesAtFirst = _group.userRoles;
     _userInGroup = _group.users;
   }
 
@@ -225,31 +228,49 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
 
     try {
-      //** CREATING THE GROUP*/
+      //** EDITING THE GROUP*/
       //Now we are going to create the link of the image selected for the group
       if (_selectedImage != null) {
         _imageURL =
             await Utilities.pickAndUploadImageGroup(_group.id, _selectedImage);
       }
 
-      // Create the group object with the appropriate attributes
-      Group updateGroup = Group(
+      // Edit the group object with the appropriate attributes
+      Group updatedGroup = Group(
           id: _group.id,
           groupName: _groupName,
           ownerId: _currentUser!.id,
-          userRoles: _userRoles,
+          userRoles: _userRolesAtFirst,
           calendar: _group.calendar,
-          // users: _userInGroup, // We proceed to use the same users because the user needs to accept the invitation first in order to add them into the group.
+          invitedUsers: null,
           users: _group.users,
           createdTime: DateTime.now(),
           description: _groupDescription,
           photo: _imageURL);
 
+      //** ADD THE INVITED USERS  */
+      Map<String, UserInviteStatus> invitations = {};
+      //Now we proceed to create an invitation object
+      _userRoles.forEach((key, value) {
+        // Check if the user's role is not "Administrator"
+        if (value != 'Administrator') {
+          final invitationStatus = UserInviteStatus(
+            id: _group.id,
+            role: '$value',
+            accepted: null, // It's null because the user hasn't answered yet
+          );
+          invitations[key] = invitationStatus;
+        }
+      });
+
+      //we update the group's invitedUsers property
+      updatedGroup.invitedUsers = invitations;
+
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      await _storeService.updateGroup(updateGroup);
+      await _storeService.updateGroup(updatedGroup);
 
       // Send notifications for the newly added users
-      await _storeService.sendNotificationToUsers(updateGroup, _currentUser!);
+      await _storeService.sendNotificationToUsers(updatedGroup, _currentUser!);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(

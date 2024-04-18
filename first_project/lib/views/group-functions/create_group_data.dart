@@ -91,6 +91,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     // Add your logic here
   }
 
+  //Save the group but first send the data to firestore
   void _saveGroup() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
       bool groupCreated =
@@ -226,8 +227,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
           description: _groupDescription,
           photo: imageURL);
 
+      //** ADD THE INVITED USERS  */
       Map<String, UserInviteStatus> invitations = {};
-
+      //Now we proceed to create an invitation object
       _userRoles.forEach((key, value) {
         // Check if the user's role is not "Administrator"
         if (value != 'Administrator') {
