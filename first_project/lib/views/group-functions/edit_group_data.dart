@@ -33,7 +33,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   TextEditingController _searchController = TextEditingController();
   late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
-  Map<String, String> _userRoles = {}; // Map to store user roles
+  Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
     Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
   late List<User> _userInGroup;
   late final Group _group;
@@ -56,7 +56,7 @@ class _EditGroupDataState extends State<EditGroupData> {
             _group.photo); // Initialize _selectedImage with the existing image
 
     // _userRoles[_currentUser!.userName] = 'Administrator';
-    _userRoles = _group.userRoles;
+    _userUpdatedRoles = _group.userRoles;
     _userRolesAtFirst = _group.userRoles;
     _userInGroup = _group.users;
   }
@@ -70,7 +70,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
     // Update the state of CreateGroupData with the received data
     setState(() {
-      _userRoles = updatedUserRoles;
+      _userUpdatedRoles = updatedUserRoles;
       _userInGroup = updatedUserInGroup;
     });
   }
@@ -193,7 +193,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       User removedUser =
           _userInGroup[indexToRemove]; // Get the user to be removed
       setState(() {
-        _userRoles.remove(fetchedUserName);
+        _userUpdatedRoles.remove(fetchedUserName);
         _userInGroup.removeAt(indexToRemove); // Remove the user from the list
       });
       _storeService.removeUserInGroup(
@@ -251,7 +251,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       //** ADD THE INVITED USERS  */
       Map<String, UserInviteStatus> invitations = {};
       //Now we proceed to create an invitation object
-      _userRoles.forEach((key, value) {
+      _userUpdatedRoles.forEach((key, value) {
         // Check if the user's role is not "Administrator"
         if (value != 'Administrator') {
           final invitationStatus = UserInviteStatus(
@@ -284,6 +284,32 @@ class _EditGroupDataState extends State<EditGroupData> {
       return false; // Return false to indicate that the group creation failed.
     }
   }
+
+
+
+  //TODO THIS FUNCTION NEEDS A REVIEW IT'S NOT WORKING YET
+  void _showInvitedUsers(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 300,
+          child: ListView.builder(
+            itemCount: _userUpdatedRoles.length,
+            itemBuilder: (context, index) {
+              String userName = _userUpdatedRoles.keys.elementAt(index);
+              User userInviteStatus = _userUpdatedRoles[userName]!;
+              return ListTile(
+                title: Text(userName),
+                subtitle: Text('Role: ${userInviteStatus.role}, Accepted: ${userInviteStatus.accepted}'),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
 
   // ** UI FOR THE SCREEN **
 
@@ -388,7 +414,12 @@ class _EditGroupDataState extends State<EditGroupData> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    // ** ADD USER FOR THE GROUP ** `
+
+                    //? LET'S ADD HERE A  LIST TO FILTER THE USERS THAT HAVE BEEN INVITED AND THE USER WHO ARE ALREADY ON THE GROUP 
+
+                    
+
+                    // ! ADD USER FOR THE GROUP ** `
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -458,13 +489,13 @@ class _EditGroupDataState extends State<EditGroupData> {
                     //Here we can remove an user
 
                     Column(
-                      children: _userRoles.isNotEmpty
+                      children: _userUpdatedRoles.isNotEmpty
                           ? (() {
                               // Separate the administrator's username
                               String? administratorUserName;
                               Map<String, String> otherUserRoles = {};
 
-                              _userRoles.forEach((key, value) {
+                              _userUpdatedRoles.forEach((key, value) {
                                 if (value == 'Administrator') {
                                   administratorUserName = key;
                                 } else {
@@ -483,7 +514,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
                               List<Widget> userTiles = [];
                               for (String userName in sortedUserNames) {
-                                final roleValue = _userRoles[userName];
+                                final roleValue = _userUpdatedRoles[userName];
 
                                 // Check if a future already exists for this username
                                 if (!userFutures.containsKey(userName)) {
