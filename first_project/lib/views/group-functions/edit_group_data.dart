@@ -34,7 +34,8 @@ class _EditGroupDataState extends State<EditGroupData> {
   late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
-    Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
+  Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
+  Map<String, UserInviteStatus> _usersInvitationStatus = {};
   late List<User> _userInGroup;
   late final Group _group;
   String _imageURL = "";
@@ -59,6 +60,9 @@ class _EditGroupDataState extends State<EditGroupData> {
     _userUpdatedRoles = _group.userRoles;
     _userRolesAtFirst = _group.userRoles;
     _userInGroup = _group.users;
+    if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
+      _usersInvitationStatus = _group.invitedUsers!;
+    }
   }
 
   //Grab the updated data from the create_group_search_bar.dart screen
@@ -285,31 +289,80 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-
-
-  //TODO THIS FUNCTION NEEDS A REVIEW IT'S NOT WORKING YET
+  //This function shows the invited users list
   void _showInvitedUsers(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
+        // Filter users based on the invitation status
+        List<UserInviteStatus> filteredUsers = _usersInvitationStatus.values
+            .where((user) => user.accepted == null || false)
+            .toList();
         return Container(
           height: 300,
-          child: ListView.builder(
-            itemCount: _userUpdatedRoles.length,
-            itemBuilder: (context, index) {
-              String userName = _userUpdatedRoles.keys.elementAt(index);
-              User userInviteStatus = _userUpdatedRoles[userName]!;
-              return ListTile(
-                title: Text(userName),
-                subtitle: Text('Role: ${userInviteStatus.role}, Accepted: ${userInviteStatus.accepted}'),
-              );
-            },
-          ),
+          child: filteredUsers.isNotEmpty
+              ? ListView.builder(
+                  itemCount: filteredUsers.length,
+                  itemBuilder: (context, index) {
+                    String userName =
+                        _usersInvitationStatus.keys.elementAt(index);
+                    UserInviteStatus userInviteStatus = filteredUsers[index];
+                    return ListTile(
+                      title: Text(userName),
+                      subtitle: RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.black,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(text: 'Role: '),
+                            TextSpan(
+                              text: '${userInviteStatus.role}',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.blue),
+                            ),
+                            TextSpan(text: ',   '),
+                            userInviteStatus.accepted != null
+                                ? TextSpan(
+                                    text: 'Accepted: ',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                        text: '${userInviteStatus.accepted}',
+                                        style: TextStyle(color: Colors.blue),
+                                      ),
+                                    ],
+                                  )
+                                : TextSpan(
+                                    text: 'Accepted: ',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                        text: 'Answer Pending',
+                                        style: TextStyle(color: Colors.blue),
+                                      ),
+                                    ],
+                                  ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : Center(
+                  child: Text(
+                    'No users found with the given status.',
+                    style: TextStyle(fontSize: 14.0),
+                  ),
+                ),
         );
       },
     );
   }
-
 
   // ** UI FOR THE SCREEN **
 
@@ -415,9 +468,19 @@ class _EditGroupDataState extends State<EditGroupData> {
                     ),
                     SizedBox(height: 10),
 
-                    //? LET'S ADD HERE A  LIST TO FILTER THE USERS THAT HAVE BEEN INVITED AND THE USER WHO ARE ALREADY ON THE GROUP 
+                    //? LET'S ADD HERE A  LIST TO FILTER THE USERS THAT HAVE BEEN INVITED AND THE USER WHO ARE ALREADY ON THE GROUP
 
-                    
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            _showInvitedUsers(context);
+                          },
+                          child: Text('Show invited users'),
+                        ),
+                      ],
+                    ),
 
                     // ! ADD USER FOR THE GROUP ** `
                     Row(
