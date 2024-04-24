@@ -257,6 +257,7 @@ class FirestoreProvider implements FirestoreRepository {
       // Now we are gonna create a new URL reference for the group's image and update it
       // _updatePhotoURLForGroup(group);
       _providerManagement?.updateGroup(group);
+      _providerManagement?.setGroups;
       // We now update the user's groups ids in case the user a new user has been added
       for (var user in group.users) {
         // Get the first user which is the new user

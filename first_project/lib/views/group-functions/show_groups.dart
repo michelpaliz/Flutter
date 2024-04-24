@@ -31,6 +31,9 @@ class _ShowGroupsState extends State<ShowGroups> {
   Axis _scrollDirection = Axis.vertical;
   late Color textColor;
   late Color cardBackgroundColor;
+  Group? selectedGroup;
+  String? _currentRole;
+
   //*LOGIC FOR THE VIEW //
   @override
   void initState() {
@@ -50,6 +53,15 @@ class _ShowGroupsState extends State<ShowGroups> {
     Navigator.pushNamed(context, createGroupData);
     // Call setState to trigger a UI update
     setState(() {});
+  }
+
+  String _getRole(User currentUser, Map<String, String> userRoles) {
+    return userRoles[currentUser.userName] ?? 'No Role Found';
+  }
+
+  bool _hasPermissions(Group groupSelected) {
+    _currentRole = _getRole(_currentUser!, groupSelected.userRoles);
+    return _currentRole == "Administrator";
   }
 
   Future<void> _showDeleteConfirmationDialog(Group group) async {
@@ -313,6 +325,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                       ),
                     ),
                     SizedBox(height: 20),
+                    //! HERE WE SHOW THE GROUPS FOR THE USERS
                     Container(
                       height: _scrollDirection == Axis.vertical ? 500 : 130,
                       child: Consumer<ProviderManagement>(
@@ -329,7 +342,6 @@ class _ShowGroupsState extends State<ShowGroups> {
                               ),
                             );
                           }
-
                           return ListView.builder(
                             scrollDirection: _scrollDirection,
                             itemCount: userGroups.length,
@@ -388,6 +400,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     });
   }
 
+  //? This shows the groups list
   void showProfileAlertDialog(BuildContext context, Group group, User owner) {
     showDialog(
       context: context,
@@ -402,7 +415,6 @@ class _ShowGroupsState extends State<ShowGroups> {
                 backgroundImage:
                     Utilities.buildProfileImage(group.photo.toString()),
               ),
-
               SizedBox(height: 8), // Add some spacing
               //** GROUP NAME */
               Text(
@@ -447,30 +459,41 @@ class _ShowGroupsState extends State<ShowGroups> {
                   textColor: const Color.fromARGB(255, 26, 26, 26),
                   borderColor: const Color.fromARGB(255, 53, 10, 7),
                 ),
-              )
+              ),
             ],
           ),
-
           //** HERE ARE THE ACTIONS LIKE; EDIT GROUP AND REMOVE GROUP */
-          actions: [
-            TextButton(
-                onPressed: () async {
-                  // Edit group logic here
-                  Group? groupUpdated =
-                      await _storeService.getGroupFromId(group.id);
-                  Navigator.pushNamed(context, editGroupData,
-                      arguments: groupUpdated);
-                },
-                child: Text(AppLocalizations.of(context)!.edit)),
-            TextButton(
-              onPressed: () {
-                // Remove group logic here
-                Navigator.of(context).pop();
-                _showDeleteConfirmationDialog(group);
-              },
-              child: Text(AppLocalizations.of(context)!.remove),
-            ),
-          ],
+          actions: _hasPermissions(group)
+              ? [
+                  TextButton(
+                    onPressed: () async {
+                      // Edit group logic here
+                      var selectedGroup =
+                          await _storeService.getGroupFromId(group.id);
+                      Navigator.pushNamed(context, editGroupData,
+                          arguments: selectedGroup);
+                    },
+                    child: Text(AppLocalizations.of(context)!.edit),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Remove group logic here
+                      Navigator.of(context).pop();
+                      _showDeleteConfirmationDialog(group);
+                    },
+                    child: Text(AppLocalizations.of(context)!.remove),
+                  ),
+                ]
+              : [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Currently you are a/an $_currentRole of this group "),
+                    // child: Text(AppLocalizations.of(context)!
+                    //     .noPermissionMessage), // Replace with your localized message
+                  ),
+                ],
         );
       },
     );
