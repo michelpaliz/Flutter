@@ -114,6 +114,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       if (notification.question.isNotEmpty) {
         Group? group = await _storeService.getGroupFromId(notification.id);
         Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
+        // !Now we fill out the form with the information that we got from the invite status.
         if (invitedUsers != null) {
           for (final entry in invitedUsers.entries) {
             String userName = entry.key;
@@ -126,14 +127,15 @@ class _ShowNotificationsState extends State<ShowNotifications> {
             if (userName == _currentUser!.userName) {
               //We update the group first
               _currentUser!.notifications[index].isAnswered = true;
-              await _storeService.updateUser(_currentUser!);
-              _addUserToGroup(notification);
+              // await _storeService.updateUser(_currentUser!);
+          
               //Update the group user roles list
               Map<String, String> userRole = {
                 _currentUser!.userName : role
               };
               group?.userRoles.addEntries(userRole.entries);
-              _storeService.updateGroup(group!);
+              _addUserToGroup(notification);
+              // _storeService.updateGroup(group!);
               //Send notification to admin
               setState(() {});
               _sendNotificationToAdmin(notification, true);
