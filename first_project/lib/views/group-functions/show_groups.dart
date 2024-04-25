@@ -116,6 +116,41 @@ class _ShowGroupsState extends State<ShowGroups> {
     }
   }
 
+  void _leaveGroup(BuildContext context, Group group) async {
+    // Display confirmation dialog
+    bool confirm = await _showConfirmationDialog(context);
+    if (confirm) {
+      // If the user confirms, remove the user from the group
+      await _storeService.removeUserInGroup(_currentUser!, group);
+    }
+  }
+
+Future<bool> _showConfirmationDialog(BuildContext context) async {
+  return await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Confirm'),
+        content: Text('Are you sure you want to leave this group?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Return false when canceled
+            },
+          ),
+          TextButton(
+            child: Text('Confirm'),
+            onPressed: () {
+              Navigator.of(context).pop(true); // Return true when confirmed
+            },
+          ),
+        ],
+      );
+    },
+  ) ?? false; // Default to false if dialog is dismissed without making a choice
+}
+
   //** UI FOR THE VIEW */
   Widget buildCard(Group group, bool isHovered) {
     textColor = ThemeColors.getTextColor(context);
@@ -489,10 +524,19 @@ class _ShowGroupsState extends State<ShowGroups> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text("Currently you are a/an $_currentRole of this group "),
+                    child: Text(
+                        "Currently you are a/an $_currentRole of this group "),
                     // child: Text(AppLocalizations.of(context)!
                     //     .noPermissionMessage), // Replace with your localized message
                   ),
+                  TextButton(
+                    onPressed: () {
+                      _leaveGroup(context, group);
+                    },
+                    child: Text("Leave group"),
+                    // child: Text(AppLocalizations.of(context)!
+                    //     .noPermissionMessage), // Replace with your localized message
+                  )
                 ],
         );
       },

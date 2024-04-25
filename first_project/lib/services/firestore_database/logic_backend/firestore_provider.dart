@@ -448,7 +448,10 @@ class FirestoreProvider implements FirestoreRepository {
       user.groupIds.remove(group.id);
 
       // Remove the user from the user roles list in the group
-      group.userRoles.remove(user.id);
+      group.userRoles.remove(user.userName);
+
+      //Remove the user from the invited list in the group
+      group.invitedUsers?.remove(user.userName);
 
       // Update both the user and the group in Firestore
       await updateUser(user);

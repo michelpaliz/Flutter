@@ -100,7 +100,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   void _updateGroupMessage() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
       bool groupCreated =
-          await _creatingGroup_UpdatingGroup(); // Call _creatingGroup and await the result
+          await _updatingGroup(); // Call _creatingGroup and await the result
 
       if (groupCreated) {
         // Group creation was successful, show a success message
@@ -219,7 +219,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
-  Future<bool> _creatingGroup_UpdatingGroup() async {
+  Future<bool> _updatingGroup() async {
     if (_groupName.trim().isEmpty) {
       // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
       ScaffoldMessenger.of(context).showSnackBar(

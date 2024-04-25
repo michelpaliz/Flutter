@@ -135,7 +135,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               };
               group?.userRoles.addEntries(userRole.entries);
               _addUserToGroup(notification);
-              // _storeService.updateGroup(group!);
+              _storeService.updateGroup(group!); //We need to update the group user roles list after a change made to the group
               //Send notification to admin
               setState(() {});
               _sendNotificationToAdmin(notification, true);
