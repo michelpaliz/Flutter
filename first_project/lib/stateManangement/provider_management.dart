@@ -8,71 +8,67 @@ class ProviderManagement extends ChangeNotifier {
   List<Group> _groups = [];
   ThemeData _themeData = lightTheme;
 
-  User? get user => _currentUser;
-  List<Group> get setGroups => _groups;
+  User? get currentUser => _currentUser;
+  List<Group> get groups => _groups;
   ThemeData get themeData => _themeData;
 
-  ProviderManagement({
-    required User? user,
-  }) {
+  ProviderManagement({required User? user}) {
     _currentUser = user;
   }
 
-  set setGroups(groups) {
-    _groups = groups;
-  }
-
-  // Method to set the currentUser
-  void setCurrentUser(User? user) {
-    _currentUser = user;
-    notifyListeners(); // Notify the listeners (providers) of the change
-  }
-
-  // Initialize the user and groups
-  void initialize(User user, List<Group> groups) {
-    _currentUser = user;
-    _groups = groups;
+  void setGroups(groupsUpdated) {
+    // _groups.clear();
+    _groups = groupsUpdated;
     notifyListeners();
   }
 
-  // Update the user and notify listeners
+  // Method to add a group while avoiding duplicates
+  void addGroupIfNotExists(Group group) {
+    if (!_groups.any((existingGroup) => existingGroup.id == group.id)) {
+      _groups.add(group);
+      notifyListeners();
+    }
+  }
+
+  void setCurrentUser(User? user) {
+    _currentUser = user;
+    notifyListeners();
+  }
+
+  void initialize(User user, List<Group> groups) {
+    _currentUser = user;
+    _groups.addAll(groups);
+    notifyListeners();
+  }
+
   void updateUser(User newUser) {
     _currentUser = newUser;
     notifyListeners();
   }
 
-  // Add a new group to the list
   void addGroup(Group group) {
     _groups.add(group);
     notifyListeners();
   }
 
-  // Remove a group from the list
   void removeGroup(Group group) {
-    _groups.removeWhere((group) => group.id == group.id);
-    notifyListeners();
+    final index = _groups.indexWhere((g) => g.id == group.id);
+    if (index != -1) {
+      _groups.removeAt(index);
+      notifyListeners();
+    }
   }
 
-  // Update a group in the list
   void updateGroup(Group updatedGroup) {
-    final index = _groups.indexWhere((group) => group.id == updatedGroup.id);
+    final index = _groups.indexWhere((g) => g.id == updatedGroup.id);
     if (index != -1) {
       _groups[index] = updatedGroup;
       notifyListeners();
     }
   }
-  
-  // Toggle the theme
+
   void toggleTheme() {
     _themeData = (_themeData == lightTheme) ? darkTheme : lightTheme;
     notifyListeners();
   }
-
-
-  // // Get updated group by ID
-  
-  // Group getUpdatedGroup(String groupId) {
-  //   return _groups.firstWhere((group) => group.id == groupId,
-  //       orElse: () => throw Exception('Group not found with ID: $groupId'));
-  // }
 }

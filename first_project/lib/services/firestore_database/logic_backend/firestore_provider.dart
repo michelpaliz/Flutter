@@ -24,6 +24,49 @@ class FirestoreProvider implements FirestoreRepository {
   })  : _authService = AuthService.firebase(),
         _providerManagement = providerManagement;
 
+  //LET'S CREATE THIS FUNCTION TO UPDATE THE LATEST DATA FROM MY USER OBJECT
+  Future<List<Group>> _fetchUserGroups() async {
+    try {
+      // Get the user ID
+      String userId = _authService.costumeUser!.id;
+
+      // Fetch the user data from Firestore
+      User? user = await getUserById(userId);
+
+      // Check if user data is not null and has group IDs
+      if (user != null && user.groupIds.isNotEmpty) {
+        // Fetch groups asynchronously
+        List<Future<Group?>> groupFutures =
+            user.groupIds.map((groupId) => getGroupFromId(groupId)).toList();
+
+        // Use Future.wait to wait for all group fetches to complete
+        List<Group> userGroups = await Future.wait(
+            groupFutures.map((future) => future.then((group) => group!)));
+
+        return userGroups;
+      } else {
+        // If user data is null or has no group IDs, return an empty list
+        return [];
+      }
+    } catch (error) {
+      // Handle any errors that occur during the process
+      print('Error fetching user groups: $error');
+      return [];
+    }
+  }
+
+  Future<void> _updateUserGroupProvider() async {
+    try {
+      // Fetch updated group data from your API
+      List<Group> updatedGroups = await _fetchUserGroups();
+      // Update the local _groups list
+      _providerManagement!.setGroups(updatedGroups);
+    } catch (error) {
+      print('Error fetching updated groups: $error');
+      // Handle error appropriately
+    }
+  }
+
   // ** HANDLE EVENT DATA ***
 
   Future<void> updateEvent(Event event) async {
@@ -178,6 +221,8 @@ class FirestoreProvider implements FirestoreRepository {
       _providerManagement?.updateUser(currentUser);
       _providerManagement?.addGroup(group);
 
+      sendNotificationToUsers(group, currentUser);
+
       // Create notifications for group members
       await sendNotificationToUsers(group, currentUser);
     } catch (e) {
@@ -257,7 +302,7 @@ class FirestoreProvider implements FirestoreRepository {
       // Now we are gonna create a new URL reference for the group's image and update it
       // _updatePhotoURLForGroup(group);
       _providerManagement?.updateGroup(group);
-      _providerManagement?.setGroups;
+      // _providerManagement?.setGroups;
       // We now update the user's groups ids in case the user a new user has been added
       for (var user in group.users) {
         // Get the first user which is the new user
@@ -325,7 +370,6 @@ class FirestoreProvider implements FirestoreRepository {
   }
 
   /**Adds the user to the group introduced and it adds the groupId of the group in the user's groupsID */
-  //TODO LET'S ADD A NEW PARAMETER TO SPECIFY THE ROLE FOR THE USER IN THE GROUP */
   @override
   Future<void> addUserToGroup(
       User user, NotificationUser notificationUser) async {
@@ -452,10 +496,15 @@ class FirestoreProvider implements FirestoreRepository {
 
       //Remove the user from the invited list in the group
       group.invitedUsers?.remove(user.userName);
-
+      
       // Update both the user and the group in Firestore
       await updateUser(user);
-      await updateGroup(group);
+
+      //Let's use the provider to remove the group from the user groups list
+      _providerManagement!.removeGroup(group);
+
+      //Update the groups user list in our provider
+      _updateUserGroupProvider();
     } catch (error) {
       print('Error removing user from group: $error');
     }
@@ -528,7 +577,7 @@ class FirestoreProvider implements FirestoreRepository {
 
         User? currentUser = _authService.costumeUser;
 
-        if (currentUser!.id == user.id) {
+        if (currentUser != null && currentUser.id == user.id) {
           _authService.costumeUser = user;
 
           // Update the user in his groups
@@ -538,7 +587,10 @@ class FirestoreProvider implements FirestoreRepository {
         }
 
         // Use _providerManagement here
-        _providerManagement?.updateUser(user);
+        if (_providerManagement != null) {
+          _providerManagement!.updateUser(user);
+          // _providerManagement!.setGroups;
+        }
 
         return 'User has been updated';
       }

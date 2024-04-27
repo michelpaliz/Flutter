@@ -104,6 +104,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
             content: Text(AppLocalizations.of(context)!.groupCreated),
           ),
         );
+
+        // Navigate back to the previous screen
+        Navigator.of(context).pop();
       } else {
         // Group creation failed, show an error message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -247,6 +250,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.addGroup(group);
+      
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.groupCreated)),

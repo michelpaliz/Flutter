@@ -6,6 +6,8 @@ import 'package:first_project/models/event.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManangement/theme_preference_provider.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -19,15 +21,12 @@ import 'package:first_project/views/log-user/recover_password.dart';
 import 'package:first_project/views/log-user/register_view.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
-import 'package:first_project/stateManangement/theme_preference_provider.dart';
 import 'package:first_project/views/settings.dart';
 import 'package:first_project/views/show_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
-import 'dart:developer' as devtools show log;
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
 class MyApp extends StatefulWidget {
   final User? currentUser;
@@ -52,17 +51,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> loadData() async {
-    final providerManagement =
+    ProviderManagement providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     final FirestoreService storeService =
         Provider.of<FirestoreService>(context, listen: false);
 
     try {
-      List<Group>? groups =
+      List<Group>? _fetchedGroups =
           await storeService.fetchUserGroups(widget.currentUser?.groupIds);
-      providerManagement.setGroups = groups;
+      for (Group group in _fetchedGroups) {
+        providerManagement.addGroupIfNotExists(group);
+        // Apply other updates (e.g., groups) as needed
+      }
+
+      // providerManagement.groups = fetchedGroups;
       setState(() {
-        fetchedGroups = groups;
+        _fetchedGroups = _fetchedGroups;
       });
     } catch (error) {
       print('Error fetching user groups: $error');
@@ -167,7 +171,6 @@ class _MyAppState extends State<MyApp> {
                     .shrink(); // Return an empty widget or handle the error
               }
             },
-
             home: isLogged == true
                 ? ShowGroups()
                 : LoginView(

@@ -50,6 +50,12 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     });
   }
 
+  @override
+  void dispose() {
+    // Perform cleanup tasks here, if needed
+    super.dispose();
+  }
+
   void _addUserToGroup(NotificationUser notification) {
     //Here we add the user to the group
     _storeService.addUserToGroup(_currentUser!, notification);
@@ -128,14 +134,13 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               //We update the group first
               _currentUser!.notifications[index].isAnswered = true;
               // await _storeService.updateUser(_currentUser!);
-          
+
               //Update the group user roles list
-              Map<String, String> userRole = {
-                _currentUser!.userName : role
-              };
+              Map<String, String> userRole = {_currentUser!.userName: role};
               group?.userRoles.addEntries(userRole.entries);
               _addUserToGroup(notification);
-              _storeService.updateGroup(group!); //We need to update the group user roles list after a change made to the group
+              _storeService.updateGroup(
+                  group!); //We need to update the group user roles list after a change made to the group
               //Send notification to admin
               setState(() {});
               _sendNotificationToAdmin(notification, true);

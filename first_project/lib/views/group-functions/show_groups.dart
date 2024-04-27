@@ -1,18 +1,20 @@
-import 'package:first_project/styles/themes/theme_colors.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'dart:developer' as devtools show log;
+
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../../enums/routes/routes.dart';
-import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
-import 'dart:developer' as devtools show log;
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import '../../../styles/drawer-style-menu/my_drawer.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -35,6 +37,18 @@ class _ShowGroupsState extends State<ShowGroups> {
   String? _currentRole;
 
   //*LOGIC FOR THE VIEW //
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    final providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
+    _storeService = FirestoreService.firebase(providerManagement);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -125,31 +139,34 @@ class _ShowGroupsState extends State<ShowGroups> {
     }
   }
 
-Future<bool> _showConfirmationDialog(BuildContext context) async {
-  return await showDialog<bool>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Confirm'),
-        content: Text('Are you sure you want to leave this group?'),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop(false); // Return false when canceled
-            },
-          ),
-          TextButton(
-            child: Text('Confirm'),
-            onPressed: () {
-              Navigator.of(context).pop(true); // Return true when confirmed
-            },
-          ),
-        ],
-      );
-    },
-  ) ?? false; // Default to false if dialog is dismissed without making a choice
-}
+  Future<bool> _showConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Confirm'),
+              content: Text('Are you sure you want to leave this group?'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pop(false); // Return false when canceled
+                  },
+                ),
+                TextButton(
+                  child: Text('Confirm'),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pop(true); // Return true when confirmed
+                  },
+                ),
+              ],
+            );
+          },
+        ) ??
+        false; // Default to false if dialog is dismissed without making a choice
+  }
 
   //** UI FOR THE VIEW */
   Widget buildCard(Group group, bool isHovered) {
@@ -239,7 +256,7 @@ Future<bool> _showConfirmationDialog(BuildContext context) async {
       Color containerBackgroundColor =
           ThemeColors.getContainerBackgroundColor(context);
       // Access the list of groups from providerData.
-      final List<Group> groups = providerManagement.setGroups;
+      final List<Group> groups = providerManagement.groups;
 
       devtools.log('This is group list: ' + groups.toString());
       // Initialize _storeService using data from providerManagement.
@@ -365,7 +382,7 @@ Future<bool> _showConfirmationDialog(BuildContext context) async {
                       height: _scrollDirection == Axis.vertical ? 500 : 130,
                       child: Consumer<ProviderManagement>(
                         builder: (context, providerManagement, child) {
-                          List<Group> userGroups = providerManagement.setGroups;
+                          List<Group> userGroups = providerManagement.groups;
 
                           if (userGroups.isEmpty) {
                             return Center(
@@ -377,6 +394,7 @@ Future<bool> _showConfirmationDialog(BuildContext context) async {
                               ),
                             );
                           }
+
                           return ListView.builder(
                             scrollDirection: _scrollDirection,
                             itemCount: userGroups.length,
@@ -419,6 +437,65 @@ Future<bool> _showConfirmationDialog(BuildContext context) async {
                         },
                       ),
                     ),
+
+                    // Container(
+                    //   height: _scrollDirection == Axis.vertical ? 500 : 130,
+                    //   child: Consumer<ProviderManagement>(
+                    //     builder: (context, providerManagement, child) {
+                    //       List<Group> userGroups = providerManagement.setGroups;
+
+                    //       if (userGroups.isEmpty) {
+                    //         return Center(
+                    //           child: Text(
+                    //             AppLocalizations.of(context)!
+                    //                 .noGroupsAvailable
+                    //                 .toUpperCase(),
+                    //             style: TextStyle(fontSize: 15),
+                    //           ),
+                    //         );
+                    //       }
+                    //       return ListView.builder(
+                    //         scrollDirection: _scrollDirection,
+                    //         itemCount: userGroups.length,
+                    //         itemBuilder: (context, index) {
+                    //           bool isHovered = false;
+
+                    //           return InkWell(
+                    //             onTap: () async {
+                    //               Group _group = userGroups[index];
+                    //               User _groupOwner = await _storeService
+                    //                   .getOwnerFromGroup(_group);
+                    //               showProfileAlertDialog(
+                    //                   context, _group, _groupOwner);
+                    //             },
+                    //             onHover: (hovering) {
+                    //               // Set the hover state
+                    //               setState(() {
+                    //                 isHovered = hovering;
+                    //               });
+                    //             },
+                    //             child: MouseRegion(
+                    //               onEnter: (_) {
+                    //                 // Add your hover effect here (e.g., change the background color).
+                    //                 setState(() {
+                    //                   isHovered = true;
+                    //                 });
+                    //               },
+                    //               onExit: (_) {
+                    //                 // Reset the hover effect when the mouse exits.
+                    //                 setState(() {
+                    //                   isHovered = false;
+                    //                 });
+                    //               },
+                    //               child:
+                    //                   buildCard(userGroups[index], isHovered),
+                    //             ),
+                    //           );
+                    //         },
+                    //       );
+                    //     },
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
