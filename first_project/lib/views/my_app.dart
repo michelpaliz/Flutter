@@ -1,10 +1,12 @@
 //** UI for my view */
 
-import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/l10n/l10n.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/stateManangement/theme_preference_provider.dart';
@@ -16,6 +18,7 @@ import 'package:first_project/views/group-functions/calendar-group/group_setting
 import 'package:first_project/views/group-functions/create_group_data.dart';
 import 'package:first_project/views/group-functions/edit_group_data.dart';
 import 'package:first_project/views/group-functions/show_groups.dart';
+import 'package:first_project/views/home_page.dart';
 import 'package:first_project/views/log-user/login_view.dart';
 import 'package:first_project/views/log-user/recover_password.dart';
 import 'package:first_project/views/log-user/register_view.dart';
@@ -29,9 +32,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 class MyApp extends StatefulWidget {
-  final User? currentUser;
+  // final User? currentUser;
 
-  const MyApp({Key? key, required this.currentUser}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -39,18 +42,40 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late List<Group> fetchedGroups;
-
   late bool isLogged;
+  ProviderManagement? providerManagement;
+  ThemePreferenceProvider? themePreferenceProvider;
+  FirestoreService? storeService;
+  AuthService authService = AuthService.firebase();
 
   @override
   void initState() {
     super.initState();
-    // Fetch user groups asynchronously in the initState
-    isLogged = widget.currentUser == null ? false : true;
-    loadData();
   }
 
-  Future<void> loadData() async {
+  Future<void> _setServices() async {
+    // Initialize the ProviderManagement instance
+    providerManagement = ProviderManagement(
+        user:
+            null); // Pass null for now, you may adjust this based on your logic
+    // Initialize the ThemePreferenceProvider instance
+    themePreferenceProvider = ThemePreferenceProvider();
+    // Initialize the StoreService instance
+    storeService = FirestoreService.firebase(providerManagement!);
+
+    // Fetch user groups for the provider
+    // List<Group>? _fetchedGroups =
+    //     await storeService!.fetchUserGroups(authService.costumeUser?.groupIds);
+
+    // Set the fetched user groups into the ProviderManagement
+    // providerManagement!.setGroups = fetchedGroups;
+    // for (Group group in _fetchedGroups) {
+    //   providerManagement!.addGroupIfNotExists(group);
+    //   // Apply other updates (e.g., groups) as needed
+    // }
+  }
+
+  Future<void> _loadData(User user) async {
     ProviderManagement providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     final FirestoreService storeService =
@@ -58,7 +83,7 @@ class _MyAppState extends State<MyApp> {
 
     try {
       List<Group>? _fetchedGroups =
-          await storeService.fetchUserGroups(widget.currentUser?.groupIds);
+          await storeService.fetchUserGroups(user.groupIds);
       for (Group group in _fetchedGroups) {
         providerManagement.addGroupIfNotExists(group);
         // Apply other updates (e.g., groups) as needed
@@ -75,112 +100,160 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemePreferenceProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp(
-            theme: themeProvider.themeData,
-            localizationsDelegates: [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
-            supportedLocales: L10n.all,
-            routes: {
-              settings: (context) => const Settings(),
-              // loginRoute: (context) => LoginView(onLoginSuccess: (user) {
-              //       // AppInitializer.goToMain(context, user);
-              //     }),
-              loginRoute: (context) => LoginView(),
-              registerRoute: (context) => const RegisterView(),
-              passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
-              userCalendar: (context) => const NotesView(),
-              verifyEmailRoute: (context) => const VerifyEmailView(),
-              editEvent: (context) {
-                final event =
-                    ModalRoute.of(context)?.settings.arguments as Event?;
-                if (event != null) {
-                  return EditNoteScreen(event: event);
-                }
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              },
-              showGroups: (context) => ShowGroups(),
-              createGroupData: (context) => CreateGroupData(),
-              showNotifications: (context) => ShowNotifications(),
-              groupSettings: (context) {
-                final group =
-                    ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return GroupSettings(group: group);
-                }
-                // Handle the case when no group is passed
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              },
-              editGroup: (context) {
-                final group =
-                    ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return EditGroupData(group: group);
-                }
-                // Handle the case when no group is passed
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              },
-              groupCalendar: (context) {
-                final group =
-                    ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return GroupDetails(group: group);
-                }
-                // Handle the case when no group is passed
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              },
-              addEvent: (context) {
-                final dynamic arg = ModalRoute.of(context)?.settings.arguments;
+    final authService = Provider.of<AuthService>(context);
 
-                User? user;
-                Group? group;
+    return FutureBuilder<User?>(
+      future: authService.generateUserCustomModel(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); // Show a loading indicator while fetching user data
+        } else {
+          if (snapshot.hasData) {
+            // User is already logged in
+            final user = snapshot.data!;
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider<ProviderManagement>.value(
+                  value: ProviderManagement(user: user),
+                ),
+                
+                // Add other providers as needed
+              ],
+              child: FutureBuilder<void>(
+                future: _loadData(user),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Show a loading indicator while loading data
+                    return CircularProgressIndicator();
+                  } else {
+                    // Data loaded, initialize providers
+                    return MaterialApp(
+                      // Your app setup goes here
+                      // Pass the logged-in user to your app
+                      routes: {
+                        AppRoutes.settings: (context) => const Settings(),
+                        AppRoutes.loginRoute: (context) => LoginView(),
+                        AppRoutes.registerRoute: (context) =>
+                            const RegisterView(),
+                        AppRoutes.passwordRecoveryRoute: (context) =>
+                            PasswordRecoveryScreen(),
+                        AppRoutes.userCalendar: (context) => const NotesView(),
+                        AppRoutes.verifyEmailRoute: (context) =>
+                            const VerifyEmailView(),
+                        AppRoutes.editEvent: (context) {
+                          final event = ModalRoute.of(context)
+                              ?.settings
+                              .arguments as Event?;
+                          if (event != null) {
+                            return EditNoteScreen(event: event);
+                          }
+                          return SizedBox
+                              .shrink(); // Return an empty widget or handle the error
+                        },
+                        AppRoutes.showGroups: (context) => ShowGroups(),
+                        AppRoutes.createGroupData: (context) =>
+                            CreateGroupData(),
+                        AppRoutes.showNotifications: (context) =>
+                            ShowNotifications(),
+                        AppRoutes.groupSettings: (context) {
+                          final group = ModalRoute.of(context)
+                              ?.settings
+                              .arguments as Group?;
+                          if (group != null) {
+                            return GroupSettings(group: group);
+                          }
+                          // Handle the case when no group is passed
+                          return SizedBox
+                              .shrink(); // Return an empty widget or handle the error
+                        },
+                        AppRoutes.editGroup: (context) {
+                          final group = ModalRoute.of(context)
+                              ?.settings
+                              .arguments as Group?;
+                          if (group != null) {
+                            return EditGroupData(group: group);
+                          }
+                          // Handle the case when no group is passed
+                          return SizedBox
+                              .shrink(); // Return an empty widget or handle the error
+                        },
+                        AppRoutes.groupCalendar: (context) {
+                          final group = ModalRoute.of(context)
+                              ?.settings
+                              .arguments as Group?;
+                          if (group != null) {
+                            return GroupDetails(group: group);
+                          }
+                          // Handle the case when no group is passed
+                          return SizedBox
+                              .shrink(); // Return an empty widget or handle the error
+                        },
+                        AppRoutes.addEvent: (context) {
+                          final dynamic arg =
+                              ModalRoute.of(context)?.settings.arguments;
 
-                if (arg is User) {
-                  user = arg;
-                } else if (arg is Group) {
-                  group = arg;
-                }
+                          User? user;
+                          Group? group;
 
-                return EventNoteWidget(user: user, group: group);
-              },
-              eventDetail: (context) {
-                final event =
-                    ModalRoute.of(context)?.settings.arguments as Event?;
-                if (event != null) {
-                  return EventDetail(event: event);
-                }
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              },
-              editGroupData: (context) {
-                final group =
-                    ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return EditGroupData(group: group);
-                }
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              }
-            },
-            home: isLogged == true
-                ? ShowGroups()
-                : LoginView(
-                    // onLoginSuccess: (user) async {
-                    //   devtools.log(
-                    //       'This is the register user from the login $user');
-                    //   await AppInitializer.goToMain(context, user);
-                    // },
-                    ));
+                          if (arg is User) {
+                            user = arg;
+                          } else if (arg is Group) {
+                            group = arg;
+                          }
+
+                          return EventNoteWidget(user: user, group: group);
+                        },
+                        AppRoutes.eventDetail: (context) {
+                          final event = ModalRoute.of(context)
+                              ?.settings
+                              .arguments as Event?;
+                          if (event != null) {
+                            return EventDetail(event: event);
+                          }
+                          return SizedBox
+                              .shrink(); // Return an empty widget or handle the error
+                        },
+                        AppRoutes.editGroupData: (context) {
+                          final group = ModalRoute.of(context)
+                              ?.settings
+                              .arguments as Group?;
+                          if (group != null) {
+                            return EditGroupData(group: group);
+                          }
+                          return SizedBox
+                              .shrink(); // Return an empty widget or handle the error
+                        }
+                      },
+                      home: HomePage(), // Example: Home page for logged-in user
+                    );
+                  }
+                },
+              ),
+            );
+          } else {
+            // No user logged in, navigate to login page
+            return LoginView();
+          }
+        }
       },
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Consumer<ThemePreferenceProvider>(
+  //     builder: (context, themeProvider, child) {
+  //       return MaterialApp(
+  //         theme: themeProvider.themeData,
+  //         localizationsDelegates: [
+  //           AppLocalizations.delegate,
+  //           GlobalMaterialLocalizations.delegate,
+  //           GlobalCupertinoLocalizations.delegate,
+  //           GlobalWidgetsLocalizations.delegate,
+  //         ],
+  //         supportedLocales: L10n.all,
+  //       );
+  //     },
+  //   );
+  // }
 }

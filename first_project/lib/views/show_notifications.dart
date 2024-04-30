@@ -20,6 +20,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   AuthService authService = new AuthService.firebase();
   late FirestoreService _storeService;
   User? _currentUser;
+  bool _isLoading =
+      true; // Initially set to true to display the progress indicator
 
   //** LOGIC FOR THE VIEW */
 
@@ -41,10 +43,14 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   }
 
   void _getCurrentUser() {
+    setState(() {
+      _isLoading = true; // Start loading
+    });
     AuthService.firebase().generateUserCustomModel().then((User? fetchedUser) {
-      if (fetchedUser != null) {
+      if (fetchedUser != null && mounted) {
         setState(() {
           _currentUser = fetchedUser;
+          _isLoading = false; // Stop loading
         });
       }
     });
@@ -68,7 +74,11 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index < _currentUser!.notifications.length) {
       _currentUser!.notifications.removeAt(index);
       await _storeService.updateUser(_currentUser!);
-      setState(() {});
+      if (mounted) {
+        setState(() {
+          // Update relevant UI state here if needed
+        });
+      }
     }
   }
 
@@ -142,14 +152,20 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               _storeService.updateGroup(
                   group!); //We need to update the group user roles list after a change made to the group
               //Send notification to admin
-              setState(() {});
+              if (mounted) {
+                setState(() {
+                  // Update relevant UI state here if needed
+                });
+              }
               _sendNotificationToAdmin(notification, true);
               // Show a SnackBar with a denial message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Notification accepted .'),
-                ),
-              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Notification accepted .'),
+                  ),
+                );
+              }
             }
           }
         }
@@ -174,16 +190,21 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         _addUserToGroup(notification);
 
         //SEND NOTIFICATION TO ADMIN
-        setState(() {});
-
+        if (mounted) {
+          setState(() {
+            // Update relevant UI state here if needed
+          });
+        }
         _sendNotificationToAdmin(notification, false);
 
         // Show a SnackBar with a denial message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Notification denied.'),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Notification denied .'),
+            ),
+          );
+        }
       }
     }
   }
@@ -208,112 +229,117 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       appBar: AppBar(
         title: Text('Notifications'),
       ),
-      body: _currentUser?.notifications.isEmpty ?? true
+      body: _isLoading
           ? Center(
-              child: Text('No notifications available.'),
+              child:
+                  CircularProgressIndicator(), // Show circular progress indicator
             )
-          : ListView.builder(
-              //** SHOW THE NOTIFICATIONS AVAILABLE  */
-              itemCount: _currentUser?.notifications.length,
-              itemBuilder: (context, index) {
-                final notification = _currentUser!.notifications[index];
-                bool hasConfirmed = notification.isAnswered &&
-                    notification.question.isNotEmpty &&
-                    notification.isAnswered;
+          : _currentUser?.notifications.isEmpty ?? true
+              ? Center(
+                  child: Text('No notifications available.'),
+                )
+              : ListView.builder(
+                  //** SHOW THE NOTIFICATIONS AVAILABLE  */
+                  itemCount: _currentUser?.notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = _currentUser!.notifications[index];
+                    bool hasConfirmed = notification.isAnswered &&
+                        notification.question.isNotEmpty &&
+                        notification.isAnswered;
 
-                // Skip rendering notifications that have been answered
-                if (hasConfirmed) {
-                  return Container(); // Return an empty container for answered notifications
-                }
-                return Dismissible(
-                  key: Key(notification.id
-                      .toString()), // Unique key for each notification
-                  background: Container(
-                    color:
-                        Colors.red, // Background color when swiping to delete
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  secondaryBackground: Container(
-                    color: Colors
-                        .red, // Background color when swiping in the opposite direction
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  //** HANDLE NOTIFICATIONS WITHOUT QUESTIONS  */
-                  confirmDismiss: (direction) async {
-                    return await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Confirm Removal"),
-                          content: Text(
-                              "Are you sure you want to remove this notification?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(
-                                    true); // Dismiss the dialog and confirm removal
-                              },
-                              child: Text("Yes"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(
-                                    false); // Dismiss the dialog and cancel removal
-                              },
-                              child: Text("No"),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  onDismissed: (direction) {
-                    // Remove the notification only if confirmed
-                    if (direction == DismissDirection.endToStart) {
-                      _removeNotification(index);
+                    // Skip rendering notifications that have been answered
+                    if (hasConfirmed) {
+                      return Container(); // Return an empty container for answered notifications
                     }
-                  },
-                  //** HANDLE NOTIFICATIONS WITH QUESTIONS  */
-                  child: Card(
-                    elevation: 2.0, // Adjust elevation as needed
-                    margin: EdgeInsets.symmetric(
-                        vertical: 8.0,
-                        horizontal: 16.0), // Adjust margins as needed
-                    child: ListTile(
-                      title: Text(notification.title ?? ''),
-                      subtitle: Text(notification.message ?? ''),
-                      trailing: Visibility(
-                        visible: notification.hasQuestion ==
-                            true, // Show buttons if hasQuestion is true
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                _handleConfirmation(index);
-                              },
-                              child: Text("Confirm"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                _handleNegation(index);
-                              },
-                              child: Text("Negate"),
-                            ),
-                          ],
+                    return Dismissible(
+                      key: Key(notification.id
+                          .toString()), // Unique key for each notification
+                      background: Container(
+                        color: Colors
+                            .red, // Background color when swiping to delete
+                        child: Icon(
+                          Icons.delete,
+                          color: Colors.white,
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
+                      secondaryBackground: Container(
+                        color: Colors
+                            .red, // Background color when swiping in the opposite direction
+                        child: Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                        ),
+                      ),
+                      //** HANDLE NOTIFICATIONS WITHOUT QUESTIONS  */
+                      confirmDismiss: (direction) async {
+                        return await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Confirm Removal"),
+                              content: Text(
+                                  "Are you sure you want to remove this notification?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(
+                                        true); // Dismiss the dialog and confirm removal
+                                  },
+                                  child: Text("Yes"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(
+                                        false); // Dismiss the dialog and cancel removal
+                                  },
+                                  child: Text("No"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      onDismissed: (direction) {
+                        // Remove the notification only if confirmed
+                        if (direction == DismissDirection.endToStart) {
+                          _removeNotification(index);
+                        }
+                      },
+                      //** HANDLE NOTIFICATIONS WITH QUESTIONS  */
+                      child: Card(
+                        elevation: 2.0, // Adjust elevation as needed
+                        margin: EdgeInsets.symmetric(
+                            vertical: 8.0,
+                            horizontal: 16.0), // Adjust margins as needed
+                        child: ListTile(
+                          title: Text(notification.title ?? ''),
+                          subtitle: Text(notification.message ?? ''),
+                          trailing: Visibility(
+                            visible: notification.hasQuestion ==
+                                true, // Show buttons if hasQuestion is true
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    _handleConfirmation(index);
+                                  },
+                                  child: Text("Confirm"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    _handleNegation(index);
+                                  },
+                                  child: Text("Negate"),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

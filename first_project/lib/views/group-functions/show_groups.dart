@@ -11,7 +11,7 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../enums/routes/routes.dart';
+import '../../enums/routes/appRoutes.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
@@ -33,8 +33,10 @@ class _ShowGroupsState extends State<ShowGroups> {
   Axis _scrollDirection = Axis.vertical;
   late Color textColor;
   late Color cardBackgroundColor;
-  Group? selectedGroup;
   String? _currentRole;
+  // bool _isLoadingGroups = false;
+  List<Group>? _groups;
+  ProviderManagement? _providerManagement;
 
   //*LOGIC FOR THE VIEW //
 
@@ -43,17 +45,53 @@ class _ShowGroupsState extends State<ShowGroups> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
-
-    // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    _providerManagement = Provider.of<ProviderManagement>(context);
   }
 
   @override
   void initState() {
     super.initState();
-    _authService = new AuthService.firebase();
+    _authService = AuthService.firebase();
     _currentUser = _authService.costumeUser;
+    _providerManagement =
+        Provider.of<ProviderManagement>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Load data here.
+      setState(() {
+        // Set isLoadingGroups to true before loading data
+        // _providerManagement.isLoadingGroups = true;
+        _providerManagement!.setLoadingGroups = true;
+      });
+      await _loadData(_currentUser!);
+    });
+  }
+
+  Future<void> _loadData(User user) async {
+    try {
+      // Access Firestore service using providerManagement.
+      _storeService = FirestoreService.firebase(_providerManagement);
+
+      // Fetch user groups.
+      List<Group>? _fetchedGroups =
+          await _storeService.fetchUserGroups(user.groupIds);
+
+      devtools.log("These are the groups fetched " + _fetchedGroups.toString());
+
+      if (_fetchedGroups.isNotEmpty) {
+        for (Group group in _fetchedGroups) {
+          _providerManagement!.addGroupIfNotExists(group);
+        }
+      }
+    } catch (error) {
+      print('Error fetching user groups: $error');
+      // Handle error gracefully.
+    } finally {
+      // Data loading completed, set isLoadingGroups to false.
+      setState(() {
+        // _providerManagement.isLoadingGroups = false;
+        _providerManagement!.setLoadingGroups = false;
+      });
+    }
   }
 
   void _toggleScrollDirection() {
@@ -64,7 +102,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
 
   void _createGroup() {
-    Navigator.pushNamed(context, createGroupData);
+    Navigator.pushNamed(context, AppRoutes.createGroupData);
     // Call setState to trigger a UI update
     setState(() {});
   }
@@ -256,9 +294,9 @@ class _ShowGroupsState extends State<ShowGroups> {
       Color containerBackgroundColor =
           ThemeColors.getContainerBackgroundColor(context);
       // Access the list of groups from providerData.
-      final List<Group> groups = providerManagement.groups;
+      _groups = providerManagement.groups;
 
-      devtools.log('This is group list: ' + groups.toString());
+      devtools.log('This is group list: ' + _groups.toString());
       // Initialize _storeService using data from providerManagement.
       final providerData = providerManagement;
       _storeService = FirestoreService.firebase(providerData);
@@ -292,7 +330,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                   _currentUser?.hasNewNotifications = false;
                   _storeService.updateUser(_currentUser!);
                   setState(() {}); // Trigger UI update
-                  Navigator.pushNamed(context, showNotifications);
+                  Navigator.pushNamed(context, AppRoutes.showNotifications);
                 },
               )
             else
@@ -300,208 +338,171 @@ class _ShowGroupsState extends State<ShowGroups> {
                 icon: Icon(Icons.notifications),
                 onPressed: () {
                   // Open notifications screen
-                  Navigator.pushNamed(context, showNotifications);
+                  Navigator.pushNamed(context, AppRoutes.showNotifications);
                 },
               ),
           ],
         ),
         drawer: MyDrawer(),
         //** SHOW WELCOME MESSAGE FOR THE USER */
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: containerBackgroundColor,
-                        borderRadius: BorderRadius.circular(
-                            20.0), // Adjust the radius for rounded corners
-                        border: Border.all(
-                            color: const Color.fromARGB(255, 185, 210, 231),
-                            width: 2.0), // Border styling
-                      ),
-                      padding: EdgeInsets.all(16.0),
-                      child: Container(
-                        padding: const EdgeInsets.only(left: 5, right: 5),
-                        child: Center(
-                          child: Text(
-                            AppLocalizations.of(context)!.welcomeGroupView(
-                              Utilities.capitalize(_currentUser!.name),
-                            ),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'lato',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      child: Stack(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.changeView,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
+
+        body: _providerManagement!.isLoadingGroups
+            ? Center(
+                child:
+                    CircularProgressIndicator(), // Show circular progress indicator
+              )
+            : _groups?.isEmpty ?? true
+                ? Center(
+                    child: Text('No groups available.'),
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: containerBackgroundColor,
+                                  borderRadius: BorderRadius.circular(
+                                      20.0), // Adjust the radius for rounded corners
+                                  border: Border.all(
+                                      color: const Color.fromARGB(
+                                          255, 185, 210, 231),
+                                      width: 2.0), // Border styling
                                 ),
-                                SizedBox(
-                                    width:
-                                        10), // Add space between text and icon
-                                GestureDetector(
-                                  onTap:
-                                      _toggleScrollDirection, // Toggle the scroll direction
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      Icons.dashboard,
-                                      // Add your icon properties here
+                                padding: EdgeInsets.all(16.0),
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.only(left: 5, right: 5),
+                                  child: Center(
+                                    child: Text(
+                                      AppLocalizations.of(context)!
+                                          .welcomeGroupView(
+                                        Utilities.capitalize(
+                                            _currentUser!.name),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'lato',
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    //! HERE WE SHOW THE GROUPS FOR THE USERS
-                    Container(
-                      height: _scrollDirection == Axis.vertical ? 500 : 130,
-                      child: Consumer<ProviderManagement>(
-                        builder: (context, providerManagement, child) {
-                          List<Group> userGroups = providerManagement.groups;
-
-                          if (userGroups.isEmpty) {
-                            return Center(
-                              child: Text(
-                                AppLocalizations.of(context)!
-                                    .noGroupsAvailable
-                                    .toUpperCase(),
-                                style: TextStyle(fontSize: 15),
                               ),
-                            );
-                          }
-
-                          return ListView.builder(
-                            scrollDirection: _scrollDirection,
-                            itemCount: userGroups.length,
-                            itemBuilder: (context, index) {
-                              bool isHovered = false;
-
-                              return InkWell(
-                                onTap: () async {
-                                  Group _group = userGroups[index];
-                                  User _groupOwner = await _storeService
-                                      .getOwnerFromGroup(_group);
-                                  showProfileAlertDialog(
-                                      context, _group, _groupOwner);
-                                },
-                                onHover: (hovering) {
-                                  // Set the hover state
-                                  setState(() {
-                                    isHovered = hovering;
-                                  });
-                                },
-                                child: MouseRegion(
-                                  onEnter: (_) {
-                                    // Add your hover effect here (e.g., change the background color).
-                                    setState(() {
-                                      isHovered = true;
-                                    });
-                                  },
-                                  onExit: (_) {
-                                    // Reset the hover effect when the mouse exits.
-                                    setState(() {
-                                      isHovered = false;
-                                    });
-                                  },
-                                  child:
-                                      buildCard(userGroups[index], isHovered),
+                              Container(
+                                child: Stack(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 16.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            AppLocalizations.of(context)!
+                                                .changeView,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                              width:
+                                                  10), // Add space between text and icon
+                                          GestureDetector(
+                                            onTap:
+                                                _toggleScrollDirection, // Toggle the scroll direction
+                                            child: Align(
+                                              alignment: Alignment.center,
+                                              child: Icon(
+                                                Icons.dashboard,
+                                                // Add your icon properties here
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          );
-                        },
+                              ),
+                              SizedBox(height: 20),
+                              //! HERE WE SHOW THE GROUPS FOR THE USERS
+                              Container(
+                                height: _scrollDirection == Axis.vertical
+                                    ? 500
+                                    : 130,
+                                child: Consumer<ProviderManagement>(
+                                  builder:
+                                      (context, providerManagement, child) {
+                                    List<Group> userGroups =
+                                        providerManagement.groups;
+
+                                    if (userGroups.isEmpty) {
+                                      return Center(
+                                        child: Text(
+                                          AppLocalizations.of(context)!
+                                              .noGroupsAvailable
+                                              .toUpperCase(),
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                      );
+                                    }
+
+                                    return ListView.builder(
+                                      scrollDirection: _scrollDirection,
+                                      itemCount: userGroups.length,
+                                      itemBuilder: (context, index) {
+                                        bool isHovered = false;
+
+                                        return InkWell(
+                                          onTap: () async {
+                                            Group _group = userGroups[index];
+                                            User _groupOwner =
+                                                await _storeService
+                                                    .getOwnerFromGroup(_group);
+                                            showProfileAlertDialog(
+                                                context, _group, _groupOwner);
+                                          },
+                                          onHover: (hovering) {
+                                            // Set the hover state
+                                            setState(() {
+                                              isHovered = hovering;
+                                            });
+                                          },
+                                          child: MouseRegion(
+                                            onEnter: (_) {
+                                              // Add your hover effect here (e.g., change the background color).
+                                              setState(() {
+                                                isHovered = true;
+                                              });
+                                            },
+                                            onExit: (_) {
+                                              // Reset the hover effect when the mouse exits.
+                                              setState(() {
+                                                isHovered = false;
+                                              });
+                                            },
+                                            child: buildCard(
+                                                userGroups[index], isHovered),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-
-                    // Container(
-                    //   height: _scrollDirection == Axis.vertical ? 500 : 130,
-                    //   child: Consumer<ProviderManagement>(
-                    //     builder: (context, providerManagement, child) {
-                    //       List<Group> userGroups = providerManagement.setGroups;
-
-                    //       if (userGroups.isEmpty) {
-                    //         return Center(
-                    //           child: Text(
-                    //             AppLocalizations.of(context)!
-                    //                 .noGroupsAvailable
-                    //                 .toUpperCase(),
-                    //             style: TextStyle(fontSize: 15),
-                    //           ),
-                    //         );
-                    //       }
-                    //       return ListView.builder(
-                    //         scrollDirection: _scrollDirection,
-                    //         itemCount: userGroups.length,
-                    //         itemBuilder: (context, index) {
-                    //           bool isHovered = false;
-
-                    //           return InkWell(
-                    //             onTap: () async {
-                    //               Group _group = userGroups[index];
-                    //               User _groupOwner = await _storeService
-                    //                   .getOwnerFromGroup(_group);
-                    //               showProfileAlertDialog(
-                    //                   context, _group, _groupOwner);
-                    //             },
-                    //             onHover: (hovering) {
-                    //               // Set the hover state
-                    //               setState(() {
-                    //                 isHovered = hovering;
-                    //               });
-                    //             },
-                    //             child: MouseRegion(
-                    //               onEnter: (_) {
-                    //                 // Add your hover effect here (e.g., change the background color).
-                    //                 setState(() {
-                    //                   isHovered = true;
-                    //                 });
-                    //               },
-                    //               onExit: (_) {
-                    //                 // Reset the hover effect when the mouse exits.
-                    //                 setState(() {
-                    //                   isHovered = false;
-                    //                 });
-                    //               },
-                    //               child:
-                    //                   buildCard(userGroups[index], isHovered),
-                    //             ),
-                    //           );
-                    //         },
-                    //       );
-                    //     },
-                    //   ),
-                    // ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+                    ],
+                  ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             _createGroup();
@@ -550,7 +551,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                 onPressed: () {
                   Navigator.pushNamed(
                     context,
-                    groupCalendar,
+                    AppRoutes.groupCalendar,
                     arguments: group,
                   );
                 },
@@ -582,7 +583,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                       // Edit group logic here
                       var selectedGroup =
                           await _storeService.getGroupFromId(group.id);
-                      Navigator.pushNamed(context, editGroupData,
+                      Navigator.pushNamed(context, AppRoutes.editGroupData,
                           arguments: selectedGroup);
                     },
                     child: Text(AppLocalizations.of(context)!.edit),

@@ -56,20 +56,21 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
   // Inside your AppLocalizations class
   String _translateDayAbbreviation(String dayAbbreviation) {
-    switch (dayAbbreviation.toLowerCase()) {
-      case 'mon':
+    devtools.log("print abbre " + dayAbbreviation);
+    switch (dayAbbreviation) {
+      case 'Mon':
         return AppLocalizations.of(context)!.mon;
-      case 'tue':
+      case 'Tue':
         return AppLocalizations.of(context)!.tue;
-      case 'wed':
+      case 'Wed':
         return AppLocalizations.of(context)!.wed;
-      case 'thu':
+      case 'Thu':
         return AppLocalizations.of(context)!.thu;
-      case 'fri':
+      case 'Fri':
         return AppLocalizations.of(context)!.fri;
-      case 'sat':
+      case 'Sat':
         return AppLocalizations.of(context)!.sat;
-      case 'sun':
+      case 'Sun':
         return AppLocalizations.of(context)!.sun;
       default:
         return dayAbbreviation;
@@ -110,11 +111,22 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     // Remove brackets from the input string
     String daysString = frequency.replaceAll('[', '').replaceAll(']', '');
 
-    // Split the remaining string into individual day strings
+// Split the remaining string into individual day strings
     List<String> daysList = daysString.split(', ');
 
+// Capitalize the first character of each day string
+    List<String> capitalizedDaysList = daysList.map((day) {
+      if (day.isNotEmpty) {
+        return day[0].toUpperCase() + day.substring(1);
+      } else {
+        return day; // If the string is empty, return it as it is
+      }
+    }).toList();
+
+    devtools.log("this is frequency " + capitalizedDaysList.toString());
+
     // Translate each day and join them into a single string
-    String translatedDays = daysList.map((day) {
+    String translatedDays = capitalizedDaysList.map((day) {
       switch (day) {
         case 'Monday':
           return AppLocalizations.of(context)!.monday;
@@ -201,12 +213,15 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                   DateFormat('EEEE', 'en_US').format(_selectedStartDate));
               if (!selectedDays
                   .contains(CustomDayOfWeek.fromString(eventDayAbbreviation))) {
-                final _selectedStartDate =
-                    DateTime.now(); // Replace this with your date
+                final _selectedStartDate = DateTime.now();
+                // Replace this with your date
                 final weekdayName = _getWeekdayName(_selectedStartDate);
-                print('Weekday name: $weekdayName');
+              print('WEEDDAYNMAE: ' + weekdayName);
+                String dayTranslated = _getTranslatedFrequencyDays(weekdayName);
+                  
+                  devtools.log('TRANSLATED day: ' + dayTranslated);
                 return AppLocalizations.of(context)!
-                    .errorSelectedDays(weekdayName);
+                    .errorSelectedDays(_getTranslatedFrequencyDays(weekdayName));
               }
               break;
             case 'Yearly':
@@ -278,9 +293,10 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     .weeklyRepetitionInf(repeatInterval!, "", translatedLastDay,
                         translateSelectedDays);
               } else if (selectedDayNames.length == 1) {
+                String translatedFirstDay =
+                    _getTranslatedFrequencyDays(selectedDayNames.first);
                 repeatMessage = AppLocalizations.of(context)!
-                    .weeklyRepetitionInf1(
-                        repeatInterval!, selectedDayNames.first);
+                    .weeklyRepetitionInf1(repeatInterval!, translatedFirstDay);
               } else {
                 repeatMessage = AppLocalizations.of(context)!.noDaysSelected;
               }

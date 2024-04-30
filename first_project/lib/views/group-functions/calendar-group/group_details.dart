@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../../../enums/routes/routes.dart';
+import '../../../enums/routes/appRoutes.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/event.dart';
 import '../../../models/group.dart';
@@ -121,7 +121,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   void _editEvent(Event event, BuildContext context) {
     Navigator.pushNamed(
       context,
-      editEvent,
+      AppRoutes.editEvent,
       arguments: event,
     ).then((result) {
       if (result != null && result is Event) {
@@ -357,7 +357,7 @@ class _GroupDetailsState extends State<GroupDetails> {
             IconButton(
               icon: Icon(Icons.settings),
               onPressed: () {
-                Navigator.pushNamed(context, groupSettings,
+                Navigator.pushNamed(context, AppRoutes.groupSettings,
                     arguments: _userOrGroupObject);
               },
             ),
@@ -835,7 +835,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                         size: 25, // Adjust the icon size as needed
                       ),
                       onPressed: () {
-                        Navigator.pushNamed(context, addEvent,
+                        Navigator.pushNamed(context, AppRoutes.addEvent,
                             arguments: _userOrGroupObject);
                       },
                     ),

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
-import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
 import 'package:first_project/models/custom_day_week.dart';
@@ -282,7 +282,7 @@ class NotesViewState extends State<NotesView> {
   void _editEvent(Event event, BuildContext context) {
     Navigator.pushNamed(
       context,
-      editEvent,
+      AppRoutes.editEvent,
       arguments: event,
     ).then((result) {
       if (result != null && result is Event) {
@@ -330,7 +330,7 @@ class NotesViewState extends State<NotesView> {
         ),
         drawer: MyDrawer(),
         body:
-
+            //TODO RENDERERFLEX OVERFLOWED BY 175 PIXELD ON THE BTTOM
             // Replace TableCalendar with SfCalendar
             Column(
           children: [
@@ -729,7 +729,7 @@ class NotesViewState extends State<NotesView> {
                       size: 30, // Adjust the icon size as needed
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, addEvent,
+                      Navigator.pushNamed(context, AppRoutes.addEvent,
                           arguments: userOrGroupObject);
                     },
                   ),

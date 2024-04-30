@@ -1,13 +1,36 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
+import 'package:first_project/l10n/l10n.dart';
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/stateManangement/theme_preference_provider.dart';
+import 'package:first_project/styles/themes/theme_provider.dart';
 import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/views/event-logic/add_event.dart';
+import 'package:first_project/views/event-logic/edit_event.dart';
+import 'package:first_project/views/event-logic/event_detail.dart';
+import 'package:first_project/views/group-functions/calendar-group/group_details.dart';
+import 'package:first_project/views/group-functions/calendar-group/group_settings.dart';
+import 'package:first_project/views/group-functions/create_group_data.dart';
+import 'package:first_project/views/group-functions/edit_group_data.dart';
+import 'package:first_project/views/group-functions/show_groups.dart';
+import 'package:first_project/views/home_page.dart';
+import 'package:first_project/views/log-user/login_view.dart';
+import 'package:first_project/views/log-user/recover_password.dart';
+import 'package:first_project/views/log-user/register_view.dart';
+import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/my_app.dart';
+import 'package:first_project/views/notes_view.dart';
+import 'package:first_project/views/settings.dart';
+import 'package:first_project/views/show_notifications.dart';
+import 'package:first_project/models/event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:flutter_localizations/flutter_localizations.dart';
 //** Logic for my view */
 // main.dart
 import 'package:provider/provider.dart';
@@ -16,144 +39,165 @@ import 'models/group.dart';
 import 'models/user.dart';
 // ...
 
+var themePreferenceProvider, storeService;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeApp();
+  await Firebase.initializeApp(); // Initialize Firebase
+
+  // Initialize services
+  final authService = AuthService.firebase();
+  final providerManagement =
+      ProviderManagement(user: null); // Pass null for now
+  themePreferenceProvider = ThemePreferenceProvider();
+  storeService = FirestoreService.firebase(providerManagement);
+
+  // For now, let's navigate directly to MyApp
+  runApp(
+      MyApp(authService: authService, providerManagement: providerManagement));
 }
 
-Future<void> initializeApp() async {
-  try {
-    await Firebase.initializeApp();
-    await Utilities.loadCustomFonts();
-    final AuthService authService = AuthService.firebase();
-    User? user = await authService.generateUserCustomModel();
-    devtools.log("THIS IS THE MAIN $user");
-    await AppInitializer.goToMainDirectly(user);
-  } catch (error) {
-    print('Error initializing app: $error');
-    // Handle error appropriately
-  }
-}
+class MyApp extends StatelessWidget {
+  final AuthService authService;
+  final ProviderManagement providerManagement;
 
-class AppInitializer {
-  static ProviderManagement? providerManagement;
-  static ThemePreferenceProvider? themePreferenceProvider;
-  static FirestoreService? storeService; // Declare storeService
+  const MyApp({
+    Key? key,
+    required this.authService,
+    required this.providerManagement,
+  }) : super(key: key);
 
-  /// Navigates to the main application, initializing necessary services and providers.
-  static Future<void> goToMain(BuildContext context, User user) async {
-    await setServices(user);
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<User?>(
+      future: authService.generateUserCustomModel(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); // Show a loading indicator while fetching user data
+        } else {
+          if (snapshot.hasData) {
+            final user = snapshot.data!;
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider<ProviderManagement>.value(
+                  value: ProviderManagement(user: user),
+                ),
+                // Provide the ThemePreferenceProvider instance using ChangeNotifierProvider
+                ChangeNotifierProvider<ThemePreferenceProvider>.value(
+                  value: themePreferenceProvider!,
+                ),
+                // Provide the StoreService instance using Provider
+                Provider<FirestoreService>.value(value: storeService!),
+                // Add other providers as needed
+              ],
+              child: Consumer<ThemePreferenceProvider>(
+                  builder: (context, themeProvider, child) {
+                return MaterialApp(
+                  theme: themeProvider.themeData,
+                  localizationsDelegates: [
+                    AppLocalizations.delegate,
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                  ],
+                  supportedLocales: L10n.all,
+                  routes: {
+                    AppRoutes.settings: (context) => const Settings(),
+                    AppRoutes.loginRoute: (context) => LoginView(),
+                    AppRoutes.registerRoute: (context) => const RegisterView(),
+                    AppRoutes.passwordRecoveryRoute: (context) =>
+                        PasswordRecoveryScreen(),
+                    AppRoutes.userCalendar: (context) => const NotesView(),
+                    AppRoutes.verifyEmailRoute: (context) =>
+                        const VerifyEmailView(),
+                    AppRoutes.editEvent: (context) {
+                      final event =
+                          ModalRoute.of(context)?.settings.arguments as Event?;
+                      if (event != null) {
+                        return EditNoteScreen(event: event);
+                      }
+                      return SizedBox
+                          .shrink(); // Return an empty widget or handle the error
+                    },
+                    AppRoutes.showGroups: (context) => ShowGroups(),
+                    AppRoutes.createGroupData: (context) => CreateGroupData(),
+                    AppRoutes.showNotifications: (context) =>
+                        ShowNotifications(),
+                    AppRoutes.groupSettings: (context) {
+                      final group =
+                          ModalRoute.of(context)?.settings.arguments as Group?;
+                      if (group != null) {
+                        return GroupSettings(group: group);
+                      }
+                      // Handle the case when no group is passed
+                      return SizedBox
+                          .shrink(); // Return an empty widget or handle the error
+                    },
+                    AppRoutes.editGroup: (context) {
+                      final group =
+                          ModalRoute.of(context)?.settings.arguments as Group?;
+                      if (group != null) {
+                        return EditGroupData(group: group);
+                      }
+                      // Handle the case when no group is passed
+                      return SizedBox
+                          .shrink(); // Return an empty widget or handle the error
+                    },
+                    AppRoutes.groupCalendar: (context) {
+                      final group =
+                          ModalRoute.of(context)?.settings.arguments as Group?;
+                      if (group != null) {
+                        return GroupDetails(group: group);
+                      }
+                      // Handle the case when no group is passed
+                      return SizedBox
+                          .shrink(); // Return an empty widget or handle the error
+                    },
+                    AppRoutes.addEvent: (context) {
+                      final dynamic arg =
+                          ModalRoute.of(context)?.settings.arguments;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MultiProvider(
-          providers: [
-            // Provide the ProviderManagement instance using ChangeNotifierProvider
-            ChangeNotifierProvider<ProviderManagement>.value(
-              value: providerManagement!,
-            ),
-            // Provide the ThemePreferenceProvider instance using ChangeNotifierProvider
-            ChangeNotifierProvider<ThemePreferenceProvider>.value(
-              value: themePreferenceProvider!,
-            ),
-            // Provide the StoreService instance using Provider
-            Provider<FirestoreService>.value(value: storeService!),
-          ],
-          child: MyApp(currentUser: user),
-        ),
-      ),
+                      User? user;
+                      Group? group;
+
+                      if (arg is User) {
+                        user = arg;
+                      } else if (arg is Group) {
+                        group = arg;
+                      }
+
+                      return EventNoteWidget(user: user, group: group);
+                    },
+                    AppRoutes.eventDetail: (context) {
+                      final event =
+                          ModalRoute.of(context)?.settings.arguments as Event?;
+                      if (event != null) {
+                        return EventDetail(event: event);
+                      }
+                      return SizedBox
+                          .shrink(); // Return an empty widget or handle the error
+                    },
+                    AppRoutes.editGroupData: (context) {
+                      final group =
+                          ModalRoute.of(context)?.settings.arguments as Group?;
+                      if (group != null) {
+                        return EditGroupData(group: group);
+                      }
+                      return SizedBox
+                          .shrink(); // Return an empty widget or handle the error
+                    },
+                    AppRoutes.homePage: (context) => HomePage(),
+                  },
+                  home: HomePage(),
+                );
+              }),
+            );
+          } else {
+            // No user logged in, navigate to login page
+            return LoginView();
+          }
+        }
+      },
     );
   }
-
-  /// Directly initializes the main application, skipping the login view.
-  static Future<void> goToMainDirectly(User? user) async {
-    await setServices(user);
-
-    runApp(
-      MultiProvider(
-        providers: [
-          // Provide the ProviderManagement instance using ChangeNotifierProvider
-          ChangeNotifierProvider<ProviderManagement>.value(
-            value: providerManagement!,
-          ),
-          // Provide the ThemePreferenceProvider instance using ChangeNotifierProvider
-          ChangeNotifierProvider<ThemePreferenceProvider>.value(
-            value: themePreferenceProvider!,
-          ),
-          // Provide the StoreService instance using Provider
-          Provider<FirestoreService>.value(value: storeService!),
-        ],
-        child: MyApp(currentUser: user),
-      ),
-    );
-  }
-
-  /// Initializes necessary services and sets up providers.
-  static Future<void> setServices(User? user) async {
-    final AuthService authService = AuthService.firebase();
-
-    // Initialize the ProviderManagement instance
-    providerManagement = ProviderManagement(user: user);
-    // Initialize the ThemePreferenceProvider instance
-    themePreferenceProvider = ThemePreferenceProvider();
-    // Initialize the StoreService instance
-    storeService = FirestoreService.firebase(providerManagement!);
-
-    // Fetch user groups for the provider
-    List<Group>? _fetchedGroups =
-        await storeService!.fetchUserGroups(authService.costumeUser?.groupIds);
-
-    // Set the fetched user groups into the ProviderManagement
-    // providerManagement!.setGroups = fetchedGroups;
-    for (Group group in _fetchedGroups) {
-      providerManagement!.addGroupIfNotExists(group);
-      // Apply other updates (e.g., groups) as needed
-    }
-  }
 }
-
-// class AppInitializer {
-//   static ProviderManagement providerManagement = ProviderManagement();
-//   static ThemePreferenceProvider themePreferenceProvider = ThemePreferenceProvider();
-//   static FirestoreService storeService = FirestoreService.firebase(providerManagement);
-
-//   static Future<void> goToMain(BuildContext context, User user) async {
-//     await setServices(user);
-//     Navigator.pushReplacement(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => MultiProvider(
-//           providers: [
-//             ChangeNotifierProvider.value(value: providerManagement),
-//             ChangeNotifierProvider.value(value: themePreferenceProvider),
-//             Provider.value(value: storeService),
-//           ],
-//           child: MyApp(currentUser: user),
-//         ),
-//       ),
-//     );
-//   }
-
-//   static Future<void> goToMainDirectly(User? user) async {
-//     await setServices(user);
-//     runApp(
-//       MultiProvider(
-//         providers: [
-//           ChangeNotifierProvider.value(value: providerManagement),
-//           ChangeNotifierProvider.value(value: themePreferenceProvider),
-//           Provider.value(value: storeService),
-//         ],
-//         child: MyApp(currentUser: user),
-//       ),
-//     );
-//   }
-
-//   static Future<void> setServices(User? user) async {
-//     final AuthService authService = AuthService.firebase();
-//     providerManagement.user = user;
-//     // Fetch user groups for the provider
-//     List<Group>? fetchedGroups = await storeService.fetchUserGroups(authService.costumeUser?.groupIds);
-//     providerManagement.setGroups = fetchedGroups ?? [];
-//   }
-// }

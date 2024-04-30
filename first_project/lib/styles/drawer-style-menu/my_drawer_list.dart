@@ -1,7 +1,7 @@
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
-import '../../enums/routes/routes.dart';
+import '../../enums/routes/appRoutes.dart';
 import '../../services/auth/logic_backend/auth_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
@@ -68,13 +68,13 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
       onTap: () {
         switch (section) {
           case DrawerSections.dashboard:
-            Navigator.pushNamed(context, showGroups);
+            Navigator.pushNamed(context, AppRoutes.showGroups);
             break;
           case DrawerSections.notes_view:
-            Navigator.pushNamed(context, userCalendar);
+            Navigator.pushNamed(context, AppRoutes.userCalendar);
             break;
           case DrawerSections.settings:
-            Navigator.pushNamed(context, settings);
+            Navigator.pushNamed(context, AppRoutes.settings);
             break;
           case DrawerSections.log_out:
             _handleLogout(context);
@@ -146,7 +146,7 @@ Future<void> _handleLogout(BuildContext context) async {
           await AuthService.firebase().logOut();
           
           // Navigate to the login screen and remove all other routes
-          Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
         }
       } finally {
         _loggingOut = false;

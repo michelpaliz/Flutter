@@ -1,4 +1,4 @@
-import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -37,7 +37,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
               onPressed: () async {
                 await AuthService.firebase().logOut();
                 Navigator.of(context)
-                    .pushNamedAndRemoveUntil(loginRoute, (route) => false);
+                    .pushNamedAndRemoveUntil(AppRoutes.loginRoute, (route) => false);
               },
               child: const Text('Restart'))
         ],

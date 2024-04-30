@@ -7,18 +7,26 @@ class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
   List<Group> _groups = [];
   ThemeData _themeData = lightTheme;
+  bool _isLoadingGroups = false;
 
+  //Getters
   User? get currentUser => _currentUser;
   List<Group> get groups => _groups;
   ThemeData get themeData => _themeData;
+  bool get isLoadingGroups => _isLoadingGroups;
+
+  set setLoadingGroups(bool value) {
+    _isLoadingGroups = value;
+    notifyListeners();
+  }
 
   ProviderManagement({required User? user}) {
     _currentUser = user;
   }
 
-  void setGroups(groupsUpdated) {
-    // _groups.clear();
+  void setGroups(List<Group> groupsUpdated, {bool loading = false}) {
     _groups = groupsUpdated;
+    setLoadingGroups = loading;
     notifyListeners();
   }
 

@@ -2,7 +2,7 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/enums/routes/routes.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
@@ -127,7 +127,7 @@ class _LoginViewState extends State<LoginView> {
                             'This is the user fetched from the login $userFetched');
                         // widget.onLoginSuccess(userFetched);
                         print('Login successful. Navigating to main screen...');
-                        await AppInitializer.goToMain(context, userFetched);
+                        Navigator.pushNamed(context, AppRoutes.homePage);
                         print('Navigation to main screen completed.');
                       } on UserNotFoundAuthException {
                         await showErrorDialog(context,
@@ -160,13 +160,13 @@ class _LoginViewState extends State<LoginView> {
                 ),
                 TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, passwordRecoveryRoute);
+                      Navigator.pushNamed(context, AppRoutes.passwordRecoveryRoute);
                     },
                     child: Text(AppLocalizations.of(context)!.forgotPassword,
                         style: TextStyle(color: Colors.blue))),
                 TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, registerRoute);
+                      Navigator.pushNamed(context, AppRoutes.registerRoute);
                     },
                     child: Text(AppLocalizations.of(context)!.notRegistered)),
               ],

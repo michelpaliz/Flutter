@@ -5,7 +5,7 @@ import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../enums/routes/routes.dart';
+import '../../enums/routes/appRoutes.dart';
 import '../../services/auth/exceptions/auth_exceptions.dart';
 import '../../services/auth/logic_backend/auth_service.dart';
 import '../../styles/widgets/view-item-styles/textfield_styles.dart';
@@ -185,7 +185,7 @@ class _RegisterViewState extends State<RegisterView> {
                         await AuthService.firebase()
                             .logIn(email: email, password: password);
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                            verifyEmailRoute, (route) => false);
+                            AppRoutes.verifyEmailRoute, (route) => false);
                       } on WeakPasswordException {
                         await showErrorDialog(context,
                             AppLocalizations.of(context)!.weakPassword);
@@ -242,7 +242,7 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    Navigator.pushNamed(context, loginRoute);
+                    Navigator.pushNamed(context, AppRoutes.loginRoute);
                   },
                   child: MouseRegion(
                     cursor: SystemMouseCursors.click,

@@ -454,7 +454,7 @@ class FirestoreProvider implements FirestoreRepository {
       );
 
       Group? groupFetched = await getGroupFromId(groupId);
-      _providerManagement?.removeGroup(groupFetched!);
+      _providerManagement!.removeGroup(groupFetched!);
 
       // Delete the group document
       await groupEventCollections.doc(groupId).delete();
