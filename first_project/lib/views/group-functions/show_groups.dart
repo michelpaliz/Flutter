@@ -11,10 +11,10 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../enums/routes/appRoutes.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
+import '../../enums/routes/appRoutes.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -44,22 +44,13 @@ class _ShowGroupsState extends State<ShowGroups> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Access the inherited widget in the didChangeDependencies method.
-    _providerManagement = Provider.of<ProviderManagement>(context);
-  }
-
-  @override
-  void initState() {
-    super.initState();
     _authService = AuthService.firebase();
     _currentUser = _authService.costumeUser;
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Load data here.
       setState(() {
-        // Set isLoadingGroups to true before loading data
-        // _providerManagement.isLoadingGroups = true;
         _providerManagement!.setLoadingGroups = true;
       });
       await _loadData(_currentUser!);
@@ -68,27 +59,25 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   Future<void> _loadData(User user) async {
     try {
-      // Access Firestore service using providerManagement.
-      _storeService = FirestoreService.firebase(_providerManagement);
+      final storeService = FirestoreService.firebase(_providerManagement);
+      final fetchedGroups = await storeService.fetchUserGroups(user.groupIds);
 
-      // Fetch user groups.
-      List<Group>? _fetchedGroups =
-          await _storeService.fetchUserGroups(user.groupIds);
+      devtools.log("These are the groups fetched " + fetchedGroups.toString());
+      bool isLoading = true; // Set loading state based on your logic
+      _providerManagement!.setUpdatedGroups(fetchedGroups, loading: isLoading);
+      // _providerManagement!.setGroups = fetchedGroups;
 
-      devtools.log("These are the groups fetched " + _fetchedGroups.toString());
-
-      if (_fetchedGroups.isNotEmpty) {
-        for (Group group in _fetchedGroups) {
-          _providerManagement!.addGroupIfNotExists(group);
-        }
-      }
+      // if (fetchedGroups.isNotEmpty) {
+      //   for (Group group in fetchedGroups) {
+      //     _providerManagement!.addGroupIfNotExists(group);
+      //   }
+      //   // _providerManagement!.setGroups = fetchedGroups;
+      // }
     } catch (error) {
       print('Error fetching user groups: $error');
       // Handle error gracefully.
     } finally {
-      // Data loading completed, set isLoadingGroups to false.
       setState(() {
-        // _providerManagement.isLoadingGroups = false;
         _providerManagement!.setLoadingGroups = false;
       });
     }

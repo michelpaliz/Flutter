@@ -60,7 +60,7 @@ class FirestoreProvider implements FirestoreRepository {
       // Fetch updated group data from your API
       List<Group> updatedGroups = await _fetchUserGroups();
       // Update the local _groups list
-      _providerManagement!.setGroups(updatedGroups);
+      _providerManagement!.setUpdatedGroups(updatedGroups,loading: true);
     } catch (error) {
       print('Error fetching updated groups: $error');
       // Handle error appropriately
@@ -423,24 +423,27 @@ class FirestoreProvider implements FirestoreRepository {
       DocumentSnapshot groupSnapshot =
           await groupEventCollections.doc(groupId).get();
 
-      //The id of the users
-      List<String> groupUserIds = [];
+      //The usernames of the users
+      List<String> groupUserNames = [];
 
       //This is the list of users
       List<dynamic> usersList = groupSnapshot['users'];
 
-      //Populate the list of users
+      //Populate the list of usernames
       for (var userObj in usersList) {
-        String userId = userObj['id'];
-        groupUserIds.add(userId);
+        String userName = userObj[
+            'userName']; // Assuming 'userName' is the key in your user object
+        groupUserNames.add(userName);
       }
 
       //Update the user's groups Id in the database
-      for (String userId in groupUserIds) {
-        User? user = await getUserById(userId);
+      for (String userName in groupUserNames) {
+        User? user = await getUserByUserName(userName);
         if (user != null) {
           user.groupIds.remove(groupId);
-          await updateUser(user);
+          if (user.userName == _authService.costumeUser!.userName) {
+            await updateUser(user);
+          }
         }
       }
 
@@ -453,6 +456,7 @@ class FirestoreProvider implements FirestoreRepository {
         },
       );
 
+      //we remove from the provider before firestore deletes it
       Group? groupFetched = await getGroupFromId(groupId);
       _providerManagement!.removeGroup(groupFetched!);
 
@@ -496,7 +500,7 @@ class FirestoreProvider implements FirestoreRepository {
 
       //Remove the user from the invited list in the group
       group.invitedUsers?.remove(user.userName);
-      
+
       // Update both the user and the group in Firestore
       await updateUser(user);
 

@@ -20,13 +20,20 @@ class ProviderManagement extends ChangeNotifier {
     notifyListeners();
   }
 
+  set setGroups(List<Group> groups) {
+    _groups = groups;
+    notifyListeners();
+  }
+
   ProviderManagement({required User? user}) {
     _currentUser = user;
   }
 
-  void setGroups(List<Group> groupsUpdated, {bool loading = false}) {
+  void setUpdatedGroups(List<Group> groupsUpdated, {bool loading = false}) {
     _groups = groupsUpdated;
-    setLoadingGroups = loading;
+    if (loading) {
+      _isLoadingGroups = false; // Set the loading state directly
+    }
     notifyListeners();
   }
 
@@ -60,11 +67,8 @@ class ProviderManagement extends ChangeNotifier {
   }
 
   void removeGroup(Group group) {
-    final index = _groups.indexWhere((g) => g.id == group.id);
-    if (index != -1) {
-      _groups.removeAt(index);
-      notifyListeners();
-    }
+    _groups.removeWhere((g) => g.id == group.id);
+    notifyListeners();
   }
 
   void updateGroup(Group updatedGroup) {
