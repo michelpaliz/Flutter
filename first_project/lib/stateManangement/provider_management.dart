@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:flutter/material.dart';
 
@@ -7,42 +10,24 @@ class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
   List<Group> _groups = [];
   ThemeData _themeData = lightTheme;
-  bool _isLoadingGroups = false;
+  late FirestoreService storeService;
 
-  //Getters
+  // Getters
   User? get currentUser => _currentUser;
   List<Group> get groups => _groups;
   ThemeData get themeData => _themeData;
-  bool get isLoadingGroups => _isLoadingGroups;
 
-  set setLoadingGroups(bool value) {
-    _isLoadingGroups = value;
-    notifyListeners();
-  }
-
-  set setGroups(List<Group> groups) {
-    _groups = groups;
-    notifyListeners();
-  }
+  // Stream controller and stream for group updates
+  final _groupController = StreamController<List<Group>>.broadcast();
+  Stream<List<Group>> get groupStream => _groupController.stream;
 
   ProviderManagement({required User? user}) {
     _currentUser = user;
   }
 
-  void setUpdatedGroups(List<Group> groupsUpdated, {bool loading = false}) {
-    _groups = groupsUpdated;
-    if (loading) {
-      _isLoadingGroups = false; // Set the loading state directly
-    }
-    notifyListeners();
-  }
-
-  // Method to add a group while avoiding duplicates
-  void addGroupIfNotExists(Group group) {
-    if (!_groups.any((existingGroup) => existingGroup.id == group.id)) {
-      _groups.add(group);
-      notifyListeners();
-    }
+  // Method to update the group stream with the latest list of groups
+  void updateGroupStream(List<Group> groups) {
+    _groupController.add(groups);
   }
 
   void setCurrentUser(User? user) {
@@ -54,6 +39,7 @@ class ProviderManagement extends ChangeNotifier {
     _currentUser = user;
     _groups.addAll(groups);
     notifyListeners();
+    _groupController.add(_groups); // Add initial groups to the stream
   }
 
   void updateUser(User newUser) {
@@ -64,11 +50,13 @@ class ProviderManagement extends ChangeNotifier {
   void addGroup(Group group) {
     _groups.add(group);
     notifyListeners();
+    _groupController.add(_groups); // Add updated groups to the stream
   }
 
   void removeGroup(Group group) {
     _groups.removeWhere((g) => g.id == group.id);
     notifyListeners();
+    _groupController.add(_groups); // Add updated groups to the stream
   }
 
   void updateGroup(Group updatedGroup) {
@@ -76,11 +64,19 @@ class ProviderManagement extends ChangeNotifier {
     if (index != -1) {
       _groups[index] = updatedGroup;
       notifyListeners();
+      _groupController.add(_groups); // Add updated groups to the stream
     }
   }
 
   void toggleTheme() {
     _themeData = (_themeData == lightTheme) ? darkTheme : lightTheme;
     notifyListeners();
+  }
+
+  // Dispose the stream controller when no longer needed
+  @override
+  void dispose() {
+    _groupController.close();
+    super.dispose();
   }
 }

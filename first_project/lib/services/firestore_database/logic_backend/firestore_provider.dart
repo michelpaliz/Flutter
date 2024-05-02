@@ -25,47 +25,47 @@ class FirestoreProvider implements FirestoreRepository {
         _providerManagement = providerManagement;
 
   //LET'S CREATE THIS FUNCTION TO UPDATE THE LATEST DATA FROM MY USER OBJECT
-  Future<List<Group>> _fetchUserGroups() async {
-    try {
-      // Get the user ID
-      String userId = _authService.costumeUser!.id;
+  // Future<List<Group>> _fetchUserGroups() async {
+  //   try {
+  //     // Get the user ID
+  //     String userId = _authService.costumeUser!.id;
 
-      // Fetch the user data from Firestore
-      User? user = await getUserById(userId);
+  //     // Fetch the user data from Firestore
+  //     User? user = await getUserById(userId);
 
-      // Check if user data is not null and has group IDs
-      if (user != null && user.groupIds.isNotEmpty) {
-        // Fetch groups asynchronously
-        List<Future<Group?>> groupFutures =
-            user.groupIds.map((groupId) => getGroupFromId(groupId)).toList();
+  //     // Check if user data is not null and has group IDs
+  //     if (user != null && user.groupIds.isNotEmpty) {
+  //       // Fetch groups asynchronously
+  //       List<Future<Group?>> groupFutures =
+  //           user.groupIds.map((groupId) => getGroupFromId(groupId)).toList();
 
-        // Use Future.wait to wait for all group fetches to complete
-        List<Group> userGroups = await Future.wait(
-            groupFutures.map((future) => future.then((group) => group!)));
+  //       // Use Future.wait to wait for all group fetches to complete
+  //       List<Group> userGroups = await Future.wait(
+  //           groupFutures.map((future) => future.then((group) => group!)));
 
-        return userGroups;
-      } else {
-        // If user data is null or has no group IDs, return an empty list
-        return [];
-      }
-    } catch (error) {
-      // Handle any errors that occur during the process
-      print('Error fetching user groups: $error');
-      return [];
-    }
-  }
+  //       return userGroups;
+  //     } else {
+  //       // If user data is null or has no group IDs, return an empty list
+  //       return [];
+  //     }
+  //   } catch (error) {
+  //     // Handle any errors that occur during the process
+  //     print('Error fetching user groups: $error');
+  //     return [];
+  //   }
+  // }
 
-  Future<void> _updateUserGroupProvider() async {
-    try {
-      // Fetch updated group data from your API
-      List<Group> updatedGroups = await _fetchUserGroups();
-      // Update the local _groups list
-      _providerManagement!.setUpdatedGroups(updatedGroups,loading: true);
-    } catch (error) {
-      print('Error fetching updated groups: $error');
-      // Handle error appropriately
-    }
-  }
+  // Future<void> _updateUserGroupProvider() async {
+  //   try {
+  //     // Fetch updated group data from your API
+  //     List<Group> updatedGroups = await _fetchUserGroups();
+  //     // Update the local _groups list
+  //     _providerManagement!.setUpdatedGroups(updatedGroups,loading: true);
+  //   } catch (error) {
+  //     print('Error fetching updated groups: $error');
+  //     // Handle error appropriately
+  //   }
+  // }
 
   // ** HANDLE EVENT DATA ***
 
@@ -508,7 +508,7 @@ class FirestoreProvider implements FirestoreRepository {
       _providerManagement!.removeGroup(group);
 
       //Update the groups user list in our provider
-      _updateUserGroupProvider();
+      // _updateUserGroupProvider();
     } catch (error) {
       print('Error removing user from group: $error');
     }

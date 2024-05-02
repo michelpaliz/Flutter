@@ -35,7 +35,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   late Color cardBackgroundColor;
   String? _currentRole;
   // bool _isLoadingGroups = false;
-  List<Group>? _groups;
+  // List<Group>? _groups;
   ProviderManagement? _providerManagement;
 
   //*LOGIC FOR THE VIEW //
@@ -43,43 +43,21 @@ class _ShowGroupsState extends State<ShowGroups> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     _authService = AuthService.firebase();
     _currentUser = _authService.costumeUser;
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() {
-        _providerManagement!.setLoadingGroups = true;
-      });
-      await _loadData(_currentUser!);
-    });
+    _storeService = FirestoreService.firebase(_providerManagement!);
+    _fetchAndUpdateGroups();
   }
 
-  Future<void> _loadData(User user) async {
+  Future<void> _fetchAndUpdateGroups() async {
     try {
-      final storeService = FirestoreService.firebase(_providerManagement);
-      final fetchedGroups = await storeService.fetchUserGroups(user.groupIds);
-
-      devtools.log("These are the groups fetched " + fetchedGroups.toString());
-      bool isLoading = true; // Set loading state based on your logic
-      _providerManagement!.setUpdatedGroups(fetchedGroups, loading: isLoading);
-      // _providerManagement!.setGroups = fetchedGroups;
-
-      // if (fetchedGroups.isNotEmpty) {
-      //   for (Group group in fetchedGroups) {
-      //     _providerManagement!.addGroupIfNotExists(group);
-      //   }
-      //   // _providerManagement!.setGroups = fetchedGroups;
-      // }
+      final fetchedGroups =
+          await _storeService.fetchUserGroups(_currentUser!.groupIds);
+      _providerManagement?.updateGroupStream(fetchedGroups);
     } catch (error) {
-      print('Error fetching user groups: $error');
-      // Handle error gracefully.
-    } finally {
-      setState(() {
-        _providerManagement!.setLoadingGroups = false;
-      });
+      print('Error fetching and updating groups: $error');
     }
   }
 
@@ -278,228 +256,170 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProviderManagement>(
-        builder: (context, providerManagement, child) {
-      Color containerBackgroundColor =
-          ThemeColors.getContainerBackgroundColor(context);
-      // Access the list of groups from providerData.
-      _groups = providerManagement.groups;
+    return Scaffold(
+      appBar: buildAppBar(context),
+      body: buildBody(context),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createGroup,
+        child: Icon(Icons.group_add_rounded),
+      ),
+    );
+  }
 
-      devtools.log('This is group list: ' + _groups.toString());
-      // Initialize _storeService using data from providerManagement.
-      final providerData = providerManagement;
-      _storeService = FirestoreService.firebase(providerData);
-      return Scaffold(
-        appBar: AppBar(
-          title: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+  PreferredSize buildAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(kToolbarHeight),
+      child: AppBar(
+        title: Text(AppLocalizations.of(context)!.groups),
+        actions: [
+          _buildNotificationIconButton(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationIconButton(BuildContext context) {
+    return _currentUser?.hasNewNotifications == true
+        ? IconButton(
+            icon: Stack(
+              alignment: Alignment.topRight,
               children: [
-                // SizedBox(width: 8), // Adding some space between icon and text
-                Text(
-                  AppLocalizations.of(context)!.groups,
-                  textAlign: TextAlign.center,
-                ),
+                Icon(Icons.notifications),
+                Icon(Icons.brightness_1, size: 10, color: Colors.red),
               ],
             ),
+            onPressed: () {
+              _currentUser?.hasNewNotifications = false;
+              _storeService.updateUser(_currentUser!);
+              setState(() {}); // Trigger UI update
+              Navigator.pushNamed(context, AppRoutes.showNotifications);
+            },
+          )
+        : IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.showNotifications);
+            },
+          );
+  }
+
+  Widget buildBody(BuildContext context) {
+    return StreamBuilder<List<Group>>(
+      stream: _providerManagement?.groupStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          List<Group> groups = snapshot.data ?? [];
+          if (groups.isEmpty) {
+            return Center(child: Text('No groups available.'));
+          }
+          return Column(
+            children: [
+              _buildWelcomeContainer(context),
+              _buildChangeViewRow(context),
+              SizedBox(height: 20),
+              _buildGroupListView(groups),
+            ],
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildWelcomeContainer(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ThemeColors.getContainerBackgroundColor(context),
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          color: const Color.fromARGB(255, 185, 210, 231),
+          width: 2.0,
+        ),
+      ),
+      padding: EdgeInsets.all(16.0),
+      child: Center(
+        child: Text(
+          AppLocalizations.of(context)!.welcomeGroupView(
+            Utilities.capitalize(_currentUser!.name),
           ),
-          //** Show notification icon  */
-          actions: [
-            if (_currentUser?.hasNewNotifications == true)
-              IconButton(
-                icon: Stack(
-                  alignment: Alignment.topRight,
-                  children: [
-                    Icon(Icons.notifications),
-                    Icon(Icons.brightness_1, size: 10, color: Colors.red),
-                  ],
-                ),
-                onPressed: () {
-                  // Open notifications screen
-                  _currentUser?.hasNewNotifications = false;
-                  _storeService.updateUser(_currentUser!);
-                  setState(() {}); // Trigger UI update
-                  Navigator.pushNamed(context, AppRoutes.showNotifications);
-                },
-              )
-            else
-              IconButton(
-                icon: Icon(Icons.notifications),
-                onPressed: () {
-                  // Open notifications screen
-                  Navigator.pushNamed(context, AppRoutes.showNotifications);
-                },
-              ),
-          ],
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'lato',
+          ),
         ),
-        drawer: MyDrawer(),
-        //** SHOW WELCOME MESSAGE FOR THE USER */
+      ),
+    );
+  }
 
-        body: _providerManagement!.isLoadingGroups
-            ? Center(
-                child:
-                    CircularProgressIndicator(), // Show circular progress indicator
-              )
-            : _groups?.isEmpty ?? true
-                ? Center(
-                    child: Text('No groups available.'),
-                  )
-                : Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: containerBackgroundColor,
-                                  borderRadius: BorderRadius.circular(
-                                      20.0), // Adjust the radius for rounded corners
-                                  border: Border.all(
-                                      color: const Color.fromARGB(
-                                          255, 185, 210, 231),
-                                      width: 2.0), // Border styling
-                                ),
-                                padding: EdgeInsets.all(16.0),
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.only(left: 5, right: 5),
-                                  child: Center(
-                                    child: Text(
-                                      AppLocalizations.of(context)!
-                                          .welcomeGroupView(
-                                        Utilities.capitalize(
-                                            _currentUser!.name),
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: 'lato',
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                child: Stack(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 16.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            AppLocalizations.of(context)!
-                                                .changeView,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                              width:
-                                                  10), // Add space between text and icon
-                                          GestureDetector(
-                                            onTap:
-                                                _toggleScrollDirection, // Toggle the scroll direction
-                                            child: Align(
-                                              alignment: Alignment.center,
-                                              child: Icon(
-                                                Icons.dashboard,
-                                                // Add your icon properties here
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 20),
-                              //! HERE WE SHOW THE GROUPS FOR THE USERS
-                              Container(
-                                height: _scrollDirection == Axis.vertical
-                                    ? 500
-                                    : 130,
-                                child: Consumer<ProviderManagement>(
-                                  builder:
-                                      (context, providerManagement, child) {
-                                    List<Group> userGroups =
-                                        providerManagement.groups;
+  Widget _buildChangeViewRow(BuildContext context) {
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.changeView,
+            style: TextStyle(fontSize: 12),
+          ),
+          SizedBox(width: 10),
+          GestureDetector(
+            onTap: _toggleScrollDirection,
+            child: Align(
+              alignment: Alignment.center,
+              child: Icon(Icons.dashboard),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                                    if (userGroups.isEmpty) {
-                                      return Center(
-                                        child: Text(
-                                          AppLocalizations.of(context)!
-                                              .noGroupsAvailable
-                                              .toUpperCase(),
-                                          style: TextStyle(fontSize: 15),
-                                        ),
-                                      );
-                                    }
+  Widget _buildGroupListView(List<Group> groups) {
+    return Container(
+      height: _scrollDirection == Axis.vertical ? 500 : 130,
+      child: ListView.separated(
+        separatorBuilder: (context, index) => SizedBox(height: 10),
+        scrollDirection: _scrollDirection,
+        itemCount: groups.length,
+        itemBuilder: (context, index) {
+          return buildGroupCard(groups[index]);
+        },
+      ),
+    );
+  }
 
-                                    return ListView.builder(
-                                      scrollDirection: _scrollDirection,
-                                      itemCount: userGroups.length,
-                                      itemBuilder: (context, index) {
-                                        bool isHovered = false;
+  Widget buildGroupCard(Group group) {
+    bool isHovered = false;
 
-                                        return InkWell(
-                                          onTap: () async {
-                                            Group _group = userGroups[index];
-                                            User _groupOwner =
-                                                await _storeService
-                                                    .getOwnerFromGroup(_group);
-                                            showProfileAlertDialog(
-                                                context, _group, _groupOwner);
-                                          },
-                                          onHover: (hovering) {
-                                            // Set the hover state
-                                            setState(() {
-                                              isHovered = hovering;
-                                            });
-                                          },
-                                          child: MouseRegion(
-                                            onEnter: (_) {
-                                              // Add your hover effect here (e.g., change the background color).
-                                              setState(() {
-                                                isHovered = true;
-                                              });
-                                            },
-                                            onExit: (_) {
-                                              // Reset the hover effect when the mouse exits.
-                                              setState(() {
-                                                isHovered = false;
-                                              });
-                                            },
-                                            child: buildCard(
-                                                userGroups[index], isHovered),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            _createGroup();
-          },
-          child: Icon(Icons.group_add_rounded),
-        ),
-      );
-    });
+    return InkWell(
+      onTap: () async {
+        User groupOwner = await _storeService.getOwnerFromGroup(group);
+        showProfileAlertDialog(context, group, groupOwner);
+      },
+      onHover: (hovering) {
+        setState(() {
+          isHovered = hovering;
+        });
+      },
+      child: MouseRegion(
+        onEnter: (_) {
+          setState(() {
+            isHovered = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            isHovered = false;
+          });
+        },
+        child: buildCard(group, isHovered),
+      ),
+    );
   }
 
   //? This shows the groups list
