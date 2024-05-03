@@ -99,4 +99,8 @@ class FirestoreService extends FirestoreRepository {
   @override
   Future<void> sendNotificationToUsers(Group group, User admin) =>
       repository.sendNotificationToUsers(group, admin);
+
+  @override
+  Future<void> leavingNotificationForGroup(Group group) =>
+      repository.leavingNotificationForGroup(group);
 }

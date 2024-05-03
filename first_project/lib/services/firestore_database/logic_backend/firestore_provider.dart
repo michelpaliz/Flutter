@@ -24,49 +24,6 @@ class FirestoreProvider implements FirestoreRepository {
   })  : _authService = AuthService.firebase(),
         _providerManagement = providerManagement;
 
-  //LET'S CREATE THIS FUNCTION TO UPDATE THE LATEST DATA FROM MY USER OBJECT
-  // Future<List<Group>> _fetchUserGroups() async {
-  //   try {
-  //     // Get the user ID
-  //     String userId = _authService.costumeUser!.id;
-
-  //     // Fetch the user data from Firestore
-  //     User? user = await getUserById(userId);
-
-  //     // Check if user data is not null and has group IDs
-  //     if (user != null && user.groupIds.isNotEmpty) {
-  //       // Fetch groups asynchronously
-  //       List<Future<Group?>> groupFutures =
-  //           user.groupIds.map((groupId) => getGroupFromId(groupId)).toList();
-
-  //       // Use Future.wait to wait for all group fetches to complete
-  //       List<Group> userGroups = await Future.wait(
-  //           groupFutures.map((future) => future.then((group) => group!)));
-
-  //       return userGroups;
-  //     } else {
-  //       // If user data is null or has no group IDs, return an empty list
-  //       return [];
-  //     }
-  //   } catch (error) {
-  //     // Handle any errors that occur during the process
-  //     print('Error fetching user groups: $error');
-  //     return [];
-  //   }
-  // }
-
-  // Future<void> _updateUserGroupProvider() async {
-  //   try {
-  //     // Fetch updated group data from your API
-  //     List<Group> updatedGroups = await _fetchUserGroups();
-  //     // Update the local _groups list
-  //     _providerManagement!.setUpdatedGroups(updatedGroups,loading: true);
-  //   } catch (error) {
-  //     print('Error fetching updated groups: $error');
-  //     // Handle error appropriately
-  //   }
-  // }
-
   // ** HANDLE EVENT DATA ***
 
   Future<void> updateEvent(Event event) async {
@@ -231,6 +188,30 @@ class FirestoreProvider implements FirestoreRepository {
     }
   }
 
+  /// Sends notifications to users when they are invited to join a group.
+  /// This function creates and sends notifications to users based on the group
+  /// invitation. It sends a congratulatory notification to the group administrator
+  /// and an invitation notification to each user invited to join the group.
+  ///
+  /// Parameters:
+  ///   - group: The group for which notifications are being sent.
+  ///   - admin: The user who created the group and is the administrator.
+  ///
+  /// This function performs the following steps:
+  /// 1. Checks if the admin is an Administrator based on their role in the group.
+  /// 2. If the admin is an Administrator, creates a congratulatory notification
+  ///    for the administrator.
+  /// 3. Adds the congratulatory notification to the administrator's notification list.
+  /// 4. Updates the administrator's document in Firestore with the new notification.
+  /// 5. Iterates through each user ID in the invitedUsers map of the group.
+  /// 6. Retrieves user details from Firestore based on the user ID.
+  /// 7. Creates an invitation notification for each user.
+  /// 8. Adds the invitation notification to the user's notification list.
+  /// 9. Updates the user's document in Firestore with the new notification.
+  ///
+  /// Note: This function assumes that the group and user data are available in Firestore.
+  /// It also assumes that the Firestore service methods for retrieving and updating
+  /// documents are implemented elsewhere in the codebase.
   Future<void> sendNotificationToUsers(Group group, User admin) async {
     // Check if the admin is an Administrator based on invitedUsers
     bool isAdmin = group.userRoles.containsKey(admin.userName) &&
@@ -286,6 +267,66 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Update user document in Firestore
       await updateUser(user);
+    }
+  }
+
+  @override
+  Future<void> leavingNotificationForGroup(Group group) async {
+    // Check if the current user is an Administrator
+    User? currentUser = _providerManagement!.currentUser;
+    bool isAdmin = group.userRoles.containsKey(currentUser!.userName) &&
+        group.userRoles[currentUser.userName] == 'Administrator';
+
+    // Create a notification for the Administrator
+    if (isAdmin) {
+      final notificationTitle = 'You removed a group!';
+      final message = 'You removed the group ${group.groupName}';
+      final notificationContent = NotificationUser(
+        id: group.id,
+        ownerId: group.ownerId,
+        title: notificationTitle,
+        message: message,
+        timestamp: DateTime.now(),
+        hasQuestion: false,
+        question: '',
+      );
+
+      // Add the notification to the Administrator's list
+      currentUser.notifications.add(notificationContent);
+      currentUser.hasNewNotifications = true;
+
+      // Update the Administrator's document in Firestore
+      await updateUser(currentUser);
+    }
+
+    // Loop through each user in the group's members list
+    for (final member in group.users) {
+      // Check if the member is not the current user and if they are not already a member of the group
+      if (member.userName != currentUser.userName &&
+          !group.invitedUsers!.containsKey(member.userName)) {
+        // Create a notification for the member
+        final userNotificationTitle = 'Group Removed';
+        final userNotificationMessage =
+            'The group ${group.groupName} has been removed by the administrator';
+
+        // Create the notification for the member
+        final userNotification = NotificationUser(
+          id: group.id,
+          ownerId: group.ownerId,
+          title: userNotificationTitle,
+          message: userNotificationMessage,
+          timestamp: DateTime.now(),
+          hasQuestion: false,
+          question: '',
+        );
+
+        // Add the notification to the member's list
+        member.notifications.add(userNotification);
+        member.hasNewNotifications = true;
+
+        // Update the member's document in Firestore
+        await updateUser(member);
+      }
     }
   }
 

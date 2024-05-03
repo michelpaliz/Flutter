@@ -1,22 +1,23 @@
 import 'dart:async';
 
 import 'package:first_project/models/group.dart';
+import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:flutter/material.dart';
 
 class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
   List<Group> _groups = [];
+  List<NotificationUser> _notifications = [];
   ThemeData _themeData = lightTheme;
-  late FirestoreService storeService;
 
   // Getters
   User? get currentUser => _currentUser;
   List<Group> get groups => _groups;
   ThemeData get themeData => _themeData;
 
+  //** CONTROLLER FOR MY GROUPS  */
   // Stream controller and stream for group updates
   final _groupController = StreamController<List<Group>>.broadcast();
   Stream<List<Group>> get groupStream => _groupController.stream;
@@ -25,6 +26,7 @@ class ProviderManagement extends ChangeNotifier {
     _currentUser = user;
   }
 
+  //** GROUPS FUNCTIONS  */
   // Method to update the group stream with the latest list of groups
   void updateGroupStream(List<Group> groups) {
     _groupController.add(groups);
@@ -73,10 +75,42 @@ class ProviderManagement extends ChangeNotifier {
     notifyListeners();
   }
 
+  //** CONTROLLER FOR MY NOTIFICATIONS */
+
+  final _notificationController =
+      StreamController<List<NotificationUser>>.broadcast();
+  Stream<List<NotificationUser>> get notificationStream =>
+      _notificationController.stream;
+
+  void updateNotificationStream(List<NotificationUser> notifications) {
+    _notificationController.add(notifications);
+  }
+
+  //** NOTIFICATION FUNCTIONS */
+
+  void addNotification(NotificationUser notification) {
+    _notifications.add(notification);
+    notifyListeners();
+  }
+
+  void removeNotification(NotificationUser notification) {
+    _notifications.remove(notification);
+    notifyListeners();
+  }
+
+  void clearNotifications() {
+    _notifications.clear();
+    notifyListeners();
+  }
+
+  List<NotificationUser> get notifications => _notifications;
+
   // Dispose the stream controller when no longer needed
   @override
   void dispose() {
     _groupController.close();
+    _notificationController
+        .close(); // Dispose the notification stream controller
     super.dispose();
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:developer' as devtools show log;
 
+import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
@@ -10,10 +11,8 @@ import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../../../models/group.dart';
 import '../../../models/user.dart';
-import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../enums/routes/appRoutes.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
@@ -34,8 +33,6 @@ class _ShowGroupsState extends State<ShowGroups> {
   late Color textColor;
   late Color cardBackgroundColor;
   String? _currentRole;
-  // bool _isLoadingGroups = false;
-  // List<Group>? _groups;
   ProviderManagement? _providerManagement;
 
   //*LOGIC FOR THE VIEW //
@@ -277,10 +274,17 @@ class _ShowGroupsState extends State<ShowGroups> {
       ),
     );
   }
+  // }
 
   Widget _buildNotificationIconButton(BuildContext context) {
-    return _currentUser?.hasNewNotifications == true
-        ? IconButton(
+    return StreamBuilder<List<NotificationUser>>(
+      stream: _providerManagement!.notificationStream,
+      initialData: [],
+      builder: (context, snapshot) {
+        final hasNewNotifications =
+            snapshot.hasData ? snapshot.data!.isNotEmpty : false;
+        if (hasNewNotifications) {
+          return IconButton(
             icon: Stack(
               alignment: Alignment.topRight,
               children: [
@@ -289,18 +293,20 @@ class _ShowGroupsState extends State<ShowGroups> {
               ],
             ),
             onPressed: () {
-              _currentUser?.hasNewNotifications = false;
-              _storeService.updateUser(_currentUser!);
-              setState(() {}); // Trigger UI update
+              _providerManagement!.clearNotifications(); // Clear notifications
               Navigator.pushNamed(context, AppRoutes.showNotifications);
             },
-          )
-        : IconButton(
+          );
+        } else {
+          return IconButton(
             icon: Icon(Icons.notifications),
             onPressed: () {
               Navigator.pushNamed(context, AppRoutes.showNotifications);
             },
           );
+        }
+      },
+    );
   }
 
   Widget buildBody(BuildContext context) {

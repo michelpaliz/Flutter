@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
       future: authService.generateUserCustomModel(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(body: Center(child: CircularProgressIndicator()));
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
           final user = snapshot.data!;
           return MultiProvider(
@@ -81,10 +81,8 @@ class MyApp extends StatelessWidget {
             child: App(),
           );
         } else if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(
-              child: Text('Error: ${snapshot.error}'),
-            ),
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
           );
         } else {
           return LoginView();
