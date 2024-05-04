@@ -21,64 +21,36 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   late FirestoreService _storeService;
   User? _currentUser;
   ProviderManagement? _providerManagement;
-  bool _isLoading =
-      true; // Initially set to true to display the progress indicator
 
   //** LOGIC FOR THE VIEW */
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _providerManagement =
+  //       Provider.of<ProviderManagement>(context, listen: false);
+  //   _storeService = FirestoreService.firebase(_providerManagement);
+  //   _authService = AuthService.firebase();
+  //   _providerManagement!.notificationStream.listen((notifications) {
+  //     setState(() {
+  //       _currentUser!.notifications = notifications;
+  //     });
+  //   });
+  // }
+
   @override
-  void initState() {
-    super.initState();
-    _providerManagement =
-        Provider.of<ProviderManagement>(context, listen: false);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Access the inherited widget in the didChangeDependencies method.
+    _providerManagement = Provider.of<ProviderManagement>(context);
+
+    // Initialize the _storeService using the providerManagement.
     _storeService = FirestoreService.firebase(_providerManagement);
-    _authService = AuthService.firebase();
-    _providerManagement!.notificationStream.listen((notifications) {
-      setState(() {
-        _currentUser!.notifications = notifications;
-        _isLoading = false;
-      });
-    });
+    _authService = new AuthService.firebase();
+    _providerManagement!.updateNotificationStream(_providerManagement!.currentUser?.notifications);
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-
-  //   // Access the inherited widget in the didChangeDependencies method.
-  //   _providerManagement = Provider.of<ProviderManagement>(context);
-
-  //   // Initialize the _storeService using the providerManagement.
-  //   _storeService = FirestoreService.firebase(_providerManagement);
-  //   _authService = new AuthService.firebase();
-  //   _providerManagement!.updateNotificationStream(_currentUser!.notifications);
-  // }
-
-  // Future<void> populateNotificationList() async {
-  //   try {
-  //     // final fetchedNotifications =
-  //     //     await _storeService.fetchUserGroups(_currentUser!.groupIds);
-  //     // _providerManagement?.updateGroupStream(fetchedNotifications);
-
-  //   } catch (error) {
-  //     print('Error fetching and updating groups: $error');
-  //   }
-  // }
-
-  // void _getCurrentUser() {
-  //   // setState(() {
-  //   //   _isLoading = true; // Start loading
-  //   // });
-  //   // AuthService.firebase().generateUserCustomModel().then((User? fetchedUser) {
-  //   //   if (fetchedUser != null && mounted) {
-  //   //     setState(() {
-  //   //       _currentUser = fetchedUser;
-  //   //       _isLoading = false; // Stop loading
-  //   //     });
-  //   //   }
-  //   // });
-  //   // new AuthService.firebase();
-  // }
 
   @override
   void dispose() {

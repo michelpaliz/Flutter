@@ -133,21 +133,31 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
 
   void _leaveGroup(BuildContext context, Group group) async {
-    // Display confirmation dialog
-    bool confirm = await _showConfirmationDialog(context);
+    // Check if the current user is the admin of the group
+    bool isGroupAdmin = _providerManagement!.currentUser!.id == group.ownerId;
+
+    // Display confirmation dialog with custom message for admin
+    bool confirm = await _showConfirmationDialog(
+      context,
+      isGroupAdmin
+          ? 'Are you sure you want to dissolve this group?'
+          : 'Are you sure you want to leave this group?',
+    );
+
     if (confirm) {
       // If the user confirms, remove the user from the group
       await _storeService.removeUserInGroup(_currentUser!, group);
     }
   }
 
-  Future<bool> _showConfirmationDialog(BuildContext context) async {
+  Future<bool> _showConfirmationDialog(
+      BuildContext context, String message) async {
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('Confirm'),
-              content: Text('Are you sure you want to leave this group?'),
+              content: Text(message),
               actions: <Widget>[
                 TextButton(
                   child: Text('Cancel'),
@@ -167,7 +177,7 @@ class _ShowGroupsState extends State<ShowGroups> {
             );
           },
         ) ??
-        false; // Default to false if dialog is dismissed without making a choice
+        false; // Default to false if dialog is dismissed without confirmation
   }
 
   //** UI FOR THE VIEW */

@@ -270,6 +270,10 @@ class FirestoreProvider implements FirestoreRepository {
     }
   }
 
+  /** We check if the current user is an administrator by verifying their role in the group.
+  If the user is an administrator, we create a notification indicating that the group has been removed by them.
+  If the user is not an administrator, we create a notification indicating that they have left the group.
+  We then create notifications for each member of the group, excluding invited users if the current user is not an administrator and the group is not being removed by an administrator.*/
   @override
   Future<void> leavingNotificationForGroup(Group group) async {
     // Check if the current user is an Administrator
@@ -279,7 +283,7 @@ class FirestoreProvider implements FirestoreRepository {
 
     // Create a notification for the Administrator
     if (isAdmin) {
-      final notificationTitle = 'You removed a group!';
+      final notificationTitle = 'Group Removed';
       final message = 'You removed the group ${group.groupName}';
       final notificationContent = NotificationUser(
         id: group.id,
@@ -297,36 +301,60 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Update the Administrator's document in Firestore
       await updateUser(currentUser);
+    } else {
+      // Create a notification for the user who is leaving the group
+      final leavingNotificationTitle = 'You Left the Group';
+      final leavingNotificationMessage =
+          'You left the group ${group.groupName}';
+      final leavingNotification = NotificationUser(
+        id: group.id,
+        ownerId: group.ownerId,
+        title: leavingNotificationTitle,
+        message: leavingNotificationMessage,
+        timestamp: DateTime.now(),
+        hasQuestion: false,
+        question: '',
+      );
+
+      // Add the notification to the user's list
+      currentUser.notifications.add(leavingNotification);
+      currentUser.hasNewNotifications = true;
+
+      // Update the user's document in Firestore
+      await updateUser(currentUser);
     }
+
+    // Create a notification for the members
+    final memberNotificationTitle =
+        isAdmin ? 'Group Removed' : 'Member Left the Group';
+    final memberNotificationMessage = isAdmin
+        ? 'The group ${group.groupName} has been removed by the administrator'
+        : '${currentUser.userName} has left the group';
 
     // Loop through each user in the group's members list
     for (final member in group.users) {
-      // Check if the member is not the current user and if they are not already a member of the group
-      if (member.userName != currentUser.userName &&
-          !group.invitedUsers!.containsKey(member.userName)) {
-        // Create a notification for the member
-        final userNotificationTitle = 'Group Removed';
-        final userNotificationMessage =
-            'The group ${group.groupName} has been removed by the administrator';
-
-        // Create the notification for the member
-        final userNotification = NotificationUser(
-          id: group.id,
-          ownerId: group.ownerId,
-          title: userNotificationTitle,
-          message: userNotificationMessage,
-          timestamp: DateTime.now(),
-          hasQuestion: false,
-          question: '',
-        );
-
-        // Add the notification to the member's list
-        member.notifications.add(userNotification);
-        member.hasNewNotifications = true;
-
-        // Update the member's document in Firestore
-        await updateUser(member);
+      // Exclude invited users if the current user is not an administrator and the group is not being removed by an administrator
+      if (!isAdmin && group.invitedUsers!.containsKey(member.userName)) {
+        continue;
       }
+
+      // Create the notification for the member
+      final memberNotification = NotificationUser(
+        id: group.id,
+        ownerId: group.ownerId,
+        title: memberNotificationTitle,
+        message: memberNotificationMessage,
+        timestamp: DateTime.now(),
+        hasQuestion: false,
+        question: '',
+      );
+
+      // Add the notification to the member's list
+      member.notifications.add(memberNotification);
+      member.hasNewNotifications = true;
+
+      // Update the member's document in Firestore
+      await updateUser(member);
     }
   }
 
@@ -548,8 +576,9 @@ class FirestoreProvider implements FirestoreRepository {
       //Let's use the provider to remove the group from the user groups list
       _providerManagement!.removeGroup(group);
 
-      //Update the groups user list in our provider
-      // _updateUserGroupProvider();
+      //We proceed to send a notification based on the user and the group
+      await leavingNotificationForGroup(group);
+
     } catch (error) {
       print('Error removing user from group: $error');
     }
