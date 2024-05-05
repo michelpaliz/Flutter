@@ -24,6 +24,7 @@ class ProviderManagement extends ChangeNotifier {
 
   ProviderManagement({required User? user}) {
     _currentUser = user;
+    // initNotifications(_currentUser!.notifications);
   }
 
   //** GROUPS FUNCTIONS  */
@@ -79,31 +80,46 @@ class ProviderManagement extends ChangeNotifier {
 
   final _notificationController =
       StreamController<List<NotificationUser>>.broadcast();
+
   Stream<List<NotificationUser>> get notificationStream =>
       _notificationController.stream;
+  List<NotificationUser> get notifications => _notifications;
 
   void updateNotificationStream(List<NotificationUser> notifications) {
     _notificationController.add(notifications);
+    _notifications = (notifications);
   }
 
   //** NOTIFICATION FUNCTIONS */
 
+  // // Initialize notifications for the current user
+  // void initNotifications(List<NotificationUser> notifications) {
+  //   _notifications.addAll(notifications);
+  //   _notificationController
+  //       .add(_notifications); // Add initial notifications to the stream
+  // }
+
+  // Methods to update notifications
   void addNotification(NotificationUser notification) {
     _notifications.add(notification);
+    _notificationController
+        .add(_notifications); // Add updated notifications to the stream
     notifyListeners();
   }
 
   void removeNotification(NotificationUser notification) {
     _notifications.remove(notification);
+    _notificationController
+        .add(_notifications); // Add updated notifications to the stream
     notifyListeners();
   }
 
   void clearNotifications() {
     _notifications.clear();
+    _notificationController
+        .add(_notifications); // Add updated notifications to the stream
     notifyListeners();
   }
-
-  List<NotificationUser> get notifications => _notifications;
 
   // Dispose the stream controller when no longer needed
   @override

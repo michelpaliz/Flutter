@@ -12,6 +12,7 @@ import '../../../models/event.dart';
 import '../../../models/notification_user.dart';
 import '../../../models/user.dart';
 import 'firestore_repository.dart';
+import 'dart:developer' as devtools show log;
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FirestoreProvider implements FirestoreRepository {
@@ -148,6 +149,7 @@ class FirestoreProvider implements FirestoreRepository {
         'notifications': FieldValue.arrayUnion([notification.toJson()])
       });
 
+      _providerManagement!.addNotification(notification);
       print('Notification added successfully');
 
       //We update the user in his groups
@@ -233,6 +235,7 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Add congratulatory notification to the Administrator's notification list
       admin.notifications.add(congratulatoryNotification);
+      _providerManagement!.addNotification(congratulatoryNotification);
       admin.hasNewNotifications = true;
 
       // Update Administrator's document in Firestore
@@ -297,6 +300,7 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Add the notification to the Administrator's list
       currentUser.notifications.add(notificationContent);
+      _providerManagement!.addNotification(notificationContent);
       currentUser.hasNewNotifications = true;
 
       // Update the Administrator's document in Firestore
@@ -318,6 +322,7 @@ class FirestoreProvider implements FirestoreRepository {
 
       // Add the notification to the user's list
       currentUser.notifications.add(leavingNotification);
+      _providerManagement!.addNotification(leavingNotification);
       currentUser.hasNewNotifications = true;
 
       // Update the user's document in Firestore
@@ -578,7 +583,6 @@ class FirestoreProvider implements FirestoreRepository {
 
       //We proceed to send a notification based on the user and the group
       await leavingNotificationForGroup(group);
-
     } catch (error) {
       print('Error removing user from group: $error');
     }

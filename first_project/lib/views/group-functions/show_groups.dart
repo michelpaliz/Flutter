@@ -1,5 +1,3 @@
-import 'dart:developer' as devtools show log;
-
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
@@ -11,6 +9,7 @@ import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import '../../enums/routes/appRoutes.dart';
@@ -303,7 +302,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               ],
             ),
             onPressed: () {
-              _providerManagement!.clearNotifications(); // Clear notifications
+              // _providerManagement!.clearNotifications(); // Clear notifications
               Navigator.pushNamed(context, AppRoutes.showNotifications);
             },
           );
