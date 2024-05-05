@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
@@ -42,10 +44,11 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     _notifications = _currentUser!.notifications;
 
     // Log the size of the notification list
-    devtools.log('List size: ${_notifications.length}');
+    // devtools.log('List size: ${_notifications.length}');
   }
 
   // Function to remove a notification at a given index
+// Function to remove a notification at a given index
   void _removeNotification(int index) async {
     if (_currentUser != null &&
         index >= 0 &&
@@ -55,15 +58,24 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       // Remove notification from ProviderManagement
       _providerManagement!.removeNotification(notification);
       await _storeService.updateUser(_currentUser!);
-      if (mounted) {
-        setState(() {
-          // Update UI if needed
-        });
-      }
+
+      // Use a Completer to handle the asynchronous operation
+      Completer<void> completer = Completer<void>();
+      completer.future.then((_) {
+        // Check if the widget is still mounted before calling setState
+        if (mounted) {
+          setState(() {
+            // Update UI if needed
+          });
+        }
+      });
+
+      // Complete the operation
+      completer.complete();
     }
   }
 
-  // Function to handle confirming a notification
+// Function to handle confirming a notification
   void _handleConfirmation(int index) async {
     if (_currentUser != null &&
         index >= 0 &&
@@ -105,6 +117,36 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
+  void _handleNegation(int index) async {
+    if (_currentUser != null &&
+        index >= 0 &&
+        index < _currentUser!.notifications.length) {
+      NotificationUser notification = _currentUser!.notifications[index];
+      if (notification.question.isNotEmpty) {
+        Group? group = await _storeService.getGroupFromId(notification.id);
+        Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
+        if (invitedUsers != null) {
+          group!.invitedUsers!.remove(_currentUser!.name);
+          _providerManagement!.removeNotification(notification);
+        }
+        _currentUser!.notifications[index].isAnswered = true;
+        await _storeService.updateUser(_currentUser!);
+        _sendNotificationToAdmin(notification, false);
+        if (mounted) {
+          setState(() {
+            // Update UI if needed
+          });
+        }
+        // Show a SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Notification denied.'),
+          ),
+        );
+      }
+    }
+  }
+
   void _sendNotificationToAdmin(
       NotificationUser notification, bool answer) async {
     // Create a notification for the admin to inform them about the user's response to the invitation.
@@ -142,37 +184,6 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
       // Update the admin's information.
       await _storeService.updateUser(admin);
-    }
-  }
-
-  // Function to handle negating a notification
-  void _handleNegation(int index) async {
-    if (_currentUser != null &&
-        index >= 0 &&
-        index < _currentUser!.notifications.length) {
-      NotificationUser notification = _currentUser!.notifications[index];
-      if (notification.question.isNotEmpty) {
-        Group? group = await _storeService.getGroupFromId(notification.id);
-        Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
-        if (invitedUsers != null) {
-          group!.invitedUsers!.remove(_currentUser!.name);
-          _providerManagement!.removeNotification(notification);
-        }
-        _currentUser!.notifications[index].isAnswered = true;
-        await _storeService.updateUser(_currentUser!);
-        _sendNotificationToAdmin(notification, false);
-        if (mounted) {
-          setState(() {
-            // Update UI if needed
-          });
-        }
-        // Show a SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Notification denied.'),
-          ),
-        );
-      }
     }
   }
 

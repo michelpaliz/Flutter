@@ -79,7 +79,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     return _currentRole == "Administrator";
   }
 
-  Future<void> _showDeleteConfirmationDialog(Group group) async {
+  void _showDeleteConfirmationDialog(Group group) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     bool deleteConfirmed = await showDialog(
       context: context,
@@ -105,7 +105,8 @@ class _ShowGroupsState extends State<ShowGroups> {
       },
     );
 
-    if (deleteConfirmed == true) {
+    if (deleteConfirmed == true && mounted) {
+      // Check if widget is mounted
       try {
         // Perform the group removal logic here
         await _storeService.deleteGroup(group.id);

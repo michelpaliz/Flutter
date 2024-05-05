@@ -179,9 +179,7 @@ class FirestoreProvider implements FirestoreRepository {
       await updateUser(currentUser);
       _providerManagement?.updateUser(currentUser);
       _providerManagement?.addGroup(group);
-
-      sendNotificationToUsers(group, currentUser);
-
+      
       // Create notifications for group members
       await sendNotificationToUsers(group, currentUser);
     } catch (e) {
