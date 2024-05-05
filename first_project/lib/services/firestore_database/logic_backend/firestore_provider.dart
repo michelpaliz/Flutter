@@ -179,7 +179,7 @@ class FirestoreProvider implements FirestoreRepository {
       await updateUser(currentUser);
       _providerManagement?.updateUser(currentUser);
       _providerManagement?.addGroup(group);
-      
+
       // Create notifications for group members
       await sendNotificationToUsers(group, currentUser);
     } catch (e) {
@@ -528,12 +528,12 @@ class FirestoreProvider implements FirestoreRepository {
         },
       );
 
+      // Delete the group document
+      await groupEventCollections.doc(groupId).delete();
+
       //we remove from the provider before firestore deletes it
       Group? groupFetched = await getGroupFromId(groupId);
       _providerManagement!.removeGroup(groupFetched!);
-
-      // Delete the group document
-      await groupEventCollections.doc(groupId).delete();
     } catch (error) {
       // Handle the error
       print("Error deleting group: $error");

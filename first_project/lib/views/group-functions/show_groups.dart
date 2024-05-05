@@ -303,7 +303,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               ],
             ),
             onPressed: () {
-              // _providerManagement!.clearNotifications(); // Clear notifications
+              _providerManagement!.clearNotifications(); // Clear notifications
               Navigator.pushNamed(context, AppRoutes.showNotifications);
             },
           );
