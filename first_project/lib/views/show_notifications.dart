@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 import 'dart:developer' as devtools show log;
 import '../models/notification_user.dart';
 import '../models/user.dart';
-import '../services/auth/logic_backend/auth_service.dart';
-import '../services/firestore_database/logic_backend/firestore_service.dart';
+import '../services/firebase_ services/auth/logic_backend/auth_service.dart';
+import '../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
 
 class ShowNotifications extends StatefulWidget {
   const ShowNotifications({Key? key}) : super(key: key);

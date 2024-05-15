@@ -1,9 +1,9 @@
 import 'package:first_project/models/user.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
-import 'package:first_project/services/auth/exceptions/password_exceptions.dart';
-import 'package:first_project/services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firestore_database/exceptions/firestore_exceptions.dart';
-import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/services/firebase_%20services/auth/exceptions/password_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firebase_%20services/firestore_database/exceptions/firestore_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/stateManangement/theme_preference_provider.dart';
 import 'package:flutter/material.dart';

@@ -4,17 +4,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/services/auth/logic_backend/auth_user.dart';
-import 'package:first_project/services/auth/exceptions/password_exceptions.dart';
-import '../../../firebase_options.dart';
-import '../../../models/user.dart';
+import 'package:first_project/services/firebase_%20services/auth/exceptions/auth_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_user.dart';
+import 'package:first_project/services/firebase_%20services/auth/exceptions/password_exceptions.dart';
+import 'package:first_project/services/node_services/user_services.dart';
+import '../../../../firebase_options.dart';
+import '../../../../models/user.dart';
 import 'auth_repository.dart';
+import 'dart:developer' as devtools show log;
 
 class AuthProvider implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   // Private variable to store the current user
   User? _currentUser;
+  final UserService userService = UserService();
   // final StoreService storeService;
 
   AuthProvider() {
@@ -190,17 +193,43 @@ class AuthProvider implements AuthRepository {
   Future<User?> generateUserCustomModel() async {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .get();
-      if (userSnapshot.exists) {
-        _currentUser =
-            User.fromJson(userSnapshot.data() as Map<String, dynamic>);
-        return _currentUser; // Return the populated user object
+      try {
+        final userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .get();
+
+        if (userSnapshot.exists) {
+          _currentUser =
+              User.fromJson(userSnapshot.data() as Map<String, dynamic>);
+          await _registerUserOnServer(_currentUser!);
+          devtools.log(_currentUser.toString());
+          return _currentUser; // Return the populated user object
+        } else {
+          // User data not found in Firestore
+          print('User data not found in Firestore');
+          // If user data is not found in Firestore, register the user on the server
+        }
+      } catch (error) {
+        print('Error retrieving user data from Firestore: $error');
+        throw error;
       }
+    } else {
+      // No user is currently authenticated
+      print('No user is currently authenticated');
+      return null;
     }
-    return null; // Return null when the user data is not found
+    return null;
+  }
+
+//
+  Future<void> _registerUserOnServer(User user) async {
+    try {
+      await userService.registerUserOnServer(user);
+    } catch (error) {
+      print('Error registering user on server: $error');
+      throw error;
+    }
   }
 
 // Fetch user data from Firestore based on the provided email

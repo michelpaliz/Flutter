@@ -9,7 +9,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/event.dart';
-import '../../services/firestore_database/logic_backend/firestore_service.dart';
+import '../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //*

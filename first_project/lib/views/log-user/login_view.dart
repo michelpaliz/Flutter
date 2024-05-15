@@ -6,14 +6,15 @@ import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
-import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/services/firebase_%20services/auth/exceptions/auth_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:provider/provider.dart';
 
 import '../../styles/widgets/show_error_dialog.dart';
 import '../../styles/widgets/view-item-styles/textfield_styles.dart';
@@ -56,38 +57,26 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: AppBarStyles.themeData,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("SCHEDULE"),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 5.0),
-            child: ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              children: [
-                Image.asset(
-                  'assets/images/beach_image.png', // Replace with your image path
-                  width: 100,
-                  height: 100,
-                ),
-                const SizedBox(height: 30),
-                Center(
-                  child: Text(
-                    AppLocalizations.of(context)!.login,
-                    style: TextStyle(
-                      fontSize: 37,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(202, 34, 108, 192),
-                      fontFamily: 'rigtheous',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                TextFieldWidget(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("SCHEDULE"),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.login,
+              style: TextStyle(
+                fontSize: 37,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(202, 34, 108, 192),
+                fontFamily: 'rigtheous',
+              ),
+            ),
+            SizedBox(height: 30),
+              TextFieldWidget(
                   controller: _email,
                   decoration: TextFieldStyles.saucyInputDecoration(
                     hintText: AppLocalizations.of(context)!.emailHint,
@@ -106,76 +95,56 @@ class _LoginViewState extends State<LoginView> {
                   keyboardType: TextInputType.text,
                   obscureText: true,
                 ),
-                const SizedBox(height: 15),
-                Container(
-                  width: 0,
-                  height: 50,
-                  child: TextButton(
-                    onPressed: () async {
-                      final email = _email.text;
-                      final password = _password.text;
-                      try {
-                        await _loginInitializer.initializeUserAndServices(
+            SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: () async {
+                final email = _email.text;
+                final password = _password.text;
+                try {
+                  await _loginInitializer.initializeUserAndServices(
                             email, password);
 
-                        User? userFetched = _loginInitializer.getUser;
-
-                        if (userFetched == null) {
-                          throw UserNotFoundAuthException();
-                        }
-                        devtools.log(
-                            'This is the user fetched from the login $userFetched');
-                        // widget.onLoginSuccess(userFetched);
-                        print('Login successful. Navigating to main screen...');
-                        Navigator.pushNamed(context, AppRoutes.homePage);
-                        print('Navigation to main screen completed.');
-                      } on UserNotFoundAuthException {
-                        await showErrorDialog(context,
-                            AppLocalizations.of(context)!.userNotFound);
-                      } on WrongPasswordAuthException {
-                        await showErrorDialog(context,
-                            AppLocalizations.of(context)!.wrongCredentials);
-                      } on GenericAuthException {
-                        await showErrorDialog(
-                            context, AppLocalizations.of(context)!.authError);
-                      }
-                    },
-                    style: _myCustomButtonStyle,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      onEnter: (event) {
-                        setState(() {
-                          buttonHovered = true;
-                        });
-                      },
-                      onExit: (event) {
-                        setState(() {
-                          buttonHovered = false;
-                        });
-                      },
-                      child: Text(AppLocalizations.of(context)!.login,
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                ),
-                TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.passwordRecoveryRoute);
-                    },
-                    child: Text(AppLocalizations.of(context)!.forgotPassword,
-                        style: TextStyle(color: Colors.blue))),
-                TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.registerRoute);
-                    },
-                    child: Text(AppLocalizations.of(context)!.notRegistered)),
-              ],
+                  User? userFetched = _loginInitializer.getUser;
+                  // Update the user in the provider
+                  final providerManagement = Provider.of<ProviderManagement>(context, listen: false);
+                  providerManagement.setCurrentUser(userFetched);
+                  Navigator.pushNamed(context, AppRoutes.homePage);
+                } on UserNotFoundAuthException {
+                  // Handle user not found exception
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(AppLocalizations.of(context)!.userNotFound),
+                  ));
+                } on WrongPasswordAuthException {
+                  // Handle wrong password exception
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(AppLocalizations.of(context)!.wrongCredentials),
+                  ));
+                } on GenericAuthException {
+                  // Handle generic authentication exception
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(AppLocalizations.of(context)!.authError),
+                  ));
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.login),
             ),
-          ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.passwordRecoveryRoute);
+              },
+              child: Text(AppLocalizations.of(context)!.forgotPassword),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.registerRoute);
+              },
+              child: Text(AppLocalizations.of(context)!.notRegistered),
+            ),
+          ],
         ),
-        // backgroundColor: const Color.fromARGB(255, 180, 189,
-        //     197), // Set the background color for the Register page
       ),
     );
   }
+
+
 }

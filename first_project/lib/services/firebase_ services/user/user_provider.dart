@@ -1,7 +1,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
-import '../../models/user.dart' as app_user;
+import '../../../models/user.dart' as app_user;
 
 app_user.User? currentUser;
 

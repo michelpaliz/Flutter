@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
-import '../../services/firestore_database/logic_backend/firestore_service.dart';
+import '../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class EventNoteWidget extends StatefulWidget {

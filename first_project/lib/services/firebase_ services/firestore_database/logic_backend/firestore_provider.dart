@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:first_project/models/group.dart';
-import 'package:first_project/services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firestore_database/exceptions/firestore_exceptions.dart';
-import 'package:first_project/services/user/user_provider.dart';
+import 'package:first_project/services/firebase_%20services/auth/exceptions/auth_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firebase_%20services/firestore_database/exceptions/firestore_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/user/user_provider.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 
-import '../../../models/event.dart';
-import '../../../models/notification_user.dart';
-import '../../../models/user.dart';
+import '../../../../models/event.dart';
+import '../../../../models/notification_user.dart';
+import '../../../../models/user.dart';
 import 'firestore_repository.dart';
 import 'dart:developer' as devtools show log;
 
@@ -174,7 +174,7 @@ class FirestoreProvider implements FirestoreRepository {
       // _updatePhotoURLForGroup(group);
 
       // Update the current user's group IDs
-      final currentUser = AuthService.firebase().costumeUser;
+      User? currentUser = _providerManagement!.currentUser;
       currentUser!.groupIds.add(group.id);
       await updateUser(currentUser);
       _providerManagement?.updateUser(currentUser);
@@ -473,12 +473,16 @@ class FirestoreProvider implements FirestoreRepository {
     List<Group> groups = [];
 
     if (groupIds != null) {
-      for (String groupId in groupIds) {
-        Group? group = await getGroupFromId(groupId);
-        if (group != null) {
-          groups.add(group);
-        }
-      }
+      // Use Future.wait to fetch all groups concurrently
+      List<Future<Group?>> futures =
+          groupIds.map((groupId) => getGroupFromId(groupId)).toList();
+      List<Group?> results = await Future.wait(futures);
+
+      // Filter out any null results
+      groups = results
+          .where((group) => group != null)
+          .map((group) => group!)
+          .toList();
     }
 
     return groups;
@@ -513,7 +517,7 @@ class FirestoreProvider implements FirestoreRepository {
         User? user = await getUserByUserName(userName);
         if (user != null) {
           user.groupIds.remove(groupId);
-          if (user.userName == _authService.costumeUser!.userName) {
+          if (user.userName == currentUser!.userName) {
             await updateUser(user);
           }
         }

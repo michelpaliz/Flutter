@@ -14,7 +14,6 @@ class ProviderManagement extends ChangeNotifier {
 
   // Getters
   User? get currentUser => _currentUser;
-  List<Group> get groups => _groups;
   ThemeData get themeData => _themeData;
 
   //** CONTROLLER FOR MY GROUPS  */
@@ -31,6 +30,7 @@ class ProviderManagement extends ChangeNotifier {
   // Method to update the group stream with the latest list of groups
   void updateGroupStream(List<Group> groups) {
     _groupController.add(groups);
+    notifyListeners();
   }
 
   void setCurrentUser(User? user) {
@@ -52,22 +52,22 @@ class ProviderManagement extends ChangeNotifier {
 
   void addGroup(Group group) {
     _groups.add(group);
-    notifyListeners();
     _groupController.add(_groups); // Add updated groups to the stream
+    notifyListeners();
   }
 
   void removeGroup(Group group) {
     _groups.removeWhere((g) => g.id == group.id);
-    notifyListeners();
     _groupController.add(_groups); // Add updated groups to the stream
+    notifyListeners();
   }
 
   void updateGroup(Group updatedGroup) {
     final index = _groups.indexWhere((g) => g.id == updatedGroup.id);
     if (index != -1) {
       _groups[index] = updatedGroup;
-      notifyListeners();
       _groupController.add(_groups); // Add updated groups to the stream
+      notifyListeners();
     }
   }
 
@@ -88,6 +88,7 @@ class ProviderManagement extends ChangeNotifier {
   void updateNotificationStream(List<NotificationUser> notifications) {
     _notificationController.add(notifications);
     _notifications = (notifications);
+    notifyListeners();
   }
 
   //** NOTIFICATION FUNCTIONS */

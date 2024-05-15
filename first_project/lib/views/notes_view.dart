@@ -5,13 +5,13 @@ import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
-import 'package:first_project/services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../models/event.dart';
 import '../models/user.dart';
-import '../services/firestore_database/logic_backend/firestore_service.dart';
+import '../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);

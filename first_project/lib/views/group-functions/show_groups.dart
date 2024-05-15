@@ -1,6 +1,6 @@
 import 'package:first_project/models/notification_user.dart';
-import 'package:first_project/services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import '../../enums/routes/appRoutes.dart';
+import 'dart:developer' as devtools show log;
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -37,21 +38,23 @@ class _ShowGroupsState extends State<ShowGroups> {
   //*LOGIC FOR THE VIEW //
 
   @override
-  void didChangeDependencies() {
+  Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     _authService = AuthService.firebase();
     _currentUser = _authService.costumeUser;
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     _storeService = FirestoreService.firebase(_providerManagement!);
-    _fetchAndUpdateGroups();
+    await _fetchAndUpdateGroups();
   }
 
   Future<void> _fetchAndUpdateGroups() async {
     try {
-      final fetchedGroups =
+      List<Group> fetchedGroups =
           await _storeService.fetchUserGroups(_currentUser!.groupIds);
       _providerManagement?.updateGroupStream(fetchedGroups);
+      devtools.log(_currentUser!.groupIds.toString());
+      devtools.log(fetchedGroups.toString());
     } catch (error) {
       print('Error fetching and updating groups: $error');
     }

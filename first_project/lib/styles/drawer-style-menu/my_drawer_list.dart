@@ -2,7 +2,7 @@ import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../enums/routes/appRoutes.dart';
-import '../../services/auth/logic_backend/auth_service.dart';
+import '../../services/firebase_ services/auth/logic_backend/auth_service.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //* GLOBAL VARIABLES */

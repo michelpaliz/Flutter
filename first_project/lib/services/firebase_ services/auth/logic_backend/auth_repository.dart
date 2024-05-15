@@ -1,7 +1,7 @@
 //Abstrac class should not contain logic
-import 'package:first_project/services/auth/logic_backend/auth_user.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_user.dart';
 
-import '../../../models/user.dart';
+import '../../../../models/user.dart';
 
 abstract class AuthRepository {
   Future<void> initialize();
