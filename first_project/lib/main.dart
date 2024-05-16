@@ -58,9 +58,84 @@ class MyMaterialApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: L10n.all,
+      routes: {
+        AppRoutes.settings: (context) => const Settings(),
+        AppRoutes.loginRoute: (context) => LoginView(),
+        AppRoutes.registerRoute: (context) => const RegisterView(),
+        AppRoutes.passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
+        AppRoutes.userCalendar: (context) => const NotesView(),
+        AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
+        AppRoutes.editEvent: (context) {
+          final event = ModalRoute.of(context)?.settings.arguments as Event?;
+          if (event != null) {
+            return EditNoteScreen(event: event);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        AppRoutes.showGroups: (context) => ShowGroups(),
+        AppRoutes.createGroupData: (context) => CreateGroupData(),
+        AppRoutes.showNotifications: (context) => ShowNotifications(),
+        AppRoutes.groupSettings: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return GroupSettings(group: group);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        AppRoutes.editGroup: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return EditGroupData(group: group);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        AppRoutes.groupCalendar: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return GroupDetails(group: group);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        AppRoutes.addEvent: (context) {
+          final dynamic arg = ModalRoute.of(context)?.settings.arguments;
+
+          User? user;
+          Group? group;
+
+          if (arg is User) {
+            user = arg;
+          } else if (arg is Group) {
+            group = arg;
+          }
+
+          return EventNoteWidget(user: user, group: group);
+        },
+        AppRoutes.eventDetail: (context) {
+          final event = ModalRoute.of(context)?.settings.arguments as Event?;
+          if (event != null) {
+            return EventDetail(event: event);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        AppRoutes.editGroupData: (context) {
+          final group = ModalRoute.of(context)?.settings.arguments as Group?;
+          if (group != null) {
+            return EditGroupData(group: group);
+          }
+          return SizedBox
+              .shrink(); // Return an empty widget or handle the error
+        },
+        // AppRoutes.homePage: (context) => HomePage(),
+      },
       home: FutureBuilder<User?>(
         future: authService.generateUserCustomModel(),
         builder: (context, snapshot) {
+          
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasData) {
@@ -79,7 +154,8 @@ class MyMaterialApp extends StatelessWidget {
                 ),
                 // Add other providers as needed
               ],
-              child: App(),
+              
+              child: HomePage(),
             );
           } else {
             // If snapshot doesn't have data, user is null
@@ -100,94 +176,6 @@ class MyMaterialApp extends StatelessWidget {
           }
         },
       ),
-    );
-  }
-}
-
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemePreferenceProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp(
-          theme: themeProvider.themeData,
-          localizationsDelegates: [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          supportedLocales: L10n.all,
-          routes: {
-            AppRoutes.settings: (context) => const Settings(),
-            AppRoutes.loginRoute: (context) => LoginView(),
-            AppRoutes.registerRoute: (context) => const RegisterView(),
-            AppRoutes.passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
-            AppRoutes.userCalendar: (context) => const NotesView(),
-            AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
-            AppRoutes.editEvent: (context) {
-              final event = ModalRoute.of(context)?.settings.arguments as Event?;
-              if (event != null) {
-                return EditNoteScreen(event: event);
-              }
-              return SizedBox.shrink(); // Return an empty widget or handle the error
-            },
-            AppRoutes.showGroups: (context) => ShowGroups(),
-            AppRoutes.createGroupData: (context) => CreateGroupData(),
-            AppRoutes.showNotifications: (context) => ShowNotifications(),
-            AppRoutes.groupSettings: (context) {
-              final group = ModalRoute.of(context)?.settings.arguments as Group?;
-              if (group != null) {
-                return GroupSettings(group: group);
-              }
-              return SizedBox.shrink(); // Return an empty widget or handle the error
-            },
-            AppRoutes.editGroup: (context) {
-              final group = ModalRoute.of(context)?.settings.arguments as Group?;
-              if (group != null) {
-                return EditGroupData(group: group);
-              }
-              return SizedBox.shrink(); // Return an empty widget or handle the error
-            },
-            AppRoutes.groupCalendar: (context) {
-              final group = ModalRoute.of(context)?.settings.arguments as Group?;
-              if (group != null) {
-                return GroupDetails(group: group);
-              }
-              return SizedBox.shrink(); // Return an empty widget or handle the error
-            },
-            AppRoutes.addEvent: (context) {
-              final dynamic arg = ModalRoute.of(context)?.settings.arguments;
-
-              User? user;
-              Group? group;
-
-              if (arg is User) {
-                user = arg;
-              } else if (arg is Group) {
-                group = arg;
-              }
-
-              return EventNoteWidget(user: user, group: group);
-            },
-            AppRoutes.eventDetail: (context) {
-              final event = ModalRoute.of(context)?.settings.arguments as Event?;
-              if (event != null) {
-                return EventDetail(event: event);
-              }
-              return SizedBox.shrink(); // Return an empty widget or handle the error
-            },
-            AppRoutes.editGroupData: (context) {
-              final group = ModalRoute.of(context)?.settings.arguments as Group?;
-              if (group != null) {
-                return EditGroupData(group: group);
-              }
-              return SizedBox.shrink(); // Return an empty widget or handle the error
-            },
-            AppRoutes.homePage: (context) => HomePage(),
-          },
-        );
-      },
     );
   }
 }

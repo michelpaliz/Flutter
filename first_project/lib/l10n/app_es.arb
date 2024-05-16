@@ -150,5 +150,9 @@
     "successChangingUsername": "Nombre de usuario actualizado !",
     "errorUsernameLength": "Error: El nombre de usuario debe tener entre 6 y 10 caracteres.",
     "formatDate": "{date}",
-    "forgotPassword": "Recupera aqui tu contraseña."
+    "forgotPassword": "Recupera aqui tu contraseña.",
+    "nameRequired": "Por favor introduce tu nombre",
+    "userNameRequired": "Por favor introduce tu nombre de usuario",
+    "emailRequired": "Por favor introduce tu email",
+    "passwordLength": "La contraseña tiene que ser menor de 6 caracteres"
 }

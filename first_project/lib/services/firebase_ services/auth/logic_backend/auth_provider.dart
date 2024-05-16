@@ -17,8 +17,7 @@ class AuthProvider implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   // Private variable to store the current user
   User? _currentUser;
-  final UserService userService = UserService();
-  // final StoreService storeService;
+  final UserService _userService = UserService();
 
   AuthProvider() {
     // Initialize the authentication state listener
@@ -45,7 +44,6 @@ class AuthProvider implements AuthRepository {
   // Define a getter to access the authentication state stream
   Stream<User?> get authStateStream => _authStateController.stream;
 
-  @override
   Future<String> createUser({
     required String userName,
     required String name,
@@ -65,34 +63,34 @@ class AuthProvider implements AuthRepository {
 
         // Create a User object using the UID as the user ID
         User person = User(
-            id: user.uid,
-            name: name,
-            userName: userName,
-            email: user.email!,
-            photoUrl: '',
-            groupIds: [],
-            events: [],
-            notifications: []);
-
-        // Upload the user object to Firestore using the UID as the document ID
-        return await uploadPersonToFirestore(
-          person: person,
-          documentId: user.uid,
+          id: user.uid,
+          name: name,
+          userName: userName,
+          email: user.email!,
+          photoUrl: '',
+          groupIds: [],
+          events: [],
+          notifications: [],
         );
+
+        // Register the user on the backend
+        await _userService.registerUserOnServer(person);
+
+        return 'User created successfully';
       } else {
         throw UserNotLoggedInAuthException();
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         throw WeakPasswordException();
-      } else if (e.code == 'firebase_auth/email-already-in-use') {
+      } else if (e.code == 'email-already-in-use') {
         throw EmailAlreadyUseAuthException();
       } else if (e.code == 'invalid-email') {
         throw InvalidEmailAuthException();
       } else {
         throw GenericAuthException();
       }
-    } catch (_) {
+    } catch (e) {
       throw GenericAuthException();
     }
   }
@@ -202,7 +200,9 @@ class AuthProvider implements AuthRepository {
         if (userSnapshot.exists) {
           _currentUser =
               User.fromJson(userSnapshot.data() as Map<String, dynamic>);
-          await _registerUserOnServer(_currentUser!);
+          // await _registerUserOnServer(_currentUser!);
+          //TODO: I NEED TO CREATE A WAY TO REGISTER THE CURRENT USER STATUS FOR MY DB OR WE CAN ONLY USE THE FIREBASE AUTHENTICATION 
+
           devtools.log(_currentUser.toString());
           return _currentUser; // Return the populated user object
         } else {
@@ -225,7 +225,7 @@ class AuthProvider implements AuthRepository {
 //
   Future<void> _registerUserOnServer(User user) async {
     try {
-      await userService.registerUserOnServer(user);
+      await _userService.registerUserOnServer(user);
     } catch (error) {
       print('Error registering user on server: $error');
       throw error;

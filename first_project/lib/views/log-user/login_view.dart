@@ -62,10 +62,15 @@ class _LoginViewState extends State<LoginView> {
         title: Text("SCHEDULE"),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 5.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Image.asset(
+              'assets/images/beach_image.png', // Replace with your image path
+              width: 100,
+              height: 100,
+            ),
             Text(
               AppLocalizations.of(context)!.login,
               style: TextStyle(
@@ -76,25 +81,25 @@ class _LoginViewState extends State<LoginView> {
               ),
             ),
             SizedBox(height: 30),
-              TextFieldWidget(
-                  controller: _email,
-                  decoration: TextFieldStyles.saucyInputDecoration(
-                    hintText: AppLocalizations.of(context)!.emailHint,
-                    labelText: 'Email',
-                    suffixIcon: Icons.email,
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 10),
-                TextFieldWidget(
-                  controller: _password,
-                  decoration: TextFieldStyles.saucyInputDecoration(
-                      hintText: AppLocalizations.of(context)!.passwordHint,
-                      labelText: AppLocalizations.of(context)!.password,
-                      suffixIcon: Icons.lock),
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                ),
+            TextFieldWidget(
+              controller: _email,
+              decoration: TextFieldStyles.saucyInputDecoration(
+                hintText: AppLocalizations.of(context)!.emailHint,
+                labelText: 'Email',
+                suffixIcon: Icons.email,
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 10),
+            TextFieldWidget(
+              controller: _password,
+              decoration: TextFieldStyles.saucyInputDecoration(
+                  hintText: AppLocalizations.of(context)!.passwordHint,
+                  labelText: AppLocalizations.of(context)!.password,
+                  suffixIcon: Icons.lock),
+              keyboardType: TextInputType.text,
+              obscureText: true,
+            ),
             SizedBox(height: 15),
             ElevatedButton(
               onPressed: () async {
@@ -102,11 +107,12 @@ class _LoginViewState extends State<LoginView> {
                 final password = _password.text;
                 try {
                   await _loginInitializer.initializeUserAndServices(
-                            email, password);
+                      email, password);
 
                   User? userFetched = _loginInitializer.getUser;
                   // Update the user in the provider
-                  final providerManagement = Provider.of<ProviderManagement>(context, listen: false);
+                  final providerManagement =
+                      Provider.of<ProviderManagement>(context, listen: false);
                   providerManagement.setCurrentUser(userFetched);
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
@@ -117,7 +123,8 @@ class _LoginViewState extends State<LoginView> {
                 } on WrongPasswordAuthException {
                   // Handle wrong password exception
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(AppLocalizations.of(context)!.wrongCredentials),
+                    content:
+                        Text(AppLocalizations.of(context)!.wrongCredentials),
                   ));
                 } on GenericAuthException {
                   // Handle generic authentication exception
@@ -145,6 +152,4 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-
-
 }

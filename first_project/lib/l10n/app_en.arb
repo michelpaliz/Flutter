@@ -308,5 +308,9 @@
             "description": "Balance date"
         }
     },
-    "forgotPassword": "Recover here your password."
+    "forgotPassword": "Recover here your password.",
+    "nameRequired": "Name is required",
+    "userNameRequired": "User name is required",
+    "emailRequired": "Email is required",
+    "passwordLength": "Password maximum length is 6 characters"
 }
