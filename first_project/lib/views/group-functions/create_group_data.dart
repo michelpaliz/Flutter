@@ -250,6 +250,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _storeService.addGroup(group);
+
       
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(

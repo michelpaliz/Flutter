@@ -40,10 +40,11 @@ class _ShowGroupsState extends State<ShowGroups> {
   @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
-    _authService = AuthService.firebase();
-    _currentUser = _authService.costumeUser;
+    // _authService = AuthService.firebase();
+    // _currentUser = _authService.costumeUser;
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
+        _currentUser = _providerManagement!.currentUser;
     _storeService = FirestoreService.firebase(_providerManagement!);
     await _fetchAndUpdateGroups();
   }
@@ -52,7 +53,8 @@ class _ShowGroupsState extends State<ShowGroups> {
     try {
       List<Group> fetchedGroups =
           await _storeService.fetchUserGroups(_currentUser!.groupIds);
-      _providerManagement?.updateGroupStream(fetchedGroups);
+      Provider.of<ProviderManagement>(context, listen: false)
+          .updateGroupStream(fetchedGroups);
       devtools.log(_currentUser!.groupIds.toString());
       devtools.log(fetchedGroups.toString());
     } catch (error) {
@@ -292,11 +294,8 @@ class _ShowGroupsState extends State<ShowGroups> {
   Widget _buildNotificationIconButton(BuildContext context) {
     return StreamBuilder<List<NotificationUser>>(
       stream: _providerManagement!.notificationStream,
-      initialData: [],
       builder: (context, snapshot) {
-        final hasNewNotifications =
-            snapshot.hasData ? snapshot.data!.isNotEmpty : false;
-        if (hasNewNotifications) {
+        if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           return IconButton(
             icon: Stack(
               alignment: Alignment.topRight,

@@ -200,8 +200,6 @@ class AuthProvider implements AuthRepository {
         if (userSnapshot.exists) {
           _currentUser =
               User.fromJson(userSnapshot.data() as Map<String, dynamic>);
-          // await _registerUserOnServer(_currentUser!);
-          //TODO: I NEED TO CREATE A WAY TO REGISTER THE CURRENT USER STATUS FOR MY DB OR WE CAN ONLY USE THE FIREBASE AUTHENTICATION 
 
           devtools.log(_currentUser.toString());
           return _currentUser; // Return the populated user object
@@ -222,15 +220,6 @@ class AuthProvider implements AuthRepository {
     return null;
   }
 
-//
-  Future<void> _registerUserOnServer(User user) async {
-    try {
-      await _userService.registerUserOnServer(user);
-    } catch (error) {
-      print('Error registering user on server: $error');
-      throw error;
-    }
-  }
 
 // Fetch user data from Firestore based on the provided email
   Future<User?> _getUserDataFromFirestore(String userEmail) async {

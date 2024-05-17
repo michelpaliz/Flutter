@@ -174,7 +174,7 @@ class FirestoreProvider implements FirestoreRepository {
       // _updatePhotoURLForGroup(group);
 
       // Update the current user's group IDs
-      User? currentUser = _providerManagement!.currentUser;
+      User? currentUser = await getCurrentUser();
       currentUser!.groupIds.add(group.id);
       await updateUser(currentUser);
       _providerManagement?.updateUser(currentUser);
@@ -278,7 +278,7 @@ class FirestoreProvider implements FirestoreRepository {
   @override
   Future<void> leavingNotificationForGroup(Group group) async {
     // Check if the current user is an Administrator
-    User? currentUser = _providerManagement!.currentUser;
+    User? currentUser = await getCurrentUser();
     bool isAdmin = group.userRoles.containsKey(currentUser!.userName) &&
         group.userRoles[currentUser.userName] == 'Administrator';
 
@@ -491,37 +491,31 @@ class FirestoreProvider implements FirestoreRepository {
   @override
   Future<void> deleteGroup(String groupId) async {
     try {
-      //Fetch the list of groups from the database
+      // Fetch the list of groups from the database
       CollectionReference groupEventCollections =
           FirebaseFirestore.instance.collection('groups');
+
+      // Delete the group document
+      await groupEventCollections.doc(groupId).delete();
 
       // Fetch the list of users from the group
       DocumentSnapshot groupSnapshot =
           await groupEventCollections.doc(groupId).get();
 
-      //The usernames of the users
+      // The usernames of the users
       List<String> groupUserNames = [];
 
-      //This is the list of users
+      // This is the list of users
       List<dynamic> usersList = groupSnapshot['users'];
 
-      //Populate the list of usernames
+      // Populate the list of usernames
       for (var userObj in usersList) {
         String userName = userObj[
             'userName']; // Assuming 'userName' is the key in your user object
         groupUserNames.add(userName);
       }
 
-      //Update the user's groups Id in the database
-      for (String userName in groupUserNames) {
-        User? user = await getUserByUserName(userName);
-        if (user != null) {
-          user.groupIds.remove(groupId);
-          if (user.userName == currentUser!.userName) {
-            await updateUser(user);
-          }
-        }
-      }
+      User? currentUser = await getCurrentUser();
 
       // Delete the group's events collection
       await groupEventCollections.doc(groupId).collection('events').get().then(
@@ -532,18 +526,26 @@ class FirestoreProvider implements FirestoreRepository {
         },
       );
 
-      // Delete the group document
-      await groupEventCollections.doc(groupId).delete();
+      // Update the user's groups Id in the database
+      for (String userName in groupUserNames) {
+        User? user = await getUserByUserName(userName);
+        if (user != null) {
+          user.groupIds.remove(groupId);
+          if (user.userName == currentUser!.userName) {
+            await updateUser(user);
+          }
+        }
+      }
 
-      //we remove from the provider before firestore deletes it
-      Group? groupFetched = await getGroupFromId(groupId);
-      _providerManagement!.removeGroup(groupFetched!);
+      User? _currentUser = await getCurrentUser();
+
+      // Fetch the updated list of groups and update the state
+      List<Group> fetchedGroups = await fetchUserGroups(_currentUser!.groupIds);
+      _providerManagement!.updateGroupStream(fetchedGroups);
     } catch (error) {
       // Handle the error
       print("Error deleting group: $error");
     }
-
-    //We proceed to delete the events of the deleted group in the users collection
   }
 
   /// Overrides the method to remove a user from a group in Firestore.
@@ -655,7 +657,7 @@ class FirestoreProvider implements FirestoreRepository {
 
         await userRef.update(user.toJson()); // Update the user document
 
-        User? currentUser = _authService.costumeUser;
+        User? currentUser = await getCurrentUser();
 
         if (currentUser != null && currentUser.id == user.id) {
           _authService.costumeUser = user;

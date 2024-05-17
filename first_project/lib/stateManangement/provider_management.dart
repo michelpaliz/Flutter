@@ -93,13 +93,6 @@ class ProviderManagement extends ChangeNotifier {
 
   //** NOTIFICATION FUNCTIONS */
 
-  // // Initialize notifications for the current user
-  // void initNotifications(List<NotificationUser> notifications) {
-  //   _notifications.addAll(notifications);
-  //   _notificationController
-  //       .add(_notifications); // Add initial notifications to the stream
-  // }
-
   // Methods to update notifications
   void addNotification(NotificationUser notification) {
     _notifications.add(notification);
