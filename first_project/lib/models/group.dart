@@ -103,8 +103,8 @@ class Group {
       'userRoles': userRoles,
       'calendar': calendar.toJson(),
       'users': usersJson,
-      // 'createdTime': createdTime.toIso8601String(),
-      'createdTime': createdTime.millisecondsSinceEpoch.toString(),
+      'createdTime': createdTime.toIso8601String(),
+      // 'createdTime': createdTime.millisecondsSinceEpoch.toString(),
       'repetitiveEvents': repetitiveEvents,
       'description': description,
       'photo': photo, // Include the new field here
