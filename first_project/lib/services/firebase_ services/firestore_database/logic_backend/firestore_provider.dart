@@ -12,7 +12,6 @@ import '../../../../models/event.dart';
 import '../../../../models/notification_user.dart';
 import '../../../../models/user.dart';
 import 'firestore_repository.dart';
-import 'dart:developer' as devtools show log;
 
 /**Calling the uploadPersonToFirestore function, you can await the returned future and handle the success or failure messages accordingly: */
 class FirestoreProvider implements FirestoreRepository {

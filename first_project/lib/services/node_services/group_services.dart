@@ -1,17 +1,25 @@
 import 'dart:convert';
+import 'dart:developer' as devtools show log;
+
 import 'package:first_project/models/group.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
-  final String baseUrl = 'http://192.168.1.16:3000/api'; // Update with your server URL
+  final String baseUrl =
+      'http://192.168.1.16:3000/api'; // Update with your server URL
 
   Future<Group> createGroup(Group group) async {
+    devtools.log('Create group ${group.id}');
+
+    // Convert the group object to JSON only once
+    final groupJson = group.toJson();
+
     final response = await http.post(
       Uri.parse('$baseUrl/groups'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(group.toJson()),
+      body: jsonEncode(groupJson),
     );
 
     if (response.statusCode == 201) {

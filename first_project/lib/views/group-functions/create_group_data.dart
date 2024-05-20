@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:first_project/models/userInvitationStatus.dart';
+import 'package:first_project/services/node_services/group_services.dart';
+import 'package:first_project/services/node_services/user_services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/calendar.dart';
@@ -25,10 +27,11 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   String _groupName = '';
   String _groupDescription = '';
   XFile? _selectedImage;
-  late FirestoreService _storeService;
+  // late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
+  
 
   @override
   void initState() {
@@ -46,16 +49,16 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
 
-    // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+  //   // Access the inherited widget in the didChangeDependencies method.
+  //   final providerManagement = Provider.of<ProviderManagement>(context);
 
-    // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
-  }
+  //   // Initialize the _storeService using the providerManagement.
+  //   // _storeService = FirestoreService.firebase(providerManagement);
+  // }
 
   void _onDataChanged(
       List<User> updatedUserInGroup, Map<String, String> updatedUserRoles) {
@@ -249,9 +252,12 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       group.invitedUsers = invitations;
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      await _storeService.addGroup(group);
+      // await _storeService.addGroup(group);
+      //TODO: ADD THE FUNCTION TO ADD THE GROUP IN MY NODE API
 
-      
+      // await _groupService.createGroup(group);
+      Provider.of<ProviderManagement>(context, listen: false).addGroup(group);
+
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.groupCreated)),
@@ -421,7 +427,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                       final roleValue = _userRoles[userName];
                       if (roleValue == "Administrator") {
                         return FutureBuilder<User?>(
-                          future: _storeService.getUserByName(userName),
+                          // future: _storeService.getUserByName(userName),
+                          // future: _userService.getUserByUsername(userName),
+                          future: Provider.of<ProviderManagement>(context, listen: false).userService.getUserByUsername(userName),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -450,7 +458,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                         );
                       } else {
                         return FutureBuilder<User?>(
-                          future: _storeService.getUserByName(userName),
+                          // future: _storeService.getUserByName(userName),
+                          future: Provider.of<ProviderManagement>(context, listen: false).userService.getUserByUsername(userName),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {

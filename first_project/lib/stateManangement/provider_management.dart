@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/node_services/group_services.dart';
+import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +13,8 @@ class ProviderManagement extends ChangeNotifier {
   List<Group> _groups = [];
   List<NotificationUser> _notifications = [];
   ThemeData _themeData = lightTheme;
+  final UserService userService = UserService();
+  final GroupService groupService = GroupService();
 
   // Getters
   User? get currentUser => _currentUser;
@@ -23,7 +27,11 @@ class ProviderManagement extends ChangeNotifier {
 
   ProviderManagement({required User? user}) {
     _currentUser = user;
-    // initNotifications(_currentUser!.notifications);
+    if (user != null) {
+      _notifications = user.notifications;
+    } else {
+      _notifications = [];
+    }
   }
 
   //** GROUPS FUNCTIONS  */
@@ -41,28 +49,32 @@ class ProviderManagement extends ChangeNotifier {
   void initialize(User user, List<Group> groups) {
     _currentUser = user;
     _groups.addAll(groups);
-    notifyListeners();
     _groupController.add(_groups); // Add initial groups to the stream
+    notifyListeners();
   }
 
-  void updateUser(User newUser) {
+  void updateUser(User newUser) async {
+    await userService.updateUser(newUser);
     _currentUser = newUser;
     notifyListeners();
   }
 
-  void addGroup(Group group) {
+  void addGroup(Group group) async {
+    await groupService.createGroup(group);
     _groups.add(group);
     _groupController.add(_groups); // Add updated groups to the stream
     notifyListeners();
   }
 
-  void removeGroup(Group group) {
+  void removeGroup(Group group) async {
+    await groupService.deleteGroup(group.id);
     _groups.removeWhere((g) => g.id == group.id);
     _groupController.add(_groups); // Add updated groups to the stream
     notifyListeners();
   }
 
-  void updateGroup(Group updatedGroup) {
+  void updateGroup(Group updatedGroup) async {
+    await groupService.updateGroup(updatedGroup.id, updatedGroup);
     final index = _groups.indexWhere((g) => g.id == updatedGroup.id);
     if (index != -1) {
       _groups[index] = updatedGroup;

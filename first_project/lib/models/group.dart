@@ -10,7 +10,7 @@ class Group {
   final Map<String, String> userRoles; // Map of user IDs to their roles
   final Calendar calendar; // Shared calendar for the group
   List<User> users;
-  final DateTime createdTime; // Time the group was created
+  DateTime createdTime; // Time the group was created
   bool
       repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
   String description; // A description of the group
@@ -103,7 +103,8 @@ class Group {
       'userRoles': userRoles,
       'calendar': calendar.toJson(),
       'users': usersJson,
-      'createdTime': createdTime.toIso8601String(),
+      // 'createdTime': createdTime.toIso8601String(),
+      'createdTime': createdTime.millisecondsSinceEpoch.toString(),
       'repetitiveEvents': repetitiveEvents,
       'description': description,
       'photo': photo, // Include the new field here

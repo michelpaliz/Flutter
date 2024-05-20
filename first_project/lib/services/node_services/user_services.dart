@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:first_project/models/user.dart';
 import 'package:http/http.dart' as http;
+import 'dart:developer' as devtools show log;
 
 class UserService {
   final String baseUrl =
@@ -75,6 +76,21 @@ class UserService {
       return list.map((model) => User.fromJson(model)).toList();
     } else {
       throw Exception('Failed to get users: ${response.reasonPhrase}');
+    }
+  }
+
+  // Get user by username
+  Future<User> getUserByUsername(String username) async {
+    devtools.log('Get user by username $username');
+    final response =
+        await http.get(Uri.parse('$baseUrl/users/username/$username'));
+
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      throw Exception('User not found');
+    } else {
+      throw Exception('Failed to get user: ${response.reasonPhrase}');
     }
   }
 }
