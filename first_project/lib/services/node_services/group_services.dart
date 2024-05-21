@@ -8,22 +8,22 @@ class GroupService {
   final String baseUrl =
       'http://192.168.1.16:3000/api'; // Update with your server URL
 
-  // Future<Group> createGroup(Group group) async {
-  //   devtools.log('Create group ${group}');
-  //   final response = await http.post(
-  //     Uri.parse('$baseUrl/groups'),
-  //     headers: <String, String>{
-  //       'Content-Type': 'application/json; charset=UTF-8',
-  //     },
-  //     body: jsonEncode(group.toJson()),
-  //   );
+  Future<Group> createGroup(Group group) async {
+    devtools.log('Create group ${group}');
+    final response = await http.post(
+      Uri.parse('$baseUrl/groups'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(group.toJson()),
+    );
 
-  //   if (response.statusCode == 201) {
-  //     return Group.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     throw Exception('Failed to create group: ${response.reasonPhrase}');
-  //   }
-  // } 
+    if (response.statusCode == 201) {
+      return Group.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to create group: ${response.reasonPhrase}');
+    }
+  } 
 
   Future<Group> getGroupById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/groups/$id'));

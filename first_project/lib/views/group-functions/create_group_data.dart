@@ -31,7 +31,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
-  
 
   @override
   void initState() {
@@ -256,12 +255,21 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       //TODO: ADD THE FUNCTION TO ADD THE GROUP IN MY NODE API
 
       // await _groupService.createGroup(group);
-      Provider.of<ProviderManagement>(context, listen: false).addGroup(group);
+      bool result =
+          await Provider.of<ProviderManagement>(context, listen: false)
+              .addGroup(group);
 
-      // Show a success message using a SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.groupCreated)),
-      );
+      if (result) {
+        // Show a success message using a SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.groupCreated)),
+        );
+      }else{
+             // Show a success message using a SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.groupNotCreated)),
+        );
+      }
 
       return true; // Return true to indicate that the group creation was successful.
     } catch (e) {
@@ -429,7 +437,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                         return FutureBuilder<User?>(
                           // future: _storeService.getUserByName(userName),
                           // future: _userService.getUserByUsername(userName),
-                          future: Provider.of<ProviderManagement>(context, listen: false).userService.getUserByUsername(userName),
+                          future: Provider.of<ProviderManagement>(context,
+                                  listen: false)
+                              .userService
+                              .getUserByUsername(userName),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -459,7 +470,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                       } else {
                         return FutureBuilder<User?>(
                           // future: _storeService.getUserByName(userName),
-                          future: Provider.of<ProviderManagement>(context, listen: false).userService.getUserByUsername(userName),
+                          future: Provider.of<ProviderManagement>(context,
+                                  listen: false)
+                              .userService
+                              .getUserByUsername(userName),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {

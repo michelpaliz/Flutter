@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/notification_user.dart';
+import 'dart:convert';
 
 class User {
   String _id;
@@ -92,13 +93,20 @@ class User {
       events: (json['events'] as List<dynamic>?)!
           .map((eventJson) => Event.fromJson(eventJson))
           .toList(),
+      //       events: (json['events'] as List<dynamic>?)!
+      // .map((eventJson) => Event.fromJson(jsonDecode(eventJson)))
+      // .toList(),
       groupIds: (json['groupIds'] as List<dynamic>?)!
           .map((groupId) => groupId.toString())
           .toList(),
       photoUrl: json['photoUrl'] as String?,
+      // notifications: (json['notifications'] as List<dynamic>?)
+      //     ?.map(
+      //         (notificationUser) => NotificationUser.fromJson(notificationUser))
+      //     .toList(),
       notifications: (json['notifications'] as List<dynamic>?)
-          ?.map(
-              (notificationUser) => NotificationUser.fromJson(notificationUser))
+          ?.map((notificationUser) =>
+              NotificationUser.fromJson(jsonDecode(notificationUser)))
           .toList(),
       hasNewNotifications:
           json['hasNewNotifications'] as bool, // Include this line

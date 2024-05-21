@@ -154,5 +154,6 @@
     "nameRequired": "Por favor introduce tu nombre",
     "userNameRequired": "Por favor introduce tu nombre de usuario",
     "emailRequired": "Por favor introduce tu email",
-    "passwordLength": "La contraseña tiene que ser menor de 6 caracteres"
+    "passwordLength": "La contraseña tiene que ser menor de 6 caracteres",
+    "groupNotCreated": "El grupo no se ha podido crear, intentalo mas tarde"
 }

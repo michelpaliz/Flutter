@@ -312,5 +312,6 @@
     "nameRequired": "Name is required",
     "userNameRequired": "User name is required",
     "emailRequired": "Email is required",
-    "passwordLength": "Password maximum length is 6 characters"
+    "passwordLength": "Password maximum length is 6 characters",
+    "groupNotCreated": "There was an error creating the group, try again"
 }
