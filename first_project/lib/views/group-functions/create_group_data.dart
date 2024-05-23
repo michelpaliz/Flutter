@@ -1,22 +1,23 @@
 import 'dart:io';
-import 'package:first_project/models/userInvitationStatus.dart';
-import 'package:first_project/services/node_services/group_services.dart';
-import 'package:first_project/services/node_services/user_services.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
+
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/calendar.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/services/node_services/group_services.dart';
+import 'package:first_project/services/node_services/user_services.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:developer' as devtools show log;
 
 class CreateGroupData extends StatefulWidget {
   @override
@@ -31,6 +32,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _userInGroup;
+  UserService _userService = UserService();
 
   @override
   void initState() {
@@ -192,18 +194,13 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
       String groupId = UniqueKey().toString();
 
-      // Generate a random ID using Firestore
-      final uuid = Uuid();
-      final randomId = uuid.v4();
-
-      // Create an instance of the Calendar class or any other logic required to initialize the calendar.
-      Calendar? calendar = new Calendar(randomId, _groupName,
-          events: null); // Assuming Calendar is defined elsewhere.
-
       // We are gonna only add the current user to the group, the others would need to accept the group's notification.
+      // User userServer = await _userService.getUserById(_currentUser!.id);
+      User userServer =
+          await _userService.getUserByUsername(_currentUser!.userName);
 
       List<User> users = [];
-      users.add(_currentUser!);
+      users.add(userServer);
 
       //Now we are going to create the link of the image selected for the group
       String imageURL = "";
@@ -219,13 +216,19 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         _userRoles.entries.where((entry) => entry.value == 'Administrator'),
       );
 
+      // Generate a random ID using Firestore
+      final uuid = Uuid();
+      final randomId = uuid.v4();
+      // Limit the number of characters to 10
+      final limitedId = randomId.substring(0, 10);
+
       // Create the group object with the appropriate attributes
-      Group group = Group(
+      Group newGroup = Group(
           id: groupId,
           groupName: _groupName,
           ownerId: _currentUser!.id,
           userRoles: adminUsersJson,
-          calendar: calendar,
+          calendar: new Calendar(limitedId, _groupName),
           users: users,
           invitedUsers: null,
           createdTime: DateTime.now(),
@@ -239,7 +242,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         // Check if the user's role is not "Administrator"
         if (value != 'Administrator') {
           final invitationStatus = UserInviteStatus(
-            id: group.id,
+            id: newGroup.id,
             role: '$value',
             accepted: null, // It's null because the user hasn't answered yet
           );
@@ -248,30 +251,15 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       });
 
       //we update the group's invitedUsers property
-      group.invitedUsers = invitations;
+      newGroup.invitedUsers = invitations;
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      // await _storeService.addGroup(group);
-      //TODO: ADD THE FUNCTION TO ADD THE GROUP IN MY NODE API
 
-      // await _groupService.createGroup(group);
       bool result =
           await Provider.of<ProviderManagement>(context, listen: false)
-              .addGroup(group);
+              .addGroup(newGroup);
 
-      if (result) {
-        // Show a success message using a SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.groupCreated)),
-        );
-      }else{
-             // Show a success message using a SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.groupNotCreated)),
-        );
-      }
-
-      return true; // Return true to indicate that the group creation was successful.
+      return result; // Return true to indicate that the group creation was successful.
     } catch (e) {
       // Handle any errors that may occur during the process.
       print("Error creating group: $e");

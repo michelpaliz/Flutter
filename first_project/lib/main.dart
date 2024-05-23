@@ -150,7 +150,7 @@ class MyMaterialApp extends StatelessWidget {
                 return SizedBox
                     .shrink(); // Return an empty widget or handle the error
               },
-              // AppRoutes.homePage: (context) => HomePage(),
+              AppRoutes.homePage: (context) => HomePage(),
             },
             home: UserInitializer(authService: authService),
           );

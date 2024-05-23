@@ -5,6 +5,7 @@ import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:flutter/material.dart';
 
+
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -12,41 +13,46 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: MyDrawer(),
-      body: FutureBuilder(
-        future: AuthService.firebase().initialize(),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return buildBody();
-            default:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-          }
-        },
-      ),
+      body: _buildBody(),
     );
   }
 
-  Widget buildBody() {
+  Widget _buildBody() {
+    return FutureBuilder(
+      future: AuthService.firebase().initialize(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return _buildUserDependentView(context);
+        } else {
+          return _buildLoadingIndicator();
+        }
+      },
+    );
+  }
+
+  Widget _buildUserDependentView(BuildContext context) {
     final authService = AuthService.firebase();
-    final currentUser = authService.currentUser;
+    var currentUser = authService.currentUser;
+
     if (currentUser == null) {
       throw UserNotFoundAuthException();
     }
+
     final costumeUser = authService.costumeUser;
-    if (costumeUser != null) {
-      final emailVerified = currentUser.isEmailVerified;
-      if (emailVerified) {
-        return const NotesView();
-      } else {
-        return const VerifyEmailView();
-      }
-    } else {
-      // Handle the case where costumeUser is not available
-      return Center(
-        child: CircularProgressIndicator(),
-      );
+    if (costumeUser == null) {
+      return _buildLoadingIndicator();
     }
+
+    if (currentUser.isEmailVerified) {
+      return const NotesView();
+    } else {
+      return const VerifyEmailView();
+    }
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
   }
 }

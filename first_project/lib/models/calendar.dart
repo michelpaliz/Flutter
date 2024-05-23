@@ -28,7 +28,7 @@ class Calendar {
     };
   }
 
-factory Calendar.fromJson(Map<String, dynamic> json) {
+  factory Calendar.fromJson(Map<String, dynamic> json) {
     return Calendar(
       json['id'],
       json['name'],
@@ -36,5 +36,10 @@ factory Calendar.fromJson(Map<String, dynamic> json) {
           ?.map((eventJson) => Event.fromJson(eventJson))
           .toList(),
     );
+  }
+
+  @override
+  String toString() {
+    return 'Calendar{id: $_id, name: $_name, events: $_events}';
   }
 }

@@ -8,6 +8,7 @@ import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as devtools show log;
 
 class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
@@ -44,6 +45,16 @@ class ProviderManagement extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> getUser() async {
+    try {
+      await userService.getUserByUsername(_currentUser!.userName);
+      return true;
+    } catch (e) {
+      print('Failed to get User: $e');
+      return false;
+    }
+  }
+
   void setCurrentUser(User? user) {
     _currentUser = user;
     notifyListeners();
@@ -74,6 +85,8 @@ class ProviderManagement extends ChangeNotifier {
       _groups.add(group);
       _groupController.add(_groups); // Add updated groups to the stream
       notifyListeners();
+
+      //!UPDATE USER
       //Now we need to update the user, we need to add the user to the group
       _currentUser!.groupIds.add(group.id);
       //We also need to create a notification for the user
@@ -82,8 +95,8 @@ class ProviderManagement extends ChangeNotifier {
           notificationFormats.whenCreatingGroup(group, _currentUser!);
       _currentUser!.notifications.add(notificationUser);
       addNotification(notificationUser);
+      devtools.log("Updated user = ${_currentUser.toString()}");
       await updateUser(_currentUser!);
-
       return true;
     } catch (e) {
       print('Failed to add group: $e');

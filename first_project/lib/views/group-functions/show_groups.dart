@@ -27,7 +27,6 @@ class ShowGroups extends StatefulWidget {
 class _ShowGroupsState extends State<ShowGroups> {
   User? _currentUser;
   late FirestoreService _storeService;
-  late AuthService _authService;
   // VARIABLE FOR THE UI
   Axis _scrollDirection = Axis.vertical;
   late Color textColor;
@@ -37,11 +36,17 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   //*LOGIC FOR THE VIEW //
 
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+
   @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
-    // _authService = AuthService.firebase();
-    // _currentUser = _authService.costumeUser;
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
         _currentUser = _providerManagement!.currentUser;
@@ -49,10 +54,24 @@ class _ShowGroupsState extends State<ShowGroups> {
     await _fetchAndUpdateGroups();
   }
 
+  // Future<void> _fetchAndUpdateGroups() async {
+  //   try {
+  //     List<Group> fetchedGroups =
+  //         await _storeService.fetchUserGroups(_currentUser!.groupIds);
+  //     Provider.of<ProviderManagement>(context, listen: false)
+  //         .updateGroupStream(fetchedGroups);
+  //     devtools.log(_currentUser!.groupIds.toString());
+  //     devtools.log(fetchedGroups.toString());
+  //   } catch (error) {
+  //     print('Error fetching and updating groups: $error');
+  //   }
+  // }
+
   Future<void> _fetchAndUpdateGroups() async {
     try {
       List<Group> fetchedGroups =
           await _storeService.fetchUserGroups(_currentUser!.groupIds);
+     await Provider.of<ProviderManagement>(context, listen: false).getUser();
       Provider.of<ProviderManagement>(context, listen: false)
           .updateGroupStream(fetchedGroups);
       devtools.log(_currentUser!.groupIds.toString());

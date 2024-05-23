@@ -114,7 +114,6 @@ class Group {
 
   @override
   String toString() {
-    final userNames = users.map((user) => user.name).join(', ');
-    return 'Group information (groupName: $groupName, users: $userNames, description: $description, photo: $photo)';
+    return 'Group{id: $id, groupName: $groupName, ownerId: $ownerId, userRoles: $userRoles, calendar: $calendar, users: $users, createdTime: $createdTime, repetitiveEvents: $repetitiveEvents, description: $description, photo: $photo, invitedUsers: $invitedUsers}';
   }
 }

@@ -58,6 +58,25 @@ class UserService {
     }
   }
 
+  // Update user by username
+  Future<User> updateUserByUsername(String username, User user) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/username/$username'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(user.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      throw Exception('User not found');
+    } else {
+      throw Exception('Failed to update user: ${response.reasonPhrase}');
+    }
+  }
+
 // Delete user
   Future<void> deleteUser(String id) async {
     final response = await http.delete(Uri.parse('$baseUrl/users/$id'));

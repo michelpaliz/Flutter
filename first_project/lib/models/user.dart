@@ -100,14 +100,14 @@ class User {
           .map((groupId) => groupId.toString())
           .toList(),
       photoUrl: json['photoUrl'] as String?,
-      // notifications: (json['notifications'] as List<dynamic>?)
-      //     ?.map(
-      //         (notificationUser) => NotificationUser.fromJson(notificationUser))
-      //     .toList(),
       notifications: (json['notifications'] as List<dynamic>?)
-          ?.map((notificationUser) =>
-              NotificationUser.fromJson(jsonDecode(notificationUser)))
+          ?.map(
+              (notificationUser) => NotificationUser.fromJson(notificationUser))
           .toList(),
+      // notifications: (json['notifications'] as List<dynamic>?)
+      //     ?.map((notificationUser) =>
+      //         NotificationUser.fromJson(jsonDecode(notificationUser)))
+      //     .toList(),
       hasNewNotifications:
           json['hasNewNotifications'] as bool, // Include this line
     );

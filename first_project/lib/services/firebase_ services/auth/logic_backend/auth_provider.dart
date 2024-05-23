@@ -220,7 +220,6 @@ class AuthProvider implements AuthRepository {
     return null;
   }
 
-
 // Fetch user data from Firestore based on the provided email
   Future<User?> _getUserDataFromFirestore(String userEmail) async {
     try {
@@ -233,7 +232,9 @@ class AuthProvider implements AuthRepository {
       if (userSnapshot.docs.isNotEmpty) {
         final userData = userSnapshot.docs.first.data();
         // Update _currentUser with the new data
-        _currentUser = User.fromJson(userData);
+        User user = User.fromJson(userData);
+        //TODO WE ARE GOING TO FETCH THE DATA FROM OUR DB
+        // _currentUser = await _userService.getUserByUsername(user.userName);
       }
 
       return _currentUser;
