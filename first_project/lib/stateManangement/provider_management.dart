@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
@@ -8,7 +9,6 @@ import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
 
 class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
@@ -69,12 +69,13 @@ class ProviderManagement extends ChangeNotifier {
 
   Future<bool> updateUser(User newUser) async {
     try {
+      // await userService.updateUserByUsername(newUser.userName,newUser);
       await userService.updateUser(newUser);
       _currentUser = newUser;
       notifyListeners();
       return true;
     } catch (e) {
-      print('Failed to add group: $e');
+      print('Failed update the user: $e');
       return false;
     }
   }
@@ -87,16 +88,18 @@ class ProviderManagement extends ChangeNotifier {
       notifyListeners();
 
       //!UPDATE USER
+      User user = await userService.getUserByUsername(_currentUser!.userName);
       //Now we need to update the user, we need to add the user to the group
-      _currentUser!.groupIds.add(group.id);
-      //We also need to create a notification for the user
+      user.groupIds.add(group.id);
+      // We also need to create a notification for the user
       notificationFormats = NotificationFormats();
       notificationUser =
           notificationFormats.whenCreatingGroup(group, _currentUser!);
-      _currentUser!.notifications.add(notificationUser);
+      user.notifications.add(notificationUser);
+      user.hasNewNotifications = true;
       addNotification(notificationUser);
-      devtools.log("Updated user = ${_currentUser.toString()}");
-      await updateUser(_currentUser!);
+      devtools.log("Updated user = ${user.toString()}");
+      await updateUser(user);
       return true;
     } catch (e) {
       print('Failed to add group: $e');
@@ -104,11 +107,19 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
-  void removeGroup(Group group) async {
-    await groupService.deleteGroup(group.id);
-    _groups.removeWhere((g) => g.id == group.id);
-    _groupController.add(_groups); // Add updated groups to the stream
-    notifyListeners();
+  Future<bool> removeGroup(Group group) async {
+    try {
+      await groupService.deleteGroup(group.id);
+      _groups.removeWhere((g) => g.id == group.id);
+      _groupController.add(_groups); // Add updated groups to the stream
+      notifyListeners();
+      // _currentUser!.groupIds.remove(group.id);
+      // await updateUser(_currentUser!);
+      return true;
+    } catch (e) {
+      print('Failed to add group: $e');
+      return false;
+    }
   }
 
   void updateGroup(Group updatedGroup) async {

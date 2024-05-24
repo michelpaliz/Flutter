@@ -23,7 +23,7 @@ class GroupService {
     } else {
       throw Exception('Failed to create group: ${response.reasonPhrase}');
     }
-  } 
+  }
 
   Future<Group> getGroupById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/groups/$id'));
@@ -56,6 +56,17 @@ class GroupService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete group: ${response.reasonPhrase}');
+    }
+  }
+
+  Future<List<Group>> getGroupsByUser(String userName) async {
+    final response = await http.get(Uri.parse('$baseUrl/groups/user/$userName'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      return body.map((dynamic item) => Group.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load groups: ${response.reasonPhrase}');
     }
   }
 }

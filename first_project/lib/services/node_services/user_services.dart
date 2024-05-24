@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:developer' as devtools show log;
 
+import 'package:dio/dio.dart';
 import 'package:first_project/models/user.dart';
 import 'package:http/http.dart' as http;
-import 'dart:developer' as devtools show log;
+
 
 class UserService {
   final String baseUrl =
@@ -41,22 +43,29 @@ class UserService {
     }
   }
 
-// Update user
-  Future<User> updateUser(User user) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/users/${user.id}'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(user.toJson()),
+Future<User> updateUser(User user) async {
+  var dio = Dio();
+  try {
+    var response = await dio.put(
+      '$baseUrl/users/${user.id}',
+      data: user.toJson(),
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      ),
     );
-
     if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
+      return User.fromJson(response.data);
     } else {
-      throw Exception('Failed to update user: ${response.reasonPhrase}');
+      throw Exception('Failed to update user: ${response.statusMessage}');
     }
+  } catch (e) {
+    print('Request error: $e');
+    throw Exception('Failed to update user');
   }
+}
+
 
   // Update user by username
   Future<User> updateUserByUsername(String username, User user) async {

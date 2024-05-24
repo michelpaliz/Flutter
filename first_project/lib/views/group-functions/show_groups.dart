@@ -1,5 +1,6 @@
+import 'dart:developer' as devtools show log;
+
 import 'package:first_project/models/notification_user.dart';
-import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
@@ -13,7 +14,6 @@ import 'package:provider/provider.dart';
 import '../../../models/group.dart';
 import '../../../models/user.dart';
 import '../../enums/routes/appRoutes.dart';
-import 'dart:developer' as devtools show log;
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -36,42 +36,27 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   //*LOGIC FOR THE VIEW //
 
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
   }
 
-
   @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
-        _currentUser = _providerManagement!.currentUser;
+    _currentUser = _providerManagement!.currentUser;
     _storeService = FirestoreService.firebase(_providerManagement!);
     await _fetchAndUpdateGroups();
   }
 
-  // Future<void> _fetchAndUpdateGroups() async {
-  //   try {
-  //     List<Group> fetchedGroups =
-  //         await _storeService.fetchUserGroups(_currentUser!.groupIds);
-  //     Provider.of<ProviderManagement>(context, listen: false)
-  //         .updateGroupStream(fetchedGroups);
-  //     devtools.log(_currentUser!.groupIds.toString());
-  //     devtools.log(fetchedGroups.toString());
-  //   } catch (error) {
-  //     print('Error fetching and updating groups: $error');
-  //   }
-  // }
-
   Future<void> _fetchAndUpdateGroups() async {
     try {
-      List<Group> fetchedGroups =
-          await _storeService.fetchUserGroups(_currentUser!.groupIds);
-     await Provider.of<ProviderManagement>(context, listen: false).getUser();
+      List<Group> fetchedGroups = await _providerManagement!.groupService
+          .getGroupsByUser(_currentUser!.userName);
+      await Provider.of<ProviderManagement>(context, listen: false).getUser();
       Provider.of<ProviderManagement>(context, listen: false)
           .updateGroupStream(fetchedGroups);
       devtools.log(_currentUser!.groupIds.toString());
@@ -103,8 +88,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     return _currentRole == "Administrator";
   }
 
-  void _showDeleteConfirmationDialog(Group group) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
+  void _showDeleteConfirmationDialog(Group group) async {;
     bool deleteConfirmed = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -130,30 +114,18 @@ class _ShowGroupsState extends State<ShowGroups> {
     );
 
     if (deleteConfirmed == true && mounted) {
-      // Check if widget is mounted
-      try {
-        // Perform the group removal logic here
-        await _storeService.deleteGroup(group.id);
-
-        // Show a success message using a SnackBar
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content:
-                Text(AppLocalizations.of(context)!.groupDeletedSuccessfully),
-          ),
-        );
-
-        // Call setState to update the UI
-        setState(() {});
-      } catch (error) {
-        // Handle the error
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text("Error deleting group: $error"),
-          ),
-        );
-      }
+    try {
+      bool result = await _providerManagement!.removeGroup(group);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result ? AppLocalizations.of(context)!.groupDeletedSuccessfully : "Error deleting group:"),
+        ),
+      );
+      if (result) setState(() {});
+    } catch (error) {
+      // Handle the error
     }
+  }
   }
 
   void _leaveGroup(BuildContext context, Group group) async {
