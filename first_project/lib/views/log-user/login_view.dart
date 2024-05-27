@@ -1,22 +1,16 @@
 // ----THIS IS NEW -----
-import 'dart:developer' as devtools show log;
-
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
-import 'package:first_project/main.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/services/firebase_%20services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
-import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:provider/provider.dart';
 
-import '../../styles/widgets/show_error_dialog.dart';
 import '../../styles/widgets/view-item-styles/textfield_styles.dart';
 
 // ======= LOGIN =========
@@ -42,10 +36,7 @@ class _LoginViewState extends State<LoginView> {
     _email = TextEditingController();
     _password = TextEditingController();
     _myCustomButtonStyle = ColorProperties.defaultButton();
-    _loginInitializer = LoginInitializer(
-        authService: _authService,
-        storeService:
-            FirestoreService.firebase(ProviderManagement(user: null)));
+    _loginInitializer = LoginInitializer(authService: _authService);
   }
 
   @override

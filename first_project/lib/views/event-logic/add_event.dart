@@ -83,7 +83,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    //TODO:IMPLEMENT NEW SERVICE
+    // _storeService = FirestoreService.firebase(providerManagement);
   }
 
   @override

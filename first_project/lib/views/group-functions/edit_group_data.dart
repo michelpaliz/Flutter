@@ -10,7 +10,6 @@ import 'package:first_project/services/firebase_%20services/auth/logic_backend/a
 import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -36,11 +35,12 @@ class _EditGroupDataState extends State<EditGroupData> {
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
   Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
   Map<String, UserInviteStatus> _usersInvitationStatus = {};
-  late List<User> _userInGroup;
+  late List<String> _userInGroup;
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
       {}; //Needs to be outside the build (ui state) to avoid loading
+      ProviderManagement? _providerManagement;
 
   @override
   void initState() {
@@ -59,15 +59,24 @@ class _EditGroupDataState extends State<EditGroupData> {
     // _userRoles[_currentUser!.userName] = 'Administrator';
     _userUpdatedRoles = _group.userRoles;
     _userRolesAtFirst = _group.userRoles;
-    _userInGroup = _group.users;
+    _userInGroup = _group.userIds;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
       _usersInvitationStatus = _group.invitedUsers!;
     }
   }
 
+
+    @override
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
+    _providerManagement =
+        Provider.of<ProviderManagement>(context, listen: false);
+    _currentUser = _providerManagement!.currentUser;
+  }
+
   //Grab the updated data from the create_group_search_bar.dart screen
   void _onDataChanged(
-      List<User> updatedUserInGroup, Map<String, String> updatedUserRoles) {
+      List<String> updatedUserInGroup, Map<String, String> updatedUserRoles) {
     // Print the new data before updating the state
     print('Updated User In Group: $updatedUserInGroup');
     print('Updated User Roles: $updatedUserRoles');
@@ -189,34 +198,35 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
 // Function to perform the removal of a user from the group
-  void _performUserRemoval(String fetchedUserName) {
+  void _performUserRemoval(String fetchedUserId) {
     int indexToRemove = _userInGroup.indexWhere(
-        (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
+        (userId) => userId.toLowerCase() == fetchedUserId.toLowerCase());
 
     if (indexToRemove != -1) {
-      User removedUser =
-          _userInGroup[indexToRemove]; // Get the user to be removed
+      String removedUserId =
+          _userInGroup[indexToRemove]; // Get the user ID to be removed
       setState(() {
-        _userUpdatedRoles.remove(fetchedUserName);
-        _userInGroup.removeAt(indexToRemove); // Remove the user from the list
+        _userUpdatedRoles.remove(fetchedUserId);
+        _userInGroup.removeAt(indexToRemove); // Remove the user ID from the list
       });
-      _storeService.removeUserInGroup(
-          removedUser, _group); // Remove user from server
+      _providerManagement!.groupService.removeUserInGroup(
+          removedUserId, _group.id); // Remove user from server
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('User $fetchedUserName removed from the group.'),
+          content: Text('User with ID $fetchedUserId removed from the group.'),
           duration: Duration(seconds: 2),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('User $fetchedUserName not found in the group.'),
+          content: Text('User with ID $fetchedUserId not found in the group.'),
           duration: Duration(seconds: 2),
         ),
       );
     }
   }
+
 
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
   Future<bool> _updatingGroup() async {
@@ -247,7 +257,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           userRoles: _userRolesAtFirst,
           calendar: _group.calendar,
           invitedUsers: null,
-          users: _group.users,
+          userIds: _group.userIds,
           createdTime: DateTime.now(),
           description: _groupDescription,
           photo: _imageURL);
@@ -375,9 +385,9 @@ class _EditGroupDataState extends State<EditGroupData> {
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
         // Initialize _storeService using data from providerManagement.
-        final providerData =
-            providerManagement; // Adjust this to access the necessary data.
-        _storeService = FirestoreService.firebase(providerData);
+        // final providerData =
+        //     providerManagement; // Adjust this to access the necessary data.
+        // _storeService = FirestoreService.firebase(providerData);
         // Rest of your build method...
         return Scaffold(
             appBar: AppBar(
@@ -494,54 +504,55 @@ class _EditGroupDataState extends State<EditGroupData> {
                           width: 15,
                         ),
                         //Here we add a button to to add a user using a dialog
-                        TextButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Dialog(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Center(
-                                          child: Text(
-                                            AppLocalizations.of(context)!
-                                                .addPplGroup,
-                                            style: TextStyle(
-                                              fontFamily: 'Lato',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: CreateGroupSearchBar(
-                                          onDataChanged: _onDataChanged,
-                                          user: _currentUser,
-                                        ),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(
-                                            AppLocalizations.of(context)!
-                                                .close),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: Center(
-                            child: Text(AppLocalizations.of(context)!.addUser),
-                          ),
-                        ),
+                        //TODO: UPDATE THIS GUI VIEW FOR MY NEW TYPE OF DATA 
+                        // TextButton(
+                        //   onPressed: () {
+                        //     showDialog(
+                        //       context: context,
+                        //       builder: (BuildContext context) {
+                        //         return Dialog(
+                        //           child: Column(
+                        //             mainAxisSize: MainAxisSize.min,
+                        //             children: [
+                        //               Padding(
+                        //                 padding: const EdgeInsets.all(16.0),
+                        //                 child: Center(
+                        //                   child: Text(
+                        //                     AppLocalizations.of(context)!
+                        //                         .addPplGroup,
+                        //                     style: TextStyle(
+                        //                       fontFamily: 'Lato',
+                        //                       fontSize: 15,
+                        //                       fontWeight: FontWeight.bold,
+                        //                     ),
+                        //                   ),
+                        //                 ),
+                        //               ),
+                        //               Padding(
+                        //                 padding: const EdgeInsets.all(10.0),
+                        //                 child: CreateGroupSearchBar(
+                        //                   onDataChanged: _onDataChanged,
+                        //                   user: _currentUser,
+                        //                 ),
+                        //               ),
+                        //               TextButton(
+                        //                 onPressed: () {
+                        //                   Navigator.of(context).pop();
+                        //                 },
+                        //                 child: Text(
+                        //                     AppLocalizations.of(context)!
+                        //                         .close),
+                        //               ),
+                        //             ],
+                        //           ),
+                        //         );
+                        //       },
+                        //     );
+                        //   },
+                        //   child: Center(
+                        //     child: Text(AppLocalizations.of(context)!.addUser),
+                        //   ),
+                        // ),
                       ],
                     ),
 

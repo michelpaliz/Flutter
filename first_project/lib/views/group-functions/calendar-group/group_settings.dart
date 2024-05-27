@@ -33,7 +33,8 @@ class _GroupSettingsState extends State<GroupSettings> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    //TODO:IMPLEMENT NEW SERVICE
+    // _storeService = FirestoreService.firebase(providerManagement);
 
     _initializeData();
   }
@@ -105,32 +106,33 @@ class _GroupSettingsState extends State<GroupSettings> {
                   title: Text('Group Owner'),
                   subtitle: Text(owner.name), // Use the 'owner' object here
                 ),
-                ListTile(
-                  title: Text('Repetitive Events'),
-                  trailing: Switch(
-                    value: group.repetitiveEvents,
-                    onChanged: (value) {
-                      setState(() {
-                        _repetitiveEvents = value;
-                        group = group.copyWith(repetitiveEvents: value);
-                        _updateGroup(group);
-                      });
-                    },
-                    activeColor: Colors
-                        .blue, // Customize the color when switch is active
-                    inactiveThumbColor: Colors
-                        .grey, // Customize the color when switch is inactive
-                  ),
-                ),
-                Divider(),
-                ListTile(
-                  title: Text('Users'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children:
-                        group.users.map((user) => Text(user.name)).toList(),
-                  ),
-                ),
+                //TODO IMPLEMENT THE NEW IMPLEMENTATION
+                // ListTile(
+                //   title: Text('Repetitive Events'),
+                //   trailing: Switch(
+                //     value: group.repetitiveEvents,
+                //     onChanged: (value) {
+                //       setState(() {
+                //         _repetitiveEvents = value;
+                //         group = group.copyWith(repetitiveEvents: value);
+                //         _updateGroup(group);
+                //       });
+                //     },
+                //     activeColor: Colors
+                //         .blue, // Customize the color when switch is active
+                //     inactiveThumbColor: Colors
+                //         .grey, // Customize the color when switch is inactive
+                //   ),
+                // ),
+                // Divider(),
+                // ListTile(
+                //   title: Text('Users'),
+                //   subtitle: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children:
+                //         group.users.map((user) => Text(user.name)).toList(),
+                //   ),
+                // ),
               ],
             );
           }

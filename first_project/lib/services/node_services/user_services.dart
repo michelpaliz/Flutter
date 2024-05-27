@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:first_project/models/user.dart';
 import 'package:http/http.dart' as http;
 
-
 class UserService {
   final String baseUrl =
       'http://192.168.1.16:3000/api'; // Update with your server URL
@@ -43,29 +42,53 @@ class UserService {
     }
   }
 
-Future<User> updateUser(User user) async {
-  var dio = Dio();
-  try {
-    var response = await dio.put(
-      '$baseUrl/users/${user.id}',
-      data: user.toJson(),
-      options: Options(
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      ),
-    );
-    if (response.statusCode == 200) {
-      return User.fromJson(response.data);
-    } else {
-      throw Exception('Failed to update user: ${response.statusMessage}');
-    }
-  } catch (e) {
-    print('Request error: $e');
-    throw Exception('Failed to update user');
-  }
-}
+// Get user by ID
+  Future<User> getUserByEmail(String email) async {
+    final response = await http.get(Uri.parse('$baseUrl/users/email/$email'));
 
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      throw Exception('User not found');
+    } else {
+      throw Exception('Failed to get user: ${response.reasonPhrase}');
+    }
+  }
+
+  Future<User> getUserByAuthID(String authID) async {
+    final response = await http.get(Uri.parse('$baseUrl/users/authID/$authID'));
+
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      throw Exception('User not found');
+    } else {
+      throw Exception('Failed to get user: ${response.reasonPhrase}');
+    }
+  }
+
+  Future<User> updateUser(User user) async {
+    var dio = Dio();
+    try {
+      var response = await dio.put(
+        '$baseUrl/users/${user.id}',
+        data: user.toJson(),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+        ),
+      );
+      if (response.statusCode == 200) {
+        return User.fromJson(response.data);
+      } else {
+        throw Exception('Failed to update user: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('Request error: $e');
+      throw Exception('Failed to update user');
+    }
+  }
 
   // Update user by username
   Future<User> updateUserByUsername(String username, User user) async {

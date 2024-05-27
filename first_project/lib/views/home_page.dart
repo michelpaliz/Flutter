@@ -5,7 +5,6 @@ import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
 import 'package:flutter/material.dart';
 
-
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -31,27 +30,21 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildUserDependentView(BuildContext context) {
-    final authService = AuthService.firebase();
-    var currentUser = authService.currentUser;
+    final AuthService authService = AuthService.firebase();
 
-    if (currentUser == null) {
+    if (authService.currentUser == null) {
       throw UserNotFoundAuthException();
     }
 
-    final costumeUser = authService.costumeUser;
-    if (costumeUser == null) {
-      return _buildLoadingIndicator();
-    }
-
-    if (currentUser.isEmailVerified) {
-      return const NotesView();
-    } else {
+    if (!authService.currentUser!.isEmailVerified) {
       return const VerifyEmailView();
+    } else {
+      return const NotesView();
     }
   }
 
   Widget _buildLoadingIndicator() {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(),
     );
   }

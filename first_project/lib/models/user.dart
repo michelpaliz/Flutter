@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_project/models/event.dart';
 import 'package:first_project/models/notification_user.dart';
-import 'dart:convert';
 
 class User {
   String _id;
+  String _authID;
   String _name;
   final String _email;
   String? _photoUrl;
@@ -17,6 +17,7 @@ class User {
 
   User({
     required String id,
+    required String authID,
     required String name,
     required String email,
     required String userName, // Include userName in the constructor
@@ -27,6 +28,7 @@ class User {
     this.hasNewNotifications = false,
   })  : _id = id,
         _name = name,
+        _authID = authID,
         _email = email,
         _userName = userName, // Initialize _userName
         _events = events,
@@ -72,6 +74,7 @@ class User {
     return {
       'id': _id,
       'name': _name,
+      'authID': _authID,
       'userName': _userName,
       'email': _email,
       'photoUrl': _photoUrl,
@@ -87,6 +90,7 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,
+      authID: json['authID'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
       userName: json['userName'] as String,
@@ -141,6 +145,7 @@ class User {
       return User(
         id: userDocument.id,
         name: userData['name'],
+        authID: userData['authID'],
         email: email,
         userName: userData['userName'],
         events: (userData['events'] as List<dynamic>?)!
@@ -153,6 +158,7 @@ class User {
     } else {
       return User(
         id: '',
+        authID: '',
         name: '',
         email: email,
         userName: '',
@@ -173,6 +179,7 @@ class User {
     return 'User('
         'id: $_id, '
         'name: $_name, '
+        'authID: $_authID, '
         'email: $_email, '
         'userName: $_userName, ' // Include this line
         'photoUrl: $_photoUrl, '

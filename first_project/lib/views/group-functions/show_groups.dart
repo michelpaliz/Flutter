@@ -48,7 +48,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     _currentUser = _providerManagement!.currentUser;
-    _storeService = FirestoreService.firebase(_providerManagement!);
+    // _storeService = FirestoreService.firebase(_providerManagement!);
     await _fetchAndUpdateGroups();
   }
 
@@ -94,7 +94,7 @@ class _ShowGroupsState extends State<ShowGroups> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.confirm),
-          content: Text(AppLocalizations.of(context)!.groupDeletedSuccessfully),
+          content: Text(AppLocalizations.of(context)!.questionDeleteGroup),
           actions: <Widget>[
             TextButton(
               child: Text(AppLocalizations.of(context)!.cancel),

@@ -45,7 +45,7 @@ class _SettingsState extends State<Settings> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    // _storeService = FirestoreService.firebase(providerManagement);
   }
 
   // Load user-specific settings

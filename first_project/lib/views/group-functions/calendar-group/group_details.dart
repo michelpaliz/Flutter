@@ -68,7 +68,8 @@ class _GroupDetailsState extends State<GroupDetails> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    //TODO:IMPLEMENT NEW SERVICE
+    // _storeService = FirestoreService.firebase(providerManagement);
   }
 
   Future<void> _getEventsListFromGroup() async {

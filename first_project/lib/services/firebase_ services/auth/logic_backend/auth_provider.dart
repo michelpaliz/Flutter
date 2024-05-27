@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/services/firebase_%20services/auth/exceptions/auth_exceptions.dart';
-import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_user.dart';
 import 'package:first_project/services/firebase_%20services/auth/exceptions/password_exceptions.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_user.dart';
 import 'package:first_project/services/node_services/user_services.dart';
+
 import '../../../../firebase_options.dart';
 import '../../../../models/user.dart';
 import 'auth_repository.dart';
-import 'dart:developer' as devtools show log;
 
 class AuthProvider implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -28,7 +29,7 @@ class AuthProvider implements AuthRepository {
     _firebaseAuth.authStateChanges().listen((user) async {
       // Fetch and update the custom user model based on the user's email
       final updatedUser = (user != null)
-          ? await _getUserDataFromFirestore(user.email.toString())
+          ? await _userService.getUserByEmail(user.email.toString())
           : null;
 
       if (_currentUser != updatedUser) {
@@ -63,7 +64,8 @@ class AuthProvider implements AuthRepository {
 
         // Create a User object using the UID as the user ID
         User person = User(
-          id: user.uid,
+          id: user.uid, //we later change in our db the value of this id
+          authID: user.uid,
           name: name,
           userName: userName,
           email: user.email!,
@@ -74,7 +76,8 @@ class AuthProvider implements AuthRepository {
         );
 
         // Register the user on the backend
-        await _userService.registerUserOnServer(person);
+        _currentUser = await _userService.getUserByEmail(person.email);
+        ;
 
         return 'User created successfully';
       } else {
@@ -187,27 +190,48 @@ class AuthProvider implements AuthRepository {
     );
   }
 
+  // @override
+  // Future<User?> generateUserCustomModel() async {
+  //   final firebaseUser = _firebaseAuth.currentUser;
+  //   if (firebaseUser != null) {
+  //     try {
+  //       final userSnapshot = await FirebaseFirestore.instance
+  //           .collection('users')
+  //           .doc(firebaseUser.uid)
+  //           .get();
+
+  //       if (userSnapshot.exists) {
+  //         _currentUser =
+  //             User.fromJson(userSnapshot.data() as Map<String, dynamic>);
+
+  //         devtools.log(_currentUser.toString());
+  //         return _currentUser; // Return the populated user object
+  //       } else {
+  //         // User data not found in Firestore
+  //         print('User data not found in Firestore');
+  //         // If user data is not found in Firestore, register the user on the server
+  //       }
+  //     } catch (error) {
+  //       print('Error retrieving user data from Firestore: $error');
+  //       throw error;
+  //     }
+  //   } else {
+  //     // No user is currently authenticated
+  //     print('No user is currently authenticated');
+  //     return null;
+  //   }
+  //   return null;
+  // }
+
   @override
   Future<User?> generateUserCustomModel() async {
     final firebaseUser = _firebaseAuth.currentUser;
+
     if (firebaseUser != null) {
       try {
-        final userSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .get();
-
-        if (userSnapshot.exists) {
-          _currentUser =
-              User.fromJson(userSnapshot.data() as Map<String, dynamic>);
-
-          devtools.log(_currentUser.toString());
-          return _currentUser; // Return the populated user object
-        } else {
-          // User data not found in Firestore
-          print('User data not found in Firestore');
-          // If user data is not found in Firestore, register the user on the server
-        }
+        User? user =
+            await _userService.getUserByAuthID(firebaseUser.uid.toString());
+        return user; // Return the user data if found
       } catch (error) {
         print('Error retrieving user data from Firestore: $error');
         throw error;
@@ -215,34 +239,34 @@ class AuthProvider implements AuthRepository {
     } else {
       // No user is currently authenticated
       print('No user is currently authenticated');
-      return null;
     }
-    return null;
+    return null; // Return null if no user is authenticated or user data not found
   }
 
 // Fetch user data from Firestore based on the provided email
-  Future<User?> _getUserDataFromFirestore(String userEmail) async {
-    try {
-      final userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: userEmail)
-          .limit(1)
-          .get(); // Use get() to fetch the data as a query result
+  // Future<User?> _getUserDataFromFirestore(String userEmail) async {
+  //   try {
+  //     final userSnapshot = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .where('email', isEqualTo: userEmail)
+  //         .limit(1)
+  //         .get(); // Use get() to fetch the data as a query result
 
-      if (userSnapshot.docs.isNotEmpty) {
-        final userData = userSnapshot.docs.first.data();
-        // Update _currentUser with the new data
-        User user = User.fromJson(userData);
-        //TODO WE ARE GOING TO FETCH THE DATA FROM OUR DB
-        // _currentUser = await _userService.getUserByUsername(user.userName);
-      }
+  //     if (userSnapshot.docs.isNotEmpty) {
+  //       final userData = userSnapshot.docs.first.data();
+  //       // Update _currentUser with the new data
+  //       User user = User.fromJson(userData);
+  //       _currentUser = user;
+  //       //TODO WE ARE GOING TO FETCH THE DATA FROM OUR DB
+  //       _currentUser = await _userService.getUserByUsername(user.userName);
+  //     }
 
-      return _currentUser;
-    } catch (e) {
-      print("Error fetching user data from Firestore: $e");
-      return null;
-    }
-  }
+  //     return _currentUser;
+  //   } catch (e) {
+  //     print("Error fetching user data from Firestore: $e");
+  //     return null;
+  //   }
+  // }
 
   @override
   User? get costumeUser {

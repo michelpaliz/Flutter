@@ -17,13 +17,13 @@ class FirestoreService extends FirestoreRepository {
   static FirestoreService? _instance;
 
   // Factory method to get the single instance of StoreService
-  factory FirestoreService.firebase(ProviderManagement? providerManagement) {
-    if (_instance == null) {
-      _instance = FirestoreService._(
-          FirestoreProvider(providerManagement: providerManagement));
-    }
-    return _instance!;
-  }
+  // factory FirestoreService.firebase(ProviderManagement? providerManagement) {
+  //   if (_instance == null) {
+  //     _instance = FirestoreService._(
+  //         FirestoreProvider(providerManagement: providerManagement));
+  //   }
+  //   return _instance!;
+  // }
 
   /**when you call removeEvent on an instance of StoreService, it will delegate the call to the underlying FireStoreProvider and execute its removeEvent method. */
   @override

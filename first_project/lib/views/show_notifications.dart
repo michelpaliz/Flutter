@@ -38,7 +38,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     _providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize services
-    _storeService = FirestoreService.firebase(_providerManagement);
+    // _storeService = FirestoreService.firebase(_providerManagement);
     _authService = AuthService.firebase();
     _currentUser = _providerManagement!.currentUser;
     _notifications = _currentUser!.notifications;

@@ -65,7 +65,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     // Access the inherited widget in the didChangeDependencies method.
     final providerManagement = Provider.of<ProviderManagement>(context);
     // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    //TODO:IMPLEMENT NEW SERVICE
+    // _storeService = FirestoreService.firebase(providerManagement);
     _event = ModalRoute.of(context)!.settings.arguments as Event;
     _noteController.text = _event.note ?? '';
     _selectedStartDate = _event.startDate;

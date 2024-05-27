@@ -313,5 +313,6 @@
     "userNameRequired": "User name is required",
     "emailRequired": "Email is required",
     "passwordLength": "Password maximum length is 6 characters",
-    "groupNotCreated": "There was an error creating the group, try again"
+    "groupNotCreated": "There was an error creating the group, try again",
+    "questionDeleteGroup": "Are you sure you want to delete this group?"
 }

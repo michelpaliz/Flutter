@@ -60,13 +60,30 @@ class GroupService {
   }
 
   Future<List<Group>> getGroupsByUser(String userName) async {
-    final response = await http.get(Uri.parse('$baseUrl/groups/user/$userName'));
+    final response =
+        await http.get(Uri.parse('$baseUrl/groups/user/$userName'));
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
       return body.map((dynamic item) => Group.fromJson(item)).toList();
     } else {
       throw Exception('Failed to load groups: ${response.reasonPhrase}');
+    }
+  }
+
+  Future<Group> removeUserInGroup(String userId, String groupId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/groups/$groupId/users/$userId'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return Group.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(
+          'Failed to remove user from group: ${response.reasonPhrase}');
     }
   }
 }

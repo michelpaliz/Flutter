@@ -1,6 +1,7 @@
 import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:first_project/stateManangement/provider_management.dart';
-import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,6 @@ import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../services/firebase_ services/auth/logic_backend/auth_service.dart';
 import '../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
@@ -42,7 +42,8 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _storeService = FirestoreService.firebase(providerManagement);
+    _currentUser = providerManagement.currentUser;
+    // _storeService = FirestoreService.firebase(providerManagement);
   }
 
   // Function to pick an image from the gallery
@@ -93,11 +94,13 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
           GestureDetector(
             onTap: _pickImage, // Call the _pickImage function when tapped
             child: CircleAvatar(
-              radius: 30, // Adjust the size as needed
-              backgroundImage:
-                  Utilities.buildProfileImage(_currentUser?.photoUrl),
-            ),
+                radius: 30, // Adjust the size as needed
+                backgroundImage: (_currentUser!.photoUrl.toString().isEmpty)
+                    ? AssetImage('assets/images/default_profile.png')
+                    : NetworkImage(_currentUser!.photoUrl.toString())
+                        as ImageProvider),
           ),
+
           SizedBox(height: 5), // Add spacing between image and name
           Text(
             _currentUser?.name ?? 'Guest',

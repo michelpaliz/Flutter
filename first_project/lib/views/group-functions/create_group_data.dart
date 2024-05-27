@@ -6,7 +6,6 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/node_services/group_services.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/utilities/utilities.dart';
@@ -17,7 +16,6 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-
 
 class CreateGroupData extends StatefulWidget {
   @override
@@ -192,7 +190,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     try {
       //** CREATING THE GROUP*/
       // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
-      String groupId = UniqueKey().toString();
+      String groupId = Uuid().v4().substring(0, 10);
 
       // We are gonna only add the current user to the group, the others would need to accept the group's notification.
       // User userServer = await _userService.getUserById(_currentUser!.id);
@@ -222,6 +220,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       // Limit the number of characters to 10
       final limitedId = randomId.substring(0, 10);
 
+      List<String> userIds = [];
+
+      userIds.add(_currentUser!.id);
+
       // Create the group object with the appropriate attributes
       Group newGroup = Group(
           id: groupId,
@@ -229,7 +231,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
           ownerId: _currentUser!.id,
           userRoles: adminUsersJson,
           calendar: new Calendar(limitedId, _groupName),
-          users: users,
+          userIds: userIds,
           invitedUsers: null,
           createdTime: DateTime.now(),
           description: _groupDescription,

@@ -9,14 +9,12 @@ class Group {
   final String ownerId; // ID of the group owner
   final Map<String, String> userRoles; // Map of user IDs to their roles
   final Calendar calendar; // Shared calendar for the group
-  List<User> users;
+  List<String> userIds; // Changed from List<User> to List<String>
   DateTime createdTime; // Time the group was created
-  bool
-      repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
+  bool repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
   String description; // A description of the group
   String photo; // Add the new field for storing a photo link
-  Map<String, UserInviteStatus>?
-      invitedUsers; // New field to store invited users and their answers
+  Map<String, UserInviteStatus>? invitedUsers; // New field to store invited users and their answers
 
   Group({
     required this.id,
@@ -24,42 +22,18 @@ class Group {
     required this.ownerId,
     required this.userRoles,
     required this.calendar,
-    required this.users,
+    required this.userIds, // Changed from users to userIds
     required this.createdTime,
     this.repetitiveEvents = false,
     required this.description,
     required this.photo,
-    Map<String, UserInviteStatus>?
-        invitedUsers, // Change the type to Map<String, Invitation>?
+    Map<String, UserInviteStatus>? invitedUsers,
   }) : invitedUsers = invitedUsers ?? {};
 
-  Group copyWith({
-    bool? repetitiveEvents,
-    DateTime? createdTime,
-    String? description,
-    String? photo,
-    Map<String, UserInviteStatus>? invitedUsers,
-  }) {
-    return Group(
-      id: this.id,
-      groupName: this.groupName,
-      ownerId: this.ownerId,
-      userRoles: this.userRoles,
-      calendar: this.calendar,
-      users: this.users,
-      createdTime: createdTime ?? this.createdTime,
-      repetitiveEvents: repetitiveEvents ?? this.repetitiveEvents,
-      description: description ?? this.description,
-      photo: photo ?? this.photo,
-      invitedUsers: invitedUsers ?? this.invitedUsers,
-    );
-  }
+  // ... rest of your code ...
 
   factory Group.fromJson(Map<String, dynamic> json) {
-    List<dynamic>? usersJson = json['users'];
-    List<User> users = usersJson != null
-        ? usersJson.map((userJson) => User.fromJson(userJson)).toList()
-        : [];
+    List<String> userIds = List<String>.from(json['userIds'] ?? []);
 
     Map<String, dynamic>? invitedUsersJson = json['invitedUsers'];
     Map<String, UserInviteStatus>? invitedUsers = invitedUsersJson != null
@@ -73,21 +47,18 @@ class Group {
       ownerId: json['ownerId'] ?? '',
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
       calendar: Calendar.fromJson(json['calendar'] ?? {}),
-      users: users,
+      userIds: userIds,
       createdTime: json['createdTime'] != null
           ? DateTime.parse(json['createdTime'])
           : DateTime.now(),
       repetitiveEvents: json['repetitiveEvents'] ?? false,
       description: json['description'] ?? '',
-      photo: json['photo'] ?? '', // Parse the new field here
+      photo: json['photo'] ?? '',
       invitedUsers: invitedUsers,
     );
   }
 
   Map<String, dynamic> toJson() {
-    List<Map<String, dynamic>> usersJson =
-        users.map((user) => user.toJson()).toList();
-
     Map<String, dynamic>? invitedUsersJson;
     if (invitedUsers != null) {
       invitedUsersJson = {};
@@ -102,18 +73,17 @@ class Group {
       'ownerId': ownerId,
       'userRoles': userRoles,
       'calendar': calendar.toJson(),
-      'users': usersJson,
+      'userIds': userIds,
       'createdTime': createdTime.toIso8601String(),
-      // 'createdTime': createdTime.millisecondsSinceEpoch.toString(),
       'repetitiveEvents': repetitiveEvents,
       'description': description,
-      'photo': photo, // Include the new field here
-      'invitedUsers': invitedUsersJson, // Include the invitedUsers field here
+      'photo': photo,
+      'invitedUsers': invitedUsersJson,
     };
   }
 
   @override
   String toString() {
-    return 'Group{id: $id, groupName: $groupName, ownerId: $ownerId, userRoles: $userRoles, calendar: $calendar, users: $users, createdTime: $createdTime, repetitiveEvents: $repetitiveEvents, description: $description, photo: $photo, invitedUsers: $invitedUsers}';
+    return 'Group{id: $id, groupName: $groupName, ownerId: $ownerId, userRoles: $userRoles, calendar: $calendar, userIds: $userIds, createdTime: $createdTime, repetitiveEvents: $repetitiveEvents, description: $description, photo: $photo, invitedUsers: $invitedUsers}';
   }
 }

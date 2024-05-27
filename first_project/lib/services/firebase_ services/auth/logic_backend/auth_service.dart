@@ -1,7 +1,7 @@
 import 'package:first_project/models/user.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_repository.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_user.dart';
-import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 
 class AuthService implements AuthRepository {
   final AuthRepository repository;
@@ -69,4 +69,5 @@ class AuthService implements AuthRepository {
   Future<void> changePassword(
           String currentPassword, String newPassword, String confirmPassword) =>
       repository.changePassword(currentPassword, newPassword, confirmPassword);
+
 }
