@@ -7,9 +7,9 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -18,8 +18,9 @@ import 'package:provider/provider.dart';
 
 class EditGroupData extends StatefulWidget {
   final Group group;
+  final List<User> users;
 
-  EditGroupData({required this.group});
+  EditGroupData({required this.group, required this.users});
 
   @override
   _EditGroupDataState createState() => _EditGroupDataState();
@@ -30,17 +31,17 @@ class _EditGroupDataState extends State<EditGroupData> {
   String _groupDescription = '';
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
-  late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
   Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
   Map<String, UserInviteStatus> _usersInvitationStatus = {};
-  late List<String> _userInGroup;
+  late List<User> _userInGroup = [];
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
       {}; //Needs to be outside the build (ui state) to avoid loading
-      ProviderManagement? _providerManagement;
+  ProviderManagement? _providerManagement;
+
 
   @override
   void initState() {
@@ -55,18 +56,16 @@ class _EditGroupDataState extends State<EditGroupData> {
         ? null
         : XFile(
             _group.photo); // Initialize _selectedImage with the existing image
-
     // _userRoles[_currentUser!.userName] = 'Administrator';
     _userUpdatedRoles = _group.userRoles;
     _userRolesAtFirst = _group.userRoles;
-    _userInGroup = _group.userIds;
+    _userInGroup = widget.users;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
       _usersInvitationStatus = _group.invitedUsers!;
     }
   }
 
-
-    @override
+  @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     _providerManagement =
@@ -75,16 +74,22 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   //Grab the updated data from the create_group_search_bar.dart screen
-  void _onDataChanged(
-      List<String> updatedUserInGroup, Map<String, String> updatedUserRoles) {
+  void _onDataChanged(List<User> updatedUserInGroup,
+      Map<String, String> updatedUserRoles) async {
     // Print the new data before updating the state
     print('Updated User In Group: $updatedUserInGroup');
     print('Updated User Roles: $updatedUserRoles');
 
+    List<User> users = [];
+    for (var user in updatedUserInGroup) {
+      user = await _providerManagement!.userService.getUserById(user.id);
+      users.add(user);
+    }
+
     // Update the state of CreateGroupData with the received data
     setState(() {
       _userUpdatedRoles = updatedUserRoles;
-      _userInGroup = updatedUserInGroup;
+      _userInGroup = _userInGroup;
     });
   }
 
@@ -197,36 +202,35 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
-// Function to perform the removal of a user from the group
-  void _performUserRemoval(String fetchedUserId) {
+  // Function to perform the removal of a user from the group
+  void _performUserRemoval(String fetchedUserName) {
     int indexToRemove = _userInGroup.indexWhere(
-        (userId) => userId.toLowerCase() == fetchedUserId.toLowerCase());
+        (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
 
     if (indexToRemove != -1) {
-      String removedUserId =
-          _userInGroup[indexToRemove]; // Get the user ID to be removed
+      User removedUser =
+          _userInGroup[indexToRemove]; // Get the user to be removed
       setState(() {
-        _userUpdatedRoles.remove(fetchedUserId);
-        _userInGroup.removeAt(indexToRemove); // Remove the user ID from the list
+        _userUpdatedRoles.remove(fetchedUserName);
+        _userInGroup.removeAt(indexToRemove); // Remove the user from the list
       });
       _providerManagement!.groupService.removeUserInGroup(
-          removedUserId, _group.id); // Remove user from server
+          removedUser.id, _group.id); // Remove user from server
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('User with ID $fetchedUserId removed from the group.'),
+          content: Text('User $fetchedUserName removed from the group.'),
           duration: Duration(seconds: 2),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('User with ID $fetchedUserId not found in the group.'),
+          content: Text('User $fetchedUserName not found in the group.'),
           duration: Duration(seconds: 2),
         ),
       );
     }
   }
-
 
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
   Future<bool> _updatingGroup() async {
@@ -281,10 +285,9 @@ class _EditGroupDataState extends State<EditGroupData> {
       updatedGroup.invitedUsers = invitations;
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      await _storeService.updateGroup(updatedGroup);
-
-      // Send notifications for the newly added users
-      await _storeService.sendNotificationToUsers(updatedGroup, _currentUser!);
+      // await _storeService.updateGroup(updatedGroup);
+      await _providerManagement!.groupService
+          .updateGroup(updatedGroup.id, updatedGroup);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -380,15 +383,8 @@ class _EditGroupDataState extends State<EditGroupData> {
   Widget build(BuildContext context) {
     return Consumer<ProviderManagement>(
       builder: (context, providerManagement, child) {
-        // final storeService = Provider.of<StoreService>(context);
-        // _storeService = storeService;
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
-        // Initialize _storeService using data from providerManagement.
-        // final providerData =
-        //     providerManagement; // Adjust this to access the necessary data.
-        // _storeService = FirestoreService.firebase(providerData);
-        // Rest of your build method...
         return Scaffold(
             appBar: AppBar(
               title: Text(AppLocalizations.of(context)!.groupData),
@@ -504,55 +500,54 @@ class _EditGroupDataState extends State<EditGroupData> {
                           width: 15,
                         ),
                         //Here we add a button to to add a user using a dialog
-                        //TODO: UPDATE THIS GUI VIEW FOR MY NEW TYPE OF DATA 
-                        // TextButton(
-                        //   onPressed: () {
-                        //     showDialog(
-                        //       context: context,
-                        //       builder: (BuildContext context) {
-                        //         return Dialog(
-                        //           child: Column(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             children: [
-                        //               Padding(
-                        //                 padding: const EdgeInsets.all(16.0),
-                        //                 child: Center(
-                        //                   child: Text(
-                        //                     AppLocalizations.of(context)!
-                        //                         .addPplGroup,
-                        //                     style: TextStyle(
-                        //                       fontFamily: 'Lato',
-                        //                       fontSize: 15,
-                        //                       fontWeight: FontWeight.bold,
-                        //                     ),
-                        //                   ),
-                        //                 ),
-                        //               ),
-                        //               Padding(
-                        //                 padding: const EdgeInsets.all(10.0),
-                        //                 child: CreateGroupSearchBar(
-                        //                   onDataChanged: _onDataChanged,
-                        //                   user: _currentUser,
-                        //                 ),
-                        //               ),
-                        //               TextButton(
-                        //                 onPressed: () {
-                        //                   Navigator.of(context).pop();
-                        //                 },
-                        //                 child: Text(
-                        //                     AppLocalizations.of(context)!
-                        //                         .close),
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         );
-                        //       },
-                        //     );
-                        //   },
-                        //   child: Center(
-                        //     child: Text(AppLocalizations.of(context)!.addUser),
-                        //   ),
-                        // ),
+                        TextButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Dialog(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Center(
+                                          child: Text(
+                                            AppLocalizations.of(context)!
+                                                .addPplGroup,
+                                            style: TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: CreateGroupSearchBar(
+                                          onDataChanged: _onDataChanged,
+                                          user: _currentUser,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                            AppLocalizations.of(context)!
+                                                .close),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: Center(
+                            child: Text(AppLocalizations.of(context)!.addUser),
+                          ),
+                        ),
                       ],
                     ),
 
@@ -592,9 +587,9 @@ class _EditGroupDataState extends State<EditGroupData> {
 
                                 // Check if a future already exists for this username
                                 if (!userFutures.containsKey(userName)) {
-                                  // If not, create a new future
-                                  userFutures[userName] =
-                                      _storeService.getUserByName(userName);
+                                  userFutures[userName] = _providerManagement!
+                                      .userService
+                                      .getUserByUsername(userName);
                                 }
 
                                 // Use the existing future for this username

@@ -76,9 +76,8 @@ class AuthProvider implements AuthRepository {
         );
 
         // Register the user on the backend
-        _currentUser = await _userService.getUserByEmail(person.email);
-        ;
-
+        _currentUser = await _userService.createUser(person);
+      
         return 'User created successfully';
       } else {
         throw UserNotLoggedInAuthException();

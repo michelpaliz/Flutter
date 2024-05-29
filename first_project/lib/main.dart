@@ -99,15 +99,6 @@ class MyMaterialApp extends StatelessWidget {
                 return SizedBox
                     .shrink(); // Return an empty widget or handle the error
               },
-              AppRoutes.editGroup: (context) {
-                final group =
-                    ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return EditGroupData(group: group);
-                }
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
-              },
               AppRoutes.groupCalendar: (context) {
                 final group =
                     ModalRoute.of(context)?.settings.arguments as Group?;
@@ -141,13 +132,11 @@ class MyMaterialApp extends StatelessWidget {
                     .shrink(); // Return an empty widget or handle the error
               },
               AppRoutes.editGroupData: (context) {
-                final group =
-                    ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return EditGroupData(group: group);
-                }
-                return SizedBox
-                    .shrink(); // Return an empty widget or handle the error
+                final args =
+                    ModalRoute.of(context)?.settings.arguments as EditGroupData;
+                return EditGroupData(
+                    group: args.group,
+                    users: args.users);
               },
               AppRoutes.homePage: (context) => HomePage(),
             },

@@ -7,9 +7,9 @@ import 'package:http/http.dart' as http;
 
 class UserService {
   final String baseUrl =
-      'http://192.168.1.16:3000/api'; // Update with your server URL
+      'http://192.168.1.16:3000/api/users'; // Update with your server URL
 
-  Future<User> registerUserOnServer(User user) async {
+  Future<User> createUser(User user) async {
     final response = await http.post(
       Uri.parse('$baseUrl/users'),
       headers: <String, String>{
@@ -29,9 +29,22 @@ class UserService {
     }
   }
 
+  Future<List<String>> searchUsers(String username) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/search/${Uri.encodeComponent(username)}'),
+    );
+
+    if (response.statusCode == 200) {
+      return List<String>.from(jsonDecode(response.body));
+    } else {
+      // Handle other errors
+      throw Exception('Failed to search users: ${response.reasonPhrase}');
+    }
+  }
+
 // Get user by ID
   Future<User> getUserById(String id) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/$id'));
+    final response = await http.get(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
@@ -44,7 +57,7 @@ class UserService {
 
 // Get user by ID
   Future<User> getUserByEmail(String email) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/email/$email'));
+    final response = await http.get(Uri.parse('$baseUrl/email/$email'));
 
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
@@ -56,7 +69,9 @@ class UserService {
   }
 
   Future<User> getUserByAuthID(String authID) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/authID/$authID'));
+    final response = await http.get(Uri.parse('$baseUrl/authID/$authID'));
+
+    devtools.log("THIS IS AUTH VALUE ${authID}");
 
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
@@ -71,7 +86,7 @@ class UserService {
     var dio = Dio();
     try {
       var response = await dio.put(
-        '$baseUrl/users/${user.id}',
+        '$baseUrl/${user.id}',
         data: user.toJson(),
         options: Options(
           headers: {
@@ -93,7 +108,7 @@ class UserService {
   // Update user by username
   Future<User> updateUserByUsername(String username, User user) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/users/username/$username'),
+      Uri.parse('$baseUrl/username/$username'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -111,7 +126,7 @@ class UserService {
 
 // Delete user
   Future<void> deleteUser(String id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/users/$id'));
+    final response = await http.delete(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete user: ${response.reasonPhrase}');
@@ -120,7 +135,7 @@ class UserService {
 
 // Get all users
   Future<List<User>> getAllUsers() async {
-    final response = await http.get(Uri.parse('$baseUrl/users'));
+    final response = await http.get(Uri.parse('$baseUrl'));
 
     if (response.statusCode == 200) {
       Iterable list = json.decode(response.body);
@@ -134,7 +149,7 @@ class UserService {
   Future<User> getUserByUsername(String username) async {
     devtools.log('Get user by username $username');
     final response =
-        await http.get(Uri.parse('$baseUrl/users/username/$username'));
+        await http.get(Uri.parse('$baseUrl/username/$username'));
 
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));

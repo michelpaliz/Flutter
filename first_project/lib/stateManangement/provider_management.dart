@@ -15,7 +15,7 @@ class ProviderManagement extends ChangeNotifier {
   List<Group> _groups = [];
   List<NotificationUser> _notifications = [];
   ThemeData _themeData = lightTheme;
-  late NotificationFormats notificationFormats;
+  late NotificationFormats notification;
   late NotificationUser notificationUser;
   final UserService userService = UserService();
   final GroupService groupService = GroupService();
@@ -71,7 +71,9 @@ class ProviderManagement extends ChangeNotifier {
     try {
       // await userService.updateUserByUsername(newUser.userName,newUser);
       await userService.updateUser(newUser);
-      _currentUser = newUser;
+      if (newUser.id == _currentUser!.id) {
+        _currentUser = newUser;
+      }
       notifyListeners();
       return true;
     } catch (e) {
@@ -92,9 +94,8 @@ class ProviderManagement extends ChangeNotifier {
       //Now we need to update the user, we need to add the user to the group
       user.groupIds.add(group.id);
       // We also need to create a notification for the user
-      notificationFormats = NotificationFormats();
-      notificationUser =
-          notificationFormats.whenCreatingGroup(group, _currentUser!);
+      notification = NotificationFormats();
+      notificationUser = notification.whenCreatingGroup(group, _currentUser!);
       user.notifications.add(notificationUser);
       user.hasNewNotifications = true;
       addNotification(notificationUser);
@@ -122,11 +123,28 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
-  void updateGroup(Group updatedGroup) async {
-    await groupService.updateGroup(updatedGroup.id, updatedGroup);
-    final index = _groups.indexWhere((g) => g.id == updatedGroup.id);
+  void updateGroup(Group updateGroup) async {
+    // bool isAdmin =
+    //     beforeUpdating.userRoles.containsKey(_currentUser!.userName) &&
+    //         beforeUpdating.userRoles[_currentUser!.userName] == 'Administrator';
+    notification = NotificationFormats();
+    notification.whenEditingGroup(updateGroup, _currentUser!);
+    _currentUser!.notifications.add(notification);
+    await userService.updateUser(_currentUser!);
+
+    // Loop through each user ID in the invitedUsers map
+    for (final userName in updateGroup.invitedUsers!.keys) {
+      User? user = await userService.getUserByUsername(userName);
+      notification.createGroupInvitation(updateGroup, user);
+      user.notifications.add(notification);
+      //Now we proceed to update the users
+      await updateUser(user);
+    }
+
+    await groupService.updateGroup(updateGroup.id, updateGroup);
+    final index = _groups.indexWhere((g) => g.id == updateGroup.id);
     if (index != -1) {
-      _groups[index] = updatedGroup;
+      _groups[index] = updateGroup;
       _groupController.add(_groups); // Add updated groups to the stream
       notifyListeners();
     }

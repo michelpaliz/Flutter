@@ -1,11 +1,11 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/notification_user.dart';
-import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
 import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/views/group-functions/edit_group_data.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
@@ -26,7 +26,7 @@ class ShowGroups extends StatefulWidget {
 
 class _ShowGroupsState extends State<ShowGroups> {
   User? _currentUser;
-  late FirestoreService _storeService;
+  // late FirestoreService _storeService;
   // VARIABLE FOR THE UI
   Axis _scrollDirection = Axis.vertical;
   late Color textColor;
@@ -88,7 +88,8 @@ class _ShowGroupsState extends State<ShowGroups> {
     return _currentRole == "Administrator";
   }
 
-  void _showDeleteConfirmationDialog(Group group) async {;
+  void _showDeleteConfirmationDialog(Group group) async {
+    ;
     bool deleteConfirmed = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -114,18 +115,20 @@ class _ShowGroupsState extends State<ShowGroups> {
     );
 
     if (deleteConfirmed == true && mounted) {
-    try {
-      bool result = await _providerManagement!.removeGroup(group);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result ? AppLocalizations.of(context)!.groupDeletedSuccessfully : "Error deleting group:"),
-        ),
-      );
-      if (result) setState(() {});
-    } catch (error) {
-      // Handle the error
+      try {
+        bool result = await _providerManagement!.removeGroup(group);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result
+                ? AppLocalizations.of(context)!.groupDeletedSuccessfully
+                : "Error deleting group:"),
+          ),
+        );
+        if (result) setState(() {});
+      } catch (error) {
+        // Handle the error
+      }
     }
-  }
   }
 
   void _leaveGroup(BuildContext context, Group group) async {
@@ -142,7 +145,9 @@ class _ShowGroupsState extends State<ShowGroups> {
 
     if (confirm) {
       // If the user confirms, remove the user from the group
-      await _storeService.removeUserInGroup(_currentUser!, group);
+      // await _proviv.removeUserInGroup(_currentUser!, group);
+      await _providerManagement!.groupService
+          .removeUserInGroup(_currentUser!.id, group.id);
     }
   }
 
@@ -194,7 +199,9 @@ class _ShowGroupsState extends State<ShowGroups> {
           width: 150, // Set a fixed width
           child: GestureDetector(
             onTap: () async {
-              User _groupOwner = await _storeService.getOwnerFromGroup(group);
+              // User _groupOwner = await _storeService.getOwnerFromGroup(group);
+              User _groupOwner = await _providerManagement!.userService
+                  .getUserById(group.ownerId);
               showProfileAlertDialog(context, group, _groupOwner);
             },
             child: MouseRegion(
@@ -407,8 +414,9 @@ class _ShowGroupsState extends State<ShowGroups> {
 
     return InkWell(
       onTap: () async {
-        User groupOwner = await _storeService.getOwnerFromGroup(group);
-        showProfileAlertDialog(context, group, groupOwner);
+        User _groupOwner =
+            await _providerManagement!.userService.getUserById(group.ownerId);
+        showProfileAlertDialog(context, group, _groupOwner);
       },
       onHover: (hovering) {
         setState(() {
@@ -499,10 +507,22 @@ class _ShowGroupsState extends State<ShowGroups> {
                   TextButton(
                     onPressed: () async {
                       // Edit group logic here
-                      var selectedGroup =
-                          await _storeService.getGroupFromId(group.id);
-                      Navigator.pushNamed(context, AppRoutes.editGroupData,
-                          arguments: selectedGroup);
+                      var selectedGroup = await _providerManagement!
+                          .groupService
+                          .getGroupById(group.id);
+                      List<User> users = [];
+                      for (var userID in selectedGroup.userIds) {
+                        User user = await _providerManagement!.userService
+                            .getUserById(userID);
+                        users.add(user);
+                      }
+                      // await _storeService.getGroupFromId(group.id);
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.editGroupData,
+                        arguments: EditGroupData(
+                            group: selectedGroup, users: users),
+                      );
                     },
                     child: Text(AppLocalizations.of(context)!.edit),
                   ),

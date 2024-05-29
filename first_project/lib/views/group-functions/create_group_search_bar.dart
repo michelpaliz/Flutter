@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_project/models/user.dart';
+import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
-import 'package:first_project/models/user.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
@@ -25,7 +25,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   User? _currentUser = null;
   List<User> _userInGroup = [];
   List<String> _selectedUsers = [];
-  String? _clickedUser;
+  UserService userService = UserService();
 
   @override
   void initState() {
@@ -46,29 +46,10 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
   // **SEARCH USER FUNCTIONS **
 
-  /// Updates the search results based on the provided [username].
-  ///
-  /// This method searches for users whose usernames contain the provided [username]
-  /// using a case-insensitive contains operation. It updates the [searchResults]
-  /// list with the names of found users.
-  ///
-  /// Parameters:
-  /// - [username]: The username to search for.
-  ///
-  /// Throws:
-  /// - An error if any error occurs during the search process.
   void _searchUser(String username) async {
     try {
-      // Query Firestore to find users whose usernames contain the provided username
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('userName', isGreaterThanOrEqualTo: username.toLowerCase())
-          .where('userName', isLessThan: username.toLowerCase() + 'z')
-          .get();
-
-      // Extract usernames from the query results
-      final List<String> foundUsers =
-          querySnapshot.docs.map((doc) => doc['userName'] as String).toList();
+      // Use UserService to find users whose usernames contain the provided username
+      final List<String> foundUsers = await userService.searchUsers(username.toLowerCase());
 
       // Update the search results list
       setState(() {
@@ -84,32 +65,13 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
-/** Add an user using the selectedUsers list */
-  /**
-    // It attempts to retrieve user data from a Firestore collection named 'users' where the username matches the provided username.
-    // If a user with the provided username is found:
-    //     The user data is extracted from the Firestore document.
-    //     A User object is created from the retrieved data.
-    //     If the user is not already in the _selectedUsers list:
-    //         The user's username is added to the _selectedUsers list.
-    //         The user object is added to the _userInGroup list.
-    //         A default role of 'Member' is assigned to the user in the userRoles map.
-    //         The onDataChanged callback function is invoked with updated user and role data.
-    // If no user is found with the provided username, a message is printed indicating that the user was not found.
-   */
   void addUser(String username) async {
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('userName', isEqualTo: username)
-          .get();
+      // Use UserService to retrieve user data where the username matches the provided username
+      final User user = await userService.getUserByUsername(username);
 
-      if (querySnapshot.docs.isNotEmpty) {
+      if (user != null) {
         // User with the provided username found
-        final userData = querySnapshot.docs.first.data();
-
-        final user = User.fromJson(userData);
-
         setState(() {
           if (!_selectedUsers.contains(user.userName)) {
             _selectedUsers.add(user.userName);
@@ -309,6 +271,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    String? _clickedUser;
     return Container(
       height: 250,
       child: SingleChildScrollView(
