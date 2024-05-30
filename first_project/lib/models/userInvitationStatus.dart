@@ -25,4 +25,8 @@ class UserInviteStatus {
     );
   }
 
+  @override
+  String toString() {
+    return 'UserInviteStatus{id: $id, accepted: $accepted, role: $role}';
+  }
 }

@@ -1,4 +1,3 @@
-import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 
 import 'calendar.dart';
@@ -11,10 +10,12 @@ class Group {
   final Calendar calendar; // Shared calendar for the group
   List<String> userIds; // Changed from List<User> to List<String>
   DateTime createdTime; // Time the group was created
-  bool repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
+  bool
+      repetitiveEvents; // With this variable, I can check if the members want to have repetitive events at the same time.
   String description; // A description of the group
   String photo; // Add the new field for storing a photo link
-  Map<String, UserInviteStatus>? invitedUsers; // New field to store invited users and their answers
+  Map<String, UserInviteStatus>?
+      invitedUsers; // New field to store invited users and their answers
 
   Group({
     required this.id,
@@ -30,16 +31,13 @@ class Group {
     Map<String, UserInviteStatus>? invitedUsers,
   }) : invitedUsers = invitedUsers ?? {};
 
-  // ... rest of your code ...
 
   factory Group.fromJson(Map<String, dynamic> json) {
     List<String> userIds = List<String>.from(json['userIds'] ?? []);
+    Map<String, dynamic> invitedUsersJson = json['invitedUsers'] ?? {};
 
-    Map<String, dynamic>? invitedUsersJson = json['invitedUsers'];
-    Map<String, UserInviteStatus>? invitedUsers = invitedUsersJson != null
-        ? invitedUsersJson.map(
-            (key, value) => MapEntry(key, UserInviteStatus.fromJson(value)))
-        : null;
+    Map<String, UserInviteStatus> invitedUsers = invitedUsersJson
+        .map((key, value) => MapEntry(key, UserInviteStatus.fromJson(value)));
 
     return Group(
       id: json['id'] ?? '',
@@ -53,7 +51,7 @@ class Group {
           : DateTime.now(),
       repetitiveEvents: json['repetitiveEvents'] ?? false,
       description: json['description'] ?? '',
-      photo: json['photo'] ?? '',
+      photo: json['photo'] ?? '', // Parse the new field here
       invitedUsers: invitedUsers,
     );
   }

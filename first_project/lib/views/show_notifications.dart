@@ -57,7 +57,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       _currentUser!.notifications.removeAt(index);
       // Remove notification from ProviderManagement
       _providerManagement!.removeNotification(notification);
-      await _storeService.updateUser(_currentUser!);
+      // await _storeService.updateUser(_currentUser!);
 
       // Use a Completer to handle the asynchronous operation
       Completer<void> completer = Completer<void>();

@@ -6,12 +6,12 @@ import 'package:http/http.dart' as http;
 
 class GroupService {
   final String baseUrl =
-      'http://192.168.1.16:3000/api'; // Update with your server URL
+      'http://192.168.1.16:3000/api/groups'; // Update with your server URL
 
   Future<Group> createGroup(Group group) async {
     devtools.log('Create group ${group}');
     final response = await http.post(
-      Uri.parse('$baseUrl/groups'),
+      Uri.parse('$baseUrl'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -26,18 +26,18 @@ class GroupService {
   }
 
   Future<Group> getGroupById(String id) async {
-    final response = await http.get(Uri.parse('$baseUrl/groups/$id'));
+    final response = await http.get(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode == 200) {
       return Group.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load group: ${response.reasonPhrase}');
+      throw Exception('Failed to get group: ${response.reasonPhrase}');
     }
   }
 
   Future<Group> updateGroup(String id, Group group) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/groups/$id'),
+      Uri.parse('$baseUrl/$id'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -52,7 +52,7 @@ class GroupService {
   }
 
   Future<void> deleteGroup(String id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/groups/$id'));
+    final response = await http.delete(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete group: ${response.reasonPhrase}');
@@ -61,7 +61,7 @@ class GroupService {
 
   Future<List<Group>> getGroupsByUser(String userName) async {
     final response =
-        await http.get(Uri.parse('$baseUrl/groups/user/$userName'));
+        await http.get(Uri.parse('$baseUrl/user/$userName'));
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -73,7 +73,7 @@ class GroupService {
 
   Future<Group> removeUserInGroup(String userId, String groupId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/groups/$groupId/users/$userId'),
+      Uri.parse('$baseUrl/$groupId/users/$userId'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
