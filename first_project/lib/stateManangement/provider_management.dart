@@ -123,25 +123,31 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
-  void updateGroup(Group updateGroup) async {
-    // bool isAdmin =
-    //     beforeUpdating.userRoles.containsKey(_currentUser!.userName) &&
-    //         beforeUpdating.userRoles[_currentUser!.userName] == 'Administrator';
-    notification = NotificationFormats();
-    notification.whenEditingGroup(updateGroup, _currentUser!);
+  Future<void> updateGroup(Group updateGroup) async {
+    // Create a notification for editing the group
+    final notificationFormat = NotificationFormats();
+    NotificationUser notification =
+        notificationFormat.whenEditingGroup(updateGroup, _currentUser!);
+
     _currentUser!.notifications.add(notification);
+
+    // Update the current user
     await userService.updateUser(_currentUser!);
 
     // Loop through each user ID in the invitedUsers map
     for (final userName in updateGroup.invitedUsers!.keys) {
-      User? user = await userService.getUserByUsername(userName);
-      notification.createGroupInvitation(updateGroup, user);
+      final user = await userService.getUserByUsername(userName);
+      notificationFormat.createGroupInvitation(updateGroup, user);
       user.notifications.add(notification);
-      //Now we proceed to update the users
+
+      // Now proceed to update the users
       await updateUser(user);
     }
 
+    // Update the group
     await groupService.updateGroup(updateGroup.id, updateGroup);
+
+    // Update the local list of groups
     final index = _groups.indexWhere((g) => g.id == updateGroup.id);
     if (index != -1) {
       _groups[index] = updateGroup;

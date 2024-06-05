@@ -1,16 +1,17 @@
-import 'package:first_project/stateManangement/provider_management.dart';
-import 'package:first_project/utilities/color_manager.dart';
-import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/services/node_services/event_services.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/styles/widgets/repetition_dialog.dart';
+import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/event.dart';
-import '../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //*
 class EditNoteScreen extends StatefulWidget {
@@ -40,7 +41,9 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   late Color _selectedEventColor;
   late List<Color> _colorList;
   late Group _group;
-  late FirestoreService _storeService;
+  // late FirestoreService _storeService;
+  late ProviderManagement _providerManagement;
+  late EventService _eventService;
 
   @override
   void initState() {
@@ -57,13 +60,14 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _isRepetitive = _event.recurrenceRule != null;
     _colorList = ColorManager.eventColors;
     _selectedEventColor = _colorList[_event.eventColorIndex];
+    _eventService = new EventService();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    _providerManagement = Provider.of<ProviderManagement>(context);
     // Initialize the _storeService using the providerManagement.
     //TODO:IMPLEMENT NEW SERVICE
     // _storeService = FirestoreService.firebase(providerManagement);
@@ -85,7 +89,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   }
 
   Future<Group> _getGroup() async {
-    return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
+    // return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
+      return _group = (await _providerManagement.groupService.getGroupById(_event.groupId!));
   }
 
   void _saveEditedEvent() async {
@@ -132,8 +137,10 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     bool allowRepetitiveHours = _group.repetitiveEvents;
     if (isStartHourUnique && allowRepetitiveHours) {
       try {
-        await _storeService
-            .updateEvent(updatedEvent); // Call the updateEvent method
+        // await _storeService
+        //     .updateEvent(updatedEvent); // Call the updateEvent method
+
+        await _eventService.updateEvent(updatedEvent.id, updatedEvent );
 
         // You can handle success or navigate back to the previous screen
         ScaffoldMessenger.of(context).showSnackBar(

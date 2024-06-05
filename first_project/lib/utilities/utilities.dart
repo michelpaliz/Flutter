@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart'; // Import the http package
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class Utilities {
-
   /** Load the costume fonts */
   static Future<void> loadCustomFonts() async {
     final fontLoader = FontLoader('bagel')
@@ -111,23 +112,34 @@ class Utilities {
   }
 
   static Future<Locale> getUserLocale() async {
-  try {
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.low);
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.low);
 
-    if (position.latitude >= -56.0 && position.latitude <= 11.0 &&
-        position.longitude >= -77.8 && position.longitude <= -34.8) {
-      // User is in South America
-      return Locale('es');
-    } else {
-      // User is not in South America
-      return Locale('en');
+      if (position.latitude >= -56.0 &&
+          position.latitude <= 11.0 &&
+          position.longitude >= -77.8 &&
+          position.longitude <= -34.8) {
+        // User is in South America
+        return Locale('es');
+      } else {
+        // User is not in South America
+        return Locale('en');
+      }
+    } catch (e) {
+      // Handle exceptions, e.g., if location services are not available
+      print("Error getting user location: $e");
+      return Locale('en'); // Default to English in case of error
     }
-  } catch (e) {
-    // Handle exceptions, e.g., if location services are not available
-    print("Error getting user location: $e");
-    return Locale('en'); // Default to English in case of error
   }
-}
 
+// Function to generate a random alphanumeric string of a given length
+  static String generateRandomId(int length) {
+    const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    Random random = Random();
+
+    return List.generate(length, (index) => chars[random.nextInt(chars.length)])
+        .join('');
+  }
 }

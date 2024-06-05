@@ -1,23 +1,25 @@
 import 'dart:developer' as devtools show log;
+
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
-import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/models/custom_day_week.dart';
 import 'package:first_project/models/meeting_data_source.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/styles/themes/theme_colors.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/services/node_services/event_services.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/styles/themes/theme_colors.dart';
+import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
 import '../../../enums/routes/appRoutes.dart';
-import '../../../styles/drawer-style-menu/my_drawer.dart';
 import '../../../models/event.dart';
 import '../../../models/group.dart';
-import '../../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import '../../../styles/drawer-style-menu/my_drawer.dart';
 
 class GroupDetails extends StatefulWidget {
   final Group group;
@@ -32,7 +34,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   late Group _group;
   late List<Event> _events;
   late DateTime _selectedDate;
-  late FirestoreService _storeService;
+  // late FirestoreService _storeService;
   late AuthService _authService;
   var _userOrGroupObject;
   late List<Appointment> _appointments;
@@ -43,6 +45,8 @@ class _GroupDetailsState extends State<GroupDetails> {
   late Map<String, String> _users;
   String userRole = "";
   late User? _user;
+  late ProviderManagement _providerManagement;
+  late EventService _eventService;
 
   //** Logic for my view */
 
@@ -57,6 +61,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     _controller = CalendarController();
     _authService = AuthService.firebase();
     _appointments = [];
+    _eventService = new EventService();
     _getEventsListFromGroup();
   }
 
@@ -65,7 +70,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    _providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
     //TODO:IMPLEMENT NEW SERVICE
@@ -100,17 +105,17 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Future<void> _updateEvent(Event event) async {
-    await _storeService.updateEvent(event);
+    // await _storeService.updateEvent(event);
   }
 
   Future<void> _reloadData() async {
-    Group? group = await _storeService.getGroupFromId(_group.id);
+    // Group? group = await _storeService.getGroupFromId(_group.id);
+    Group? group =
+        await _providerManagement.groupService.getGroupById(_group.id);
     setState(() {
       _appointments = [];
-      if (group != null) {
-        _group = group;
-        _events = group.calendar.events;
-      }
+      _group = group;
+      _events = group.calendar.events;
     });
     _updateCalendarDataSource(); // Call the method here to update the data source
   }
@@ -142,11 +147,13 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Event? event = await _storeService.getEventById(eventId, groupId);
 
     // Remove the event from Firestore
-    await _storeService.removeEvent(event.id);
+    // await _storeService.removeEvent(event.id);
+    await _eventService.deleteEvent(event.id);
 
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
-    await _storeService.updateGroup(_group);
+    // await _storeService.updateGroup(_group);
+    await _providerManagement.updateGroup(_group);
 
     // Update the UI by removing the event from the list
     setState(() {
@@ -478,8 +485,9 @@ class _GroupDetailsState extends State<GroupDetails> {
 
                   if (_selectedView == CalendarView.month) {
                     return FutureBuilder<Event?>(
-                      future: _storeService.getEventFromGroupById(
-                          appointment.id, _group.id),
+                      // future: _storeService.getEventFromGroupById(
+                      //     appointment.id, _group.id),
+                      future: _eventService.getEventById(appointment.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -718,8 +726,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                   } else {
                     // Retrieve the Event data asynchronously
                     return FutureBuilder<Event?>(
-                      future: _storeService.getEventFromGroupById(
-                          appointment.id.toString(), _group.id.toString()),
+                      // future: _storeService.getEventFromGroupById(
+                      //     appointment.id.toString(), _group.id.toString()),
+                      future: _eventService.getEventById(appointment.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {

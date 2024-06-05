@@ -1,18 +1,20 @@
-import 'package:first_project/utilities/color_manager.dart';
-import 'package:first_project/styles/widgets/repetition_dialog.dart';
+import 'dart:developer' as devtools show log;
+
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/styles/widgets/repetition_dialog.dart';
+import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
+
 import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
-import '../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class EventNoteWidget extends StatefulWidget {
   final User? user;
@@ -34,7 +36,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   late DateTime _selectedEndDate;
   List<Event> _eventList = [];
   //** CONTROLLERS  */
-  late FirestoreService _storeService;
+  // late FirestoreService _storeService;
   TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController =
       TextEditingController(); // Add the controller for the description
@@ -49,6 +51,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   //We define the default colors for the event object
   late Color _selectedEventColor;
   final _colorList = ColorManager.eventColors;
+  late ProviderManagement _providerManagement;
+  EventService _eventService = new EventService();
 
   //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({User? user, Group? group})
@@ -80,7 +84,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    _providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
     //TODO:IMPLEMENT NEW SERVICE
@@ -163,21 +167,111 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   }
 
   /*** We retrieve the current user object. Then we can update the user object with the new event list and other modifications.*/
+// void _addEvent() async {
+//   String eventTitle = _titleController.text;
+//   String eventId = Uuid().v4();
+
+//   // Remove unwanted characters and formatting
+//   String extractedText =
+//       _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
+
+//   if (eventTitle.trim().isNotEmpty) {
+//     Event newEvent = Event(
+//       id: eventId,
+//       startDate: _selectedStartDate,
+//       endDate: _selectedEndDate,
+//       title: _titleController.text,
+//       groupId: _group?.id,
+//       recurrenceRule: _recurrenceRule,
+//       localization: extractedText,
+//       allDay: event?.allDay ?? false,
+//       description: _descriptionController.text,
+//       eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
+//     );
+
+//     // Log the new event details
+//     devtools.log("New event details:");
+//     devtools.log("Start date: ${newEvent.startDate}");
+//     devtools.log("End date: ${newEvent.endDate}");
+//     devtools.log("Title: ${newEvent.title}");
+
+//     bool isStartHourUnique = _eventList.every((e) =>
+//         e.startDate.hour != newEvent.startDate.hour ||
+//         e.startDate.day != newEvent.startDate.day);
+//     bool allowRepetitiveHours = _group!.repetitiveEvents;
+//     if (isStartHourUnique && allowRepetitiveHours) {
+//       setState(() {
+//         _eventList.add(newEvent);
+//       });
+
+//       if (_user != null) {
+//         List<Event> userEvents = _user!.events;
+//         userEvents.add(newEvent);
+//         _user!.events = userEvents;
+
+//         await _providerManagement.updateUser(_user!);
+
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
+//         );
+//       } else if (_group != null) {
+//         List<Event> groupEvents = _group!.calendar.events;
+//         groupEvents.add(newEvent);
+//         _group?.calendar.events = groupEvents;
+
+//         await _providerManagement.updateGroup(_group!);
+
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//               content: Text(AppLocalizations.of(context)!.eventAddedGroup)),
+//         );
+//       }
+
+//       _clearFields();
+//     } else {
+//       showDialog(
+//         context: context,
+//         builder: (BuildContext context) {
+//           return AlertDialog(
+//             title: Text(AppLocalizations.of(context)!.repetitionEvent),
+//             content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
+//             actions: [
+//               TextButton(
+//                 child: Text('OK'),
+//                 onPressed: () {
+//                   Navigator.of(context).pop(); // Close the dialog
+//                 },
+//               ),
+//             ],
+//           );
+//         },
+//       );
+//     }
+//   } else {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(content: Text(AppLocalizations.of(context)!.errorEventNote)),
+//     );
+//   }
+
+//   _reloadScreen();
+// }
+
   void _addEvent() async {
     String eventTitle = _titleController.text;
-    String eventId = Uuid().v4();
 
     // Remove unwanted characters and formatting
     String extractedText =
         _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
 
+    String uniqueId = Utilities.generateRandomId(10);
+
     if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
-        id: eventId,
+        id: uniqueId,
         startDate: _selectedStartDate,
         endDate: _selectedEndDate,
         title: _titleController.text,
-        groupId: _group?.id, // Set the groupId if adding to a group's events
+        groupId: _group?.id,
         recurrenceRule: _recurrenceRule,
         localization: extractedText,
         allDay: event?.allDay ?? false,
@@ -185,31 +279,64 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
       );
 
-      bool isStartHourUnique = _eventList.every((e) =>
-          e.startDate.hour != newEvent.startDate.hour ||
-          e.startDate.day != newEvent.startDate.day);
-      bool allowRepetitiveHours = _group!.repetitiveEvents;
-      if (isStartHourUnique && allowRepetitiveHours) {
+      // Log new event details
+      devtools.log("New Event: ${newEvent.startDate.toIso8601String()}");
+
+      // Log the event list before checking
+      devtools.log("Event list before checking: ${_eventList.toString()}");
+
+      // Only check for duplicates if the list is not empty
+      bool eventExists = false;
+      if (_eventList.isNotEmpty) {
+        eventExists = _eventList.any((event) {
+          return event.startDate.year == newEvent.startDate.year &&
+              event.startDate.month == newEvent.startDate.month &&
+              event.startDate.day == newEvent.startDate.day &&
+              event.startDate.hour == newEvent.startDate.hour;
+        });
+      }
+
+      if (eventExists) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.repetitionEvent),
+              content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
+              actions: [
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+
+      bool eventAdded = await _eventService.createEvent(newEvent);
+
+      if (eventAdded) {
+        Event fetchedEvent = _eventService.event;
         setState(() {
-          _eventList.add(newEvent);
+          _eventList.add(fetchedEvent);
+          devtools.log("Updated Event List: ${_eventList.toString()}");
         });
 
         if (_user != null) {
-          List<Event> userEvents = _user!.events;
-          userEvents.add(newEvent);
-          _user!.events = userEvents;
-
-          await _storeService.updateUser(_user!);
+          _user!.events.add(fetchedEvent);
+          await _providerManagement.updateUser(_user!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
           );
         } else if (_group != null) {
-          List<Event> groupEvents = _group!.calendar.events;
-          groupEvents.add(newEvent);
-          _group?.calendar.events = groupEvents;
-
-          await _storeService.updateGroup(_group!);
+          _group?.calendar.events.add(fetchedEvent);
+          devtools.log("This is the group value: ${_group.toString()}");
+          await _providerManagement.updateGroup(_group!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -223,8 +350,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.repetitionEvent),
-              content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
+              title: Text(AppLocalizations.of(context)!.event),
+              content: Text(AppLocalizations.of(context)!.errorEventCreation),
               actions: [
                 TextButton(
                   child: Text('OK'),
@@ -253,7 +380,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         title: Text(AppLocalizations.of(context)!.event),
       ),
       body: SingleChildScrollView(
-        // Wrap the Scaffold with SingleChildScrollView
+        // Wrap the Scaffold with SingleChildScrollV
+        // iew
         child: Container(
           padding: EdgeInsets.all(16.0),
           child: Column(
