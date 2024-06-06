@@ -26,8 +26,6 @@ class ShowGroups extends StatefulWidget {
 
 class _ShowGroupsState extends State<ShowGroups> {
   User? _currentUser;
-  // late FirestoreService _storeService;
-  // VARIABLE FOR THE UI
   Axis _scrollDirection = Axis.vertical;
   late Color textColor;
   late Color cardBackgroundColor;
@@ -37,18 +35,11 @@ class _ShowGroupsState extends State<ShowGroups> {
   //*LOGIC FOR THE VIEW //
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
-  @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     _currentUser = _providerManagement!.currentUser;
-    // _storeService = FirestoreService.firebase(_providerManagement!);
     await _fetchAndUpdateGroups();
   }
 
@@ -144,8 +135,6 @@ class _ShowGroupsState extends State<ShowGroups> {
     );
 
     if (confirm) {
-      // If the user confirms, remove the user from the group
-      // await _proviv.removeUserInGroup(_currentUser!, group);
       await _providerManagement!.groupService
           .removeUserInGroup(_currentUser!.id, group.id);
     }
@@ -520,8 +509,8 @@ class _ShowGroupsState extends State<ShowGroups> {
                       Navigator.pushNamed(
                         context,
                         AppRoutes.editGroupData,
-                        arguments: EditGroupData(
-                            group: selectedGroup, users: users),
+                        arguments:
+                            EditGroupData(group: selectedGroup, users: users),
                       );
                     },
                     child: Text(AppLocalizations.of(context)!.edit),

@@ -68,17 +68,11 @@ class _GroupDetailsState extends State<GroupDetails> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     // Access the inherited widget in the didChangeDependencies method.
     _providerManagement = Provider.of<ProviderManagement>(context);
-
-    // Initialize the _storeService using the providerManagement.
-    //TODO:IMPLEMENT NEW SERVICE
-    // _storeService = FirestoreService.firebase(providerManagement);
   }
 
   Future<void> _getEventsListFromGroup() async {
-    // _user = await SharedPrefsUtils.getUserFromPreferences();
     _user = _authService.costumeUser;
     devtools.log('This is the user fetched $_user'.toString());
     setState(() {
@@ -144,12 +138,8 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Future<void> _removeGroupEvents({required Event event}) async {
-    // Event? event = await _storeService.getEventById(eventId, groupId);
-
     // Remove the event from Firestore
-    // await _storeService.removeEvent(event.id);
     await _eventService.deleteEvent(event.id);
-
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
     // await _storeService.updateGroup(_group);

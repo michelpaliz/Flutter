@@ -315,5 +315,6 @@
     "passwordLength": "Password maximum length is 6 characters",
     "groupNotCreated": "There was an error creating the group, try again",
     "questionDeleteGroup": "Are you sure you want to delete this group?",
-    "errorEventCreation": "Error occurred while creating the event, try again later"
+    "errorEventCreation": "Error occurred while creating the event, try again later",
+    "eventEditFailed": "Error occurred while editing the event, try again later"
 }

@@ -82,13 +82,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Access the inherited widget in the didChangeDependencies method.
     _providerManagement = Provider.of<ProviderManagement>(context);
-
-    // Initialize the _storeService using the providerManagement.
-    //TODO:IMPLEMENT NEW SERVICE
-    // _storeService = FirestoreService.firebase(providerManagement);
   }
 
   @override
@@ -165,96 +159,6 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       }
     }
   }
-
-  /*** We retrieve the current user object. Then we can update the user object with the new event list and other modifications.*/
-// void _addEvent() async {
-//   String eventTitle = _titleController.text;
-//   String eventId = Uuid().v4();
-
-//   // Remove unwanted characters and formatting
-//   String extractedText =
-//       _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
-
-//   if (eventTitle.trim().isNotEmpty) {
-//     Event newEvent = Event(
-//       id: eventId,
-//       startDate: _selectedStartDate,
-//       endDate: _selectedEndDate,
-//       title: _titleController.text,
-//       groupId: _group?.id,
-//       recurrenceRule: _recurrenceRule,
-//       localization: extractedText,
-//       allDay: event?.allDay ?? false,
-//       description: _descriptionController.text,
-//       eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
-//     );
-
-//     // Log the new event details
-//     devtools.log("New event details:");
-//     devtools.log("Start date: ${newEvent.startDate}");
-//     devtools.log("End date: ${newEvent.endDate}");
-//     devtools.log("Title: ${newEvent.title}");
-
-//     bool isStartHourUnique = _eventList.every((e) =>
-//         e.startDate.hour != newEvent.startDate.hour ||
-//         e.startDate.day != newEvent.startDate.day);
-//     bool allowRepetitiveHours = _group!.repetitiveEvents;
-//     if (isStartHourUnique && allowRepetitiveHours) {
-//       setState(() {
-//         _eventList.add(newEvent);
-//       });
-
-//       if (_user != null) {
-//         List<Event> userEvents = _user!.events;
-//         userEvents.add(newEvent);
-//         _user!.events = userEvents;
-
-//         await _providerManagement.updateUser(_user!);
-
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
-//         );
-//       } else if (_group != null) {
-//         List<Event> groupEvents = _group!.calendar.events;
-//         groupEvents.add(newEvent);
-//         _group?.calendar.events = groupEvents;
-
-//         await _providerManagement.updateGroup(_group!);
-
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//               content: Text(AppLocalizations.of(context)!.eventAddedGroup)),
-//         );
-//       }
-
-//       _clearFields();
-//     } else {
-//       showDialog(
-//         context: context,
-//         builder: (BuildContext context) {
-//           return AlertDialog(
-//             title: Text(AppLocalizations.of(context)!.repetitionEvent),
-//             content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
-//             actions: [
-//               TextButton(
-//                 child: Text('OK'),
-//                 onPressed: () {
-//                   Navigator.of(context).pop(); // Close the dialog
-//                 },
-//               ),
-//             ],
-//           );
-//         },
-//       );
-//     }
-//   } else {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text(AppLocalizations.of(context)!.errorEventNote)),
-//     );
-//   }
-
-//   _reloadScreen();
-// }
 
   void _addEvent() async {
     String eventTitle = _titleController.text;

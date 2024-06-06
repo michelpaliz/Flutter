@@ -157,5 +157,6 @@
     "passwordLength": "La contraseña tiene que ser menor de 6 caracteres",
     "groupNotCreated": "El grupo no se ha podido crear, intentalo mas tarde",
     "questionDeleteGroup": "Estas seguro que quieres eliminar este groupo ?",
-    "errorEventCreation": "Error al crear  el evento, intentalo mas tarde"
+    "errorEventCreation": "Error al crear  el evento, intentalo mas tarde",
+    "eventEditFailed": "Error al editar el evento, intentalo mas tarde."
 }
