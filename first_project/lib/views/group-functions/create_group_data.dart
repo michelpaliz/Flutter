@@ -48,17 +48,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     });
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-
-  //   // Access the inherited widget in the didChangeDependencies method.
-  //   final providerManagement = Provider.of<ProviderManagement>(context);
-
-  //   // Initialize the _storeService using the providerManagement.
-  //   // _storeService = FirestoreService.firebase(providerManagement);
-  // }
-
   void _onDataChanged(
       List<User> updatedUserInGroup, Map<String, String> updatedUserRoles) {
     // Print the new data before updating the state

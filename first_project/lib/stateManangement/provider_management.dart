@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 
 class ProviderManagement extends ChangeNotifier {
   User? _currentUser;
+  Group? _currentGroup;
   List<Group> _groups = [];
   List<NotificationUser> _notifications = [];
   ThemeData _themeData = lightTheme;
@@ -22,6 +23,7 @@ class ProviderManagement extends ChangeNotifier {
 
   // Getters
   User? get currentUser => _currentUser;
+  Group? get currentGroup => _currentGroup;
   ThemeData get themeData => _themeData;
 
   //** CONTROLLER FOR MY GROUPS  */
@@ -55,8 +57,15 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
+
+  //Setters two ways to set the variables
   void setCurrentUser(User? user) {
     _currentUser = user;
+    notifyListeners();
+  }
+
+  set currentGroup(Group? group) {
+    _currentGroup = group;
     notifyListeners();
   }
 

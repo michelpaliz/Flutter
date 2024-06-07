@@ -76,6 +76,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController.text = _event.localization!;
     _recurrenceRule = _event.recurrenceRule;
     _isRepetitive = _event.recurrenceRule != null;
+    _group = _providerManagement.currentGroup!;
     _eventList = _providerManagement.currentUser!.events;
   }
 
@@ -86,92 +87,97 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     super.dispose();
   }
 
-  Future<Group> _getGroup() async {
-    // return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
-    return _group =
-        (await _providerManagement.groupService.getGroupById(_event.groupId!));
-  }
+  // Future<Group> _getGroup() async {
+  //   // return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
+  //   return _group =
+  //       (await _providerManagement.groupService.getGroupById(_event.groupId!));
+  // }
 
   void _saveEditedEvent() async {
-  // Retrieve updated values from controllers
-  final updatedTitle = _titleController.text;
-  final updatedDescription = _descriptionController.text;
-  final updatedLocation = _locationController.text;
-  final updatedRecurrenceRule = _recurrenceRule;
-  final updatedNote = _noteController.text;
+    // Retrieve updated values from controllers
+    final updatedTitle = _titleController.text;
+    final updatedDescription = _descriptionController.text;
+    final updatedLocation = _locationController.text;
+    final updatedRecurrenceRule = _recurrenceRule;
+    final updatedNote = _noteController.text;
 
-  String extractedText = updatedLocation;
-  // Remove unwanted characters and formatting
-  extractedText = extractedText.replaceAll(RegExp(r'[┤├]'), '');
+    String extractedText = updatedLocation;
+    // Remove unwanted characters and formatting
+    extractedText = extractedText.replaceAll(RegExp(r'[┤├]'), '');
 
-  // Create an updated event with the new values
-  final updatedEvent = Event(
-    id: _event.id,
-    startDate: _selectedStartDate,
-    endDate: _selectedEndDate,
-    title: updatedTitle,
-    groupId: _event.groupId,
-    description: updatedDescription,
-    note: updatedNote,
-    localization: extractedText,
-    recurrenceRule: updatedRecurrenceRule,
-    eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
-  );
-
-  // Get the group and event list
-  _group = await _getGroup();
-  _eventList = _group.calendar.events;
-
-  // Check if the start date has changed
-  bool startDateChanged = _event.startDate != _selectedStartDate;
-
-  bool isStartHourUnique = _eventList.every((e) {
-    // Allow the current event's start date if it hasn't changed
-    if (!startDateChanged && e.id == _event.id) {
-      return true;
-    }
-
-    // Ensure unique start dates for other events or if the start date has changed
-    return e.startDate != _selectedStartDate;
-  });
-
-  bool allowRepetitiveHours = _group.repetitiveEvents;
-
-  if (isStartHourUnique || allowRepetitiveHours) {
-    try {
-      await _eventService.updateEvent(updatedEvent.id, updatedEvent);
-      // You can handle success or navigate back to the previous screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
-      );
-      // Navigator.pop(context, updatedEvent);
-    } catch (error) {
-      // Handle the error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.eventEditFailed)),
-      );
-    }
-  } else {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.repetitionEvent),
-          content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
-        );
-      },
+    // Create an updated event with the new values
+    final updatedEvent = Event(
+      id: _event.id,
+      startDate: _selectedStartDate,
+      endDate: _selectedEndDate,
+      title: updatedTitle,
+      groupId: _event.groupId,
+      description: updatedDescription,
+      note: updatedNote,
+      localization: extractedText,
+      recurrenceRule: updatedRecurrenceRule,
+      eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
     );
-  }
-}
 
+    // Get the group and event list
+    // _group = await _getGroup();
+    _eventList = _group.calendar.events;
+
+    // Check if the start date has changed
+    bool startDateChanged = _event.startDate != _selectedStartDate;
+
+    bool isStartHourUnique = _eventList.every((e) {
+      // Allow the current event's start date if it hasn't changed
+      if (!startDateChanged && e.id == _event.id) {
+        return true;
+      }
+
+      // Ensure unique start dates for other events or if the start date has changed
+      return e.startDate != _selectedStartDate;
+    });
+
+    bool allowRepetitiveHours = _group.repetitiveEvents;
+
+    if (isStartHourUnique || allowRepetitiveHours) {
+      try {
+        await _eventService.updateEvent(updatedEvent.id, updatedEvent);
+        // You can handle success or navigate back to the previous screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
+        );
+
+        //We need to fetch the updated group
+        _group = await _providerManagement.groupService.getGroupById(_group.id);
+        //We update the group with new update list of events
+        _providerManagement.currentGroup = _group;
+        // Navigator.pop(context, updatedEvent);
+      } catch (error) {
+        // Handle the error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.eventEditFailed)),
+        );
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.repetitionEvent),
+            content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? pickedDate = await showDatePicker(

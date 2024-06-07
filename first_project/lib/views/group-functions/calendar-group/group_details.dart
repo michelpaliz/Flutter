@@ -47,46 +47,100 @@ class _GroupDetailsState extends State<GroupDetails> {
   late User? _user;
   late ProviderManagement _providerManagement;
   late EventService _eventService;
+  late bool _dataLoaded = false;
 
   //** Logic for my view */
 
-  @override
-  void initState() {
-    super.initState();
-    _group = widget.group; // Access the passed group
-    _users = _group.userRoles; // Access the
-    _events = [];
-    _selectedDate = DateTime.now().toUtc();
-    _selectedView = CalendarView.month;
-    _controller = CalendarController();
-    _authService = AuthService.firebase();
-    _appointments = [];
-    _eventService = new EventService();
-    _getEventsListFromGroup();
-  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Access the inherited widget in the didChangeDependencies method.
-    _providerManagement = Provider.of<ProviderManagement>(context);
-  }
+    if (!_dataLoaded) {
+      _providerManagement = Provider.of<ProviderManagement>(context);
+      _group = widget.group; // Initialize _group here
 
-  Future<void> _getEventsListFromGroup() async {
-    _user = _authService.costumeUser;
-    devtools.log('This is the user fetched $_user'.toString());
-    setState(() {
+      // Check if _providerManagement.currentGroup is null or already set to _group
+      if (_providerManagement.currentGroup == null ||
+          _providerManagement.currentGroup != _group) {
+        // Set _providerManagement.currentGroup only if necessary
+        _providerManagement.currentGroup = _group;
+      }
+
+      // Update other state variables as needed
+      _users = _group.userRoles;
+      _events = [];
+      _selectedDate = DateTime.now().toUtc();
+      _selectedView = CalendarView.month;
+      _controller = CalendarController();
+      _authService = AuthService.firebase();
+      _appointments = [];
+      _eventService = EventService();
+      _user = _authService.costumeUser;
       if (_user != null) {
-        userRole = _getRoleByName(
-            _user!.userName)!; // This might be nullable, no need for ! here
+        userRole = _getRoleByName(_user!.userName)!;
         _events = _group.calendar.events;
       }
       _users = _group.userRoles;
-      print('THIS IS GROUP $_group'.toString);
       _userOrGroupObject = _group;
-      _updateCalendarDataSource(); // Call the method here to update the data source
-    });
+
+      // Defer the call to _updateCalendarDataSource using addPostFrameCallback
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateCalendarDataSource();
+      });
+
+      _dataLoaded = true;
+    }
   }
+
+  //  @override
+  // void initState() {
+  //   super.initState();
+  //   _initData();
+  // }
+
+  // void _initData() {
+  //   // Check if group update is necessary and update if needed
+  //   if (_shouldUpdateGroup) {
+  //     _providerManagement.currentGroup = widget.group;
+  //   }
+
+  //   _group = widget.group;
+  //   // Reset the flag
+  //   _shouldUpdateGroup = false;
+
+  //   // Initialize other variables...
+  //   _events = [];
+  //   _selectedDate = DateTime.now().toUtc();
+  //   _selectedView = CalendarView.month;
+  //   _controller = CalendarController();
+  //   _authService = AuthService.firebase();
+  //   _appointments = [];
+  //   _eventService = EventService();
+  //   _user = _authService.costumeUser;
+  //   if (_user != null) {
+  //     userRole = _getRoleByName(_user!.userName)!;
+  //     _events = _group.calendar.events;
+  //   }
+
+  //   // Initialize the _users list
+  //   _users = _group.userRoles;
+
+  //   _userOrGroupObject = _group;
+  // }
+
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   _providerManagement = Provider.of<ProviderManagement>(context);
+  //   _group = widget.group; // Initialize _group here
+  //   // Check if _providerManagement.currentGroup is null or already set to _group
+  //   if (_providerManagement.currentGroup == null ||
+  //       _providerManagement.currentGroup == _group) {
+  //     // Set _providerManagement.currentGroup only if necessary
+  //     _providerManagement.currentGroup = _group;
+  //   }
+  //   _updateCalendarDataSource();
+  // }
 
   int calculateDaysBetweenDates(DateTime startDate, DateTime endDate) {
     return endDate.difference(startDate).inDays;
@@ -99,7 +153,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   Future<void> _updateEvent(Event event) async {
-    // await _storeService.updateEvent(event);
+    await _eventService.updateEvent(event.id, event);
   }
 
   Future<void> _reloadData() async {
@@ -125,12 +179,13 @@ class _GroupDetailsState extends State<GroupDetails> {
       arguments: event,
     ).then((result) {
       if (result != null && result is Event) {
-        // Update the event in the eventsList
         final index = _events.indexWhere((e) => e.id == result.id);
         if (index >= 0) {
           setState(() {
             _events[index] = result;
-            _updateCalendarDataSource(); // Update the data source after the change
+            _updateCalendarDataSource();
+            _controller.selectedDate =
+                _controller.selectedDate; // Force refresh
           });
         }
       }
@@ -211,7 +266,6 @@ class _GroupDetailsState extends State<GroupDetails> {
   List<Appointment> _getCalendarDataSource() {
     _appointments = <Appointment>[];
 
-    devtools.log('Events ---- $_events'.toString());
     // Iterate through each event
     for (var event in _events) {
       // Check if the event has a recurrence rule
@@ -227,7 +281,7 @@ class _GroupDetailsState extends State<GroupDetails> {
           endTime: event.endDate,
           subject: event.title,
           color: ColorManager().getColor(event.eventColorIndex),
-        ));
+        )); // Update eventColorIndex
       }
     }
 
@@ -340,512 +394,444 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   @override
   Widget build(BuildContext context) {
-    Color textColor = ThemeColors.getTextColor(context);
+    _setScreenWidthAndCalendarHeight(context);
+    return Scaffold(
+      appBar: _buildAppBar(context),
+      drawer: MyDrawer(),
+      body: _buildBody(context),
+    );
+  }
+
+  void _setScreenWidthAndCalendarHeight(BuildContext context) {
     _screenWidth = MediaQuery.of(context).size.width;
-    // Set the globalVariable based on the screen size
     if (_screenWidth < 600) {
       _calendarHeight = 650; // Set a value for smaller screens
     } else {
       _calendarHeight = 700; // Set a different value for larger screens
     }
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.calendar.toUpperCase()),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.groupSettings,
-                    arguments: _userOrGroupObject);
+  }
+
+  AppBar _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(AppLocalizations.of(context)!.calendar.toUpperCase()),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.settings),
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.groupSettings,
+              arguments: _userOrGroupObject,
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.refresh),
+          onPressed: () {
+            _reloadData();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return Column(
+      children: [
+        _buildCalendar(context),
+        if (userRole == 'Administrator' || userRole == 'Co-Administrator')
+          _buildAddEventButton(context),
+        SizedBox(height: 15),
+      ],
+    );
+  }
+
+  Widget _buildCalendar(BuildContext context) {
+    Color textColor = ThemeColors.getTextColor(context);
+    return Container(
+      height: _calendarHeight,
+      child: SfCalendar(
+        allowedViews: [
+          CalendarView.month,
+          CalendarView.schedule,
+          CalendarView.day
+        ],
+        controller: _controller,
+        onViewChanged: (ViewChangedDetails viewChangedDetails) {
+          Future.delayed(Duration.zero, () {
+            setState(() {
+              _selectedView = _controller.view!;
+            });
+          });
+        },
+        showNavigationArrow: true,
+        firstDayOfWeek: DateTime.monday,
+        initialSelectedDate: DateTime.now(),
+        view: _selectedView,
+        showDatePickerButton: true,
+        timeZone: 'Europe/Madrid',
+        headerStyle: CalendarHeaderStyle(
+          textAlign: TextAlign.center, // Center-align the month name
+        ),
+        onSelectionChanged: (CalendarSelectionDetails details) {
+          if (details.date != null) {
+            Future.delayed(Duration.zero, () {
+              DateTime selectedDateUtc = details.date!.toUtc();
+              setState(() {
+                _selectedDate = selectedDateUtc.toUtc();
+              });
+              _getEventsForDate(selectedDateUtc);
+            });
+          }
+        },
+        scheduleViewSettings: ScheduleViewSettings(
+          appointmentItemHeight: 70,
+        ),
+        viewHeaderStyle: ViewHeaderStyle(
+          dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
+          backgroundColor: Color.fromARGB(255, 180, 237, 248),
+          dayTextStyle: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'lato',
+          ),
+        ),
+        monthCellBuilder: (context, details) {
+          return _buildMonthCell(details);
+        },
+        monthViewSettings: MonthViewSettings(
+          showAgenda: true,
+          agendaItemHeight: 85,
+          dayFormat: 'EEE',
+          appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
+          appointmentDisplayCount: 5,
+          showTrailingAndLeadingDates: false,
+          navigationDirection: MonthNavigationDirection.vertical,
+        ),
+        appointmentBuilder:
+            (BuildContext context, CalendarAppointmentDetails details) {
+          return _buildAppointment(details, textColor, context);
+        },
+        dataSource: MeetingDataSource(_getCalendarDataSource()),
+      ),
+    );
+  }
+
+  Widget _buildMonthCell(MonthCellDetails details) {
+    if (details.date.weekday == DateTime.saturday ||
+        details.date.weekday == DateTime.sunday) {
+      return Container(
+        color: Color.fromARGB(255, 195, 225, 224),
+        child: Center(
+          child: Text(
+            details.date.day.toString(),
+            style: TextStyle(
+              color: Colors.black,
+              fontFamily: 'lato',
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        color: Color.fromARGB(255, 158, 199, 220),
+        child: Center(
+          child: Text(
+            details.date.day.toString(),
+            style: TextStyle(fontFamily: 'lato', color: Colors.black),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildAppointment(CalendarAppointmentDetails details, Color textColor,
+      BuildContext context) {
+    final appointment = details.appointments.first;
+    if (_selectedView == CalendarView.month) {
+      return FutureBuilder<Event?>(
+        future: _eventService.getEventById(appointment.id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator.adaptive();
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            final Event? event = snapshot.data;
+            if (event != null) {
+              return _buildEventDetails(event, context, textColor, appointment);
+            } else {
+              return Container(
+                child: Text(
+                  'No events found for this date',
+                  style: TextStyle(fontSize: 16, color: textColor),
+                ),
+              );
+            }
+          }
+        },
+      );
+    } else {
+      return FutureBuilder<Event?>(
+        future: _eventService.getEventById(appointment.id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            final event = snapshot.data;
+            if (event != null) {
+              return _buildNonMonthViewEvent(event, details, textColor);
+            } else {
+              return Text('No event data found for this appointment');
+            }
+          }
+        },
+      );
+    }
+  }
+
+  Widget _buildEventDetails(
+      Event event, BuildContext context, Color textColor, appointment) {
+    return GestureDetector(
+      onTap: () {
+        if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+          _editEvent(event, context);
+        }
+      },
+      child: Dismissible(
+        key: Key(appointment.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          color: Colors.red,
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Icon(Icons.delete, color: Colors.white),
+        ),
+        confirmDismiss: (direction) async {
+          if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+            final bool confirm =
+                await _showRemoveConfirmationDialog(event, context);
+            return confirm;
+          } else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.permissionDenied),
+                  content:
+                      Text(AppLocalizations.of(context)!.permissionDeniedInf),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('OK'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+          return false;
+        },
+        onDismissed: (direction) {
+          setState(() {
+            _appointments.remove(appointment);
+          });
+          _removeGroupEvents(event: event);
+        },
+        child: _buildEventContent(event, textColor),
+      ),
+    );
+  }
+
+  Widget _buildEventContent(Event event, Color textColor) {
+    return Container(
+      margin: EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            width: 10,
+            color: ColorManager().getColor(event.eventColorIndex),
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildEventDateRow(event, textColor),
+          SizedBox(height: 3),
+          _buildEventTimeRow(event, textColor),
+          SizedBox(height: 8),
+          _buildEventTitleRow(event, textColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventDateRow(Event event, Color textColor) {
+    return Container(
+      margin: EdgeInsets.only(left: 16),
+      child: Row(
+        children: [
+          Text(
+            AppLocalizationsMethods.of(context)?.formatDate(event.startDate) ??
+                '',
+            style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.bold, color: textColor),
+          ),
+          Text("  -  "),
+          Text(
+            AppLocalizationsMethods.of(context)?.formatDate(event.endDate) ??
+                '',
+            style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.bold, color: textColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventTimeRow(Event event, Color textColor) {
+    return Container(
+      margin: EdgeInsets.only(left: 16),
+      child: Row(
+        children: [
+          Text(
+            AppLocalizationsMethods.of(context)!.formatHours(event.startDate) +
+                "   - ",
+            style: TextStyle(fontSize: 15, color: textColor),
+          ),
+          SizedBox(width: 8),
+          Text(
+            AppLocalizationsMethods.of(context)!.formatHours(event.endDate),
+            style: TextStyle(fontSize: 15, color: textColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventTitleRow(Event event, Color textColor) {
+    return Container(
+      margin: EdgeInsets.only(left: 16),
+      child: Row(
+        children: [
+          Icon(Icons.event,
+              size: 20, color: ColorManager().getColor(event.eventColorIndex)),
+          SizedBox(width: 7),
+          Text(event.title, style: TextStyle(fontSize: 15, color: textColor)),
+          SizedBox(width: 10),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return EventDetail(event: event);
+              }));
+            },
+            child: Icon(Icons.more_rounded,
+                size: 20,
+                color: ColorManager().getColor(event.eventColorIndex)),
+          ),
+          SizedBox(width: 8),
+          Container(
+            height: 20,
+            child: Checkbox(
+              value: event.done,
+              onChanged: (newValue) {
+                setState(() {
+                  event.done = newValue!;
+                  _updateEvent(event);
+                });
               },
             ),
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () {
-                _reloadData();
-              },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNonMonthViewEvent(
+      Event event, CalendarAppointmentDetails details, Color textColor) {
+    return GestureDetector(
+      onTap: () {
+        _editEvent(event, context);
+      },
+      child: Container(
+        width: details.bounds.width,
+        height: details.bounds.height,
+        margin: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          border: Border.all(
+              color: ColorManager().getColor(event.eventColorIndex), width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(2),
+              child: Row(
+                children: [
+                  Text(
+                    '${event.startDate.hour}-${event.startDate.minute}  -',
+                    style: TextStyle(fontSize: 12, color: textColor),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '${event.endDate.hour}-${event.endDate.minute}',
+                    style: TextStyle(fontSize: 12, color: textColor),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Icon(Icons.event_available_rounded,
+                    size: 15,
+                    color: ColorManager().getColor(event.eventColorIndex)),
+                Padding(
+                  padding: EdgeInsets.only(left: 8, right: 8),
+                  child: Text(
+                    event.title,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: textColor),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        drawer: MyDrawer(),
-        body:
-            // Replace TableCalendar with SfCalendar
-            Column(
-          children: [
-            // Calendar widget
-            Container(
-              // height: 360, // Set the desired height for the calendar
-              height: _calendarHeight,
-              child: SfCalendar(
-                allowedViews: [CalendarView.month, CalendarView.schedule],
-                controller: _controller,
-                onViewChanged: (ViewChangedDetails viewChangedDetails) {
-                  Future.delayed(Duration.zero, () {
-                    setState(() {
-                      _selectedView = _controller.view!;
-                    });
-                  });
-                },
-                showNavigationArrow: true,
-                firstDayOfWeek: DateTime.monday,
-                initialSelectedDate: DateTime.now(),
-                view: _selectedView,
-                showDatePickerButton: true,
-                timeZone: 'Europe/Madrid',
-                headerStyle: CalendarHeaderStyle(
-                  textAlign: TextAlign.center, // Center-align the month name
-                ),
-                // Set the initial selected date (or update it when the user selects a date)
-                onSelectionChanged: (CalendarSelectionDetails details) {
-                  if (details.date != null) {
-                    // Use Future.delayed to schedule the state update after the build is complete
-                    Future.delayed(Duration.zero, () {
-                      // Convert the selected date to UTC to ensure consistent comparisons
-                      DateTime selectedDateUtc = details.date!.toUtc();
+      ),
+    );
+  }
 
-                      // Update the selected date when the user selects a date
-                      setState(() {
-                        _selectedDate = selectedDateUtc.toUtc();
-                      });
-
-                      // Fetch events for the selected date (converted to UTC)
-                      _getEventsForDate(selectedDateUtc);
-                    });
-                  }
-                },
-                scheduleViewSettings: ScheduleViewSettings(
-                  appointmentItemHeight: 70,
-                ),
-                viewHeaderStyle: ViewHeaderStyle(
-                  dateTextStyle:
-                      TextStyle(fontFamily: 'lato', color: Colors.black),
-                  backgroundColor: Color.fromARGB(255, 180, 237,
-                      248), // Change the background color of the month header
-                  dayTextStyle: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'lato'), // Customize the text color
-                  // Customize weekend text color
-                ),
-                monthCellBuilder: (context, details) {
-                  // Check if the current date is a weekend (Saturday or Sunday).
-                  if (details.date.weekday == DateTime.saturday ||
-                      details.date.weekday == DateTime.sunday) {
-                    return Container(
-                      color: Color.fromARGB(255, 195, 225,
-                          224), // Change the background color for weekends.
-                      child: Center(
-                        child: Text(
-                          details.date.day.toString(),
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontFamily: 'lato',
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic),
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Container(
-                      color: Color.fromARGB(255, 158, 199,
-                          220), // Use the default background color for other days.
-                      child: Center(
-                        child: Text(details.date.day.toString(),
-                            style: TextStyle(
-                                fontFamily: 'lato', color: Colors.black)),
-                      ),
-                    );
-                  }
-                },
-
-                // Customize other properties as needed
-                monthViewSettings: MonthViewSettings(
-                  showAgenda: true,
-                  agendaItemHeight: 85,
-                  dayFormat: 'EEE',
-                  // agendaViewHeight: 100,
-                  appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
-                  appointmentDisplayCount: 5,
-                  showTrailingAndLeadingDates: false,
-                  navigationDirection: MonthNavigationDirection.vertical,
-                ),
-                appointmentBuilder:
-                    (BuildContext context, CalendarAppointmentDetails details) {
-                  final appointment = details.appointments.first;
-
-                  if (_selectedView == CalendarView.month) {
-                    return FutureBuilder<Event?>(
-                      // future: _storeService.getEventFromGroupById(
-                      //     appointment.id, _group.id),
-                      future: _eventService.getEventById(appointment.id),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return CircularProgressIndicator
-                              .adaptive(); // Loading indicator
-                        } else if (snapshot.hasError) {
-                          return Text(
-                              'Error: ${snapshot.error}'); // Display error message
-                        } else {
-                          final Event? event = snapshot.data;
-                          if (event != null) {
-                            return GestureDetector(
-                              onTap: () {
-                                if (userRole == 'Administrator' ||
-                                    userRole == 'Co-Administrator') {
-                                  _editEvent(event,
-                                      context); // Call your edit event function when the appointment is tapped
-                                }
-                              },
-                              child: Dismissible(
-                                key: Key(appointment.id),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  color: Colors.red,
-                                  alignment: Alignment.centerRight,
-                                  padding: EdgeInsets.symmetric(horizontal: 20),
-                                  child: Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                confirmDismiss: (direction) async {
-                                  if (userRole == 'Administrator' ||
-                                      userRole == 'Co-Administrator') {
-                                    final bool confirm =
-                                        await _showRemoveConfirmationDialog(
-                                            event, context);
-                                    return confirm;
-                                  } else {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text(
-                                              AppLocalizations.of(context)!
-                                                  .permissionDenied),
-                                          content: Text(
-                                              AppLocalizations.of(context)!
-                                                  .permissionDeniedInf),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text('OK'),
-                                              onPressed: () {
-                                                Navigator.of(context)
-                                                    .pop(); // Close the dialog
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  }
-                                  return false;
-                                },
-                                onDismissed: (direction) {
-                                  // Remove the event from the list and update the UI
-                                  setState(() {
-                                    _appointments.remove(appointment);
-                                  });
-
-                                  // Also, remove the event from your data source (Firestore or wherever you're storing events)
-                                  _removeGroupEvents(event: event);
-                                },
-                                child: Container(
-                                    margin: EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                          width: 10,
-                                          color: ColorManager()
-                                              .getColor(event.eventColorIndex),
-                                        ),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.only(
-                                              left: 16), // Add left margin
-                                          child: Row(
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    AppLocalizationsMethods.of(
-                                                                context)
-                                                            ?.formatDate(event
-                                                                .startDate) ??
-                                                        '',
-                                                    style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: textColor,
-                                                    ),
-                                                  ),
-                                                  Text("  -  "),
-                                                  Text(
-                                                    AppLocalizationsMethods.of(
-                                                                context)
-                                                            ?.formatDate(event
-                                                                .endDate) ??
-                                                        '',
-                                                    style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: textColor,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(height: 3),
-                                        Container(
-                                          margin: EdgeInsets.only(
-                                              left: 16), // Add left margin
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                AppLocalizationsMethods.of(
-                                                            context)!
-                                                        .formatHours(
-                                                            event.startDate) +
-                                                    "   - ",
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: textColor,
-                                                ),
-                                              ),
-                                              SizedBox(width: 8),
-                                              Text(
-                                                AppLocalizationsMethods.of(
-                                                        context)!
-                                                    .formatHours(event.endDate),
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: textColor,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Container(
-                                          margin: EdgeInsets.only(
-                                              left: 16), // Add left margin
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.event,
-                                                size: 20,
-                                                color: ColorManager().getColor(
-                                                    event.eventColorIndex),
-                                              ),
-                                              SizedBox(width: 7),
-                                              Text(
-                                                event.title,
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: textColor,
-                                                ),
-                                              ),
-                                              SizedBox(width: 10),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  // Navigate to another view when the second icon is pressed
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) {
-                                                      return EventDetail(
-                                                          event: event);
-                                                    }),
-                                                  );
-                                                },
-                                                child: Icon(
-                                                    Icons
-                                                        .more_rounded, // Replace with your desired icon
-                                                    size:
-                                                        20, // Adjust the size as needed
-                                                    color: ColorManager()
-                                                        .getColor(event
-                                                            .eventColorIndex) // Change the color as needed
-                                                    ),
-                                              ),
-                                              SizedBox(width: 8),
-                                              Container(
-                                                height:
-                                                    20, // Set the desired height for the Checkbox
-                                                child: Checkbox(
-                                                  value: event.done,
-                                                  onChanged: (newValue) {
-                                                    setState(() {
-                                                      event.done = newValue!;
-                                                      _updateEvent(event);
-                                                    });
-                                                  },
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                              ),
-                            );
-                          } else {
-                            return Container(
-                              child: Text(
-                                'No events found for this date',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: textColor,
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    );
-                  } else {
-                    // Retrieve the Event data asynchronously
-                    return FutureBuilder<Event?>(
-                      // future: _storeService.getEventFromGroupById(
-                      //     appointment.id.toString(), _group.id.toString()),
-                      future: _eventService.getEventById(appointment.id),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          // Handle loading state
-                          return CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          // Handle error state
-                          return Text('Error: ${snapshot.error}');
-                        } else {
-                          final event = snapshot.data;
-                          if (event != null) {
-                            // Return your design for other views with the fetched event data
-                            return GestureDetector(
-                              onTap: () {
-                                // Add code to handle appointment editing when tapped
-                                _editEvent(event,
-                                    context); // Replace with your edit appointment function
-                              },
-                              child: Container(
-                                width: details.bounds.width,
-                                height: details.bounds.height,
-                                margin: EdgeInsets.only(bottom: 10),
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: ColorManager()
-                                        .getColor(event.eventColorIndex),
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.all(2),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            '${event.startDate.hour}-${event.startDate.minute}  -',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: textColor,
-                                            ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            '${event.endDate.hour}-${event.endDate.minute}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: textColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.event_available_rounded,
-                                          size: 15,
-                                          color: ColorManager()
-                                              .getColor(event.eventColorIndex),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                              left: 8, right: 8),
-                                          child: Text(
-                                            event.title,
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                              color: textColor,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          } else {
-                            return Text(
-                                'No event data found for this appointment');
-                          }
-                        }
-                      },
-                    );
-                  }
-                },
-                // dataSource: EventDataSource(_events),
-                // Set the data source for the calendar using _getCalendarDataSource()
-                dataSource: MeetingDataSource(_getCalendarDataSource()),
-                // Use the generated appointments
-              ),
-            ),
-            if (userRole == 'Administrator' || userRole == 'Co-Administrator')
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(
-                          25), // Adjust the border radius as needed
-                    ),
-                    width: 50, // Adjust the width of the button
-                    height: 50, // Adjust the height of the button
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 25, // Adjust the icon size as needed
-                      ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.addEvent,
-                            arguments: _userOrGroupObject);
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            SizedBox(
-              height: 15,
-            )
-          ],
-        ));
+  Widget _buildAddEventButton(BuildContext context) {
+    return Expanded(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(25),
+          ),
+          width: 50,
+          height: 50,
+          child: IconButton(
+            icon: Icon(Icons.add, color: Colors.white, size: 25),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.addEvent,
+                  arguments: _userOrGroupObject);
+            },
+          ),
+        ),
+      ),
+    );
   }
 }
