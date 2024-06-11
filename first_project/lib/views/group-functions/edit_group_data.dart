@@ -285,9 +285,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       updatedGroup.invitedUsers = invitations;
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      // await _storeService.updateGroup(updatedGroup);
-      await _providerManagement!.groupService
-          .updateGroup(updatedGroup.id, updatedGroup);
+      await _providerManagement!.updateGroup(updatedGroup);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(

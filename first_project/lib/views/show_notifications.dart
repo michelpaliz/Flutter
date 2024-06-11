@@ -5,11 +5,9 @@ import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:developer' as devtools show log;
+
 import '../models/notification_user.dart';
 import '../models/user.dart';
-import '../services/firebase_ services/auth/logic_backend/auth_service.dart';
-import '../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
 
 class ShowNotifications extends StatefulWidget {
   const ShowNotifications({Key? key}) : super(key: key);
@@ -19,8 +17,6 @@ class ShowNotifications extends StatefulWidget {
 }
 
 class _ShowNotificationsState extends State<ShowNotifications> {
-  late AuthService _authService;
-  late FirestoreService _storeService;
   User? _currentUser;
   ProviderManagement? _providerManagement;
   List<NotificationUser> _notifications = [];
@@ -36,15 +32,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
     // Access ProviderManagement from the context
     _providerManagement = Provider.of<ProviderManagement>(context);
-
     // Initialize services
-    // _storeService = FirestoreService.firebase(_providerManagement);
-    _authService = AuthService.firebase();
     _currentUser = _providerManagement!.currentUser;
-    _notifications = _currentUser!.notifications;
-
-    // Log the size of the notification list
-    // devtools.log('List size: ${_notifications.length}');
+    _notifications = _providerManagement!.currentUser?.notifications;
   }
 
   // Function to remove a notification at a given index
@@ -56,9 +46,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       NotificationUser notification = _currentUser!.notifications[index];
       _currentUser!.notifications.removeAt(index);
       // Remove notification from ProviderManagement
-      _providerManagement!.removeNotification(notification);
-      // await _storeService.updateUser(_currentUser!);
-
+      await _providerManagement!.removeNotification(notification);
       // Use a Completer to handle the asynchronous operation
       Completer<void> completer = Completer<void>();
       completer.future.then((_) {
@@ -82,8 +70,10 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index < _currentUser!.notifications.length) {
       NotificationUser notification = _currentUser!.notifications[index];
       if (notification.question.isNotEmpty) {
-        Group? group = await _storeService.getGroupFromId(notification.id);
-        Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
+        // Group? group = await _storeService.getGroupFromId(notification.id);
+        Group? group = await _providerManagement!.groupService
+            .getGroupById(notification.id);
+        Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
         if (invitedUsers != null) {
           for (final entry in invitedUsers.entries) {
             String userName = entry.key;
@@ -93,8 +83,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
             if (userName == _currentUser!.userName) {
               _currentUser!.notifications[index].isAnswered = true;
               Map<String, String> userRole = {_currentUser!.userName: role};
-              group?.userRoles.addEntries(userRole.entries);
-              _storeService.updateGroup(group!);
+              group.userRoles.addEntries(userRole.entries);
+              // _storeService.updateGroup(group);
+              _providerManagement!.updateGroup(group);
               if (mounted) {
                 setState(() {
                   // Update UI if needed
@@ -123,14 +114,17 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index < _currentUser!.notifications.length) {
       NotificationUser notification = _currentUser!.notifications[index];
       if (notification.question.isNotEmpty) {
-        Group? group = await _storeService.getGroupFromId(notification.id);
-        Map<String, UserInviteStatus>? invitedUsers = group?.invitedUsers;
+        // Group? group = await _storeService.getGroupFromId(notification.id);
+        Group group = await _providerManagement!.groupService
+            .getGroupById(notification.id);
+        Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
         if (invitedUsers != null) {
-          group!.invitedUsers!.remove(_currentUser!.name);
+          group.invitedUsers!.remove(_currentUser!.name);
           _providerManagement!.removeNotification(notification);
         }
         _currentUser!.notifications[index].isAnswered = true;
-        await _storeService.updateUser(_currentUser!);
+        // await _storeService.updateUser(_currentUser!);
+        await _providerManagement!.updateUser(_currentUser!);
         _sendNotificationToAdmin(notification, false);
         if (mounted) {
           setState(() {
@@ -173,18 +167,19 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
 
     // Look up for the admin (owner) who created the group.
-    User? admin = await _storeService.getUserById(notification.ownerId);
+    // User? admin = await _storeService.getUserById(notification.ownerId);
+    User admin = await _providerManagement!.userService
+        .getUserById(notification.ownerId);
 
-    if (admin != null) {
-      // Add the notification to the admin's notifications list.
-      admin.notifications.add(ntOwner);
+    // Add the notification to the admin's notifications list.
+    admin.notifications.add(ntOwner);
 
-      // Update the hasNotification field.
-      admin.hasNewNotifications = true;
+    // Update the hasNotification field.
+    admin.hasNewNotifications = true;
 
-      // Update the admin's information.
-      await _storeService.updateUser(admin);
-    }
+    // Update the admin's information.
+    // await _storeService.updateUser(admin);
+    await _providerManagement!.userService.updateUser(admin);
   }
 
   // Function to remove all notifications
@@ -195,7 +190,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       // Clear notifications locally
       _currentUser!.notifications.clear();
       // Update user data in Firestore
-      await _storeService.updateUser(_currentUser!);
+      // await _storeService.updateUser(_currentUser!);
+      await _providerManagement!.userService.updateUser(_currentUser!);
       if (mounted) {
         setState(() {
           // Update UI if needed

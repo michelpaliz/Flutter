@@ -45,101 +45,81 @@ class _GroupDetailsState extends State<GroupDetails> {
   late Map<String, String> _users;
   String userRole = "";
   late User? _user;
-  late ProviderManagement _providerManagement;
+  late ProviderManagement? _providerManagement;
   late EventService _eventService;
   late bool _dataLoaded = false;
 
   //** Logic for my view */
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _group = widget.group;
+    _users = _group.userRoles;
+    _events = [];
+    _selectedDate = DateTime.now().toUtc();
+    _selectedView = CalendarView.month;
+    _controller = CalendarController();
+    _authService = AuthService.firebase();
+    _appointments = [];
+    _eventService = EventService();
+    _user = _authService.costumeUser;
+    if (_user != null) {
+      userRole = _getRoleByName(_user!.userName)!;
+      _events = _group.calendar.events;
+    }
+    _users = _group.userRoles;
+    _userOrGroupObject = _group;
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_dataLoaded) {
-      _providerManagement = Provider.of<ProviderManagement>(context);
-      _group = widget.group; // Initialize _group here
-
-      // Check if _providerManagement.currentGroup is null or already set to _group
-      if (_providerManagement.currentGroup == null ||
-          _providerManagement.currentGroup != _group) {
-        // Set _providerManagement.currentGroup only if necessary
-        _providerManagement.currentGroup = _group;
-      }
-
-      // Update other state variables as needed
-      _users = _group.userRoles;
-      _events = [];
-      _selectedDate = DateTime.now().toUtc();
-      _selectedView = CalendarView.month;
-      _controller = CalendarController();
-      _authService = AuthService.firebase();
-      _appointments = [];
-      _eventService = EventService();
-      _user = _authService.costumeUser;
-      if (_user != null) {
-        userRole = _getRoleByName(_user!.userName)!;
-        _events = _group.calendar.events;
-      }
-      _users = _group.userRoles;
-      _userOrGroupObject = _group;
-
-      // Defer the call to _updateCalendarDataSource using addPostFrameCallback
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateCalendarDataSource();
-      });
-
-      _dataLoaded = true;
+    _providerManagement = Provider.of<ProviderManagement>(context);
+    if (_providerManagement!.currentGroup != _group) {
+      _group = _providerManagement!.currentGroup!;
+      _events = _group.calendar.events;
     }
   }
-
-  //  @override
-  // void initState() {
-  //   super.initState();
-  //   _initData();
-  // }
-
-  // void _initData() {
-  //   // Check if group update is necessary and update if needed
-  //   if (_shouldUpdateGroup) {
-  //     _providerManagement.currentGroup = widget.group;
-  //   }
-
-  //   _group = widget.group;
-  //   // Reset the flag
-  //   _shouldUpdateGroup = false;
-
-  //   // Initialize other variables...
-  //   _events = [];
-  //   _selectedDate = DateTime.now().toUtc();
-  //   _selectedView = CalendarView.month;
-  //   _controller = CalendarController();
-  //   _authService = AuthService.firebase();
-  //   _appointments = [];
-  //   _eventService = EventService();
-  //   _user = _authService.costumeUser;
-  //   if (_user != null) {
-  //     userRole = _getRoleByName(_user!.userName)!;
-  //     _events = _group.calendar.events;
-  //   }
-
-  //   // Initialize the _users list
-  //   _users = _group.userRoles;
-
-  //   _userOrGroupObject = _group;
-  // }
 
   // @override
   // void didChangeDependencies() {
   //   super.didChangeDependencies();
-  //   _providerManagement = Provider.of<ProviderManagement>(context);
-  //   _group = widget.group; // Initialize _group here
-  //   // Check if _providerManagement.currentGroup is null or already set to _group
-  //   if (_providerManagement.currentGroup == null ||
-  //       _providerManagement.currentGroup == _group) {
-  //     // Set _providerManagement.currentGroup only if necessary
-  //     _providerManagement.currentGroup = _group;
+  //   if (!_dataLoaded) {
+  //     _providerManagement = Provider.of<ProviderManagement>(context);
+  //     _group = widget.group; // Initialize _group here
+
+  //     // Update other state variables as needed
+  //     _users = _group.userRoles;
+  //     _events = [];
+  //     _selectedDate = DateTime.now().toUtc();
+  //     _selectedView = CalendarView.month;
+  //     _controller = CalendarController();
+  //     _authService = AuthService.firebase();
+  //     _appointments = [];
+  //     _eventService = EventService();
+  //     _user = _authService.costumeUser;
+  //     if (_user != null) {
+  //       userRole = _getRoleByName(_user!.userName)!;
+  //       _events = _group.calendar.events;
+  //     }
+  //     _users = _group.userRoles;
+  //     _userOrGroupObject = _group;
+
+  //     // Defer the call to update current group and data source using addPostFrameCallback
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (_providerManagement.currentGroup == null ||
+  //           _providerManagement.currentGroup != _group) {
+  //         // Set _providerManagement.currentGroup only if necessary
+  //         _providerManagement.currentGroup = _group;
+  //         _events = _providerManagement.currentGroup!.calendar.events;
+  //       }
+  //       _updateCalendarDataSource();
+  //     });
+
+  //     _dataLoaded = true;
   //   }
-  //   _updateCalendarDataSource();
   // }
 
   int calculateDaysBetweenDates(DateTime startDate, DateTime endDate) {
@@ -159,7 +139,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   Future<void> _reloadData() async {
     // Group? group = await _storeService.getGroupFromId(_group.id);
     Group? group =
-        await _providerManagement.groupService.getGroupById(_group.id);
+        await _providerManagement!.groupService.getGroupById(_group.id);
     setState(() {
       _appointments = [];
       _group = group;
@@ -198,7 +178,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
     // await _storeService.updateGroup(_group);
-    await _providerManagement.updateGroup(_group);
+    await _providerManagement!.updateGroup(_group);
 
     // Update the UI by removing the event from the list
     setState(() {
@@ -264,8 +244,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   }
 
   List<Appointment> _getCalendarDataSource() {
-    _appointments = <Appointment>[];
-
+    _appointments = [];
     // Iterate through each event
     for (var event in _events) {
       // Check if the event has a recurrence rule

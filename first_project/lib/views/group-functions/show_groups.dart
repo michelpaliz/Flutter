@@ -40,6 +40,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     _currentUser = _providerManagement!.currentUser;
+
     await _fetchAndUpdateGroups();
   }
 
@@ -47,9 +48,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     try {
       List<Group> fetchedGroups = await _providerManagement!.groupService
           .getGroupsByUser(_currentUser!.userName);
-      await Provider.of<ProviderManagement>(context, listen: false).getUser();
-      Provider.of<ProviderManagement>(context, listen: false)
-          .updateGroupStream(fetchedGroups);
+      _providerManagement!.updateGroupStream(fetchedGroups);
       devtools.log(_currentUser!.groupIds.toString());
       devtools.log(fetchedGroups.toString());
     } catch (error) {
@@ -464,6 +463,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               //** GROUP CALENDAR */
               TextButton(
                 onPressed: () {
+                  _providerManagement!.currentGroup = group;
                   Navigator.pushNamed(
                     context,
                     AppRoutes.groupCalendar,

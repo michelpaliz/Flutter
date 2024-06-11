@@ -5,6 +5,7 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/group_services.dart';
+import 'package:first_project/services/node_services/notification_services.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/utilities/notification_formats.dart';
@@ -20,6 +21,7 @@ class ProviderManagement extends ChangeNotifier {
   late NotificationUser notificationUser;
   final UserService userService = UserService();
   final GroupService groupService = GroupService();
+  final NotificationService _notificationService = NotificationService();
 
   // Getters
   User? get currentUser => _currentUser;
@@ -56,7 +58,6 @@ class ProviderManagement extends ChangeNotifier {
       return false;
     }
   }
-
 
   //Setters two ways to set the variables
   void setCurrentUser(User? user) {
@@ -107,7 +108,7 @@ class ProviderManagement extends ChangeNotifier {
       notificationUser = notification.whenCreatingGroup(group, _currentUser!);
       user.notifications.add(notificationUser);
       user.hasNewNotifications = true;
-      addNotification(notificationUser);
+      await addNotification(notificationUser);
       devtools.log("Updated user = ${user.toString()}");
       await updateUser(user);
       return true;
@@ -123,8 +124,8 @@ class ProviderManagement extends ChangeNotifier {
       _groups.removeWhere((g) => g.id == group.id);
       _groupController.add(_groups); // Add updated groups to the stream
       notifyListeners();
-      // _currentUser!.groupIds.remove(group.id);
-      // await updateUser(_currentUser!);
+      _currentUser!.groupIds.remove(group.id);
+      await updateUser(_currentUser!);
       return true;
     } catch (e) {
       print('Failed to add group: $e');
@@ -155,6 +156,8 @@ class ProviderManagement extends ChangeNotifier {
 
     // Update the group
     await groupService.updateGroup(updateGroup.id, updateGroup);
+
+    currentGroup = updateGroup;
 
     // Update the local list of groups
     final index = _groups.indexWhere((g) => g.id == updateGroup.id);
@@ -188,18 +191,36 @@ class ProviderManagement extends ChangeNotifier {
   //** NOTIFICATION FUNCTIONS */
 
   // Methods to update notifications
-  void addNotification(NotificationUser notification) {
-    _notifications.add(notification);
-    _notificationController
-        .add(_notifications); // Add updated notifications to the stream
-    notifyListeners();
+  Future<void> addNotification(NotificationUser notification) async {
+    try {
+      await _notificationService.createNotification(notification);
+      await updateUser(_currentUser!);
+      _notifications.add(notification);
+      _notificationController
+          .add(_notifications); // Add updated notifications to the stream
+      notifyListeners();
+    } catch (e) {
+      print('Failed to add notification: $e');
+    }
   }
 
-  void removeNotification(NotificationUser notification) {
-    _notifications.remove(notification);
-    _notificationController
-        .add(_notifications); // Add updated notifications to the stream
-    notifyListeners();
+  Future<bool> removeNotification(NotificationUser notification) async {
+    try {
+      var result =
+          await _notificationService.deleteNotification(notification.id);
+      if (result) {
+        _currentUser!.notifications.remove(notification.id);
+        await updateUser(_currentUser!);
+        _notifications.remove(notification);
+        _notificationController
+            .add(_notifications); // Add updated notifications to the stream
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      print('Failed to remove notification: $e');
+      return false;
+    }
   }
 
   void clearNotifications() {
