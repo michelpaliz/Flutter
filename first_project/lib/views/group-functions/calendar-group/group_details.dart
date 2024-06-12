@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:first_project/models/custom_day_week.dart';
-import 'package:first_project/models/meeting_data_source.dart';
+import 'package:first_project/models/mettingDataSource.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/node_services/event_services.dart';
@@ -47,7 +47,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   late User? _user;
   late ProviderManagement? _providerManagement;
   late EventService _eventService;
-  late bool _dataLoaded = false;
+  late DataSource dataSource;
 
   //** Logic for my view */
 
@@ -65,9 +65,9 @@ class _GroupDetailsState extends State<GroupDetails> {
     _appointments = [];
     _eventService = EventService();
     _user = _authService.costumeUser;
+    dataSource = new DataSource(_group.calendar.events);
     if (_user != null) {
       userRole = _getRoleByName(_user!.userName)!;
-      _events = _group.calendar.events;
     }
     _users = _group.userRoles;
     _userOrGroupObject = _group;
@@ -80,47 +80,9 @@ class _GroupDetailsState extends State<GroupDetails> {
     if (_providerManagement!.currentGroup != _group) {
       _group = _providerManagement!.currentGroup!;
       _events = _group.calendar.events;
+      _updateCalendarDataSource();
     }
   }
-
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   if (!_dataLoaded) {
-  //     _providerManagement = Provider.of<ProviderManagement>(context);
-  //     _group = widget.group; // Initialize _group here
-
-  //     // Update other state variables as needed
-  //     _users = _group.userRoles;
-  //     _events = [];
-  //     _selectedDate = DateTime.now().toUtc();
-  //     _selectedView = CalendarView.month;
-  //     _controller = CalendarController();
-  //     _authService = AuthService.firebase();
-  //     _appointments = [];
-  //     _eventService = EventService();
-  //     _user = _authService.costumeUser;
-  //     if (_user != null) {
-  //       userRole = _getRoleByName(_user!.userName)!;
-  //       _events = _group.calendar.events;
-  //     }
-  //     _users = _group.userRoles;
-  //     _userOrGroupObject = _group;
-
-  //     // Defer the call to update current group and data source using addPostFrameCallback
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (_providerManagement.currentGroup == null ||
-  //           _providerManagement.currentGroup != _group) {
-  //         // Set _providerManagement.currentGroup only if necessary
-  //         _providerManagement.currentGroup = _group;
-  //         _events = _providerManagement.currentGroup!.calendar.events;
-  //       }
-  //       _updateCalendarDataSource();
-  //     });
-
-  //     _dataLoaded = true;
-  //   }
-  // }
 
   int calculateDaysBetweenDates(DateTime startDate, DateTime endDate) {
     return endDate.difference(startDate).inDays;
@@ -128,7 +90,8 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   void _updateCalendarDataSource() {
     setState(() {
-      _appointments = _getCalendarDataSource();
+      // _appointments = _getCalendarDataSource();
+      dataSource.events = _events;
     });
   }
 
@@ -243,29 +206,29 @@ class _GroupDetailsState extends State<GroupDetails> {
     return eventsForDate;
   }
 
-  List<Appointment> _getCalendarDataSource() {
-    _appointments = [];
-    // Iterate through each event
-    for (var event in _events) {
-      // Check if the event has a recurrence rule
-      if (event.recurrenceRule != null) {
-        // Generate recurring appointments based on the recurrence rule
-        var appointment = _generateRecurringAppointment(event);
-        _appointments.add(appointment);
-      } else {
-        // If the event doesn't have a recurrence rule, add it as a single appointment
-        _appointments.add(Appointment(
-          id: event.id, // Assign a unique ID here
-          startTime: event.startDate,
-          endTime: event.endDate,
-          subject: event.title,
-          color: ColorManager().getColor(event.eventColorIndex),
-        )); // Update eventColorIndex
-      }
-    }
+  // List<Appointment> _getCalendarDataSource() {
+  //   _appointments = [];
+  //   // Iterate through each event
+  //   for (var event in _events) {
+  //     // Check if the event has a recurrence rule
+  //     if (event.recurrenceRule != null) {
+  //       // Generate recurring appointments based on the recurrence rule
+  //       var appointment = _generateRecurringAppointment(event);
+  //       _appointments.add(appointment);
+  //     } else {
+  //       // If the event doesn't have a recurrence rule, add it as a single appointment
+  //       _appointments.add(Appointment(
+  //         id: event.id, // Assign a unique ID here
+  //         startTime: event.startDate,
+  //         endTime: event.endDate,
+  //         subject: event.title,
+  //         color: ColorManager().getColor(event.eventColorIndex),
+  //       )); // Update eventColorIndex
+  //     }
+  //   }
 
-    return _appointments;
-  }
+  //   return _appointments;
+  // }
 
   Appointment _generateRecurringAppointment(Event event) {
     // Get the start date and end date from the event
@@ -464,7 +427,27 @@ class _GroupDetailsState extends State<GroupDetails> {
           }
         },
         scheduleViewSettings: ScheduleViewSettings(
-          appointmentItemHeight: 70,
+          appointmentItemHeight: 150,
+          // weekHeaderSettings: WeekHeaderSettings(
+          //     startDateFormat: 'dd MMM ',
+          //     endDateFormat: 'dd MMM, yy',
+          //     height: 50,
+          //     textAlign: TextAlign.center,
+          //     // backgroundColor: const Color.fromARGB(255, 54, 216, 244),
+          //     weekTextStyle: TextStyle(
+          //       color: Colors.white,
+          //       fontWeight: FontWeight.w400,
+          //       fontSize: 15,
+          //     ))),
+          monthHeaderSettings: MonthHeaderSettings(
+              monthFormat: 'MMMM, yyyy',
+              height: 100,
+              textAlign: TextAlign.left,
+              backgroundColor: Color.fromARGB(255, 3, 87, 102),
+              monthTextStyle: TextStyle(
+                  fontFamily: 'lato',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w400)),
         ),
         viewHeaderStyle: ViewHeaderStyle(
           dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
@@ -485,13 +468,16 @@ class _GroupDetailsState extends State<GroupDetails> {
           appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
           appointmentDisplayCount: 5,
           showTrailingAndLeadingDates: false,
+          
           navigationDirection: MonthNavigationDirection.vertical,
         ),
         appointmentBuilder:
             (BuildContext context, CalendarAppointmentDetails details) {
           return _buildAppointment(details, textColor, context);
         },
-        dataSource: MeetingDataSource(_getCalendarDataSource()),
+        // dataSource: MeetingDataSource(_getCalendarDataSource()),
+
+        dataSource: dataSource,
       ),
     );
   }
@@ -785,6 +771,17 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
               ],
             ),
+            if (event.description != null && event.description!.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Text(
+                  event.description!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: textColor,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
