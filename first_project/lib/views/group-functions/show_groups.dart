@@ -31,6 +31,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   late Color cardBackgroundColor;
   String? _currentRole;
   ProviderManagement? _providerManagement;
+  Group? _groupFetched;
 
   //*LOGIC FOR THE VIEW //
 
@@ -40,6 +41,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     _currentUser = _providerManagement!.currentUser;
+    _groupFetched = _providerManagement!.currentGroup!;
 
     await _fetchAndUpdateGroups();
   }
@@ -463,7 +465,13 @@ class _ShowGroupsState extends State<ShowGroups> {
               //** GROUP CALENDAR */
               TextButton(
                 onPressed: () {
-                  _providerManagement!.currentGroup = group;
+                  if (_groupFetched != _providerManagement!.currentGroup &&
+                      _groupFetched!.id.isNotEmpty) {
+                    group = _groupFetched!;
+                  } else {
+                    _providerManagement!.currentGroup = group;
+                  }
+
                   Navigator.pushNamed(
                     context,
                     AppRoutes.groupCalendar,
