@@ -6,6 +6,7 @@ import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/utilities/color_manager.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -103,7 +104,7 @@ class _GroupDetailsState extends State<GroupDetails> {
         // Replace the old event with the updated one
         _events[index] = updatedEvent;
         _group.calendar.events = _events;
-        _providerManagement!.currentGroup = _group; 
+        _providerManagement!.currentGroup = _group;
         _updateCalendarDataSource();
       }
     } catch (error) {
@@ -439,6 +440,48 @@ class _GroupDetailsState extends State<GroupDetails> {
             });
           }
         },
+
+        scheduleViewMonthHeaderBuilder: (BuildContext buildContext,
+            ScheduleViewMonthHeaderDetails details) {
+          final String monthName = Utilities.getMonthDate(details.date.month);
+          return Padding(
+            padding: const EdgeInsets.all(8.0), // Adjust the padding as needed
+            child: Stack(
+              children: [
+                Image(
+                  image: ExactAssetImage(
+                      'assets/images/' + monthName.toLowerCase() + '.png'),
+                  fit: BoxFit.cover,
+                  width: details.bounds.width,
+                  height: details.bounds.height,
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 20,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0), // Add padding to the text
+                      color: Colors.grey[200],
+                      child: Text(
+                        monthName + ' ' + details.date.year.toString(),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          );
+        },
+
         scheduleViewSettings: ScheduleViewSettings(
           appointmentItemHeight: 150,
           // weekHeaderSettings: WeekHeaderSettings(

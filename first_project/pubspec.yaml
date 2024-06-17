@@ -77,6 +77,18 @@ flutter:
     - assets/images/person_profile.png
     - assets/images/profile.jpg
     - assets/images/default_profile.png
+    - assets/images/january.png
+    - assets/images/february.png
+    - assets/images/march.png
+    - assets/images/april.png
+    - assets/images/may.png
+    - assets/images/june.png
+    - assets/images/july.png
+    - assets/images/august.png
+    - assets/images/september.png
+    - assets/images/october.png
+    - assets/images/november.png
+    - assets/images/december.png
   fonts:
     - family: bagel
       fonts:

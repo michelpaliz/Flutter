@@ -22,10 +22,12 @@ class ProviderManagement extends ChangeNotifier {
   final UserService userService = UserService();
   final GroupService groupService = GroupService();
   final NotificationService _notificationService = NotificationService();
+  List<Group>? _currentGroups;
 
   // Getters
   User? get currentUser => _currentUser;
   Group? get currentGroup => _currentGroup;
+  List<Group>? get currentGroups => _currentGroups;
   ThemeData get themeData => _themeData;
 
   //** CONTROLLER FOR MY GROUPS  */
@@ -67,6 +69,11 @@ class ProviderManagement extends ChangeNotifier {
 
   set currentGroup(Group? group) {
     _currentGroup = group;
+    notifyListeners();
+  }
+
+  set currentGroupList(List<Group>? groups) {
+    _currentGroups = groups;
     notifyListeners();
   }
 

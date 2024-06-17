@@ -32,6 +32,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   String? _currentRole;
   ProviderManagement? _providerManagement;
   Group? _groupFetched;
+  List<Group>? _groupListFetched;
 
   //*LOGIC FOR THE VIEW //
 
@@ -41,18 +42,26 @@ class _ShowGroupsState extends State<ShowGroups> {
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
     _currentUser = _providerManagement!.currentUser;
-    _groupFetched = _providerManagement!.currentGroup!;
+    if (_providerManagement?.currentGroup != null) {
+      _groupFetched = _providerManagement!.currentGroup!;
+    }
 
-    await _fetchAndUpdateGroups();
+    if (_providerManagement?.currentGroups != null &&
+        _providerManagement?.currentGroups != _groupListFetched) {
+      _groupListFetched = _providerManagement!.currentGroups;
+      _providerManagement!.updateGroupStream(_groupListFetched!);
+    } else {
+      _fetchAndUpdateGroups();
+    }
   }
 
   Future<void> _fetchAndUpdateGroups() async {
     try {
-      List<Group> fetchedGroups = await _providerManagement!.groupService
+      _groupListFetched = await _providerManagement!.groupService
           .getGroupsByUser(_currentUser!.userName);
-      _providerManagement!.updateGroupStream(fetchedGroups);
+      _providerManagement!.updateGroupStream(_groupListFetched!);
       devtools.log(_currentUser!.groupIds.toString());
-      devtools.log(fetchedGroups.toString());
+      devtools.log(_groupListFetched.toString());
     } catch (error) {
       print('Error fetching and updating groups: $error');
     }
@@ -466,7 +475,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               TextButton(
                 onPressed: () {
                   if (_groupFetched != _providerManagement!.currentGroup &&
-                      _groupFetched!.id.isNotEmpty) {
+                      _groupFetched != null) {
                     group = _groupFetched!;
                   } else {
                     _providerManagement!.currentGroup = group;
