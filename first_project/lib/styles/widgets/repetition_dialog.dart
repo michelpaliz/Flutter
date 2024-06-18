@@ -231,9 +231,9 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
           if (repeatInterval == 0) {
             return AppLocalizations.of(context)!.specifyRepeatInterval;
           }
-          if (_selectedStartDate.day != _selectedEndDate.day) {
-            return AppLocalizations.of(context)!.datesMustBeSame;
-          }
+          // if (_selectedStartDate.day != _selectedEndDate.day) {
+          //   return AppLocalizations.of(context)!.datesMustBeSame;
+          // }
           if (untilDate == null) {
             return AppLocalizations.of(context)!.untilDate;
           }

@@ -120,35 +120,45 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     );
 
     // Get the group and event list
-    // _group = await _getGroup();
     _eventList = _group.calendar.events;
 
     // Check if the start date has changed
     bool startDateChanged = _event.startDate != _selectedStartDate;
 
-    bool isStartHourUnique = _eventList.every((e) {
-      // Allow the current event's start date if it hasn't changed
-      if (!startDateChanged && e.id == _event.id) {
-        return true;
-      }
-
-      // Ensure unique start dates for other events or if the start date has changed
-      return e.startDate != _selectedStartDate;
-    });
-
     bool allowRepetitiveHours = _group.repetitiveEvents;
 
-    if (isStartHourUnique || allowRepetitiveHours) {
+    bool isStartHourUnique = true;
+
+    if (allowRepetitiveHours) {
+      // Extract the date part for comparison
+      DateTime startDateOnly = DateTime(_selectedStartDate.year,
+          _selectedStartDate.month, _selectedStartDate.day);
+
+      isStartHourUnique = _eventList.every((e) {
+        DateTime eventStartDateOnly =
+            DateTime(e.startDate.year, e.startDate.month, e.startDate.day);
+
+        // Allow the current event's start date if it hasn't changed
+        if (!startDateChanged && e.id == _event.id) {
+          return true;
+        }
+
+        // Ensure unique start dates for other events on the same day if the start date has changed
+        return eventStartDateOnly != startDateOnly;
+      });
+    }
+
+    if (isStartHourUnique || !allowRepetitiveHours) {
       try {
         await _eventService.updateEvent(updatedEvent.id, updatedEvent);
-        // You can handle success or navigate back to the previous screen
+        // Handle success or navigate back to the previous screen
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
         );
 
-        //We need to fetch the updated group
+        // Fetch the updated group
         _group = await _providerManagement.groupService.getGroupById(_group.id);
-        //We update the group with new update list of events
+        // Update the group with the new list of events
         _providerManagement.currentGroup = _group;
         // Navigator.pop(context, updatedEvent);
       } catch (error) {
@@ -159,6 +169,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
         );
       }
     } else {
+      // Show alert dialog if conditions are not met
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -197,22 +208,30 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
       if (pickedTime != null) {
         setState(() {
+          // Combine the selected date and time
+          DateTime newDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+
+          // Use the intl package to handle the time zone correctly
+          final localTimeZone =
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(newDateTime);
+          newDateTime =
+              DateFormat('yyyy-MM-dd HH:mm:ss').parse(localTimeZone, true);
+
+          // Add debug print statements
+          print("Selected Date: $pickedDate");
+          print("Selected Time: $pickedTime");
+          print("Combined DateTime: $newDateTime");
+
           if (isStartDate) {
-            _selectedStartDate = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
+            _selectedStartDate = newDateTime;
           } else {
-            _selectedEndDate = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
+            _selectedEndDate = newDateTime;
           }
         });
       }

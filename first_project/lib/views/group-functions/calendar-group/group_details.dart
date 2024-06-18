@@ -10,6 +10,7 @@ import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -220,132 +221,6 @@ class _GroupDetailsState extends State<GroupDetails> {
     return eventsForDate;
   }
 
-  // List<Appointment> _getCalendarDataSource() {
-  //   _appointments = [];
-  //   // Iterate through each event
-  //   for (var event in _events) {
-  //     // Check if the event has a recurrence rule
-  //     if (event.recurrenceRule != null) {
-  //       // Generate recurring appointments based on the recurrence rule
-  //       var appointment = _generateRecurringAppointment(event);
-  //       _appointments.add(appointment);
-  //     } else {
-  //       // If the event doesn't have a recurrence rule, add it as a single appointment
-  //       _appointments.add(Appointment(
-  //         id: event.id, // Assign a unique ID here
-  //         startTime: event.startDate,
-  //         endTime: event.endDate,
-  //         subject: event.title,
-  //         color: ColorManager().getColor(event.eventColorIndex),
-  //       )); // Update eventColorIndex
-  //     }
-  //   }
-
-  //   return _appointments;
-  // }
-
-  // Appointment _generateRecurringAppointment(Event event) {
-  //   // Get the start date and end date from the event
-  //   final startDate = event.startDate;
-  //   final endDate = event.endDate;
-
-  //   // Calculate the number of days between startDate and endDate (avoiding leap years)
-  //   final count = _calculateDaysBetweenDatesAvoidLeapYears(startDate, endDate);
-
-  //   // Get the recurrence rule details
-  //   final recurrenceRule = event.recurrenceRule;
-
-  //   devtools.log('Recurrence Rule is ---- $recurrenceRule'.toString());
-
-  //   // Extract recurrence information from the RecurrenceRule object
-  //   final recurrenceType = recurrenceRule?.recurrenceType.name;
-  //   final repeatInterval = recurrenceRule?.repeatInterval;
-  //   final untilDate = recurrenceRule?.untilDate;
-
-  //   // Define a list of specific days of the week for weekly recurrence
-  //   final List<String> weeklyDays = [];
-  //   final daysOfWeek = recurrenceRule?.daysOfWeek;
-  //   if (daysOfWeek != null) {
-  //     for (var e in daysOfWeek) {
-  //       final abbreviation = CustomDayOfWeek.getPattern(e.name.toString());
-  //       print('abbreviation ---- $abbreviation');
-  //       weeklyDays.add(abbreviation);
-  //     }
-  //   }
-
-  //   // Create a new instance of Appointment for the specific instance
-  //   final appointment = Appointment(
-  //     id: event.id, // Generate a unique ID for the appointment
-  //     startTime: startDate.toUtc(), // Generate
-  //     endTime: endDate.toUtc(), // Generate
-  //     // startTimeZone: 'Europe/Madrid',
-  //     // endTimeZone: 'Europe/Madrid',
-  //     subject: event.description ?? "",
-  //     color: ColorManager().getColor(event.eventColorIndex),
-  //   );
-
-  //   // Create a recurrence rule string pattern
-  //   String recurrenceRuleString = '';
-  //   if (recurrenceType == 'Daily') {
-  //     recurrenceRuleString = 'FREQ=DAILY;INTERVAL=$repeatInterval';
-  //   } else if (recurrenceType == 'Weekly' && weeklyDays.isNotEmpty) {
-  //     recurrenceRuleString = 'FREQ=WEEKLY;INTERVAL=$repeatInterval;BYDAY=';
-  //     final daysOfWeekString = weeklyDays.join(',');
-  //     recurrenceRuleString += daysOfWeekString;
-  //   } else if (recurrenceType == 'Monthly') {
-  //     recurrenceRuleString = 'FREQ=MONTHLY;INTERVAL=$repeatInterval';
-
-  //     // Add the BYMONTHDAY rule based on the day of the month from the start date
-  //     final dayOfMonth = startDate.day;
-  //     recurrenceRuleString += ';BYMONTHDAY=$dayOfMonth';
-  //   } else if (recurrenceType == 'Yearly') {
-  //     recurrenceRuleString = 'FREQ=YEARLY;INTERVAL=$repeatInterval';
-
-  //     // Add the BYMONTH rule based on the month index from the start date
-  //     final monthIndex = startDate.month;
-  //     recurrenceRuleString += ';BYMONTH=$monthIndex';
-
-  //     // Add the BYMONTHDAY rule based on the day of the month from the start date
-  //     final dayOfMonth = startDate.day;
-  //     recurrenceRuleString += ';BYMONTHDAY=$dayOfMonth';
-  //   }
-
-  //   // Add the "UNTIL" parameter if "untilDate" is specified
-  //   if (untilDate != null) {
-  //     final untilDateString = DateFormat('yyyyMMddTHHmmss').format(untilDate);
-  //     recurrenceRuleString += ';UNTIL=$untilDateString';
-  //   }
-
-  //   // Add the "COUNT" parameter only if count is greater than 0
-  //   if (count > 0) {
-  //     recurrenceRuleString += ';COUNT=$count';
-  //   }
-
-  //   appointment.recurrenceRule = recurrenceRuleString;
-
-  //   print('This is the recurrence rule: $appointment.recurrenceRule');
-
-  //   return appointment;
-  // }
-
-  // int _calculateDaysBetweenDatesAvoidLeapYears(
-  //     DateTime startDate, DateTime endDate) {
-  //   int count = 0;
-  //   DateTime currentDate = startDate;
-
-  //   while (currentDate.isBefore(endDate) ||
-  //       currentDate.isAtSameMomentAs(endDate)) {
-  //     count++;
-  //     currentDate = currentDate.add(Duration(days: 1));
-  //     if (currentDate.month == 2 && currentDate.day == 29) {
-  //       // Skip leap year day
-  //       currentDate = DateTime(currentDate.year + 1, 3, 1);
-  //     }
-  //   }
-
-  //   return count;
-  // }
-
   //** UI FOR THE VIEW */
 
   @override
@@ -440,7 +315,6 @@ class _GroupDetailsState extends State<GroupDetails> {
             });
           }
         },
-
         scheduleViewMonthHeaderBuilder: (BuildContext buildContext,
             ScheduleViewMonthHeaderDetails details) {
           final String monthName = Utilities.getMonthDate(details.date.month);
@@ -481,7 +355,6 @@ class _GroupDetailsState extends State<GroupDetails> {
             ),
           );
         },
-
         scheduleViewSettings: ScheduleViewSettings(
           appointmentItemHeight: 150,
           // weekHeaderSettings: WeekHeaderSettings(
@@ -521,8 +394,8 @@ class _GroupDetailsState extends State<GroupDetails> {
           showAgenda: true,
           agendaItemHeight: 85,
           dayFormat: 'EEE',
-          appointmentDisplayMode: MonthAppointmentDisplayMode.values.first,
-          appointmentDisplayCount: 5,
+          appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
+          appointmentDisplayCount: 4,
           showTrailingAndLeadingDates: false,
           navigationDirection: MonthNavigationDirection.vertical,
         ),
@@ -530,8 +403,6 @@ class _GroupDetailsState extends State<GroupDetails> {
             (BuildContext context, CalendarAppointmentDetails details) {
           return _buildAppointment(details, textColor, context);
         },
-        // dataSource: MeetingDataSource(_getCalendarDataSource()),
-
         dataSource: dataSource,
       ),
     );
@@ -798,12 +669,12 @@ class _GroupDetailsState extends State<GroupDetails> {
               child: Row(
                 children: [
                   Text(
-                    '${event.startDate.hour}-${event.startDate.minute}  -',
+                    '${DateFormat.jm().format(event.startDate)} -',
                     style: TextStyle(fontSize: 12, color: textColor),
                   ),
                   SizedBox(width: 8),
                   Text(
-                    '${event.endDate.hour}-${event.endDate.minute}',
+                    '${DateFormat.jm().format(event.endDate)}',
                     style: TextStyle(fontSize: 12, color: textColor),
                   ),
                 ],

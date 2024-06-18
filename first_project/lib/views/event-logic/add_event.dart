@@ -138,22 +138,30 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
       if (pickedTime != null) {
         setState(() {
+          // Combine the selected date and time
+          DateTime newDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+
+          // Use the intl package to handle the time zone correctly
+          final localTimeZone =
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(newDateTime);
+          newDateTime =
+              DateFormat('yyyy-MM-dd HH:mm:ss').parse(localTimeZone, true);
+
+          // Add debug print statements
+          print("Selected Date: $pickedDate");
+          print("Selected Time: $pickedTime");
+          print("Combined DateTime: $newDateTime");
+
           if (isStartDate) {
-            _selectedStartDate = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
+            _selectedStartDate = newDateTime;
           } else {
-            _selectedEndDate = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
+            _selectedEndDate = newDateTime;
           }
         });
       }
@@ -183,16 +191,17 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
       );
 
+      bool allowRepetitiveHours = _group!.repetitiveEvents;
       // Log new event details
       devtools.log("New Event: ${newEvent.startDate.toIso8601String()}");
 
       // Log the event list before checking
       devtools.log("Event list before checking: ${_eventList.toString()}");
 
-      // Only check for duplicates if the list is not empty
       bool eventExists = false;
-      if (_eventList.isNotEmpty) {
+      if (allowRepetitiveHours && _eventList.isNotEmpty) {
         eventExists = _eventList.any((event) {
+          // Compare the events' start dates only if the event is on the same day as the new event
           return event.startDate.year == newEvent.startDate.year &&
               event.startDate.month == newEvent.startDate.month &&
               event.startDate.day == newEvent.startDate.day &&

@@ -4,7 +4,8 @@
         "ARGB",
         "BYMONTH",
         "BYMONTHDAY",
-        "Firestore"
+        "Firestore",
+        "lato"
     ],
     "editor.codeActionsOnSave": {
         
