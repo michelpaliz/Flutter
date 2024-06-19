@@ -31,7 +31,6 @@ class _ShowGroupsState extends State<ShowGroups> {
   late Color cardBackgroundColor;
   String? _currentRole;
   ProviderManagement? _providerManagement;
-  Group? _groupFetched;
   List<Group>? _groupListFetched;
 
   //*LOGIC FOR THE VIEW //
@@ -39,32 +38,54 @@ class _ShowGroupsState extends State<ShowGroups> {
   @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
+
+    // Retrieve provider management instance
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
-    _currentUser = _providerManagement!.currentUser;
-    if (_providerManagement?.currentGroup != null) {
-      _groupFetched = _providerManagement!.currentGroup!;
+
+    // Check and set the current user
+    _currentUser = _providerManagement?.currentUser;
+    if (_currentUser == null) {
+      // Handle the case where currentUser is null, if necessary
+      return;
     }
 
+    // Fetch and update groups if the group list has changed
     if (_providerManagement?.currentGroups != null &&
         _providerManagement?.currentGroups != _groupListFetched) {
-      _groupListFetched = _providerManagement!.currentGroups;
-      _providerManagement!.updateGroupStream(_groupListFetched!);
+      _updateGroups(_providerManagement!.currentGroups!);
     } else {
-      _fetchAndUpdateGroups();
+      await _fetchAndUpdateGroups();
     }
   }
 
   Future<void> _fetchAndUpdateGroups() async {
+    if (_currentUser == null || _providerManagement == null) {
+      // Handle cases where currentUser or providerManagement is null
+      return;
+    }
+
     try {
+      // Fetch groups for the current user
       _groupListFetched = await _providerManagement!.groupService
           .getGroupsByUser(_currentUser!.userName);
-      _providerManagement!.updateGroupStream(_groupListFetched!);
-      devtools.log(_currentUser!.groupIds.toString());
-      devtools.log(_groupListFetched.toString());
-    } catch (error) {
+
+      // Update the group stream with the fetched groups
+      _updateGroups(_groupListFetched!);
+
+      // Log the user's group IDs and fetched groups for debugging
+      devtools.log('User Group IDs: ${_currentUser!.groupIds}');
+      devtools.log('Fetched Groups: $_groupListFetched');
+    } catch (error, stackTrace) {
+      // Log the error with the stack trace for better debugging
       print('Error fetching and updating groups: $error');
+      devtools.log('StackTrace: $stackTrace');
     }
+  }
+
+  void _updateGroups(List<Group> groups) {
+    _groupListFetched = groups;
+    _providerManagement!.updateGroupStream(_groupListFetched!);
   }
 
   void _toggleScrollDirection() {
@@ -474,17 +495,18 @@ class _ShowGroupsState extends State<ShowGroups> {
               //** GROUP CALENDAR */
               TextButton(
                 onPressed: () {
-                  if (_groupFetched != _providerManagement!.currentGroup &&
-                      _groupFetched != null) {
-                    group = _groupFetched!;
+                  Group? groupFetched;
+
+                  if (_providerManagement!.currentGroup != null) {
+                    groupFetched = _providerManagement!.currentGroup!;
                   } else {
                     _providerManagement!.currentGroup = group;
+                    groupFetched = _providerManagement!.currentGroup;
                   }
-
                   Navigator.pushNamed(
                     context,
                     AppRoutes.groupCalendar,
-                    arguments: group,
+                    arguments: groupFetched,
                   );
                 },
                 child: Row(

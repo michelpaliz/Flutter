@@ -46,8 +46,23 @@ class ProviderManagement extends ChangeNotifier {
 
   //** GROUPS FUNCTIONS  */
   // Method to update the group stream with the latest list of groups
+  // void updateGroupStream(List<Group> groups) {
+  //   _groupController.add(groups);
+  //   notifyListeners();
+  //   //Update here the current group based on the id using the updated list
+
+  // }
+
+  //** GROUPS FUNCTIONS  */
+  // Method to update the group stream with the latest list of groups
   void updateGroupStream(List<Group> groups) {
+    _currentGroups = groups;
     _groupController.add(groups);
+    // Update the current group based on the id using the updated list
+    if (_currentGroup != null) {
+      _currentGroup =
+          groups.firstWhere((group) => group.id == _currentGroup!.id);
+    }
     notifyListeners();
   }
 

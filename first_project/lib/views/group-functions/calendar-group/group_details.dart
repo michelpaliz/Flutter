@@ -285,7 +285,11 @@ class _GroupDetailsState extends State<GroupDetails> {
         allowedViews: [
           CalendarView.month,
           CalendarView.schedule,
-          CalendarView.day
+          CalendarView.day,
+          CalendarView.week,
+          CalendarView.timelineDay,
+          CalendarView.timelineWeek,
+          CalendarView.timelineMonth,
         ],
         controller: _controller,
         onViewChanged: (ViewChangedDetails viewChangedDetails) {
@@ -302,7 +306,7 @@ class _GroupDetailsState extends State<GroupDetails> {
         showDatePickerButton: true,
         timeZone: 'Europe/Madrid',
         headerStyle: CalendarHeaderStyle(
-          textAlign: TextAlign.center, // Center-align the month name
+          textAlign: TextAlign.center,
         ),
         onSelectionChanged: (CalendarSelectionDetails details) {
           if (details.date != null) {
@@ -319,7 +323,7 @@ class _GroupDetailsState extends State<GroupDetails> {
             ScheduleViewMonthHeaderDetails details) {
           final String monthName = Utilities.getMonthDate(details.date.month);
           return Padding(
-            padding: const EdgeInsets.all(8.0), // Adjust the padding as needed
+            padding: const EdgeInsets.all(8.0),
             child: Stack(
               children: [
                 Image(
@@ -336,8 +340,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   bottom: 0,
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0), // Add padding to the text
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       color: Colors.grey[200],
                       child: Text(
                         monthName + ' ' + details.date.year.toString(),
@@ -357,26 +360,17 @@ class _GroupDetailsState extends State<GroupDetails> {
         },
         scheduleViewSettings: ScheduleViewSettings(
           appointmentItemHeight: 150,
-          // weekHeaderSettings: WeekHeaderSettings(
-          //     startDateFormat: 'dd MMM ',
-          //     endDateFormat: 'dd MMM, yy',
-          //     height: 50,
-          //     textAlign: TextAlign.center,
-          //     // backgroundColor: const Color.fromARGB(255, 54, 216, 244),
-          //     weekTextStyle: TextStyle(
-          //       color: Colors.white,
-          //       fontWeight: FontWeight.w400,
-          //       fontSize: 15,
-          //     ))),
           monthHeaderSettings: MonthHeaderSettings(
-              monthFormat: 'MMMM, yyyy',
-              height: 100,
-              textAlign: TextAlign.left,
-              backgroundColor: Color.fromARGB(255, 3, 87, 102),
-              monthTextStyle: TextStyle(
-                  fontFamily: 'lato',
-                  fontSize: 22,
-                  fontWeight: FontWeight.w400)),
+            monthFormat: 'MMMM, yyyy',
+            height: 100,
+            textAlign: TextAlign.left,
+            backgroundColor: Color.fromARGB(255, 3, 87, 102),
+            monthTextStyle: TextStyle(
+              fontFamily: 'lato',
+              fontSize: 22,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
         ),
         viewHeaderStyle: ViewHeaderStyle(
           dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
@@ -401,11 +395,63 @@ class _GroupDetailsState extends State<GroupDetails> {
         ),
         appointmentBuilder:
             (BuildContext context, CalendarAppointmentDetails details) {
-          return _buildAppointment(details, textColor, context);
+          switch (_controller.view) {
+            case CalendarView.week:
+              return _buildWeekAppointment(details, textColor, context);
+            case CalendarView.timelineDay:
+              return _buildTimelineDayAppointment(details, textColor, context);
+            case CalendarView.timelineWeek:
+              return _buildTimelineWeekAppointment(details, textColor, context);
+            case CalendarView.timelineMonth:
+              return _buildTimelineMonthAppointment(
+                  details, textColor, context);
+            default:
+              return _buildAppointment(details, textColor, context);
+          }
         },
         dataSource: dataSource,
       ),
     );
+  }
+
+  Widget _buildWeekAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    // Custom layout for week view
+    return Container(
+        // Customize your week appointment layout here
+        );
+  }
+
+  Widget _buildTimelineDayAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    // Custom layout for timeline day view
+    return Container(
+        // Customize your timeline day appointment layout here
+        );
+  }
+
+  Widget _buildTimelineWeekAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    // Custom layout for timeline week view
+    return Container(
+        // Customize your timeline week appointment layout here
+        );
+  }
+
+  Widget _buildTimelineMonthAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    // Custom layout for timeline month view
+    return Container(
+        // Customize your timeline month appointment layout here
+        );
+  }
+
+  Widget _buildDefaultAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    // Default layout for other views
+    return Container(
+        // Customize your default appointment layout here
+        );
   }
 
   Widget _buildMonthCell(MonthCellDetails details) {
