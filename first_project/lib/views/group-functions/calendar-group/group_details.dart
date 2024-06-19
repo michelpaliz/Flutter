@@ -406,52 +406,12 @@ class _GroupDetailsState extends State<GroupDetails> {
               return _buildTimelineMonthAppointment(
                   details, textColor, context);
             default:
-              return _buildAppointment(details, textColor, context);
+              return _defaultBuildAppointment(details, textColor, context);
           }
         },
         dataSource: dataSource,
       ),
     );
-  }
-
-  Widget _buildWeekAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context) {
-    // Custom layout for week view
-    return Container(
-        // Customize your week appointment layout here
-        );
-  }
-
-  Widget _buildTimelineDayAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context) {
-    // Custom layout for timeline day view
-    return Container(
-        // Customize your timeline day appointment layout here
-        );
-  }
-
-  Widget _buildTimelineWeekAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context) {
-    // Custom layout for timeline week view
-    return Container(
-        // Customize your timeline week appointment layout here
-        );
-  }
-
-  Widget _buildTimelineMonthAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context) {
-    // Custom layout for timeline month view
-    return Container(
-        // Customize your timeline month appointment layout here
-        );
-  }
-
-  Widget _buildDefaultAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context) {
-    // Default layout for other views
-    return Container(
-        // Customize your default appointment layout here
-        );
   }
 
   Widget _buildMonthCell(MonthCellDetails details) {
@@ -484,8 +444,150 @@ class _GroupDetailsState extends State<GroupDetails> {
     }
   }
 
-  Widget _buildAppointment(CalendarAppointmentDetails details, Color textColor,
-      BuildContext context) {
+  //!NON-DEFAULTS METHODS/VIEWS FOR THE CALENDAR
+
+  Widget _buildWeekAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    final appointment = details.appointments.first;
+    return _buildFutureEventContent(
+        appointment.id, textColor, context, appointment);
+  }
+
+  Widget _buildTimelineDayAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    final appointment = details.appointments.first;
+    return _buildFutureEventContent(
+        appointment.id, textColor, context, appointment);
+  }
+
+  Widget _buildTimelineWeekAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    final appointment = details.appointments.first;
+    return _buildFutureEventContent(
+        appointment.id, textColor, context, appointment);
+  }
+
+  Widget _buildTimelineMonthAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
+    final appointment = details.appointments.first;
+    return _buildFutureEventContent(
+        appointment.id, textColor, context, appointment);
+  }
+
+  Widget _buildFutureEventContent(
+      String eventId, Color textColor, BuildContext context, appointment) {
+    return FutureBuilder<Event?>(
+      future: _fetchEvent(eventId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator.adaptive();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          final Event? event = snapshot.data;
+          if (event != null) {
+            return _buildEventDetails(event, context, textColor, appointment);
+          } else {
+            return Container(
+              child: Text(
+                'No events found for this date',
+                style: TextStyle(fontSize: 16, color: textColor),
+              ),
+            );
+          }
+        }
+      },
+    );
+  }
+
+  Future<Event?> _fetchEvent(String eventId) {
+    return _eventService.getEventById(eventId);
+  }
+
+  //**Content for my appointment view.
+  Widget _buildEventContent(Event event, Color textColor) {
+    return Container(
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: ColorManager().getColor(event.eventColorIndex),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            event.title,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 9,
+              overflow: TextOverflow.ellipsis,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventDetails(
+      Event event, BuildContext context, Color textColor, appointment) {
+    return GestureDetector(
+      onTap: () {
+        if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+          _editEvent(event, context);
+        }
+      },
+      child: Dismissible(
+        key: Key(appointment.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          color: Colors.red,
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Icon(Icons.delete, color: Colors.white),
+        ),
+        confirmDismiss: (direction) async {
+          if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+            final bool confirm =
+                await _showRemoveConfirmationDialog(event, context);
+            return confirm;
+          } else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.permissionDenied),
+                  content:
+                      Text(AppLocalizations.of(context)!.permissionDeniedInf),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('OK'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            return false;
+          }
+        },
+        onDismissed: (direction) {
+          setState(() {
+            _appointments.remove(appointment);
+          });
+          _removeGroupEvents(event: event);
+        },
+        child: _buildEventContent(event, textColor),
+      ),
+    );
+  }
+
+  //!DEFAULT METHOD/VIEW FOR MY CALENDAR VIEW
+
+  Widget _defaultBuildAppointment(CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
     final appointment = details.appointments.first;
     if (_selectedView == CalendarView.month) {
       return FutureBuilder<Event?>(
@@ -498,7 +600,8 @@ class _GroupDetailsState extends State<GroupDetails> {
           } else {
             final Event? event = snapshot.data;
             if (event != null) {
-              return _buildEventDetails(event, context, textColor, appointment);
+              return _defaultBuildEventDetails(
+                  event, context, textColor, appointment);
             } else {
               return Container(
                 child: Text(
@@ -531,7 +634,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     }
   }
 
-  Widget _buildEventDetails(
+  Widget _defaultBuildEventDetails(
       Event event, BuildContext context, Color textColor, appointment) {
     return GestureDetector(
       onTap: () {
@@ -581,12 +684,12 @@ class _GroupDetailsState extends State<GroupDetails> {
           });
           _removeGroupEvents(event: event);
         },
-        child: _buildEventContent(event, textColor),
+        child: _defaultBuildEventContent(event, textColor),
       ),
     );
   }
 
-  Widget _buildEventContent(Event event, Color textColor) {
+  Widget _defaultBuildEventContent(Event event, Color textColor) {
     return Container(
       margin: EdgeInsets.all(5),
       decoration: BoxDecoration(
