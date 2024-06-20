@@ -57,8 +57,8 @@ class Event {
 
     return Event(
       id: json['id'],
-      startDate: DateTime.parse(json['startDate']),
-      endDate: DateTime.parse(json['endDate']),
+      startDate: DateTime.parse(json['startDate']).toUtc(),
+      endDate: DateTime.parse(json['endDate']).toUtc(),
       title: json['title'] ?? '',
       groupId: json['groupId'],
       done: json['done'] ?? false,

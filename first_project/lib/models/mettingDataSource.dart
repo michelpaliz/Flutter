@@ -39,8 +39,8 @@ class DataSource extends CalendarDataSource<Event> {
   Event convertAppointmentToObject(Event customData, Appointment appointment) {
     return Event(
       id: customData.id,
-      startDate: appointment.startTime,
-      endDate: appointment.endTime,
+      startDate: appointment.startTime.toUtc(),
+      endDate: appointment.endTime.toUtc(),
       title: appointment.subject,
       groupId: customData.groupId,
       done: customData.done,

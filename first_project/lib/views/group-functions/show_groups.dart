@@ -36,7 +36,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   //*LOGIC FOR THE VIEW //
 
   @override
-  Future<void> didChangeDependencies() async {
+  void didChangeDependencies() {
     super.didChangeDependencies();
 
     // Retrieve provider management instance
@@ -53,9 +53,13 @@ class _ShowGroupsState extends State<ShowGroups> {
     // Fetch and update groups if the group list has changed
     if (_providerManagement?.currentGroups != null &&
         _providerManagement?.currentGroups != _groupListFetched) {
-      _updateGroups(_providerManagement!.currentGroups!);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateGroups(_providerManagement!.currentGroups!);
+      });
     } else {
-      await _fetchAndUpdateGroups();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _fetchAndUpdateGroups();
+      });
     }
   }
 
@@ -84,8 +88,10 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
 
   void _updateGroups(List<Group> groups) {
-    _groupListFetched = groups;
-    _providerManagement!.updateGroupStream(_groupListFetched!);
+    setState(() {
+      _groupListFetched = groups;
+      _providerManagement!.updateGroupStream(_groupListFetched!);
+    });
   }
 
   void _toggleScrollDirection() {

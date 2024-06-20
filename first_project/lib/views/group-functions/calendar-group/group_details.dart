@@ -304,7 +304,6 @@ class _GroupDetailsState extends State<GroupDetails> {
         initialSelectedDate: DateTime.now(),
         view: _selectedView,
         showDatePickerButton: true,
-        timeZone: 'Europe/Madrid',
         headerStyle: CalendarHeaderStyle(
           textAlign: TextAlign.center,
         ),
@@ -846,7 +845,9 @@ class _GroupDetailsState extends State<GroupDetails> {
                 ),
               ],
             ),
-            if (event.description != null && event.description!.isNotEmpty)
+            if (_controller.view != CalendarView.day &&
+                event.description != null &&
+                event.description!.isNotEmpty)
               Padding(
                 padding: EdgeInsets.only(top: 4),
                 child: Text(
@@ -854,6 +855,7 @@ class _GroupDetailsState extends State<GroupDetails> {
                   style: TextStyle(
                     fontSize: 13,
                     color: textColor,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
