@@ -13,6 +13,9 @@ class Event {
   final int eventColorIndex; // Store the index of the color
   late final bool allDay;
   bool done;
+  final String? recipient; // New attribute for recipient
+  final String?
+      updatedByText; // New attribute for the person/user who updated the event
 
   Event({
     required this.id,
@@ -27,6 +30,8 @@ class Event {
     this.note,
     this.description,
     required this.eventColorIndex, // Store the color index
+    this.recipient, // Initialize recipient
+    this.updatedByText, // Initialize updatedByText
   });
 
   Map<String, dynamic> toMap() {
@@ -43,6 +48,9 @@ class Event {
       if (note != null) 'note': note,
       if (description != null) 'description': description,
       'eventColorIndex': eventColorIndex,
+      if (recipient != null) 'recipient': recipient, // Add recipient to map
+      if (updatedByText != null)
+        'updatedByText': updatedByText, // Add updatedByText to map
     };
     return json;
   }
@@ -68,7 +76,8 @@ class Event {
       note: json['note'] ?? '',
       description: json['description'] ?? '',
       eventColorIndex: json['eventColorIndex'],
-      // Retrieve the CustomAppointment properties from the JSON representation
+      recipient: json['recipient'], // Parse recipient from JSON
+      updatedByText: json['updatedByText'], // Parse updatedByText from JSON
     );
   }
 
@@ -77,6 +86,7 @@ class Event {
     return 'Event -- > {id: $id, startDate: $startDate, endDate: $endDate, '
         'title: $title, groupId: $groupId, recurrenceRule: $recurrenceRule, '
         'localization: $localization, note: $note, description: $description, '
-        'eventColorIndex: $eventColorIndex, allDay: $allDay, done: $done}';
+        'eventColorIndex: $eventColorIndex, allDay: $allDay, done: $done, '
+        'recipient: $recipient, updatedByText: $updatedByText}'; // Include new attributes in toString
   }
 }

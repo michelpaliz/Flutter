@@ -1,6 +1,8 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/recurrence_rule.dart';
+import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/event_services.dart';
+import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/utilities/color_manager.dart';
@@ -44,6 +46,11 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   // late FirestoreService _storeService;
   late ProviderManagement _providerManagement;
   late EventService _eventService;
+  User? _selectedUser;
+  List<User> _users = []; // This will hold the list of users
+  late String _informativeText;
+  UserService _userService = new UserService();
+  String? _currentUserName;
 
   @override
   void initState() {
@@ -61,6 +68,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _colorList = ColorManager.eventColors;
     _selectedEventColor = _colorList[_event.eventColorIndex];
     _eventService = new EventService();
+    _informativeText = _event.updatedByText ?? "";
   }
 
   @override
@@ -78,6 +86,23 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _isRepetitive = _event.recurrenceRule != null;
     _group = _providerManagement.currentGroup!;
     _eventList = _providerManagement.currentUser!.events;
+    _currentUserName = _providerManagement.currentUser?.name;
+    _fetchUsers();
+  }
+
+  Future<void> _fetchUsers() async {
+    if (_group.userIds.isNotEmpty) {
+      for (var userId in _group.userIds) {
+        User user = await _userService.getUserById(userId);
+        setState(() {
+          _users.add(user);
+          // Initialize _selectedUser if it matches the event's user ID
+          if (_event.recipient == user.id) {
+            _selectedUser = user;
+          }
+        });
+      }
+    }
   }
 
   /**The dispose method is overridden to properly dispose of the _noteController when the screen is no longer needed, preventing memory leaks.*/
@@ -86,12 +111,6 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     // _noteController.dispose();
     super.dispose();
   }
-
-  // Future<Group> _getGroup() async {
-  //   // return _group = (await _storeService.getGroupFromId(_event.groupId!))!;
-  //   return _group =
-  //       (await _providerManagement.groupService.getGroupById(_event.groupId!));
-  // }
 
   void _saveEditedEvent() async {
     // Retrieve updated values from controllers
@@ -105,6 +124,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     // Remove unwanted characters and formatting
     extractedText = extractedText.replaceAll(RegExp(r'[┤├]'), '');
 
+    String updatedInf = "Last update was by ${_currentUserName}";
+
     // Create an updated event with the new values
     final updatedEvent = Event(
       id: _event.id,
@@ -117,6 +138,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       localization: extractedText,
       recurrenceRule: updatedRecurrenceRule,
       eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
+      recipient: _selectedUser?.id,
+      updatedByText: updatedInf,
     );
 
     // Get the group and event list
@@ -443,6 +466,36 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                   });
                 },
               ),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Text(
+                  'Please select a user from the list below and provide a description and note.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              DropdownButtonFormField<User>(
+                value: _selectedUser,
+                onChanged: (User? newValue) {
+                  setState(() {
+                    _selectedUser = newValue;
+                  });
+                },
+                items: _users.map<DropdownMenuItem<User>>((User user) {
+                  return DropdownMenuItem<User>(
+                    value: user,
+                    child: Text(user
+                        .name), // Assuming the User class has a name property
+                  );
+                }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Select User',
+                ),
+              ),
 
               SizedBox(height: 10),
 
@@ -536,6 +589,20 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                   ),
                 ],
               ),
+
+              SizedBox(height: 15),
+              if (_informativeText.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(
+                    _informativeText,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
 
               // Repetition Dropdown (conditionally shown)
               SizedBox(height: 25),

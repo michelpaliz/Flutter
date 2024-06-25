@@ -299,6 +299,7 @@ class _GroupDetailsState extends State<GroupDetails> {
             });
           });
         },
+        
         showNavigationArrow: true,
         firstDayOfWeek: DateTime.monday,
         initialSelectedDate: DateTime.now(),

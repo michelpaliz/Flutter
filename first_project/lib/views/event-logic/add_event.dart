@@ -2,6 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/services/node_services/event_services.dart';
+import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/utilities/color_manager.dart';
@@ -53,21 +54,33 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   final _colorList = ColorManager.eventColors;
   late ProviderManagement _providerManagement;
   EventService _eventService = new EventService();
+  User? _selectedUser; // This will hold the selected user
+  List<User> _users = []; // This will hold the list of users
+  UserService _userService = new UserService();
 
   //** LOGIC FOR THE VIEW */////////
   _EventNoteWidgetState({User? user, Group? group})
       : _user = user,
         _group = group {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
     if (_user != null) {
       // Initialize eventList based on user
-      _user = user;
       _eventList = _user!.events;
     } else if (_group != null) {
       // Initialize eventList based on group
-      _group = group;
       _eventList = _group!.calendar.events;
+      if (_group!.userIds.isNotEmpty) {
+        for (var userId in _group!.userIds) {
+          User user = await _userService.getUserById(userId);
+          _users.add(user);
+        }
+      }
     }
     _selectedEventColor = _colorList.last;
+    setState(() {}); // Trigger a rebuild to update the UI
   }
 
   @override
@@ -177,19 +190,22 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
     String uniqueId = Utilities.generateRandomId(10);
 
+    String updatedInf = "Last update was by ${_user!.id}";
+
     if (eventTitle.trim().isNotEmpty) {
       Event newEvent = Event(
-        id: uniqueId,
-        startDate: _selectedStartDate,
-        endDate: _selectedEndDate,
-        title: _titleController.text,
-        groupId: _group?.id,
-        recurrenceRule: _recurrenceRule,
-        localization: extractedText,
-        allDay: event?.allDay ?? false,
-        description: _descriptionController.text,
-        eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
-      );
+          id: uniqueId,
+          startDate: _selectedStartDate,
+          endDate: _selectedEndDate,
+          title: _titleController.text,
+          groupId: _group?.id,
+          recurrenceRule: _recurrenceRule,
+          localization: extractedText,
+          allDay: event?.allDay ?? false,
+          description: _descriptionController.text,
+          eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
+          updatedByText: updatedInf,
+          recipient: _selectedUser?.id);
 
       bool allowRepetitiveHours = _group!.repetitiveEvents;
       // Log new event details
@@ -496,6 +512,37 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
                     _locationController.text = suggestion;
                   });
                 },
+              ),
+
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Text(
+                  'Please select a user from the list below and provide a description and note.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              DropdownButtonFormField<User>(
+                value: _selectedUser,
+                onChanged: (User? newValue) {
+                  setState(() {
+                    _selectedUser = newValue;
+                  });
+                },
+                items: _users.map<DropdownMenuItem<User>>((User user) {
+                  return DropdownMenuItem<User>(
+                    value: user,
+                    child: Text(user
+                        .name), // Assuming the User class has a name property
+                  );
+                }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Select User',
+                ),
               ),
 
               SizedBox(height: 10),
