@@ -21,49 +21,91 @@ class ProviderManagement extends ChangeNotifier {
   late NotificationUser notificationUser;
   final UserService userService = UserService();
   final GroupService groupService = GroupService();
-  final NotificationService _notificationService = NotificationService();
-  List<Group>? _currentGroups;
+  final NotificationService notificationService = NotificationService();
 
   // Getters
   User? get currentUser => _currentUser;
   Group? get currentGroup => _currentGroup;
-  List<Group>? get currentGroups => _currentGroups;
+  List<Group> get groups => _groups;
   ThemeData get themeData => _themeData;
 
-  //** CONTROLLER FOR MY GROUPS  */
-  // Stream controller and stream for group updates
+  // Controllers for streams
+  final _userController = StreamController<User?>.broadcast();
+  Stream<User?> get userStream => _userController.stream;
+
   final _groupController = StreamController<List<Group>>.broadcast();
   Stream<List<Group>> get groupStream => _groupController.stream;
+
+  final _notificationController =
+      StreamController<List<NotificationUser>>.broadcast();
+  Stream<List<NotificationUser>> get notificationStream =>
+      _notificationController.stream;
+  List<NotificationUser> get notifications => _notifications;
 
   ProviderManagement({required User? user}) {
     _currentUser = user;
     if (user != null) {
       _notifications = user.notifications;
+      _initializeGroups();
     } else {
       _notifications = [];
     }
   }
 
-  //** GROUPS FUNCTIONS  */
-  // Method to update the group stream with the latest list of groups
-  // void updateGroupStream(List<Group> groups) {
-  //   _groupController.add(groups);
-  //   notifyListeners();
-  //   //Update here the current group based on the id using the updated list
+  // Method to initialize groups
+  Future<void> _initializeGroups() async {
+    if (_currentUser != null) {
+      await _fetchAndInitializeGroups();
+    }
+  }
 
-  // }
+  // Fetch and initialize groups from the service
+  Future<void> _fetchAndInitializeGroups() async {
+    try {
+      List<Group> groups = [];
+      for (String groupId in _currentUser!.groupIds) {
+        Group group = await groupService.getGroupById(groupId);
+        groups.add(group);
+      }
+      updateGroupStream(groups);
+    } catch (e) {
+      print('Failed to fetch and initialize groups: $e');
+    }
+  }
 
-  //** GROUPS FUNCTIONS  */
+  // Method to update _currentUser and add it to the stream
+  void updateCurrentUser(User? user) {
+    _currentUser = user;
+    _userController.add(user);
+    notifyListeners();
+  }
+
   // Method to update the group stream with the latest list of groups
   void updateGroupStream(List<Group> groups) {
-    _currentGroups = groups;
+    _groups.clear();
+    _groups = groups;
     _groupController.add(groups);
-    // Update the current group based on the id using the updated list
-    if (_currentGroup != null) {
-      _currentGroup =
-          groups.firstWhere((group) => group.id == _currentGroup!.id);
-    }
+
+    // if (groups.isEmpty) {
+    //   _currentGroup =
+    //       null; // Handle empty groups list by setting _currentGroup to null
+    // } else if (_currentGroup != null) {
+    //   try {
+    //     _currentGroup =
+    //         groups.firstWhere((group) => group.id == _currentGroup!.id);
+    //   } catch (e) {
+    //     _currentGroup =
+    //         null; // If the current group is not found, set _currentGroup to null
+    //   }
+    // }
+
     notifyListeners();
+  }
+
+  // Method to refresh groups and notifications
+  Future<void> refreshData() async {
+    await _fetchAndInitializeGroups();
+    // await _fetchAndUpdateNotifications();
   }
 
   Future<bool> getUser() async {
@@ -76,19 +118,32 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
-  //Setters two ways to set the variables
-  void setCurrentUser(User? user) {
-    _currentUser = user;
+  Future<void> updateCostumeUser(User? userUpdated) async {
+    if (userUpdated != null) {
+      _currentUser = userUpdated;
+    } else {
+      return;
+    }
+
+    if (userUpdated.email.isNotEmpty) {
+      try {
+        final userFromService =
+            await userService.getUserByEmail(userUpdated.email);
+        _currentUser = userFromService;
+        updateCurrentUser(_currentUser);
+      } catch (e) {
+        print('Failed to update user: $e');
+      }
+    }
     notifyListeners();
+  }
+
+  void setCurrentUser(User? user) {
+    updateCostumeUser(user);
   }
 
   set currentGroup(Group? group) {
     _currentGroup = group;
-    notifyListeners();
-  }
-
-  set currentGroupList(List<Group>? groups) {
-    _currentGroups = groups;
     notifyListeners();
   }
 
@@ -101,7 +156,6 @@ class ProviderManagement extends ChangeNotifier {
 
   Future<bool> updateUser(User newUser) async {
     try {
-      // await userService.updateUserByUsername(newUser.userName,newUser);
       await userService.updateUser(newUser);
       if (newUser.id == _currentUser!.id) {
         _currentUser = newUser;
@@ -116,23 +170,52 @@ class ProviderManagement extends ChangeNotifier {
 
   Future<bool> addGroup(Group group) async {
     try {
+      // Create the group in the group service
       await groupService.createGroup(group);
+
+      // Update local state
       _groups.add(group);
-      _groupController.add(_groups); // Add updated groups to the stream
+      _groupController.add(_groups);
       notifyListeners();
 
-      //!UPDATE USER
+      // Fetch the current user from the user service
       User user = await userService.getUserByUsername(_currentUser!.userName);
-      //Now we need to update the user, we need to add the user to the group
+
+      // Add the group ID to the current user's groupIds
       user.groupIds.add(group.id);
-      // We also need to create a notification for the user
-      notification = NotificationFormats();
-      notificationUser = notification.whenCreatingGroup(group, _currentUser!);
+
+      // Create a notification for the current user
+      NotificationFormats notificationFormat = NotificationFormats();
+      NotificationUser notificationUser =
+          notificationFormat.whenCreatingGroup(group, _currentUser!);
       user.notifications.add(notificationUser);
       user.hasNewNotifications = true;
+
+      // Save the notification to the database
       await addNotification(notificationUser);
-      devtools.log("Updated user = ${user.toString()}");
+
+      // Update the current user in the user service
       await updateUser(user);
+
+      // Send invitations to invited users
+      for (final userName in group.invitedUsers!.keys) {
+        // Fetch the invited user from the user service
+        User invitedUser = await userService.getUserByUsername(userName);
+
+        // Create a group invitation notification for the invited user
+        notificationUser =
+            notificationFormat.createGroupInvitation(group, invitedUser);
+        invitedUser.notifications.add(notificationUser);
+        invitedUser.hasNewNotifications = true;
+
+        // Save the notification to the database
+        await addNotification(notificationUser);
+
+        // Update the invited user in the user service
+        await updateUser(invitedUser);
+      }
+
+      devtools.log("Updated user = ${user.toString()}");
       return true;
     } catch (e) {
       print('Failed to add group: $e');
@@ -156,32 +239,24 @@ class ProviderManagement extends ChangeNotifier {
   }
 
   Future<void> updateGroup(Group updateGroup) async {
-    // Create a notification for editing the group
     final notificationFormat = NotificationFormats();
     NotificationUser notification =
         notificationFormat.whenEditingGroup(updateGroup, _currentUser!);
 
     _currentUser!.notifications.add(notification);
-
-    // Update the current user
     await userService.updateUser(_currentUser!);
 
-    // Loop through each user ID in the invitedUsers map
     for (final userName in updateGroup.invitedUsers!.keys) {
       final user = await userService.getUserByUsername(userName);
       notificationFormat.createGroupInvitation(updateGroup, user);
       user.notifications.add(notification);
-
-      // Now proceed to update the users
       await updateUser(user);
     }
 
-    // Update the group
     await groupService.updateGroup(updateGroup.id, updateGroup);
 
     currentGroup = updateGroup;
 
-    // Update the local list of groups
     final index = _groups.indexWhere((g) => g.id == updateGroup.id);
     if (index != -1) {
       _groups[index] = updateGroup;
@@ -195,29 +270,17 @@ class ProviderManagement extends ChangeNotifier {
     notifyListeners();
   }
 
-  //** CONTROLLER FOR MY NOTIFICATIONS */
-
-  final _notificationController =
-      StreamController<List<NotificationUser>>.broadcast();
-
-  Stream<List<NotificationUser>> get notificationStream =>
-      _notificationController.stream;
-  List<NotificationUser> get notifications => _notifications;
-
   void updateNotificationStream(List<NotificationUser> notifications) {
     _notificationController.add(notifications);
-    _notifications = (notifications);
+    _notifications = notifications;
     notifyListeners();
   }
 
-  //** NOTIFICATION FUNCTIONS */
-
-  // Methods to update notifications
   Future<void> addNotification(NotificationUser notification) async {
     try {
-      await _notificationService.createNotification(notification);
+      await notificationService.createNotification(notification);
       await updateUser(_currentUser!);
-      _notifications.add(notification);
+      // _notifications.add(notification);
       _notificationController
           .add(_notifications); // Add updated notifications to the stream
       notifyListeners();
@@ -229,7 +292,7 @@ class ProviderManagement extends ChangeNotifier {
   Future<bool> removeNotification(NotificationUser notification) async {
     try {
       var result =
-          await _notificationService.deleteNotification(notification.id);
+          await notificationService.deleteNotification(notification.id);
       if (result) {
         _currentUser!.notifications.remove(notification.id);
         await updateUser(_currentUser!);
@@ -252,12 +315,20 @@ class ProviderManagement extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Dispose the stream controller when no longer needed
   @override
   void dispose() {
     _groupController.close();
-    _notificationController
-        .close(); // Dispose the notification stream controller
+    _notificationController.close();
     super.dispose();
+  }
+
+  void logout() {
+    _currentGroup = null;
+    _groups = [];
+    _notifications = [];
+    _userController.add(null);
+    _groupController.add([]);
+    _notificationController.add([]);
+    notifyListeners();
   }
 }

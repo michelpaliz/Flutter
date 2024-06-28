@@ -1,6 +1,7 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/notification_user.dart';
+import 'package:first_project/services/node_services/group_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
@@ -32,8 +33,16 @@ class _ShowGroupsState extends State<ShowGroups> {
   String? _currentRole;
   ProviderManagement? _providerManagement;
   List<Group>? _groupListFetched;
+  GroupService _groupService = new GroupService();
 
   //*LOGIC FOR THE VIEW //
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _groupListFetched = [];
+  }
 
   @override
   void didChangeDependencies() {
@@ -44,19 +53,19 @@ class _ShowGroupsState extends State<ShowGroups> {
         Provider.of<ProviderManagement>(context, listen: false);
 
     // Check and set the current user
-    _currentUser = _providerManagement?.currentUser;
-    if (_currentUser == null) {
-      // Handle the case where currentUser is null, if necessary
-      return;
-    }
+    final newUser = _providerManagement?.currentUser;
 
-    // Fetch and update groups if the group list has changed
-    if (_providerManagement?.currentGroups != null &&
-        _providerManagement?.currentGroups != _groupListFetched) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateGroups(_providerManagement!.currentGroups!);
-      });
-    } else {
+    devtools.log("Current User : $newUser");
+
+    // Check if the current user has changed
+    if (_currentUser != newUser) {
+      _currentUser = newUser;
+      devtools.log("Current User has changed: $_currentUser");
+
+      // Reset the group list when the user changes
+      _groupListFetched = [];
+
+      // Fetch and update groups for the new user
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _fetchAndUpdateGroups();
       });
@@ -70,16 +79,25 @@ class _ShowGroupsState extends State<ShowGroups> {
     }
 
     try {
-      // Fetch groups for the current user
-      _groupListFetched = await _providerManagement!.groupService
-          .getGroupsByUser(_currentUser!.userName);
+      devtools.log("Current User here !!: $_currentUser");
 
-      // Update the group stream with the fetched groups
-      _updateGroups(_groupListFetched!);
+      if (_currentUser!.groupIds.isNotEmpty) {
+        // Fetch groups for the current user
+        List<Group> groups = await _providerManagement!.groupService
+            .getGroupsByUser(_currentUser!.userName);
+        devtools.log("Group list !!!: ${groups.toString()}");
+        // Update the group stream with the fetched groups
+        _updateGroups(groups);
+      } else {
+        setState(() {
+          _groupListFetched = [];
+          _providerManagement!.updateGroupStream(_groupListFetched!);
+        });
+      }
 
       // Log the user's group IDs and fetched groups for debugging
-      devtools.log('User Group IDs: ${_currentUser!.groupIds}');
-      devtools.log('Fetched Groups: $_groupListFetched');
+      // devtools.log('User Group IDs: ${_currentUser!.groupIds}');
+      // devtools.log('Fetched Groups: $_groupListFetched');
     } catch (error, stackTrace) {
       // Log the error with the stack trace for better debugging
       print('Error fetching and updating groups: $error');

@@ -38,6 +38,8 @@ class User {
 
   String get id => _id;
 
+  String get authId => _authID;
+
   String get name => _name;
   set name(String name) {
     _name = name;

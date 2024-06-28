@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/l10n/l10n.dart';
 import 'package:first_project/models/event.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/stateManangement/theme_preference_provider.dart';
@@ -56,6 +57,9 @@ class MyMaterialApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ThemePreferenceProvider>(
           create: (context) => ThemePreferenceProvider(),
+        ),
+        ChangeNotifierProvider<AuthProvider>(
+          create: (context) => AuthProvider(),
         ),
         // Add other providers as needed
       ],

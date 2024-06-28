@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
@@ -20,7 +21,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   User? _currentUser;
   ProviderManagement? _providerManagement;
   List<NotificationUser> _notifications = [];
-
+  List<NotificationUser>? _notificationsFetched = [];
   @override
   void initState() {
     super.initState();
@@ -30,11 +31,72 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Access ProviderManagement from the context
-    _providerManagement = Provider.of<ProviderManagement>(context);
-    // Initialize services
-    _currentUser = _providerManagement!.currentUser;
-    _notifications = _providerManagement!.currentUser?.notifications;
+    // Retrieve provider management instance
+    _providerManagement =
+        Provider.of<ProviderManagement>(context, listen: false);
+
+    // Check and set the current user
+    final newUser = _providerManagement?.currentUser;
+
+    // Check if the current user has changed
+    if (_currentUser != newUser) {
+      _currentUser = newUser;
+      devtools.log("Current User has changed: $_currentUser");
+
+      // Reset the group list when the user changes
+      _notificationsFetched = [];
+
+      // Fetch and update groups for the new user
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _fetchAndUpdateNotifications();
+      });
+    }
+  }
+
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   _providerManagement = Provider.of<ProviderManagement>(context);
+  //   _currentUser = _providerManagement?.currentUser;
+  //   _notifications = _providerManagement?.notifications ?? [];
+  // }
+
+  Future<void> _fetchAndUpdateNotifications() async {
+    if (_currentUser == null || _providerManagement == null) {
+      // Handle cases where currentUser or providerManagement is null
+      return;
+    }
+
+    try {
+      devtools.log("Current User here !!: $_currentUser");
+
+      // List<NotificationUser> notificationsFetched = [];
+
+      if (_currentUser!.notifications.isNotEmpty) {
+        // Fetch notifications for the current user
+        for (var ntf in _currentUser!.notifications) {
+          NotificationUser notification = await _providerManagement!
+              .notificationService
+              .getNotificationById(ntf.id);
+          _notificationsFetched!.add(notification);
+        }
+        // Update the notifications stream with the fetched notifications
+        _updateNotifications(_notificationsFetched!);
+      } else {
+        _updateNotifications([]);
+      }
+    } catch (error, stackTrace) {
+      // Log the error with the stack trace for better debugging
+      devtools.log('Error fetching and updating notifications: $error');
+      devtools.log('StackTrace: $stackTrace');
+    }
+  }
+
+  void _updateNotifications(List<NotificationUser> notifications) {
+    setState(() {
+      _notifications = notifications;
+      _providerManagement?.updateNotificationStream(_notifications);
+    });
   }
 
   // Function to remove a notification at a given index

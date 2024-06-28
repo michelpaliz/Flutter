@@ -9,41 +9,51 @@ import 'package:first_project/services/firebase_%20services/auth/exceptions/auth
 import 'package:first_project/services/firebase_%20services/auth/exceptions/password_exceptions.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_user.dart';
 import 'package:first_project/services/node_services/user_services.dart';
+import 'package:flutter/material.dart';
 
 import '../../../../firebase_options.dart';
 import '../../../../models/user.dart';
 import 'auth_repository.dart';
 
-class AuthProvider implements AuthRepository {
+class AuthProvider extends ChangeNotifier implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  // Private variable to store the current user
-  User? _currentUser;
   final UserService _userService = UserService();
-
-  AuthProvider() {
-    // Initialize the authentication state listener
-    _initializeAuthStateListener();
-  }
-//Function added to user the provider package
-  void _initializeAuthStateListener() {
-    _firebaseAuth.authStateChanges().listen((user) async {
-      // Fetch and update the custom user model based on the user's email
-      final updatedUser = (user != null)
-          ? await _userService.getUserByEmail(user.email.toString())
-          : null;
-
-      if (_currentUser != updatedUser) {
-        _currentUser = updatedUser; // Notify listeners when the user changes
-      }
-    });
-  }
-
-  // Add a StreamController for the authentication state
   final StreamController<User?> _authStateController =
       StreamController<User?>();
 
-  // Define a getter to access the authentication state stream
+  User? _currentUser;
+
+  AuthProvider() {
+    _initializeAuthStateListener();
+  }
+
+  void _initializeAuthStateListener() {
+    _firebaseAuth.authStateChanges().listen((user) async {
+      _currentUser = user != null
+          ? await _userService.getUserByEmail(user.email.toString())
+          : null;
+      _authStateController.add(_currentUser);
+      notifyListeners();
+    });
+  }
+
   Stream<User?> get authStateStream => _authStateController.stream;
+
+  @override
+  AuthUser? get currentUser {
+    final user = _firebaseAuth.currentUser;
+    return user != null ? AuthUser.fromFirebase(user) : null;
+  }
+
+  @override
+  User? get costumeUser => _currentUser;
+
+  set costumeUser(User? userUpdated) {
+    if (userUpdated != null) {
+      _currentUser = userUpdated;
+      notifyListeners();
+    }
+  }
 
   Future<String> createUser({
     required String userName,
@@ -52,19 +62,13 @@ class AuthProvider implements AuthRepository {
     required String password,
   }) async {
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = FirebaseAuth.instance.currentUser;
+      await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      final user = _firebaseAuth.currentUser;
       if (user != null) {
-        // Set the custom ID as the user's display name in Firebase Auth
         await user.updateProfile(displayName: user.uid);
-
-        // Create a User object using the UID as the user ID
         User person = User(
-          id: user.uid, //we later change in our db the value of this id
+          id: user.uid,
           authID: user.uid,
           name: name,
           userName: userName,
@@ -74,25 +78,16 @@ class AuthProvider implements AuthRepository {
           events: [],
           notifications: [],
         );
-
-        // Register the user on the backend
         _currentUser = await _userService.createUser(person);
-      
         return 'User created successfully';
       } else {
         throw UserNotLoggedInAuthException();
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        throw WeakPasswordException();
-      } else if (e.code == 'email-already-in-use') {
+      if (e.code == 'weak-password') throw WeakPasswordException();
+      if (e.code == 'email-already-in-use')
         throw EmailAlreadyUseAuthException();
-      } else if (e.code == 'invalid-email') {
-        throw InvalidEmailAuthException();
-      } else {
-        throw GenericAuthException();
-      }
-    } catch (e) {
+      if (e.code == 'invalid-email') throw InvalidEmailAuthException();
       throw GenericAuthException();
     }
   }
@@ -113,60 +108,35 @@ class AuthProvider implements AuthRepository {
   }
 
   String generateCustomId() {
-    String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    Random random = Random();
-    String id = '';
-
-    for (int i = 0; i < 10; i++) {
-      int randomIndex = random.nextInt(chars.length);
-      id += chars[randomIndex];
-    }
-
-    return id;
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return String.fromCharCodes(Iterable.generate(
+        10, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
   @override
-  AuthUser? get currentUser {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      return AuthUser.fromFirebase(user);
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  Future<AuthUser> logIn(
-      {required String email, required String password}) async {
+  Future<AuthUser> logIn({
+    required String email,
+    required String password,
+  }) async {
     try {
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+      await _firebaseAuth.signInWithEmailAndPassword(
+          email: email, password: password);
       final user = currentUser;
-      if (user != null) {
-        return user;
-      } else {
-        throw UserNotLoggedInAuthException();
-      }
+      if (user != null) return user;
+      throw UserNotLoggedInAuthException();
     } on FirebaseAuthException catch (user) {
-      if (user.code == 'user-not-found') {
-        // devtools.log('User not found');
-        throw UserNotFoundAuthException();
-      } else if (user.code == 'wrong-password') {
-        // devtools.log('Wrong password');
-        throw WrongPasswordAuthException();
-      } else {
-        throw GenericAuthException();
-      }
-    } catch (_) {
+      if (user.code == 'user-not-found') throw UserNotFoundAuthException();
+      if (user.code == 'wrong-password') throw WrongPasswordAuthException();
       throw GenericAuthException();
     }
   }
 
   @override
   Future<void> logOut() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _firebaseAuth.currentUser;
     if (user != null) {
-      await FirebaseAuth.instance.signOut();
+      await _firebaseAuth.signOut();
     } else {
       throw UserNotLoggedInAuthException();
     }
@@ -174,7 +144,7 @@ class AuthProvider implements AuthRepository {
 
   @override
   Future<void> sendEmailVerification() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _firebaseAuth.currentUser;
     if (user != null) {
       await user.sendEmailVerification();
     } else {
@@ -185,137 +155,38 @@ class AuthProvider implements AuthRepository {
   @override
   Future<void> initialize() async {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+        options: DefaultFirebaseOptions.currentPlatform);
   }
-
-  // @override
-  // Future<User?> generateUserCustomModel() async {
-  //   final firebaseUser = _firebaseAuth.currentUser;
-  //   if (firebaseUser != null) {
-  //     try {
-  //       final userSnapshot = await FirebaseFirestore.instance
-  //           .collection('users')
-  //           .doc(firebaseUser.uid)
-  //           .get();
-
-  //       if (userSnapshot.exists) {
-  //         _currentUser =
-  //             User.fromJson(userSnapshot.data() as Map<String, dynamic>);
-
-  //         devtools.log(_currentUser.toString());
-  //         return _currentUser; // Return the populated user object
-  //       } else {
-  //         // User data not found in Firestore
-  //         print('User data not found in Firestore');
-  //         // If user data is not found in Firestore, register the user on the server
-  //       }
-  //     } catch (error) {
-  //       print('Error retrieving user data from Firestore: $error');
-  //       throw error;
-  //     }
-  //   } else {
-  //     // No user is currently authenticated
-  //     print('No user is currently authenticated');
-  //     return null;
-  //   }
-  //   return null;
-  // }
 
   @override
   Future<User?> generateUserCustomModel() async {
-    final firebaseUser = _firebaseAuth.currentUser;
-
-    if (firebaseUser != null) {
+    final userFetched = _firebaseAuth.currentUser;
+    if (userFetched != null) {
       try {
-        User? user =
-            await _userService.getUserByAuthID(firebaseUser.uid.toString());
-        return user; // Return the user data if found
+        _currentUser = await _userService.getUserByAuthID(userFetched.uid);
+        return _currentUser;
       } catch (error) {
-        print('Error retrieving user data from Firestore: $error');
-        throw error;
+        throw Exception('Error retrieving user data from Firestore: $error');
       }
-    } else {
-      // No user is currently authenticated
-      print('No user is currently authenticated');
     }
-    return null; // Return null if no user is authenticated or user data not found
-  }
-
-// Fetch user data from Firestore based on the provided email
-  // Future<User?> _getUserDataFromFirestore(String userEmail) async {
-  //   try {
-  //     final userSnapshot = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .where('email', isEqualTo: userEmail)
-  //         .limit(1)
-  //         .get(); // Use get() to fetch the data as a query result
-
-  //     if (userSnapshot.docs.isNotEmpty) {
-  //       final userData = userSnapshot.docs.first.data();
-  //       // Update _currentUser with the new data
-  //       User user = User.fromJson(userData);
-  //       _currentUser = user;
-  //       //TODO WE ARE GOING TO FETCH THE DATA FROM OUR DB
-  //       _currentUser = await _userService.getUserByUsername(user.userName);
-  //     }
-
-  //     return _currentUser;
-  //   } catch (e) {
-  //     print("Error fetching user data from Firestore: $e");
-  //     return null;
-  //   }
-  // }
-
-  @override
-  User? get costumeUser {
-    return _currentUser;
-  }
-
-  set costumeUser(User? userUpdated) {
-    if (userUpdated != null) {
-      _currentUser = userUpdated;
-    }
+    return null;
   }
 
   @override
   Future<void> changePassword(String currentPassword, String newPassword,
       String confirmPassword) async {
+    final currentUser = _firebaseAuth.currentUser;
+    if (currentUser == null) throw UserNotSignedInException();
+
     try {
-      // Get the current user from Firebase Authentication
-      final currentUser = FirebaseAuth.instance.currentUser;
+      final credential = EmailAuthProvider.credential(
+          email: currentUser.email!, password: currentPassword);
+      await currentUser.reauthenticateWithCredential(credential);
 
-      // Check if the user is signed in
-      if (currentUser != null) {
-        // Reauthenticate the user
-        AuthCredential credential = EmailAuthProvider.credential(
-          email: currentUser.email!,
-          password: currentPassword,
-        );
-
-        try {
-          await currentUser.reauthenticateWithCredential(credential);
-        } catch (reauthError) {
-          // If reauthentication fails, throw an exception
-          throw CurrentPasswordMismatchException();
-        }
-
-        // Check if the new password and confirmation password match
-        if (newPassword != confirmPassword) {
-          throw PasswordMismatchException();
-        }
-
-        // Update the user's password
-        await currentUser.updatePassword(newPassword);
-      } else {
-        // User is not signed in
-        print("User not signed in.");
-        throw UserNotSignedInException();
-      }
-    } catch (error) {
-      // Handle specific errors during the password change
-      print("Error changing password: $error");
-      rethrow; // Rethrow the error for further handling
+      if (newPassword != confirmPassword) throw PasswordMismatchException();
+      await currentUser.updatePassword(newPassword);
+    } on FirebaseAuthException {
+      throw CurrentPasswordMismatchException();
     }
   }
 }

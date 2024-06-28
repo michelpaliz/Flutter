@@ -1,9 +1,11 @@
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:provider/provider.dart';
 
 import '../../enums/routes/appRoutes.dart';
 import '../../services/firebase_ services/auth/logic_backend/auth_service.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 //* GLOBAL VARIABLES */
 
@@ -36,7 +38,7 @@ List<Map<String, dynamic>> menuItems = [
   },
 ];
 
-//* UI FOR THE DRAWERLIST */
+//* UI FOR THE DRAWER LIST */
 
 Widget MyDrawerList(BuildContext context) {
   return Container(
@@ -137,25 +139,27 @@ String _getTranslatedTitle(BuildContext context, String key) {
 bool _loggingOut = false;
 
 Future<void> _handleLogout(BuildContext context) async {
-    if (!_loggingOut) {
-      _loggingOut = true;
+  if (!_loggingOut) {
+    _loggingOut = true;
 
-      try {
-        final shouldLogout = await showLogOutDialog(context);
-        if (shouldLogout) {
-          await AuthService.firebase().logOut();
-          
-          // Navigate to the login screen and remove all other routes
-          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
-        }
-      } finally {
-        _loggingOut = false;
+    try {
+      final shouldLogout = await showLogOutDialog(context);
+      if (shouldLogout) {
+        // Call logout method from ProviderManagement
+        final provider = Provider.of<ProviderManagement>(context, listen: false);
+        provider.logout();
+        
+        // Log out from the AuthService
+        await AuthService.firebase().logOut();
+        
+        // Navigate to the login screen and remove all other routes
+        Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
       }
+    } finally {
+      _loggingOut = false;
     }
   }
-
-
-
+}
 
 
 Future<bool> showLogOutDialog(BuildContext context) {

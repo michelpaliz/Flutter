@@ -11,7 +11,7 @@ class UserService {
 
   Future<User> createUser(User user) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users'),
+      Uri.parse('$baseUrl'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -24,7 +24,8 @@ class UserService {
       // Handle conflict error (e.g., duplicate user)
       throw Exception('User with this email or username already exists');
     } else {
-      // Handle other errors
+      // Log the detailed error response
+      print('Failed to create user: ${response.reasonPhrase}');
       throw Exception('Failed to create user: ${response.reasonPhrase}');
     }
   }
@@ -148,8 +149,7 @@ class UserService {
   // Get user by username
   Future<User> getUserByUsername(String username) async {
     devtools.log('Get user by username $username');
-    final response =
-        await http.get(Uri.parse('$baseUrl/username/$username'));
+    final response = await http.get(Uri.parse('$baseUrl/username/$username'));
 
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
