@@ -45,11 +45,19 @@ class ProviderManagement extends ChangeNotifier {
   ProviderManagement({required User? user}) {
     _currentUser = user;
     if (user != null) {
-      _notifications = user.notifications;
       _initializeGroups();
+      fetchUserNotifications(_currentUser!.name);
+      // _initializeNotifications(user.notifications);
     } else {
       _notifications = [];
     }
+  }
+
+  // Method to update _currentUser and add it to the stream
+  void updateCurrentUser(User? user) {
+    _currentUser = user;
+    _userController.add(user);
+    notifyListeners();
   }
 
   // Method to initialize groups
@@ -73,11 +81,16 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
-  // Method to update _currentUser and add it to the stream
-  void updateCurrentUser(User? user) {
-    _currentUser = user;
-    _userController.add(user);
-    notifyListeners();
+  Future<void>fetchUserNotifications(String userName) async {
+    try {
+      List<NotificationUser> userNotifications =
+          await userService.getNotificationsByUser(userName);
+      _notifications = userNotifications;
+      _notificationController.add(_notifications);
+    } catch (error) {
+      // Handle error
+      print('Error fetching notifications: $error');
+    }
   }
 
   // Method to update the group stream with the latest list of groups
@@ -86,27 +99,44 @@ class ProviderManagement extends ChangeNotifier {
     _groups = groups;
     _groupController.add(groups);
 
-    // if (groups.isEmpty) {
-    //   _currentGroup =
-    //       null; // Handle empty groups list by setting _currentGroup to null
-    // } else if (_currentGroup != null) {
-    //   try {
-    //     _currentGroup =
-    //         groups.firstWhere((group) => group.id == _currentGroup!.id);
-    //   } catch (e) {
-    //     _currentGroup =
-    //         null; // If the current group is not found, set _currentGroup to null
-    //   }
-    // }
+    if (groups.isEmpty) {
+      _currentGroup =
+          null; // Handle empty groups list by setting _currentGroup to null
+    } else if (_currentGroup != null) {
+      try {
+        _currentGroup =
+            groups.firstWhere((group) => group.id == _currentGroup!.id);
+      } catch (e) {
+        _currentGroup =
+            null; // If the current group is not found, set _currentGroup to null
+      }
+    }
 
     notifyListeners();
   }
 
-  // Method to refresh groups and notifications
-  Future<void> refreshData() async {
-    await _fetchAndInitializeGroups();
-    // await _fetchAndUpdateNotifications();
-  }
+  // Initialize notifications
+  // void _initializeNotifications(List<NotificationUser> userNotifications) {
+  //   _notifications = userNotifications;
+  //   _notificationController.add(_notifications);
+  // }
+
+  // // Fetch and update notifications from the service
+  // Future<void> fetchAndUpdateNotifications() async {
+  //   if (_currentUser != null) {
+  //     try {
+  //       List<NotificationUser> notifications = [];
+  //       for (var notification in _currentUser!.notifications) {
+  //         NotificationUser fetchedNotification =
+  //             await notificationService.getNotificationById(notification.id);
+  //         notifications.add(fetchedNotification);
+  //       }
+  //       updateNotificationStream(notifications);
+  //     } catch (e) {
+  //       print('Failed to fetch and update notifications: $e');
+  //     }
+  //   }
+  // }
 
   Future<bool> getUser() async {
     try {

@@ -20,11 +20,13 @@ class ShowNotifications extends StatefulWidget {
 class _ShowNotificationsState extends State<ShowNotifications> {
   User? _currentUser;
   ProviderManagement? _providerManagement;
-  List<NotificationUser> _notifications = [];
-  List<NotificationUser>? _notificationsFetched = [];
+  late List<NotificationUser> _notifications;
+  late List<NotificationUser>? _notificationsFetched;
   @override
   void initState() {
     super.initState();
+    _notifications = [];
+    _notificationsFetched = [];
   }
 
   @override
@@ -37,7 +39,6 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
     // Check and set the current user
     final newUser = _providerManagement?.currentUser;
-
     // Check if the current user has changed
     if (_currentUser != newUser) {
       _currentUser = newUser;
@@ -53,14 +54,6 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   _providerManagement = Provider.of<ProviderManagement>(context);
-  //   _currentUser = _providerManagement?.currentUser;
-  //   _notifications = _providerManagement?.notifications ?? [];
-  // }
-
   Future<void> _fetchAndUpdateNotifications() async {
     if (_currentUser == null || _providerManagement == null) {
       // Handle cases where currentUser or providerManagement is null
@@ -70,18 +63,21 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     try {
       devtools.log("Current User here !!: $_currentUser");
 
-      // List<NotificationUser> notificationsFetched = [];
+      _notificationsFetched = [];
 
       if (_currentUser!.notifications.isNotEmpty) {
         // Fetch notifications for the current user
-        for (var ntf in _currentUser!.notifications) {
-          NotificationUser notification = await _providerManagement!
-              .notificationService
-              .getNotificationById(ntf.id);
-          _notificationsFetched!.add(notification);
-        }
+        // for (NotificationUser ntf in _currentUser!.notifications) {
+        //   if (ntf.ownerId == _currentUser!.id) {
+        //     NotificationUser notification = await _providerManagement!
+        //         .notificationService
+        //         .getNotificationById(ntf.id);
+        //     _notificationsFetched!.add(notification);
+        //   }
+        // }
         // Update the notifications stream with the fetched notifications
-        _updateNotifications(_notificationsFetched!);
+        _providerManagement!.fetchUserNotifications(_currentUser!.userName);
+        _updateNotifications(_providerManagement!.notifications);
       } else {
         _updateNotifications([]);
       }
@@ -125,45 +121,65 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
-// Function to handle confirming a notification
-  void _handleConfirmation(int index) async {
+  Future<void> _handleConfirmation(int index) async {
     if (_currentUser != null &&
         index >= 0 &&
         index < _currentUser!.notifications.length) {
-      NotificationUser notification = _currentUser!.notifications[index];
+      // NotificationUser notification = _currentUser!.notifications[index];
+      var notification = _providerManagement!.currentUser?.notifications[index];
+
       if (notification.question.isNotEmpty) {
-        // Group? group = await _storeService.getGroupFromId(notification.id);
-        Group? group = await _providerManagement!.groupService
+        Group? group = await _providerManagement?.groupService
             .getGroupById(notification.id);
+
+        if (group == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Group not found.'),
+            ),
+          );
+          return;
+        }
+
         Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
-        if (invitedUsers != null) {
-          for (final entry in invitedUsers.entries) {
-            String userName = entry.key;
-            UserInviteStatus inviteStatus = entry.value;
-            String role = inviteStatus.role;
-            inviteStatus.accepted = true;
-            if (userName == _currentUser!.userName) {
-              _currentUser!.notifications[index].isAnswered = true;
-              Map<String, String> userRole = {_currentUser!.userName: role};
-              group.userRoles.addEntries(userRole.entries);
-              // _storeService.updateGroup(group);
-              _providerManagement!.updateGroup(group);
-              if (mounted) {
-                setState(() {
-                  // Update UI if needed
-                });
-              }
-              // Send notification to admin
-              _sendNotificationToAdmin(notification, true);
-              // Remove the notification
-              _providerManagement!.removeNotification(notification);
-              // Show a SnackBar
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Notification accepted.'),
-                ),
-              );
+
+        if (invitedUsers == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Invited users not found.'),
+            ),
+          );
+          return;
+        }
+
+        for (final entry in invitedUsers.entries) {
+          String userName = entry.key;
+          UserInviteStatus inviteStatus = entry.value;
+          String role = inviteStatus.role;
+          inviteStatus.accepted = true;
+
+          if (userName == _currentUser!.userName) {
+            _currentUser!.notifications[index].isAnswered = true;
+            Map<String, String> userRole = {_currentUser!.userName: role};
+            group.userRoles.addEntries(userRole.entries);
+
+            await _providerManagement?.updateGroup(group);
+
+            if (mounted) {
+              setState(() {
+                // Update UI if needed
+              });
             }
+
+            _sendNotificationToAdmin(notification, true);
+            await _providerManagement?.removeNotification(notification);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Notification accepted.'),
+              ),
+            );
+            return; // Exit after processing the current user's notification
           }
         }
       }

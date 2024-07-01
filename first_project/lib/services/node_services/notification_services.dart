@@ -4,8 +4,7 @@ import 'package:first_project/models/notification_user.dart';
 import 'package:http/http.dart' as http;
 
 class NotificationService {
-  final String baseUrl =
-      'http://192.168.1.16:3000/api/notifications'; // Replace with your API base URL
+  final String baseUrl = 'http://192.168.1.16:3000/api/notifications'; // Replace with your API base URL
 
   Future<List<NotificationUser>> getAllNotifications() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
@@ -17,8 +16,7 @@ class NotificationService {
     }
   }
 
-  Future<NotificationUser> createNotification(
-      NotificationUser notification) async {
+  Future<NotificationUser> createNotification(NotificationUser notification) async {
     final response = await http.post(
       Uri.parse('$baseUrl/'),
       headers: <String, String>{
@@ -42,8 +40,7 @@ class NotificationService {
     }
   }
 
-  Future<NotificationUser> updateNotification(
-      NotificationUser notification) async {
+  Future<NotificationUser> updateNotification(NotificationUser notification) async {
     final response = await http.put(
       Uri.parse('$baseUrl/${notification.id}'),
       headers: <String, String>{
@@ -59,7 +56,7 @@ class NotificationService {
   }
 
   Future<bool> deleteNotification(String id) async {
-    final response = await http.delete(Uri.parse('\$baseUrl/\$id'));
+    final response = await http.delete(Uri.parse('$baseUrl/$id'));
     if (response.statusCode != 200) {
       throw Exception('Failed to delete notification');
     }
