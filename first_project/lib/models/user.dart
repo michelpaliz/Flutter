@@ -88,6 +88,26 @@ class User {
     };
   }
 
+  //   Map<String, dynamic> toJson() {
+  //   return {
+  //     'id': _id,
+  //     'name': _name,
+  //     'authID': _authID,
+  //     'userName': _userName,
+  //     'email': _email,
+  //     'photoUrl': _photoUrl,
+  //     'events': _events.map((event) => event.toMap()).toList(),
+  //     'groupIds': _groupIds,
+  //     'notifications': _notifications
+  //         ?.map((notification) => notification.toJson())
+  //         .toList()
+  //       ?..sort((a, b) =>
+  //           b['_timestamp'].compareTo(a['_timestamp'])), // Sort by timestamp
+  //     'hasNewNotifications': hasNewNotifications,
+  //   };
+  // }
+
+
   // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(

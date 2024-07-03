@@ -49,7 +49,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   void _searchUser(String username) async {
     try {
       // Use UserService to find users whose usernames contain the provided username
-      final List<String> foundUsers = await userService.searchUsers(username.toLowerCase());
+      final List<String> foundUsers =
+          await userService.searchUsers(username.toLowerCase());
 
       // Update the search results list
       setState(() {
@@ -70,23 +71,18 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       // Use UserService to retrieve user data where the username matches the provided username
       final User user = await userService.getUserByUsername(username);
 
-      if (user != null) {
-        // User with the provided username found
-        setState(() {
-          if (!_selectedUsers.contains(user.userName)) {
-            _selectedUsers.add(user.userName);
-            _userInGroup.add(user);
-            userRoles[user.userName] =
-                'Member'; // Set the default role for the new user
-            widget.onDataChanged(_userInGroup, userRoles);
-          }
-        });
+      // User with the provided username found
+      setState(() {
+        if (!_selectedUsers.contains(user.userName)) {
+          _selectedUsers.add(user.userName);
+          _userInGroup.add(user);
+          userRoles[user.userName] =
+              'Member'; // Set the default role for the new user
+          widget.onDataChanged(_userInGroup, userRoles);
+        }
+      });
 
-        print('User added: ${user.userName}');
-      } else {
-        // User with the provided username not found
-        print('User not found for username: $username');
-      }
+      print('User added: ${user.userName}');
     } catch (e) {
       print('Error searching for user: $e');
     }

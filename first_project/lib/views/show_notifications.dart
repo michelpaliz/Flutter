@@ -3,6 +3,8 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
+import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
+import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,12 +23,13 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   User? _currentUser;
   ProviderManagement? _providerManagement;
   late List<NotificationUser> _notifications;
-  late List<NotificationUser>? _notificationsFetched;
+  UserService _userService = UserService();
+  AuthProvider user = AuthProvider();
+
   @override
   void initState() {
     super.initState();
     _notifications = [];
-    _notificationsFetched = [];
   }
 
   @override
@@ -44,13 +47,20 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       _currentUser = newUser;
       devtools.log("Current User has changed: $_currentUser");
 
-      // Reset the group list when the user changes
-      _notificationsFetched = [];
-
       // Fetch and update groups for the new user
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _fetchAndUpdateNotifications();
       });
+    }
+  }
+
+  Future<void> _fetchUserNotifications(String userName) async {
+    try {
+      _notifications = await _userService.getNotificationsByUser(userName);
+      _updateNotifications(_notifications);
+    } catch (error) {
+      // Handle error
+      print('Error fetching notifications: $error');
     }
   }
 
@@ -63,20 +73,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     try {
       devtools.log("Current User here !!: $_currentUser");
 
-      _notificationsFetched = [];
-
       if (_currentUser!.notifications.isNotEmpty) {
-        // Fetch notifications for the current user
-        // for (NotificationUser ntf in _currentUser!.notifications) {
-        //   if (ntf.ownerId == _currentUser!.id) {
-        //     NotificationUser notification = await _providerManagement!
-        //         .notificationService
-        //         .getNotificationById(ntf.id);
-        //     _notificationsFetched!.add(notification);
-        //   }
-        // }
-        // Update the notifications stream with the fetched notifications
-        _providerManagement!.fetchUserNotifications(_currentUser!.userName);
+        await _fetchUserNotifications(_currentUser!.userName);
         _updateNotifications(_providerManagement!.notifications);
       } else {
         _updateNotifications([]);
@@ -89,53 +87,27 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   }
 
   void _updateNotifications(List<NotificationUser> notifications) {
+    // notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     setState(() {
       _notifications = notifications;
       _providerManagement?.updateNotificationStream(_notifications);
     });
   }
 
-  // Function to remove a notification at a given index
-// Function to remove a notification at a given index
-  void _removeNotification(int index) async {
-    if (_currentUser != null &&
-        index >= 0 &&
-        index < _currentUser!.notifications.length) {
-      NotificationUser notification = _currentUser!.notifications[index];
-      _currentUser!.notifications.removeAt(index);
-      // Remove notification from ProviderManagement
-      await _providerManagement!.removeNotification(notification);
-      // Use a Completer to handle the asynchronous operation
-      Completer<void> completer = Completer<void>();
-      completer.future.then((_) {
-        // Check if the widget is still mounted before calling setState
-        if (mounted) {
-          setState(() {
-            // Update UI if needed
-          });
-        }
-      });
-
-      // Complete the operation
-      completer.complete();
-    }
-  }
-
   Future<void> _handleConfirmation(int index) async {
     if (_currentUser != null &&
         index >= 0 &&
         index < _currentUser!.notifications.length) {
-      // NotificationUser notification = _currentUser!.notifications[index];
       var notification = _providerManagement!.currentUser?.notifications[index];
 
-      if (notification.question.isNotEmpty) {
+      if (notification!.question.isNotEmpty) {
         Group? group = await _providerManagement?.groupService
             .getGroupById(notification.id);
 
         if (group == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Group not found.'),
+              content: Text('Group does not exist anymore.'),
             ),
           );
           return;
@@ -162,7 +134,6 @@ class _ShowNotificationsState extends State<ShowNotifications> {
             _currentUser!.notifications[index].isAnswered = true;
             Map<String, String> userRole = {_currentUser!.userName: role};
             group.userRoles.addEntries(userRole.entries);
-
             await _providerManagement?.updateGroup(group);
 
             if (mounted) {
@@ -172,7 +143,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
             }
 
             _sendNotificationToAdmin(notification, true);
-            await _providerManagement?.removeNotification(notification);
+            await _removeNotification(index);
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -192,29 +163,71 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         index < _currentUser!.notifications.length) {
       NotificationUser notification = _currentUser!.notifications[index];
       if (notification.question.isNotEmpty) {
-        // Group? group = await _storeService.getGroupFromId(notification.id);
+        // Fetch the group associated with the notification
         Group group = await _providerManagement!.groupService
             .getGroupById(notification.id);
         Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
+
         if (invitedUsers != null) {
-          group.invitedUsers!.remove(_currentUser!.name);
-          _providerManagement!.removeNotification(notification);
+          invitedUsers.remove(_currentUser!.userName);
+          group.invitedUsers = invitedUsers;
+
+          // Update the group to remove the current user from the invited list
+          await _providerManagement!.groupService.updateGroup(group.id, group);
+
+          // Remove the notification
+          await _removeNotification(index);
+
+          // Update the user with the new state
+          _currentUser!.notifications[index].isAnswered = true;
+          await _providerManagement!.updateUser(_currentUser!);
+
+          // Send a notification to the admin about the negation
+          _sendNotificationToAdmin(notification, false);
+
+          // Show a SnackBar
+          if (mounted) {
+            setState(() {
+              // Update UI if needed
+            });
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Notification denied.'),
+            ),
+          );
         }
-        _currentUser!.notifications[index].isAnswered = true;
-        // await _storeService.updateUser(_currentUser!);
-        await _providerManagement!.updateUser(_currentUser!);
-        _sendNotificationToAdmin(notification, false);
-        if (mounted) {
-          setState(() {
-            // Update UI if needed
-          });
-        }
-        // Show a SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Notification denied.'),
-          ),
-        );
+      }
+    }
+  }
+
+  // Function to remove a notification by index
+  Future<void> _removeNotification(int index) async {
+    if (_currentUser != null) {
+      if (index >= 0 && index < _currentUser!.notifications.length) {
+        NotificationUser notification = _currentUser!.notifications[index];
+
+        // Remove the notification from the current user's list
+        _currentUser!.notifications.removeAt(index);
+
+        // Remove the notification from ProviderManagement
+        await _providerManagement!.removeNotification(notification);
+
+        // Use a Completer to handle the asynchronous operation
+        Completer<void> completer = Completer<void>();
+        completer.future.then((_) {
+          // Check if the widget is still mounted before calling setState
+          if (mounted) {
+            setState(() {
+              // Update UI if needed
+            });
+          }
+        });
+
+        // Complete the operation
+        completer.complete();
+      } else {
+        devtools.log('Notification with index $index not found.');
       }
     }
   }
@@ -228,18 +241,18 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       ntOwner = NotificationUser(
         id: notification.id,
         ownerId: notification.ownerId,
-        title: "New User Added to ${notification.title.toUpperCase()} Group",
+        title: "Invitation Status ${notification.title.toUpperCase()} Group",
         message:
-            '${_currentUser!.name} has accepted your invitation to join the group',
+            '${_currentUser!.userName} has accepted your invitation to join the group',
         timestamp: DateTime.now(),
       );
     } else {
       ntOwner = NotificationUser(
         id: notification.id,
         ownerId: notification.ownerId,
-        title: "New User Added to ${notification.title.toUpperCase()} Group",
+        title: "Invitation Status ${notification.title.toUpperCase()} Group",
         message:
-            '${_currentUser!.name} has denied your invitation to join the group',
+            '${_currentUser!.userName} has denied your invitation to join the group',
         timestamp: DateTime.now(),
       );
     }
@@ -370,18 +383,18 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                       title: Text(notification.title),
                       subtitle: Text(notification.message),
                       trailing: Visibility(
-                        visible: notification.hasQuestion == true,
+                        visible: notification.question.isNotEmpty,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             TextButton(
-                              onPressed: () {
-                                _handleConfirmation(index);
+                              onPressed: () async {
+                                await _handleConfirmation(index);
                               },
                               child: Text("Confirm"),
                             ),
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 _handleNegation(index);
                               },
                               child: Text("Negate"),

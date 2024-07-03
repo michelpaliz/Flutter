@@ -46,8 +46,8 @@ class ProviderManagement extends ChangeNotifier {
     _currentUser = user;
     if (user != null) {
       _initializeGroups();
-      fetchUserNotifications(_currentUser!.name);
-      // _initializeNotifications(user.notifications);
+      // fetchUserNotifications(_currentUser!.name);
+      // // _initializeNotifications(user.notifications);
     } else {
       _notifications = [];
     }
@@ -81,18 +81,6 @@ class ProviderManagement extends ChangeNotifier {
     }
   }
 
-  Future<void>fetchUserNotifications(String userName) async {
-    try {
-      List<NotificationUser> userNotifications =
-          await userService.getNotificationsByUser(userName);
-      _notifications = userNotifications;
-      _notificationController.add(_notifications);
-    } catch (error) {
-      // Handle error
-      print('Error fetching notifications: $error');
-    }
-  }
-
   // Method to update the group stream with the latest list of groups
   void updateGroupStream(List<Group> groups) {
     _groups.clear();
@@ -114,29 +102,6 @@ class ProviderManagement extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // Initialize notifications
-  // void _initializeNotifications(List<NotificationUser> userNotifications) {
-  //   _notifications = userNotifications;
-  //   _notificationController.add(_notifications);
-  // }
-
-  // // Fetch and update notifications from the service
-  // Future<void> fetchAndUpdateNotifications() async {
-  //   if (_currentUser != null) {
-  //     try {
-  //       List<NotificationUser> notifications = [];
-  //       for (var notification in _currentUser!.notifications) {
-  //         NotificationUser fetchedNotification =
-  //             await notificationService.getNotificationById(notification.id);
-  //         notifications.add(fetchedNotification);
-  //       }
-  //       updateNotificationStream(notifications);
-  //     } catch (e) {
-  //       print('Failed to fetch and update notifications: $e');
-  //     }
-  //   }
-  // }
 
   Future<bool> getUser() async {
     try {
@@ -216,16 +181,19 @@ class ProviderManagement extends ChangeNotifier {
 
       // Create a notification for the current user
       NotificationFormats notificationFormat = NotificationFormats();
-      NotificationUser notificationUser =
-          notificationFormat.whenCreatingGroup(group, _currentUser!);
-      user.notifications.add(notificationUser);
+      NotificationUser userNotification =
+          notificationFormat.whenCreatingGroup(group, user);
+      user.notifications.add(userNotification);
       user.hasNewNotifications = true;
 
-      // Save the notification to the database
-      await addNotification(notificationUser);
+      List<NotificationUser> _notifications = user.notifications;
 
-      // Update the current user in the user service
-      await updateUser(user);
+      _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      user.notifications = _notifications;
+
+      // Save the notification to the database
+      await _addNotification(userNotification, user);
 
       // Send invitations to invited users
       for (final userName in group.invitedUsers!.keys) {
@@ -233,16 +201,19 @@ class ProviderManagement extends ChangeNotifier {
         User invitedUser = await userService.getUserByUsername(userName);
 
         // Create a group invitation notification for the invited user
-        notificationUser =
+        NotificationUser invitedUserNotification =
             notificationFormat.createGroupInvitation(group, invitedUser);
-        invitedUser.notifications.add(notificationUser);
+        invitedUser.notifications.add(invitedUserNotification);
         invitedUser.hasNewNotifications = true;
 
-        // Save the notification to the database
-        await addNotification(notificationUser);
+        List<NotificationUser> _notifications = invitedUser.notifications;
 
-        // Update the invited user in the user service
-        await updateUser(invitedUser);
+        _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+        invitedUser.notifications = _notifications;
+
+        // Save the notification to the database
+        await _addNotification(invitedUserNotification, invitedUser);
       }
 
       devtools.log("Updated user = ${user.toString()}");
@@ -306,13 +277,16 @@ class ProviderManagement extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNotification(NotificationUser notification) async {
+  Future<void> _addNotification(
+      NotificationUser notification, User user) async {
     try {
       await notificationService.createNotification(notification);
-      await updateUser(_currentUser!);
+      await updateUser(user);
       // _notifications.add(notification);
-      _notificationController
-          .add(_notifications); // Add updated notifications to the stream
+      if (_currentUser!.id == notification.ownerId) {
+        updateNotificationStream(
+            notifications); // Add updated notifications to the stream
+      }
       notifyListeners();
     } catch (e) {
       print('Failed to add notification: $e');
