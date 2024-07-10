@@ -46,8 +46,6 @@ class ProviderManagement extends ChangeNotifier {
     _currentUser = user;
     if (user != null) {
       _initializeGroups();
-      // fetchUserNotifications(_currentUser!.name);
-      // // _initializeNotifications(user.notifications);
     } else {
       _notifications = [];
     }
@@ -183,14 +181,13 @@ class ProviderManagement extends ChangeNotifier {
       NotificationFormats notificationFormat = NotificationFormats();
       NotificationUser userNotification =
           notificationFormat.whenCreatingGroup(group, user);
-      user.notifications.add(userNotification);
-      user.hasNewNotifications = true;
 
-      List<NotificationUser> _notifications = user.notifications;
-
-      _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-      user.notifications = _notifications;
+      // Check for duplicates before adding
+      if (!notificationFormat.isDuplicateNotification(
+          user.notifications, userNotification)) {
+        user.notifications.add(userNotification);
+        user.hasNewNotifications = true;
+      }
 
       // Save the notification to the database
       await _addNotification(userNotification, user);
@@ -203,14 +200,13 @@ class ProviderManagement extends ChangeNotifier {
         // Create a group invitation notification for the invited user
         NotificationUser invitedUserNotification =
             notificationFormat.createGroupInvitation(group, invitedUser);
-        invitedUser.notifications.add(invitedUserNotification);
-        invitedUser.hasNewNotifications = true;
 
-        List<NotificationUser> _notifications = invitedUser.notifications;
-
-        _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-        invitedUser.notifications = _notifications;
+        // Check for duplicates before adding
+        if (!notificationFormat.isDuplicateNotification(
+            invitedUser.notifications, invitedUserNotification)) {
+          invitedUser.notifications.add(invitedUserNotification);
+          invitedUser.hasNewNotifications = true;
+        }
 
         // Save the notification to the database
         await _addNotification(invitedUserNotification, invitedUser);
@@ -241,21 +237,34 @@ class ProviderManagement extends ChangeNotifier {
 
   Future<void> updateGroup(Group updateGroup) async {
     final notificationFormat = NotificationFormats();
-    NotificationUser notification =
+    NotificationUser editingNotification =
         notificationFormat.whenEditingGroup(updateGroup, _currentUser!);
 
-    _currentUser!.notifications.add(notification);
-    await userService.updateUser(_currentUser!);
+    if (updateGroup.ownerId == _currentUser!.id) {
+      // Check for duplicates before adding
+      if (!notificationFormat.isDuplicateNotification(
+          _currentUser!.notifications, editingNotification)) {
+        _currentUser!.notifications.add(editingNotification);
+        await userService.updateUser(_currentUser!);
+      }
+    }
 
     for (final userName in updateGroup.invitedUsers!.keys) {
       final user = await userService.getUserByUsername(userName);
       notificationFormat.createGroupInvitation(updateGroup, user);
-      user.notifications.add(notification);
-      await updateUser(user);
+
+      NotificationUser youHaveBeenAdded =
+          notificationFormat.newUserHasBeenAdded(updateGroup, _currentUser!);
+
+      // Check for duplicates before adding
+      if (!notificationFormat.isDuplicateNotification(
+          user.notifications, youHaveBeenAdded)) {
+        user.notifications.add(youHaveBeenAdded);
+        await updateUser(user);
+      }
     }
 
     await groupService.updateGroup(updateGroup.id, updateGroup);
-
     currentGroup = updateGroup;
 
     final index = _groups.indexWhere((g) => g.id == updateGroup.id);
@@ -272,9 +281,13 @@ class ProviderManagement extends ChangeNotifier {
   }
 
   void updateNotificationStream(List<NotificationUser> notifications) {
-    _notificationController.add(notifications);
-    _notifications = notifications;
-    notifyListeners();
+    for (var ntf in notifications) {
+      if (ntf.ownerId == _currentUser!.id) {
+        _notificationController.add(notifications);
+        _notifications = notifications;
+      }
+      notifyListeners();
+    }
   }
 
   Future<void> _addNotification(
@@ -282,7 +295,6 @@ class ProviderManagement extends ChangeNotifier {
     try {
       await notificationService.createNotification(notification);
       await updateUser(user);
-      // _notifications.add(notification);
       if (_currentUser!.id == notification.ownerId) {
         updateNotificationStream(
             notifications); // Add updated notifications to the stream
@@ -298,9 +310,9 @@ class ProviderManagement extends ChangeNotifier {
       var result =
           await notificationService.deleteNotification(notification.id);
       if (result) {
-        _currentUser!.notifications.remove(notification.id);
+        _currentUser!.notifications.removeWhere((n) => n.id == notification.id);
         await updateUser(_currentUser!);
-        _notifications.remove(notification);
+        _notifications.removeWhere((n) => n.id == notification.id);
         _notificationController
             .add(_notifications); // Add updated notifications to the stream
         notifyListeners();

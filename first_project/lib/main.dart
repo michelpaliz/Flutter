@@ -159,7 +159,8 @@ class UserInitializer extends StatefulWidget {
       : super(key: key);
 
   @override
-  _UserInitializerState createState() => _UserInitializerState();
+  _UserInitializerState createState
+  () => _UserInitializerState();
 }
 
 class _UserInitializerState extends State<UserInitializer> {

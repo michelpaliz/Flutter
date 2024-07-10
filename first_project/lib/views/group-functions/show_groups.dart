@@ -33,13 +33,11 @@ class _ShowGroupsState extends State<ShowGroups> {
   String? _currentRole;
   ProviderManagement? _providerManagement;
   List<Group>? _groupListFetched;
-  GroupService _groupService = new GroupService();
 
   //*LOGIC FOR THE VIEW //
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _groupListFetched = [];
   }
@@ -54,6 +52,8 @@ class _ShowGroupsState extends State<ShowGroups> {
 
     // Check and set the current user
     final newUser = _providerManagement?.currentUser;
+
+    _groupListFetched = _providerManagement!.groups;
 
     devtools.log("Current User : $newUser");
 

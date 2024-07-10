@@ -7,6 +7,7 @@ class NotificationUser {
   final bool hasQuestion;
   final String question;
   bool _isAnswered; // Change from final to non-final for setter
+  final String? groupId; // Add groupId attribute
 
   NotificationUser({
     required this.id,
@@ -18,6 +19,7 @@ class NotificationUser {
     this.hasQuestion = false,
     this.question = '', // Include the isAnswered field in the constructor
     bool isAnswered = false, // Initialize the isAnswered field
+    this.groupId, // Initialize the groupId field
   })   : _timestamp = timestamp,
         _isAnswered = isAnswered; // Initialize isAnswered field
 
@@ -45,6 +47,7 @@ class NotificationUser {
       hasQuestion: json['hasQuestion'] ?? false,
       question: json['question'] ?? '',
       isAnswered: json['isAnswered'] ?? false, // Parse the isAnswered field
+      groupId: json['groupId'], // Parse the groupId field
     );
   }
 
@@ -57,8 +60,8 @@ class NotificationUser {
       'timestamp': _timestamp.toIso8601String(),
       'hasQuestion': hasQuestion,
       'question': question,
-      'isAnswered':
-          isAnswered, // Include the isAnswered field in the JSON representation
+      'isAnswered': isAnswered, // Include the isAnswered field in the JSON representation
+      'groupId': groupId, // Include the groupId in the JSON representation
     };
   }
 
@@ -72,6 +75,7 @@ class NotificationUser {
         'timestamp: $_timestamp, '
         'hasQuestion: $hasQuestion, '
         'question: $question, '
-        'isAnswered: $isAnswered)';
+        'isAnswered: $isAnswered, '
+        'groupId: $groupId)'; // Include groupId in the string representation
   }
 }
