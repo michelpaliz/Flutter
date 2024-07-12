@@ -1,3 +1,4 @@
+import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
@@ -6,25 +7,29 @@ import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class CreateGroupSearchBar extends StatefulWidget {
-  final Function(List<User> userInGroup, Map<String, String> userRoles)
+  final Function(List<User> usersInGroup, Map<String, String> userRoles)
       onDataChanged;
   final User? user;
+  final Group? group;
 
-// The onDataChanged callback function is invoked with updated user and role data.
-  CreateGroupSearchBar({required this.onDataChanged, required this.user});
+  CreateGroupSearchBar({
+    required this.onDataChanged,
+    required this.user,
+    required this.group,
+  });
+
   @override
   _CreateGroupSearchBarState createState() => _CreateGroupSearchBarState();
 }
 
-// ** IN THIS SCREEN WE ONLY UPDATE THE SEARCH BAR SCREEN WE SHOULD'T ADD OR REMOVE USERS HERE TO FIRESTORE **
 class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   List<String> searchResults = [];
   Map<String, String> userRoles = {};
   late List<String> filteredItems;
   TextEditingController _searchController = TextEditingController();
-  User? _currentUser = null;
-  List<User> _userInGroup = [];
-  List<String> _selectedUsers = [];
+  User? _currentUser;
+  Group? _group;
+  List<User> _usersInGroup = [];
   UserService userService = UserService();
 
   @override
@@ -34,51 +39,70 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   }
 
   Future<void> initializeVariables() async {
-    if (widget.user != null) {
+    if (widget.user != null && widget.group != null) {
       setState(() {
         _currentUser = widget.user;
-        _userInGroup = [_currentUser!];
-        _selectedUsers = [_currentUser!.userName];
-        userRoles[_currentUser!.userName] = 'Administrator';
+        _group = widget.group;
+
+        // Initialize userRoles
+        userRoles.clear();
+        userRoles[_currentUser!.userName] =
+            'Administrator'; // Current user is Administrator
+
+        // Iterate over invitedUsers map entries
+        _group!.invitedUsers?.forEach((username, user) {
+          if (user.accepted == true) {
+            userRoles[username] =
+                user.role;
+          }
+        });
       });
+
+      for (var id in _group!.userIds) {
+        User user = await userService.getUserById(id);
+        _usersInGroup.add(user);
+      }
     }
   }
 
-  // **SEARCH USER FUNCTIONS **
-
   void _searchUser(String username) async {
     try {
-      // Use UserService to find users whose usernames contain the provided username
       final List<String> foundUsers =
           await userService.searchUsers(username.toLowerCase());
 
-      // Update the search results list
+      if (!mounted) return;
+
+      List<String> filteredResults = foundUsers.where((userName) {
+        return !_usersInGroup.any((user) => user.userName == userName) &&
+            !userRoles.containsKey(userName);
+      }).toList();
+
       setState(() {
-        searchResults = foundUsers;
+        searchResults = filteredResults;
       });
 
-      // Print a message if no users are found
       if (searchResults.isEmpty) {
         print('User not found');
       }
     } catch (e) {
       print('Error searching for users: $e');
+      if (mounted) {
+        setState(() {
+          searchResults = [];
+        });
+      }
     }
   }
 
   void addUser(String username) async {
     try {
-      // Use UserService to retrieve user data where the username matches the provided username
       final User user = await userService.getUserByUsername(username);
 
-      // User with the provided username found
       setState(() {
-        if (!_selectedUsers.contains(user.userName)) {
-          _selectedUsers.add(user.userName);
-          _userInGroup.add(user);
-          userRoles[user.userName] =
-              'Member'; // Set the default role for the new user
-          widget.onDataChanged(_userInGroup, userRoles);
+        if (!userRoles.containsKey(user.userName)) {
+          userRoles[user.userName] = 'Member';
+          _usersInGroup.add(user);
+          widget.onDataChanged(_usersInGroup, userRoles);
         }
       });
 
@@ -88,12 +112,9 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
-  /** Remove the user using the index of the list  */
-  void removeUser(String fetchedUserName) {
-    // Check if the user is the current user before attempting to remove
-    if (fetchedUserName == _currentUser?.userName) {
-      print('Cannot remove current user: $fetchedUserName');
-      // Show a message to the user that they cannot remove themselves
+  void removeUser(String username) {
+    if (username == _currentUser?.userName) {
+      print('Cannot remove current user: $username');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
@@ -103,40 +124,32 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       return;
     }
 
-    // Find the index of the User object in the userInGroup list that matches the username
-    int indexToRemove =
-        _userInGroup.indexWhere((u) => u.userName == fetchedUserName);
+    setState(() {
+      _usersInGroup.removeWhere((u) => u.userName == username);
+      userRoles.remove(username);
+      widget.onDataChanged(_usersInGroup, userRoles);
+    });
 
-    if (indexToRemove != -1) {
-      setState(() {
-        _userInGroup.removeAt(indexToRemove);
-        _selectedUsers.remove(fetchedUserName);
-        widget.onDataChanged(_userInGroup, userRoles);
-      });
-      print('Remove user: $fetchedUserName');
-    } else {
-      print('User not found in the group: $fetchedUserName');
-    }
+    print('Removed user: $username');
   }
 
   Widget _buildSelectedUsersList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_selectedUsers.isNotEmpty)
+        if (userRoles.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ** SHOW THE USER LIST SELECTED WITHIN THE DIALOG **
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: _selectedUsers.length,
+                  itemCount: userRoles.length,
                   itemBuilder: (context, index) {
-                    final selectedUser = _selectedUsers[index];
-                    final userRole = userRoles[selectedUser] ?? 'Member';
+                    final username = userRoles.keys.toList()[index];
+                    final userRole = userRoles[username] ?? 'Member';
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(
@@ -145,14 +158,13 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            selectedUser,
+                            username,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (selectedUser == _currentUser!.userName)
-                            // ** Show the administrator of the group first
+                          if (username == _currentUser!.userName)
                             Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
@@ -172,7 +184,6 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                 ),
                               ),
                             )
-                          //** Show the other members  */
                           else
                             DropdownButton<String>(
                               value: userRole,
@@ -199,11 +210,11 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                                           style: TextStyle(fontSize: 14))),
                                 ),
                               ],
-                              //*Adding roles for the user selected **
                               onChanged: (newValue) {
                                 setState(() {
-                                  userRoles[selectedUser] = newValue!;
-                                  widget.onDataChanged(_userInGroup, userRoles);
+                                  userRoles[username] = newValue!;
+                                  widget.onDataChanged(
+                                      _usersInGroup, userRoles);
                                 });
                               },
                             ),
@@ -308,8 +319,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                       IconButton(
                         onPressed: () {
                           setState(() {
-                            _clickedUser =
-                                null; // Reset clickedUser when removing the userName
+                            _clickedUser = null;
                           });
                           removeUser(
                               userName); // Call the removeUser function here

@@ -382,6 +382,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                     child: CreateGroupSearchBar(
                                       onDataChanged: _onDataChanged,
                                       user: _currentUser,
+                                      group: null
                                     ),
                                   ),
                                   TextButton(

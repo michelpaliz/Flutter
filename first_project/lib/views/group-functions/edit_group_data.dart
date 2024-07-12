@@ -31,17 +31,17 @@ class _EditGroupDataState extends State<EditGroupData> {
   String _groupDescription = '';
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
   Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
   Map<String, UserInviteStatus> _usersInvitationStatus = {};
-  late List<User> _userInGroup = [];
+  late List<User> _usersInGroup = [];
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
       {}; //Needs to be outside the build (ui state) to avoid loading
   ProviderManagement? _providerManagement;
-
 
   @override
   void initState() {
@@ -49,6 +49,13 @@ class _EditGroupDataState extends State<EditGroupData> {
     _group = widget.group;
     _groupName = _group.groupName;
     _groupDescription = _group.description;
+    _descriptionController = TextEditingController(text: _groupDescription);
+    _descriptionController.addListener(() {
+      setState(() {
+        _groupDescription = _descriptionController.text;
+      });
+    });
+
     if (_group.photo.isNotEmpty) {
       _imageURL = _group.photo;
     }
@@ -56,13 +63,19 @@ class _EditGroupDataState extends State<EditGroupData> {
         ? null
         : XFile(
             _group.photo); // Initialize _selectedImage with the existing image
-    // _userRoles[_currentUser!.userName] = 'Administrator';
     _userUpdatedRoles = _group.userRoles;
     _userRolesAtFirst = _group.userRoles;
-    _userInGroup = widget.users;
+    _usersInGroup = widget.users;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
       _usersInvitationStatus = _group.invitedUsers!;
     }
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -89,7 +102,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     // Update the state of CreateGroupData with the received data
     setState(() {
       _userUpdatedRoles = updatedUserRoles;
-      _userInGroup = _userInGroup;
+      _usersInGroup = _usersInGroup;
     });
   }
 
@@ -204,15 +217,15 @@ class _EditGroupDataState extends State<EditGroupData> {
 
   // Function to perform the removal of a user from the group
   void _performUserRemoval(String fetchedUserName) {
-    int indexToRemove = _userInGroup.indexWhere(
+    int indexToRemove = _usersInGroup.indexWhere(
         (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
 
     if (indexToRemove != -1) {
       User removedUser =
-          _userInGroup[indexToRemove]; // Get the user to be removed
+          _usersInGroup[indexToRemove]; // Get the user to be removed
       setState(() {
         _userUpdatedRoles.remove(fetchedUserName);
-        _userInGroup.removeAt(indexToRemove); // Remove the user from the list
+        _usersInGroup.removeAt(indexToRemove); // Remove the user from the list
       });
       _providerManagement!.groupService.removeUserInGroup(
           removedUser.id, _group.id); // Remove user from server
@@ -448,28 +461,23 @@ class _EditGroupDataState extends State<EditGroupData> {
                     ),
                     // ** PUT YOUR GROUP'S DESCRIPTION **
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller:
-                            TextEditingController(text: _groupDescription),
-                        onChanged: (value) {
-                          setState(() {
-                            _groupDescription = value;
-                          });
-                        },
-                        maxLines:
-                            null, // Allow the text field to have unlimited lines
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(
-                              DESCRIPTION_MAX_LENGTH), // Adjust the limit based on an average word length
-                        ],
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!
-                              .textFieldDescription(DESCRIPTION_MAX_LENGTH),
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(children: <Widget>[
+                          TextField(
+                            controller: _descriptionController,
+                            maxLines:
+                                5, // Allow the text field to have unlimited lines
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(
+                                  DESCRIPTION_MAX_LENGTH), // Adjust the limit based on an average word length
+                            ],
+                            decoration: InputDecoration(
+                              labelText: AppLocalizations.of(context)!
+                                  .textFieldDescription(DESCRIPTION_MAX_LENGTH),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ])),
                     SizedBox(height: 10),
 
                     //? LET'S ADD HERE A  LIST TO FILTER THE USERS THAT HAVE BEEN INVITED AND THE USER WHO ARE ALREADY ON THE GROUP
@@ -524,9 +532,9 @@ class _EditGroupDataState extends State<EditGroupData> {
                                       Padding(
                                         padding: const EdgeInsets.all(10.0),
                                         child: CreateGroupSearchBar(
-                                          onDataChanged: _onDataChanged,
-                                          user: _currentUser,
-                                        ),
+                                            onDataChanged: _onDataChanged,
+                                            user: _currentUser,
+                                            group: _group),
                                       ),
                                       TextButton(
                                         onPressed: () {

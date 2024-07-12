@@ -240,7 +240,11 @@ class ProviderManagement extends ChangeNotifier {
     NotificationUser editingNotification =
         notificationFormat.whenEditingGroup(updateGroup, _currentUser!);
 
-    if (updateGroup.ownerId == _currentUser!.id) {
+    // Retrieve the user's role using their ID from group.userRoles
+    String? userRole = updateGroup.userRoles[_currentUser!.id];
+
+    // Check if user has "Administration" or "Co-Administrator" roles
+    if (userRole == 'Administration' || userRole == 'Co-Administrator') {
       // Check for duplicates before adding
       if (!notificationFormat.isDuplicateNotification(
           _currentUser!.notifications, editingNotification)) {
