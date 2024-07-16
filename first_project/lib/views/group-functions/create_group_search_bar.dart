@@ -94,7 +94,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
-  void addUser(String username) async {
+  void _addUser(String username) async {
     try {
       final User user = await userService.getUserByUsername(username);
 
@@ -112,7 +112,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
-  void removeUser(String username) {
+  void _removeUser(String username) {
     if (username == _currentUser?.userName) {
       print('Cannot remove current user: $username');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -312,7 +312,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                           setState(() {
                             _clickedUser = userName;
                           });
-                          addUser(userName); // Call the addUser function here
+                          _addUser(userName); // Call the addUser function here
                         },
                         icon: Icon(Icons.add),
                       ),
@@ -321,7 +321,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                           setState(() {
                             _clickedUser = null;
                           });
-                          removeUser(
+                          _removeUser(
                               userName); // Call the removeUser function here
                         },
                         icon: Icon(Icons.remove),

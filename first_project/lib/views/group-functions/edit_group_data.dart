@@ -102,7 +102,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     // Update the state of CreateGroupData with the received data
     setState(() {
       _userUpdatedRoles = updatedUserRoles;
-      _usersInGroup = _usersInGroup;
+      _usersInGroup = users;
     });
   }
 
@@ -124,7 +124,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   // ** EDIT GROUP **
 
   // ** Here we update or create the group's data
-  void _updateGroupMessage() async {
+  void _performGroupUpdate() async {
     if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
       bool groupCreated =
           await _updatingGroup(); // Call _creatingGroup and await the result
@@ -215,7 +215,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
-  // Function to perform the removal of a user from the group
+// Function to perform the removal of a user from the group
   void _performUserRemoval(String fetchedUserName) {
     int indexToRemove = _usersInGroup.indexWhere(
         (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
@@ -223,6 +223,8 @@ class _EditGroupDataState extends State<EditGroupData> {
     if (indexToRemove != -1) {
       User removedUser =
           _usersInGroup[indexToRemove]; // Get the user to be removed
+
+      // Perform the removal action
       setState(() {
         _userUpdatedRoles.remove(fetchedUserName);
         _usersInGroup.removeAt(indexToRemove); // Remove the user from the list
@@ -314,7 +316,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   //This function shows the invited users list
-  void _showInvitedUsers(BuildContext context) {
+  void _showAllInvitedUsers(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -388,6 +390,70 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
+  void _showInvitedUserDialog(BuildContext context, String userName) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        // Get the user invite status for the specific user
+        UserInviteStatus? userInviteStatus = _usersInvitationStatus[userName];
+
+        return Container(
+          height: 200,
+          child: userInviteStatus != null
+              ? ListTile(
+                  title: Text(userName),
+                  subtitle: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: Color.fromARGB(255, 22, 151, 134),
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(text: 'Role: '),
+                        TextSpan(
+                          text: '${userInviteStatus.role}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        TextSpan(text: ',   '),
+                        userInviteStatus.accepted != null
+                            ? TextSpan(
+                                text: 'Accepted: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: '${userInviteStatus.accepted}',
+                                    style: TextStyle(color: Colors.blue),
+                                  ),
+                                ],
+                              )
+                            : TextSpan(
+                                text: 'Accepted: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: 'Answer Pending',
+                                    style: TextStyle(color: Colors.blue),
+                                  ),
+                                ],
+                              ),
+                      ],
+                    ),
+                  ),
+                )
+              : Center(
+                  child: Text(
+                    'No user found with the given username.',
+                    style: TextStyle(fontSize: 14.0),
+                  ),
+                ),
+        );
+      },
+    );
+  }
+
   // ** UI FOR THE SCREEN **
 
   @override
@@ -396,284 +462,363 @@ class _EditGroupDataState extends State<EditGroupData> {
       builder: (context, providerManagement, child) {
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
+
         return Scaffold(
-            appBar: AppBar(
-              title: Text(AppLocalizations.of(context)!.groupData),
-            ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  children: [
-                    // ** SHOW GROUP'S IMAGE **
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 50, // Adjust the size as needed
-                        backgroundColor:
-                            _selectedImage != null ? Colors.transparent : null,
-                        backgroundImage: _imageURL.isNotEmpty
-                            ? CachedNetworkImageProvider(_imageURL)
-                                as ImageProvider<Object>?
-                            : _selectedImage != null
-                                ? FileImage(File(_selectedImage!.path))
-                                : null,
-                        child: _imageURL.isEmpty && _selectedImage == null
-                            ? Icon(
-                                Icons.add_a_photo,
-                                size: 50,
-                                color: Colors.white,
-                              )
-                            : null, // Hide the Icon when there's an image
+          appBar: AppBar(
+            title: Text(AppLocalizations.of(context)!.groupData),
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Column(
+                children: [
+                  // ** SHOW GROUP'S IMAGE **
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor:
+                          _selectedImage != null ? Colors.transparent : null,
+                      backgroundImage: _imageURL.isNotEmpty
+                          ? CachedNetworkImageProvider(_imageURL)
+                              as ImageProvider<Object>?
+                          : _selectedImage != null
+                              ? FileImage(File(_selectedImage!.path))
+                              : null,
+                      child: _imageURL.isEmpty && _selectedImage == null
+                          ? Icon(
+                              Icons.add_a_photo,
+                              size: 50,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    AppLocalizations.of(context)!.putGroupImage,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  SizedBox(height: 10),
+                  // ** PUT YOUR GROUP'S NAME **
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: TextEditingController(text: _groupName),
+                      onChanged: (value) {
+                        if (value.length <= 25) {
+                          _groupName = value;
+                        }
+                      },
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(TITLE_MAX_LENGTH),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!
+                            .textFieldGroupName(TITLE_MAX_LENGTH),
+                        border: OutlineInputBorder(),
                       ),
                     ),
-
-                    SizedBox(height: 10),
-
-                    // ** ADD AN IMAGE FOR THE GROUP **
-                    Text(
-                      AppLocalizations.of(context)!.putGroupImage,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    SizedBox(height: 10),
-                    // ** PUT YOUR GROUP'S NAME **
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller: TextEditingController(
-                            text:
-                                _groupName), // Use a TextEditingController to set the initial value
-                        onChanged: (value) {
-                          if (value.length <= 25) {
-                            // Set your desired maximum length (e.g., 50)
-                            _groupName = value;
-                          }
-                        },
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(TITLE_MAX_LENGTH),
-                        ],
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!
-                              .textFieldGroupName(TITLE_MAX_LENGTH),
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    // ** PUT YOUR GROUP'S DESCRIPTION **
-                    Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(children: <Widget>[
-                          TextField(
-                            controller: _descriptionController,
-                            maxLines:
-                                5, // Allow the text field to have unlimited lines
-                            inputFormatters: [
-                              LengthLimitingTextInputFormatter(
-                                  DESCRIPTION_MAX_LENGTH), // Adjust the limit based on an average word length
-                            ],
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(context)!
-                                  .textFieldDescription(DESCRIPTION_MAX_LENGTH),
-                              border: OutlineInputBorder(),
-                            ),
+                  ),
+                  // ** PUT YOUR GROUP'S DESCRIPTION **
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: <Widget>[
+                        TextField(
+                          controller: _descriptionController,
+                          maxLines: 5,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(
+                                DESCRIPTION_MAX_LENGTH),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!
+                                .textFieldDescription(DESCRIPTION_MAX_LENGTH),
+                            border: OutlineInputBorder(),
                           ),
-                        ])),
-                    SizedBox(height: 10),
-
-                    //? LET'S ADD HERE A  LIST TO FILTER THE USERS THAT HAVE BEEN INVITED AND THE USER WHO ARE ALREADY ON THE GROUP
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            _showInvitedUsers(context);
-                          },
-                          child: Text('Show invited users'),
                         ),
                       ],
                     ),
-
-                    // ! ADD USER FOR THE GROUP ** `
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.addPplGroup,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        //Here we add a button to to add a user using a dialog
-                        TextButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Dialog(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Center(
-                                          child: Text(
-                                            AppLocalizations.of(context)!
-                                                .addPplGroup,
-                                            style: TextStyle(
-                                              fontFamily: 'Lato',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                  ),
+                  SizedBox(height: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          _showAllInvitedUsers(context);
+                        },
+                        child: Text('Show invited users'),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.addPplGroup,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      SizedBox(width: 15),
+                      TextButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Center(
+                                        child: Text(
+                                          AppLocalizations.of(context)!
+                                              .addPplGroup,
+                                          style: TextStyle(
+                                            fontFamily: 'Lato',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: CreateGroupSearchBar(
-                                            onDataChanged: _onDataChanged,
-                                            user: _currentUser,
-                                            group: _group),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: CreateGroupSearchBar(
+                                        onDataChanged: _onDataChanged,
+                                        user: _currentUser,
+                                        group: _group,
                                       ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(
-                                            AppLocalizations.of(context)!
-                                                .close),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: Center(
-                            child: Text(AppLocalizations.of(context)!.addUser),
-                          ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(
+                                          AppLocalizations.of(context)!.close),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Center(
+                          child: Text(AppLocalizations.of(context)!.addUser),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  // ** UPDATE USER LIST **
+                  Column(
+                    children: _userUpdatedRoles.isNotEmpty
+                        ? (() {
+                            String? administratorUserName;
+                            Map<String, String> otherUserRoles = {};
 
-                    SizedBox(height: 10),
-
-                    // ** UPDATE USER LIST **
-                    // Initialize a map to store the futures for each username
-                    //Here we can remove an user
-
-                    Column(
-                      children: _userUpdatedRoles.isNotEmpty
-                          ? (() {
-                              // Separate the administrator's username
-                              String? administratorUserName;
-                              Map<String, String> otherUserRoles = {};
-
-                              _userUpdatedRoles.forEach((key, value) {
-                                if (value == 'Administrator') {
-                                  administratorUserName = key;
-                                } else {
-                                  otherUserRoles[key] = value;
-                                }
-                              });
-
-                              List<String> sortedOtherUserNames =
-                                  otherUserRoles.keys.toList()..sort();
-
-                              List<String> sortedUserNames = [];
-                              if (administratorUserName != null) {
-                                sortedUserNames.add(administratorUserName!);
+                            _userUpdatedRoles.forEach((key, value) {
+                              if (value == 'Administrator') {
+                                administratorUserName = key;
+                              } else {
+                                otherUserRoles[key] = value;
                               }
-                              sortedUserNames.addAll(sortedOtherUserNames);
+                            });
 
-                              List<Widget> userTiles = [];
-                              for (String userName in sortedUserNames) {
-                                final roleValue = _userUpdatedRoles[userName];
+                            List<String> sortedOtherUserNames =
+                                otherUserRoles.keys.toList()..sort();
 
-                                // Check if a future already exists for this username
-                                if (!userFutures.containsKey(userName)) {
-                                  userFutures[userName] = _providerManagement!
-                                      .userService
-                                      .getUserByUsername(userName);
-                                }
+                            List<String> sortedUserNames = [];
+                            if (administratorUserName != null) {
+                              sortedUserNames.add(administratorUserName!);
+                            }
+                            sortedUserNames.addAll(sortedOtherUserNames);
 
-                                // Use the existing future for this username
-                                userTiles.add(FutureBuilder<User?>(
-                                  future: userFutures[userName],
-                                  builder: (context, snapshot) {
-                                    devtools.log(
-                                        'This is username fetched $userName');
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return CircularProgressIndicator(); // Loading indicator
-                                    } else if (snapshot.hasError) {
-                                      return Text('Error: ${snapshot.error}');
-                                    } else if (snapshot.hasData) {
-                                      final user = snapshot.data;
+                            List<Widget> userTiles =
+                                sortedUserNames.map((userName) {
+                              final roleValue = _userUpdatedRoles[userName];
 
-                                      return ListTile(
-                                        title: Text(userName),
-                                        subtitle: Text(roleValue!),
-                                        leading: CircleAvatar(
-                                          radius: 30,
-                                          backgroundImage:
-                                              Utilities.buildProfileImage(
-                                                  user?.photoUrl),
-                                        ),
-                                        trailing: roleValue != 'Administrator'
-                                            ? GestureDetector(
-                                                onTap: () {
-                                                  _removeUser(
-                                                      context, userName);
-                                                },
-                                                child: Icon(
-                                                  Icons.clear,
-                                                  color: Colors.red,
-                                                ),
-                                              )
-                                            : null, // Null if user is an administrator
-                                        onTap: () {},
-                                      );
-                                    } else {
-                                      return Text(
-                                        AppLocalizations.of(context)!
-                                            .userNotFound,
-                                      );
-                                    }
-                                  },
-                                ));
+                              if (!userFutures.containsKey(userName)) {
+                                userFutures[userName] = _providerManagement!
+                                    .userService
+                                    .getUserByUsername(userName);
                               }
 
-                              return userTiles;
-                            })()
-                          : [Text("No user roles available")],
-                    )
+                              return FutureBuilder<User?>(
+                                future: userFutures[userName],
+                                builder: (context, snapshot) {
+                                  devtools.log(
+                                      'This is username fetched $userName');
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return CircularProgressIndicator();
+                                  } else if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  } else if (snapshot.hasData) {
+                                    final user = snapshot.data;
 
-                    // Add spacing between the user roles list and the button
-                  ],
-                ),
+                                    return ListTile(
+                                      title: Text(userName),
+                                      subtitle: Text(roleValue!),
+                                      leading: CircleAvatar(
+                                        radius: 30,
+                                        backgroundImage:
+                                            Utilities.buildProfileImage(
+                                                user?.photoUrl),
+                                      ),
+                                      trailing:
+                                          roleValue.trim() != 'Administrator'
+                                              ? GestureDetector(
+                                                  onTap: () {
+                                                    _showRoleChangeDialog(
+                                                        context, userName);
+                                                  },
+                                                  child: Icon(
+                                                    Icons.settings,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                              : SizedBox.shrink(),
+                                      onTap: roleValue.trim() != 'Administrator'
+                                          ? () {
+                                              _showRoleChangeDialog(
+                                                  context, userName);
+                                            }
+                                          : null,
+                                    );
+                                  } else {
+                                    return Text(AppLocalizations.of(context)!
+                                        .userNotFound);
+                                  }
+                                },
+                              );
+                            }).toList();
+
+                            return userTiles.isNotEmpty
+                                ? userTiles
+                                : [Text("No user roles available")];
+                          })()
+                        : [Text("No user roles available")],
+                  )
+                ],
               ),
             ),
-            bottomNavigationBar: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  child: TextButton(
-                    onPressed: () {
-                      _updateGroupMessage();
+          ),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              child: TextButton(
+                onPressed: () {
+                  _performGroupUpdate();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.group_add_rounded),
+                    SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)!.edit,
+                        style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+                style: ColorProperties.defaultButton(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showRoleChangeDialog(BuildContext context, String userName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String? selectedRole = _userUpdatedRoles[
+            userName]; // Local variable to hold the selected role
+
+        return AlertDialog(
+          title: Text('Change Role'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    items: ['Co-Administrator', 'Member'].map((String role) {
+                      return DropdownMenuItem<String>(
+                        value: role,
+                        child: Text(role),
+                      );
+                    }).toList(),
+                    onChanged: (String? newRole) {
+                      setState(() {
+                        selectedRole = newRole; // Update the local variable
+                      });
                     },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.group_add_rounded),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.edit,
-                            style: TextStyle(color: Colors.white)),
-                      ],
+                    decoration: InputDecoration(
+                      labelText: 'Select Role',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                      border: OutlineInputBorder(),
                     ),
-                    style: ColorProperties.defaultButton(),
                   ),
-                )));
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      UserInviteStatus? userInviteStatus =
+                          _usersInvitationStatus[userName];
+                      if (userInviteStatus != null &&
+                          userInviteStatus.accepted == true) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Information'),
+                              content:
+                                  Text('The user is already in the group.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        Navigator.of(context).pop();
+                        _showInvitedUserDialog(context, userName);
+                      }
+                    },
+                    child: Text('Check Invitation Status'),
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _userUpdatedRoles[userName] =
+                      selectedRole!; // Persist the selected role to the main state
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+          ],
+        );
       },
     );
   }
