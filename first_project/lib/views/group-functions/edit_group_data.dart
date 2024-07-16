@@ -1,8 +1,6 @@
-import 'dart:developer' as devtools show log;
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
@@ -42,6 +40,9 @@ class _EditGroupDataState extends State<EditGroupData> {
   Map<String, Future<User?>> userFutures =
       {}; //Needs to be outside the build (ui state) to avoid loading
   ProviderManagement? _providerManagement;
+  bool _showAccepted = true;
+  bool _showPending = true;
+  bool _showNotWantedToJoin = true;
 
   @override
   void initState() {
@@ -315,81 +316,6 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  //This function shows the invited users list
-  void _showAllInvitedUsers(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        // Filter users based on the invitation status
-        List<UserInviteStatus> filteredUsers = _usersInvitationStatus.values
-            .where((user) => user.accepted == null || false)
-            .toList();
-        return Container(
-          height: 300,
-          child: filteredUsers.isNotEmpty
-              ? ListView.builder(
-                  itemCount: filteredUsers.length,
-                  itemBuilder: (context, index) {
-                    String userName =
-                        _usersInvitationStatus.keys.elementAt(index);
-                    UserInviteStatus userInviteStatus = filteredUsers[index];
-                    return ListTile(
-                      title: Text(userName),
-                      subtitle: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                          ),
-                          children: <TextSpan>[
-                            TextSpan(text: 'Role: '),
-                            TextSpan(
-                              text: '${userInviteStatus.role}',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.blue),
-                            ),
-                            TextSpan(text: ',   '),
-                            userInviteStatus.accepted != null
-                                ? TextSpan(
-                                    text: 'Accepted: ',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                        text: '${userInviteStatus.accepted}',
-                                        style: TextStyle(color: Colors.blue),
-                                      ),
-                                    ],
-                                  )
-                                : TextSpan(
-                                    text: 'Accepted: ',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                        text: 'Answer Pending',
-                                        style: TextStyle(color: Colors.blue),
-                                      ),
-                                    ],
-                                  ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                )
-              : Center(
-                  child: Text(
-                    'No users found with the given status.',
-                    style: TextStyle(fontSize: 14.0),
-                  ),
-                ),
-        );
-      },
-    );
-  }
-
   void _showInvitedUserDialog(BuildContext context, String userName) {
     showModalBottomSheet(
       context: context,
@@ -455,7 +381,6 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   // ** UI FOR THE SCREEN **
-
   @override
   Widget build(BuildContext context) {
     return Consumer<ProviderManagement>(
@@ -463,16 +388,32 @@ class _EditGroupDataState extends State<EditGroupData> {
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
 
+        Map<String, UserInviteStatus> filteredUsers = {};
+
+        List<MapEntry<String, UserInviteStatus>> filteredEntries =
+            _usersInvitationStatus.entries.where((entry) {
+          final accepted = entry.value.accepted;
+          if (_showAccepted && accepted == true) {
+            return true;
+          } else if (_showPending && accepted == null) {
+            return true;
+          } else if (_showNotWantedToJoin && accepted == false) {
+            return true;
+          }
+          return false;
+        }).toList();
+
+        filteredUsers = Map.fromEntries(filteredEntries);
+
         return Scaffold(
           appBar: AppBar(
-            title: Text(AppLocalizations.of(context)!.groupData),
+            title: Text('Group Data'),
           ),
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Column(
                 children: [
-                  // ** SHOW GROUP'S IMAGE **
                   GestureDetector(
                     onTap: _pickImage,
                     child: CircleAvatar(
@@ -496,11 +437,10 @@ class _EditGroupDataState extends State<EditGroupData> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    AppLocalizations.of(context)!.putGroupImage,
+                    'Put Group Image',
                     style: TextStyle(color: Colors.grey),
                   ),
                   SizedBox(height: 10),
-                  // ** PUT YOUR GROUP'S NAME **
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextField(
@@ -514,13 +454,11 @@ class _EditGroupDataState extends State<EditGroupData> {
                         LengthLimitingTextInputFormatter(TITLE_MAX_LENGTH),
                       ],
                       decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!
-                            .textFieldGroupName(TITLE_MAX_LENGTH),
+                        labelText: 'Group Name',
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
-                  // ** PUT YOUR GROUP'S DESCRIPTION **
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
@@ -533,8 +471,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                 DESCRIPTION_MAX_LENGTH),
                           ],
                           decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context)!
-                                .textFieldDescription(DESCRIPTION_MAX_LENGTH),
+                            labelText: 'Group Description',
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -542,22 +479,12 @@ class _EditGroupDataState extends State<EditGroupData> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          _showAllInvitedUsers(context);
-                        },
-                        child: Text('Show invited users'),
-                      ),
-                    ],
-                  ),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        AppLocalizations.of(context)!.addPplGroup,
+                        'Add People to Group',
                         style: TextStyle(color: Colors.grey),
                       ),
                       SizedBox(width: 15),
@@ -574,8 +501,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                       padding: const EdgeInsets.all(16.0),
                                       child: Center(
                                         child: Text(
-                                          AppLocalizations.of(context)!
-                                              .addPplGroup,
+                                          'Add People to Group',
                                           style: TextStyle(
                                             fontFamily: 'Lato',
                                             fontSize: 15,
@@ -596,8 +522,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
-                                      child: Text(
-                                          AppLocalizations.of(context)!.close),
+                                      child: Text('Close'),
                                     ),
                                   ],
                                 ),
@@ -606,102 +531,107 @@ class _EditGroupDataState extends State<EditGroupData> {
                           );
                         },
                         child: Center(
-                          child: Text(AppLocalizations.of(context)!.addUser),
+                          child: Text('Add User'),
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 10),
-                  // ** UPDATE USER LIST **
+                  // Toggle Filter Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      FilterChip(
+                        label: Text('Accepted'),
+                        selected: _showAccepted,
+                        onSelected: (selected) {
+                          setState(() {
+                            _showAccepted = selected;
+                          });
+                        },
+                      ),
+                      FilterChip(
+                        label: Text('Pending'),
+                        selected: _showPending,
+                        onSelected: (selected) {
+                          setState(() {
+                            _showPending = selected;
+                          });
+                        },
+                      ),
+                      FilterChip(
+                        label: Text('Not Wanted to Join'),
+                        selected: _showNotWantedToJoin,
+                        onSelected: (selected) {
+                          setState(() {
+                            _showNotWantedToJoin = selected;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  // Display Filtered Users
                   Column(
-                    children: _userUpdatedRoles.isNotEmpty
-                        ? (() {
-                            String? administratorUserName;
-                            Map<String, String> otherUserRoles = {};
+                    children: filteredUsers.entries.isNotEmpty
+                        ? filteredUsers.entries.map((entry) {
+                            final String username = entry.key;
+                            final UserInviteStatus userInviteStatus =
+                                entry.value;
 
-                            _userUpdatedRoles.forEach((key, value) {
-                              if (value == 'Administrator') {
-                                administratorUserName = key;
-                              } else {
-                                otherUserRoles[key] = value;
-                              }
-                            });
+                            return FutureBuilder<User?>(
+                              future: _providerManagement!.userService
+                                  .getUserByUsername(username),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return CircularProgressIndicator();
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else if (snapshot.hasData) {
+                                  final user = snapshot.data!;
+                                  final userName = user
+                                      .userName; // Assuming this is how you get username from User object
+                                  final roleValue =
+                                      _userUpdatedRoles[userName] ??
+                                          userInviteStatus.role;
 
-                            List<String> sortedOtherUserNames =
-                                otherUserRoles.keys.toList()..sort();
-
-                            List<String> sortedUserNames = [];
-                            if (administratorUserName != null) {
-                              sortedUserNames.add(administratorUserName!);
-                            }
-                            sortedUserNames.addAll(sortedOtherUserNames);
-
-                            List<Widget> userTiles =
-                                sortedUserNames.map((userName) {
-                              final roleValue = _userUpdatedRoles[userName];
-
-                              if (!userFutures.containsKey(userName)) {
-                                userFutures[userName] = _providerManagement!
-                                    .userService
-                                    .getUserByUsername(userName);
-                              }
-
-                              return FutureBuilder<User?>(
-                                future: userFutures[userName],
-                                builder: (context, snapshot) {
-                                  devtools.log(
-                                      'This is username fetched $userName');
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return CircularProgressIndicator();
-                                  } else if (snapshot.hasError) {
-                                    return Text('Error: ${snapshot.error}');
-                                  } else if (snapshot.hasData) {
-                                    final user = snapshot.data;
-
-                                    return ListTile(
-                                      title: Text(userName),
-                                      subtitle: Text(roleValue!),
-                                      leading: CircleAvatar(
-                                        radius: 30,
-                                        backgroundImage:
-                                            Utilities.buildProfileImage(
-                                                user?.photoUrl),
-                                      ),
-                                      trailing:
-                                          roleValue.trim() != 'Administrator'
-                                              ? GestureDetector(
-                                                  onTap: () {
-                                                    _showRoleChangeDialog(
-                                                        context, userName);
-                                                  },
-                                                  child: Icon(
-                                                    Icons.settings,
-                                                    color: Colors.blue,
-                                                  ),
-                                                )
-                                              : SizedBox.shrink(),
-                                      onTap: roleValue.trim() != 'Administrator'
-                                          ? () {
-                                              _showRoleChangeDialog(
-                                                  context, userName);
-                                            }
-                                          : null,
-                                    );
-                                  } else {
-                                    return Text(AppLocalizations.of(context)!
-                                        .userNotFound);
-                                  }
-                                },
-                              );
-                            }).toList();
-
-                            return userTiles.isNotEmpty
-                                ? userTiles
-                                : [Text("No user roles available")];
-                          })()
+                                  return ListTile(
+                                    title: Text(userName),
+                                    subtitle: Text(roleValue),
+                                    leading: CircleAvatar(
+                                      radius: 30,
+                                      backgroundImage:
+                                          Utilities.buildProfileImage(
+                                              user.photoUrl),
+                                    ),
+                                    trailing:
+                                        roleValue.trim() != 'Administrator'
+                                            ? GestureDetector(
+                                                onTap: () {
+                                                  _showRoleChangeDialog(
+                                                      context, userName);
+                                                },
+                                                child: Icon(
+                                                  Icons.settings,
+                                                  color: Colors.blue,
+                                                ),
+                                              )
+                                            : SizedBox.shrink(),
+                                    onTap: roleValue.trim() != 'Administrator'
+                                        ? () {
+                                            _showRoleChangeDialog(
+                                                context, userName);
+                                          }
+                                        : null,
+                                  );
+                                } else {
+                                  return Text('User not found');
+                                }
+                              },
+                            );
+                          }).toList()
                         : [Text("No user roles available")],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -718,11 +648,12 @@ class _EditGroupDataState extends State<EditGroupData> {
                   children: [
                     Icon(Icons.group_add_rounded),
                     SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)!.edit,
-                        style: TextStyle(color: Colors.white)),
+                    Text('Edit', style: TextStyle(color: Colors.white)),
                   ],
                 ),
-                style: ColorProperties.defaultButton(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                ),
               ),
             ),
           ),
