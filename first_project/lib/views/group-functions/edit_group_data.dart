@@ -43,6 +43,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   bool _showAccepted = true;
   bool _showPending = true;
   bool _showNotWantedToJoin = true;
+  late String _currentUserRoleValue;
 
   @override
   void initState() {
@@ -69,6 +70,22 @@ class _EditGroupDataState extends State<EditGroupData> {
     _usersInGroup = widget.users;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
       _usersInvitationStatus = _group.invitedUsers!;
+    }
+
+    if (_currentUser!.id == _group.ownerId) {
+      _currentUserRoleValue = "Administrator";
+    } else {
+      for (var entry in _usersInvitationStatus.entries) {
+        var userName = entry.key;
+        var userInvitationStatus = entry.value;
+
+        // Check if current user ID matches the userName in the map
+        if (_currentUser!.id == userName) {
+          // Do something with the userInvitationStatus
+          _currentUserRoleValue = userInvitationStatus.role;
+          break; // Exit the loop if the user is found
+        }
+      }
     }
   }
 
@@ -172,80 +189,71 @@ class _EditGroupDataState extends State<EditGroupData> {
 
   //** REMOVE USER */
 
-  // Function to remove a user from the group
-  void _removeUser(BuildContext context, String fetchedUserName) {
-    // Check if the user is the current user before attempting to remove
-    if (fetchedUserName == _currentUser?.userName) {
-      print('Cannot remove current user: $fetchedUserName');
-      // Show a message to the user that they cannot remove themselves
+// Function to perform the removal of a user from the group
+
+  void _performUserRemoval(String fetchedUserName, bool? invitationStatus) {
+    // Check the invitation status first
+    if (invitationStatus == null) {
+      // User hasn't yet answered the petition
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
-          duration: Duration(seconds: 2),
+          content: Text(
+              'User $fetchedUserName already has an invitation, so cannot be removed. It will expire in 5 days if not answered.'),
+          duration: Duration(seconds: 5),
         ),
       );
+      setState(() {});
+      return;
+    } else if (invitationStatus == false) {
+      // User does not want to join
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'User $fetchedUserName is not in the group, so cannot be removed. This user will have a maximum of 3 attempts to send a request for this group.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+      setState(() {});
       return;
     }
 
-    // Show a confirmation dialog before removing the user
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm Removal'),
-          content: Text(
-              'Are you sure you want to remove user $fetchedUserName from the group?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Perform the removal action if confirmed
-                _performUserRemoval(fetchedUserName);
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+    // If the invitation status check passes, proceed to find and remove the user
+    User? userToRemove;
 
-// Function to perform the removal of a user from the group
-  void _performUserRemoval(String fetchedUserName) {
-    int indexToRemove = _usersInGroup.indexWhere(
-        (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
+    // Find the user to remove by userName
+    for (var user in _usersInGroup) {
+      if (user.userName.toLowerCase() == fetchedUserName.toLowerCase()) {
+        userToRemove = user;
+        break;
+      }
+    }
 
-    if (indexToRemove != -1) {
-      User removedUser =
-          _usersInGroup[indexToRemove]; // Get the user to be removed
-
-      // Perform the removal action
-      setState(() {
-        _userUpdatedRoles.remove(fetchedUserName);
-        _usersInGroup.removeAt(indexToRemove); // Remove the user from the list
-      });
-      _providerManagement!.groupService.removeUserInGroup(
-          removedUser.id, _group.id); // Remove user from server
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('User $fetchedUserName removed from the group.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
+    // If the user is not found in the group
+    if (userToRemove == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('User $fetchedUserName not found in the group.'),
           duration: Duration(seconds: 2),
         ),
       );
+      return;
     }
+
+    // Perform the removal action
+    setState(() {
+      _userUpdatedRoles.remove(fetchedUserName);
+      _usersInGroup.remove(userToRemove); // Remove the user from the list
+    });
+
+    _providerManagement!.groupService.removeUserInGroup(
+        userToRemove.id, _group.id); // Remove user from server
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('User $fetchedUserName removed from the group.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
@@ -595,34 +603,94 @@ class _EditGroupDataState extends State<EditGroupData> {
                                       _userUpdatedRoles[userName] ??
                                           userInviteStatus.role;
 
-                                  return ListTile(
-                                    title: Text(userName),
-                                    subtitle: Text(roleValue),
-                                    leading: CircleAvatar(
-                                      radius: 30,
-                                      backgroundImage:
-                                          Utilities.buildProfileImage(
-                                              user.photoUrl),
-                                    ),
-                                    trailing:
+                                  return Dismissible(
+                                    key: Key(userName),
+                                    direction:
                                         roleValue.trim() != 'Administrator'
-                                            ? GestureDetector(
-                                                onTap: () {
-                                                  _showRoleChangeDialog(
-                                                      context, userName);
+                                            ? DismissDirection.endToStart
+                                            : DismissDirection.none,
+                                    // onDismissed: (direction) {
+                                    //   _removeUser(context, userName);
+                                    // },
+                                    onDismissed: (direction) {
+                                      // Show the confirmation dialog
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('Confirm Removal'),
+                                            content: Text(
+                                                'Are you sure you want to remove user $userName from the group?'),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                onPressed: () {
+                                                  // Cancel removal, restore the user
+                                                  setState(() {
+                                                    // _usersInGroup.insert(indexToRemove, removedUser);
+                                                  });
+                                                  Navigator.of(context)
+                                                      .pop(); // Close the dialog
                                                 },
-                                                child: Icon(
-                                                  Icons.settings,
-                                                  color: Colors.blue,
-                                                ),
-                                              )
-                                            : SizedBox.shrink(),
-                                    onTap: roleValue.trim() != 'Administrator'
-                                        ? () {
-                                            _showRoleChangeDialog(
-                                                context, userName);
-                                          }
-                                        : null,
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  // Perform the removal action if confirmed
+                                                  _performUserRemoval(
+                                                      userName,
+                                                      userInviteStatus
+                                                          .accepted);
+                                                  Navigator.of(context)
+                                                      .pop(); // Close the dialog
+                                                },
+                                                child: Text('Confirm'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+
+                                    background: Container(
+                                      color: Colors.red,
+                                      alignment: Alignment.centerRight,
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
+                                      child: Icon(
+                                        Icons.clear,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    child: ListTile(
+                                      title: Text(userName),
+                                      subtitle: Text(roleValue),
+                                      leading: CircleAvatar(
+                                        radius: 30,
+                                        backgroundImage:
+                                            Utilities.buildProfileImage(
+                                                user.photoUrl),
+                                      ),
+                                      trailing:
+                                          roleValue.trim() != 'Administrator'
+                                              ? GestureDetector(
+                                                  onTap: () {
+                                                    //TODO In the future, we can change this and add a new feature to perform to avoid duplicity
+                                                    _showRoleChangeDialog(
+                                                        context, userName);
+                                                  },
+                                                  child: Icon(
+                                                    Icons.settings,
+                                                    color: Colors.blue,
+                                                  ),
+                                                )
+                                              : SizedBox.shrink(),
+                                      onTap: roleValue.trim() != 'Administrator'
+                                          ? () {
+                                              _showRoleChangeDialog(
+                                                  context, userName);
+                                            }
+                                          : null,
+                                    ),
                                   );
                                 } else {
                                   return Text('User not found');
