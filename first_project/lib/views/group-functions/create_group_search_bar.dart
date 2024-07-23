@@ -1,10 +1,12 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/user_services.dart';
+import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:provider/provider.dart';
 
 class CreateGroupSearchBar extends StatefulWidget {
   final Function(List<User> usersInGroup, Map<String, String> userRoles)
@@ -25,17 +27,35 @@ class CreateGroupSearchBar extends StatefulWidget {
 class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   List<String> searchResults = [];
   Map<String, String> userRoles = {};
-  late List<String> filteredItems;
   TextEditingController _searchController = TextEditingController();
   User? _currentUser;
   Group? _group;
   List<User> _usersInGroup = [];
   UserService userService = UserService();
+  late ProviderManagement _providerManagement;
 
   @override
   void initState() {
     super.initState();
     initializeVariables();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Retrieve provider management instance
+    _providerManagement =
+        Provider.of<ProviderManagement>(context, listen: false);
+
+    // Set the current user
+    _currentUser = _providerManagement.currentUser;
+    if (_currentUser != null) {
+      // Initialize the roles map
+      setState(() {
+        userRoles[_currentUser!.userName] = 'Administrator';
+      });
+    }
   }
 
   Future<void> initializeVariables() async {
@@ -45,22 +65,22 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
         _group = widget.group;
 
         // Initialize userRoles
-        userRoles.clear();
-        userRoles[_currentUser!.userName] =
-            'Administrator'; // Current user is Administrator
+        userRoles[_currentUser!.userName] = 'Administrator';
 
-        // Iterate over invitedUsers map entries
+        // Populate userRoles with existing group data
         _group!.invitedUsers?.forEach((username, user) {
-          if (user.accepted == true) {
-            userRoles[username] =
-                user.role;
+          if (user.invitationAnswer == true) {
+            userRoles[username] = user.role;
           }
         });
       });
 
+      // Load users in group
       for (var id in _group!.userIds) {
         User user = await userService.getUserById(id);
-        _usersInGroup.add(user);
+        setState(() {
+          _usersInGroup.add(user);
+        });
       }
     }
   }
@@ -144,85 +164,105 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: userRoles.length,
-                  itemBuilder: (context, index) {
-                    final username = userRoles.keys.toList()[index];
-                    final userRole = userRoles[username] ?? 'Member';
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15.0, vertical: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            username,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (username == _currentUser!.userName)
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              margin: EdgeInsets.only(right: 15),
-                              decoration: BoxDecoration(
-                                color: ThemeColors.getContainerBackgroundColor(
-                                    context),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  userRole,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            DropdownButton<String>(
-                              value: userRole,
-                              icon: Icon(Icons.arrow_drop_down),
-                              iconSize: 24,
-                              elevation: 16,
-                              style: TextStyle(
-                                  color: ThemeColors.getTextColor(context)),
-                              underline: Container(
-                                height: 2,
-                                color: ThemeColors.getTextColor(context),
-                              ),
-                              items: [
-                                DropdownMenuItem<String>(
-                                  value: 'Co-Administrator',
-                                  child: Center(
-                                      child: Text('Co-Administrator',
-                                          style: TextStyle(fontSize: 14))),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'Member',
-                                  child: Center(
-                                      child: Text('Member',
-                                          style: TextStyle(fontSize: 14))),
-                                ),
-                              ],
-                              onChanged: (newValue) {
-                                setState(() {
-                                  userRoles[username] = newValue!;
-                                  widget.onDataChanged(
-                                      _usersInGroup, userRoles);
-                                });
-                              },
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+                child: Text(
+                  "Administrator",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _currentUser!.userName,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      margin: EdgeInsets.only(right: 15),
+                      decoration: BoxDecoration(
+                        color: ThemeColors.getContainerBackgroundColor(context),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Administrator',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+                child: Text(
+                  "Users",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: userRoles.length,
+                itemBuilder: (context, index) {
+                  final username = userRoles.keys.toList()[index];
+                  if (username == _currentUser!.userName) return Container();
+                  final userRole = userRoles[username] ?? 'Member';
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15.0, vertical: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          username,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        DropdownButton<String>(
+                          value: userRole,
+                          icon: Icon(Icons.arrow_drop_down),
+                          iconSize: 24,
+                          elevation: 16,
+                          style: TextStyle(
+                              color: ThemeColors.getTextColor(context)),
+                          underline: Container(
+                            height: 2,
+                            color: ThemeColors.getTextColor(context),
+                          ),
+                          items: [
+                            DropdownMenuItem<String>(
+                              value: 'Co-Administrator',
+                              child: Center(
+                                  child: Text('Co-Administrator',
+                                      style: TextStyle(fontSize: 14))),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'Member',
+                              child: Center(
+                                  child: Text('Member',
+                                      style: TextStyle(fontSize: 14))),
+                            ),
+                          ],
+                          onChanged: (newValue) {
+                            setState(() {
+                              userRoles[username] = newValue!;
+                              widget.onDataChanged(_usersInGroup, userRoles);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ],
           )
@@ -278,7 +318,6 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    String? _clickedUser;
     return Container(
       height: 250,
       child: SingleChildScrollView(
@@ -309,18 +348,12 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                       ),
                       IconButton(
                         onPressed: () {
-                          setState(() {
-                            _clickedUser = userName;
-                          });
                           _addUser(userName); // Call the addUser function here
                         },
                         icon: Icon(Icons.add),
                       ),
                       IconButton(
                         onPressed: () {
-                          setState(() {
-                            _clickedUser = null;
-                          });
                           _removeUser(
                               userName); // Call the removeUser function here
                         },

@@ -32,6 +32,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   String? _currentRole;
   ProviderManagement? _providerManagement;
   List<Group>? _groupListFetched;
+  Stream<List<NotificationUser>>? _streamNotification;
 
   //*LOGIC FOR THE VIEW //
 
@@ -48,6 +49,8 @@ class _ShowGroupsState extends State<ShowGroups> {
     // Retrieve provider management instance
     _providerManagement =
         Provider.of<ProviderManagement>(context, listen: false);
+
+    _streamNotification = _providerManagement!.notificationStream;
 
     // Check and set the current user
     final newUser = _providerManagement?.currentUser;
@@ -332,32 +335,31 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
   // }
 
+    void _updateNotificationIcon() {
+      
+    }
+
   Widget _buildNotificationIconButton(BuildContext context) {
-    return StreamBuilder<List<NotificationUser>>(
-      stream: _providerManagement!.notificationStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          return IconButton(
-            icon: Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Icon(Icons.notifications),
+    return Consumer<ProviderManagement>(
+      builder: (context, provider, child) {
+        final notifications = provider.notifications;
+        final hasNotifications = notifications.isNotEmpty;
+
+        return IconButton(
+          icon: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Icon(Icons.notifications),
+              if (hasNotifications)
                 Icon(Icons.brightness_1, size: 10, color: Colors.red),
-              ],
-            ),
-            onPressed: () {
-              _providerManagement!.clearNotifications(); // Clear notifications
-              Navigator.pushNamed(context, AppRoutes.showNotifications);
-            },
-          );
-        } else {
-          return IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.showNotifications);
-            },
-          );
-        }
+            ],
+          ),
+          onPressed: () {
+            // Navigate to the notifications page
+            _updateNotificationIcon();
+            Navigator.pushNamed(context, AppRoutes.showNotifications);
+          },
+        );
       },
     );
   }
@@ -609,4 +611,6 @@ class _ShowGroupsState extends State<ShowGroups> {
       },
     );
   }
+  
+
 }

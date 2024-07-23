@@ -297,10 +297,10 @@ class _EditGroupDataState extends State<EditGroupData> {
         // Check if the user's role is not "Administrator"
         if (value != 'Administrator') {
           final invitationStatus = UserInviteStatus(
-            id: _group.id,
-            role: '$value',
-            accepted: null, // It's null because the user hasn't answered yet
-          );
+              id: _group.id,
+              role: '$value',
+              invitationAnswer: null, // It's null because the user hasn't answered yet
+              sendingDate: DateTime.now());
           invitations[key] = invitationStatus;
         }
       });
@@ -352,13 +352,13 @@ class _EditGroupDataState extends State<EditGroupData> {
                           ),
                         ),
                         TextSpan(text: ',   '),
-                        userInviteStatus.accepted != null
+                        userInviteStatus.invitationAnswer != null
                             ? TextSpan(
                                 text: 'Accepted: ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                                 children: <TextSpan>[
                                   TextSpan(
-                                    text: '${userInviteStatus.accepted}',
+                                    text: '${userInviteStatus.invitationAnswer}',
                                     style: TextStyle(color: Colors.blue),
                                   ),
                                 ],
@@ -400,7 +400,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
         List<MapEntry<String, UserInviteStatus>> filteredEntries =
             _usersInvitationStatus.entries.where((entry) {
-          final accepted = entry.value.accepted;
+          final accepted = entry.value.invitationAnswer;
           if (_showAccepted && accepted == true) {
             return true;
           } else if (_showPending && accepted == null) {
@@ -639,7 +639,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                                   _performUserRemoval(
                                                       userName,
                                                       userInviteStatus
-                                                          .accepted);
+                                                          .invitationAnswer);
                                                   Navigator.of(context)
                                                       .pop(); // Close the dialog
                                                 },
@@ -657,7 +657,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 20),
                                       child: Icon(
-                                        Icons.clear,
+                                        Icons.delete,
                                         color: Colors.white,
                                       ),
                                     ),
@@ -769,7 +769,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                       UserInviteStatus? userInviteStatus =
                           _usersInvitationStatus[userName];
                       if (userInviteStatus != null &&
-                          userInviteStatus.accepted == true) {
+                          userInviteStatus.invitationAnswer == true) {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {

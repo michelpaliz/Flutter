@@ -46,8 +46,10 @@ class ProviderManagement extends ChangeNotifier {
     _currentUser = user;
     if (user != null) {
       _initializeGroups();
+      _initNotifications();
     } else {
       _notifications = [];
+      _notificationController.add(_notifications);
     }
   }
 
@@ -56,6 +58,14 @@ class ProviderManagement extends ChangeNotifier {
     _currentUser = user;
     _userController.add(user);
     notifyListeners();
+  }
+
+  void _initNotifications() {
+    if (_currentUser != null) {
+      _notifications = _currentUser!.notifications;
+      _notificationController
+          .add(_notifications); // Add notifications to the stream
+    }
   }
 
   // Method to initialize groups
@@ -257,13 +267,13 @@ class ProviderManagement extends ChangeNotifier {
       final user = await userService.getUserByUsername(userName);
       notificationFormat.createGroupInvitation(updateGroup, user);
 
-      NotificationUser youHaveBeenAdded =
+      NotificationUser newUserHasBeenAdded =
           notificationFormat.newUserHasBeenAdded(updateGroup, _currentUser!);
 
       // Check for duplicates before adding
       if (!notificationFormat.isDuplicateNotification(
-          user.notifications, youHaveBeenAdded)) {
-        user.notifications.add(youHaveBeenAdded);
+          user.notifications, newUserHasBeenAdded)) {
+        user.notifications.add(newUserHasBeenAdded);
         await updateUser(user);
       }
     }

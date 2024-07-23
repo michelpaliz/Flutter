@@ -137,9 +137,14 @@ class _ShowNotificationsState extends State<ShowNotifications> {
           UserInviteStatus inviteStatus =
               entry.value; // Get the user's invite status
           String role = inviteStatus.role; // Get the user's role
-          inviteStatus.accepted = true; // Mark the invite as accepted
 
-          //We add the new users here
+          // Mark the invite as accepted using the setter
+          inviteStatus.invitationAnswer = true;
+
+          // Reflect the updated inviteStatus back to the group
+          invitedUsers[userName] = inviteStatus;
+
+          // We add the new users here
           User user = await _userService.getUserByUsername(userName);
           group.userIds.add(user.id);
 
@@ -195,40 +200,44 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
       if (notification != null &&
           notification.groupId!.isNotEmpty &&
-          notification.question.isNotEmpty) {
+          notification.questionsAndAnswers.isNotEmpty) {
         // Fetch the group associated with the notification
         Group group = await _providerManagement!.groupService
             .getGroupById(notification.groupId!);
         Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
 
         if (invitedUsers != null) {
-          invitedUsers.remove(_currentUser!.userName);
-          group.invitedUsers = invitedUsers;
+          String currentUserName = _currentUser!.userName;
+          UserInviteStatus? inviteStatus = invitedUsers[currentUserName];
 
-          // Update the group to remove the current user from the invited list
-          await _providerManagement!.groupService.updateGroup(group.id, group);
+          if (inviteStatus != null) {
+            inviteStatus.invitationAnswer = false;
 
-          // Remove the notification
-          await _removeNotification(notification.id);
+            invitedUsers[currentUserName] = inviteStatus;
+            invitedUsers.remove(currentUserName);
+            group.invitedUsers = invitedUsers;
 
-          // Update the user with the new state
-          notification.isAnswered = true;
-          await _providerManagement!.updateUser(_currentUser!);
+            await _providerManagement!.groupService
+                .updateGroup(group.id, group);
 
-          // Send a notification to the admin about the negation
-          _sendNotificationToAdmin(notification, false);
+            await _removeNotification(notification.id);
 
-          // Show a SnackBar
-          if (mounted) {
-            setState(() {
-              // Update UI if needed
-            });
+            notification.isRead = true; // Mark as read
+            await _providerManagement!.updateUser(_currentUser!);
+
+            _sendNotificationToAdmin(notification, false);
+
+            if (mounted) {
+              setState(() {
+                // Update UI if needed
+              });
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Notification denied.'),
+              ),
+            );
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Notification denied.'),
-            ),
-          );
         }
       }
     }
@@ -349,9 +358,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
               separatorBuilder: (context, index) => SizedBox(height: 8.0),
               itemBuilder: (context, index) {
                 final notification = _notifications[index];
-                bool hasConfirmed = notification.isAnswered &&
-                    notification.question.isNotEmpty &&
-                    notification.isAnswered;
+                bool hasConfirmed = notification.isRead &&
+                    notification.questionsAndAnswers.isNotEmpty &&
+                    notification.isRead;
 
                 // Skip rendering notifications that have been answered
                 if (hasConfirmed) {
@@ -406,15 +415,14 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                     }
                   },
                   child: Card(
-                    elevation: 2.0, // Adjust elevation as needed
-                    margin: EdgeInsets.symmetric(
-                        vertical: 8.0,
-                        horizontal: 16.0), // Adjust margins as needed
+                    elevation: 2.0,
+                    margin:
+                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                     child: ListTile(
                       title: Text(notification.title),
                       subtitle: Text(notification.message),
                       trailing: Visibility(
-                        visible: notification.question.isNotEmpty,
+                        visible: notification.questionsAndAnswers.isNotEmpty,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

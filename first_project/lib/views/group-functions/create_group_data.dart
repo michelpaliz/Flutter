@@ -235,7 +235,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
           final invitationStatus = UserInviteStatus(
             id: newGroup.id,
             role: '$value',
-            accepted: null, // It's null because the user hasn't answered yet
+            invitationAnswer: null,
+            sendingDate: DateTime
+                .now(),
+            attempts: 1 // It's null because the user hasn't answered yet
           );
           invitations[key] = invitationStatus;
         }
@@ -380,10 +383,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                   Padding(
                                     padding: const EdgeInsets.all(10.0),
                                     child: CreateGroupSearchBar(
-                                      onDataChanged: _onDataChanged,
-                                      user: _currentUser,
-                                      group: null
-                                    ),
+                                        onDataChanged: _onDataChanged,
+                                        user: _currentUser,
+                                        group: null),
                                   ),
                                   TextButton(
                                     onPressed: () {

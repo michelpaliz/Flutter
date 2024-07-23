@@ -15,9 +15,10 @@ class NotificationFormats {
       title: congratulatoryTitle,
       message: congratulatoryMessage,
       timestamp: DateTime.now(),
-      hasQuestion: false,
-      question: '',
-      groupId: group.id, // Set the groupId
+      questionsAndAnswers: {}, // Initialize as an empty map
+      groupId: group.id,
+      type: NotificationType.update, // Set type
+      priority: PriorityLevel.medium, // Default priority
     );
     return _notificationUser;
   }
@@ -31,63 +32,58 @@ class NotificationFormats {
       title: title,
       message: description,
       timestamp: DateTime.now(),
-      hasQuestion: false,
-      question: '',
-      groupId: group.id, // Set the groupId
+      questionsAndAnswers: {}, // Initialize as an empty map
+      groupId: group.id,
+      type: NotificationType.update, // Set type
+      priority: PriorityLevel.medium, // Default priority
     );
     return editNotification;
   }
 
   NotificationUser createGroupInvitation(Group group, User user) {
-    // Create invitation notification for the user
     final userNotificationTitle = 'Join ${group.groupName}';
     final userNotificationMessage =
         'You have been invited to join the group: ${group.groupName}';
     final userNotificationQuestion = 'Would you like to join this group?';
 
-    // Create notification for the user
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
       ownerId: user.id,
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
-      hasQuestion: true,
-      question: userNotificationQuestion,
-      groupId: group.id, // Set the groupId
+      questionsAndAnswers: {userNotificationQuestion: ''}, // Initialize map with a question
+      groupId: group.id,
+      type: NotificationType.alert, // Set type to alert
+      priority: PriorityLevel.high, // Set priority to high
     );
 
-    // Add notification to the user's list
     user.notifications.add(userNotification);
     user.hasNewNotifications = true;
 
-    // Update user document in Firestore
     return userNotification;
   }
 
-    NotificationUser newUserHasBeenAdded(Group group, User user) {
-    // Create invitation notification for the user
+  NotificationUser newUserHasBeenAdded(Group group, User user) {
     final userNotificationTitle = '${group.groupName}';
     final userNotificationMessage =
         'You have joined the group: ${group.groupName}';
 
-    // Create notification for the user
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
       ownerId: user.id,
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
-      hasQuestion: false,
-      question: "",
-      groupId: group.id, // Set the groupId
+      questionsAndAnswers: {}, // Initialize as an empty map
+      groupId: group.id,
+      type: NotificationType.message, // Set type to message
+      priority: PriorityLevel.low, // Set priority to low
     );
 
-    // Add notification to the user's list
     user.notifications.add(userNotification);
     user.hasNewNotifications = true;
 
-    // Update user document in Firestore
     return userNotification;
   }
 
