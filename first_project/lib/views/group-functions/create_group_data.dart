@@ -29,7 +29,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   // late FirestoreService _storeService;
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
-  late List<User> _userInGroup;
+  late List<User> _usersInGroup;
   UserService _userService = UserService();
 
   @override
@@ -39,12 +39,12 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     _groupDescription = '';
     _selectedImage = null;
     _userRoles[_currentUser!.userName] = 'Administrator';
-    _userInGroup = [];
+    _usersInGroup = [];
   }
 
   void _updateUserInGroup(List<User> updatedData) {
     setState(() {
-      _userInGroup = updatedData;
+      _usersInGroup = updatedData;
     });
   }
 
@@ -146,13 +146,13 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       return;
     }
 
-    print('This is the group $_userInGroup');
+    print('This is the group $_usersInGroup');
 
-    int indexToRemove = _userInGroup.indexWhere(
+    int indexToRemove = _usersInGroup.indexWhere(
         (u) => u.userName.toLowerCase() == fetchedUserName.toLowerCase());
 
     if (indexToRemove != -1) {
-      List<User> updatedUserInGroup = List.from(_userInGroup);
+      List<User> updatedUserInGroup = List.from(_usersInGroup);
       updatedUserInGroup.removeAt(indexToRemove);
       _updateUserInGroup(updatedUserInGroup);
       setState(() {
@@ -238,7 +238,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
             invitationAnswer: null,
             sendingDate: DateTime
                 .now(),
-            attempts: 1 // It's null because the user hasn't answered yet
+            attempts: 1 ,
           );
           invitations[key] = invitationStatus;
         }

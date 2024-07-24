@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:first_project/models/notification_user.dart';
+import 'package:first_project/services/custom_errors.dart';
 import 'package:http/http.dart' as http;
 
 class NotificationService {
-  final String baseUrl = 'http://192.168.1.16:3000/api/notifications'; // Replace with your API base URL
+  final String baseUrl =
+      'http://192.168.1.16:3000/api/notifications'; // Replace with your API base URL
 
   Future<List<NotificationUser>> getAllNotifications() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
@@ -16,18 +18,39 @@ class NotificationService {
     }
   }
 
-  Future<NotificationUser> createNotification(NotificationUser notification) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(notification.toJson()),
-    );
-    if (response.statusCode == 201) {
-      return NotificationUser.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to create notification');
+  Future<NotificationUser> createNotification(
+      NotificationUser notification) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(notification.toJson()),
+      );
+
+      if (response.statusCode == 201) {
+        return NotificationUser.fromJson(jsonDecode(response.body));
+      } else {
+        throw CustomException(
+          'Failed to create notification',
+          statusCode: response.statusCode,
+          responseBody: response.body,
+        );
+      }
+    } catch (error) {
+      // Ensure you are not passing null or undefined values
+      final errorMessage =
+          error is CustomException ? error.message : 'Unknown error';
+      final errorDetails = error is CustomException
+          ? error.responseBody
+          : 'No details available';
+
+      throw CustomException(
+        'Failed to create notification: $errorMessage. Details: $errorDetails',
+        statusCode: error is CustomException ? error.statusCode : 500,
+        responseBody: errorDetails,
+      );
     }
   }
 
@@ -40,7 +63,8 @@ class NotificationService {
     }
   }
 
-  Future<NotificationUser> updateNotification(NotificationUser notification) async {
+  Future<NotificationUser> updateNotification(
+      NotificationUser notification) async {
     final response = await http.put(
       Uri.parse('$baseUrl/${notification.id}'),
       headers: <String, String>{

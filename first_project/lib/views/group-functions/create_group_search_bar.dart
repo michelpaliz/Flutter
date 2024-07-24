@@ -26,7 +26,7 @@ class CreateGroupSearchBar extends StatefulWidget {
 
 class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   List<String> searchResults = [];
-  Map<String, String> userRoles = {};
+  Map<String, String> _userRoles = {};
   TextEditingController _searchController = TextEditingController();
   User? _currentUser;
   Group? _group;
@@ -53,7 +53,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     if (_currentUser != null) {
       // Initialize the roles map
       setState(() {
-        userRoles[_currentUser!.userName] = 'Administrator';
+        _userRoles[_currentUser!.userName] = 'Administrator';
       });
     }
   }
@@ -65,12 +65,12 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
         _group = widget.group;
 
         // Initialize userRoles
-        userRoles[_currentUser!.userName] = 'Administrator';
+        _userRoles[_currentUser!.userName] = 'Administrator';
 
         // Populate userRoles with existing group data
         _group!.invitedUsers?.forEach((username, user) {
           if (user.invitationAnswer == true) {
-            userRoles[username] = user.role;
+            _userRoles[username] = user.role;
           }
         });
       });
@@ -85,6 +85,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
+
   void _searchUser(String username) async {
     try {
       final List<String> foundUsers =
@@ -94,7 +95,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
       List<String> filteredResults = foundUsers.where((userName) {
         return !_usersInGroup.any((user) => user.userName == userName) &&
-            !userRoles.containsKey(userName);
+            !_userRoles.containsKey(userName);
       }).toList();
 
       setState(() {
@@ -119,10 +120,10 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       final User user = await userService.getUserByUsername(username);
 
       setState(() {
-        if (!userRoles.containsKey(user.userName)) {
-          userRoles[user.userName] = 'Member';
+        if (!_userRoles.containsKey(user.userName)) {
+          _userRoles[user.userName] = 'Member';
           _usersInGroup.add(user);
-          widget.onDataChanged(_usersInGroup, userRoles);
+          widget.onDataChanged(_usersInGroup, _userRoles);
         }
       });
 
@@ -146,8 +147,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
     setState(() {
       _usersInGroup.removeWhere((u) => u.userName == username);
-      userRoles.remove(username);
-      widget.onDataChanged(_usersInGroup, userRoles);
+      _userRoles.remove(username);
+      widget.onDataChanged(_usersInGroup, _userRoles);
     });
 
     print('Removed user: $username');
@@ -157,7 +158,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (userRoles.isNotEmpty)
+        if (_userRoles.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -210,11 +211,11 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
               ),
               ListView.builder(
                 shrinkWrap: true,
-                itemCount: userRoles.length,
+                itemCount: _userRoles.length,
                 itemBuilder: (context, index) {
-                  final username = userRoles.keys.toList()[index];
+                  final username = _userRoles.keys.toList()[index];
                   if (username == _currentUser!.userName) return Container();
-                  final userRole = userRoles[username] ?? 'Member';
+                  final userRole = _userRoles[username] ?? 'Member';
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(
@@ -254,8 +255,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                           ],
                           onChanged: (newValue) {
                             setState(() {
-                              userRoles[username] = newValue!;
-                              widget.onDataChanged(_usersInGroup, userRoles);
+                              _userRoles[username] = newValue!;
+                              widget.onDataChanged(_usersInGroup, _userRoles);
                             });
                           },
                         ),

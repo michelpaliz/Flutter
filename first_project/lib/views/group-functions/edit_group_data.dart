@@ -34,7 +34,9 @@ class _EditGroupDataState extends State<EditGroupData> {
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
   Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
   Map<String, UserInviteStatus> _usersInvitationStatus = {};
-  late List<User> _usersInGroup = [];
+  late List<User> _usersInGroupForUpdate = [];
+  late List<User> _usersInGroupAtFirst;
+
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
@@ -44,6 +46,8 @@ class _EditGroupDataState extends State<EditGroupData> {
   bool _showPending = true;
   bool _showNotWantedToJoin = true;
   late String _currentUserRoleValue;
+  // Update _usersInvitationStatus with new users
+  Map<String, UserInviteStatus> newUsersInvitationStatus = {};
 
   @override
   void initState() {
@@ -67,7 +71,8 @@ class _EditGroupDataState extends State<EditGroupData> {
             _group.photo); // Initialize _selectedImage with the existing image
     _userUpdatedRoles = _group.userRoles;
     _userRolesAtFirst = _group.userRoles;
-    _usersInGroup = widget.users;
+    _usersInGroupForUpdate = widget.users;
+    _usersInGroupAtFirst = widget.users;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
       _usersInvitationStatus = _group.invitedUsers!;
     }
@@ -104,23 +109,26 @@ class _EditGroupDataState extends State<EditGroupData> {
     _currentUser = _providerManagement!.currentUser;
   }
 
-  //Grab the updated data from the create_group_search_bar.dart screen
   void _onDataChanged(List<User> updatedUserInGroup,
       Map<String, String> updatedUserRoles) async {
     // Print the new data before updating the state
     print('Updated User In Group: $updatedUserInGroup');
     print('Updated User Roles: $updatedUserRoles');
 
-    List<User> users = [];
     for (var user in updatedUserInGroup) {
-      user = await _providerManagement!.userService.getUserById(user.id);
-      users.add(user);
+      newUsersInvitationStatus[user.userName] = UserInviteStatus(
+        id: user.id,
+        invitationAnswer: null, // Set the default or expected invitation status
+        role: updatedUserRoles[user.userName] ?? 'Member',
+        sendingDate: DateTime.now(), // Assuming 'Member' is the default role
+      );
     }
 
-    // Update the state of CreateGroupData with the received data
     setState(() {
       _userUpdatedRoles = updatedUserRoles;
-      _usersInGroup = users;
+      _usersInGroupForUpdate = updatedUserInGroup;
+      // Merge new users into the existing _usersInvitationStatus
+      _usersInvitationStatus.addAll(newUsersInvitationStatus);
     });
   }
 
@@ -192,13 +200,46 @@ class _EditGroupDataState extends State<EditGroupData> {
 // Function to perform the removal of a user from the group
 
   void _performUserRemoval(String fetchedUserName, bool? invitationStatus) {
-    // Check the invitation status first
+    // Check if the user is newly added (not in the initial list of users)
+    final isNewUser = !_usersInGroupAtFirst.any(
+      (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
+    );
+
+    if (isNewUser) {
+      _handleNewUserRemoval(fetchedUserName);
+    } else {
+      _handleExistingUserRemoval(fetchedUserName, invitationStatus);
+    }
+  }
+
+  void _handleNewUserRemoval(String fetchedUserName) {
+    setState(() {
+      _usersInGroupForUpdate.removeWhere(
+        (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
+      );
+      _usersInvitationStatus.remove(fetchedUserName);
+      _userUpdatedRoles.remove(fetchedUserName);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'User $fetchedUserName removed before sending any invitation.'),
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+
+  void _handleExistingUserRemoval(
+      String fetchedUserName, bool? invitationStatus) {
+    // Check invitation status
     if (invitationStatus == null) {
-      // User hasn't yet answered the petition
+      // User hasn't yet answered the invitation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'User $fetchedUserName already has an invitation, so cannot be removed. It will expire in 5 days if not answered.'),
+            'User $fetchedUserName already has an invitation, so cannot be removed. It will expire in 5 days if not answered.',
+          ),
           duration: Duration(seconds: 5),
         ),
       );
@@ -209,7 +250,8 @@ class _EditGroupDataState extends State<EditGroupData> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'User $fetchedUserName is not in the group, so cannot be removed. This user will have a maximum of 3 attempts to send a request for this group.'),
+            'User $fetchedUserName has declined the invitation and is not in the group. This user will have a maximum of 3 attempts to send a request for this group.',
+          ),
           duration: Duration(seconds: 5),
         ),
       );
@@ -217,11 +259,9 @@ class _EditGroupDataState extends State<EditGroupData> {
       return;
     }
 
-    // If the invitation status check passes, proceed to find and remove the user
-    User? userToRemove;
-
     // Find the user to remove by userName
-    for (var user in _usersInGroup) {
+    User? userToRemove;
+    for (var user in _usersInGroupForUpdate) {
       if (user.userName.toLowerCase() == fetchedUserName.toLowerCase()) {
         userToRemove = user;
         break;
@@ -242,11 +282,14 @@ class _EditGroupDataState extends State<EditGroupData> {
     // Perform the removal action
     setState(() {
       _userUpdatedRoles.remove(fetchedUserName);
-      _usersInGroup.remove(userToRemove); // Remove the user from the list
+      _usersInGroupForUpdate
+          .remove(userToRemove); // Remove the user from the list
     });
 
     _providerManagement!.groupService.removeUserInGroup(
-        userToRemove.id, _group.id); // Remove user from server
+      userToRemove.id,
+      _group.id,
+    ); // Remove user from server
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -299,7 +342,8 @@ class _EditGroupDataState extends State<EditGroupData> {
           final invitationStatus = UserInviteStatus(
               id: _group.id,
               role: '$value',
-              invitationAnswer: null, // It's null because the user hasn't answered yet
+              invitationAnswer:
+                  null, // It's null because the user hasn't answered yet
               sendingDate: DateTime.now());
           invitations[key] = invitationStatus;
         }
@@ -358,7 +402,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                                 children: <TextSpan>[
                                   TextSpan(
-                                    text: '${userInviteStatus.invitationAnswer}',
+                                    text:
+                                        '${userInviteStatus.invitationAnswer}',
                                     style: TextStyle(color: Colors.blue),
                                   ),
                                 ],
@@ -396,11 +441,19 @@ class _EditGroupDataState extends State<EditGroupData> {
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
 
-        Map<String, UserInviteStatus> filteredUsers = {};
-
-        List<MapEntry<String, UserInviteStatus>> filteredEntries =
-            _usersInvitationStatus.entries.where((entry) {
+        // Filter out the admin user from the _usersInvitationStatus map
+        final adminUserName = _currentUserRoleValue == "Administrator"
+            ? _currentUser!.userName
+            : null;
+        final filteredEntries = _usersInvitationStatus.entries.where((entry) {
+          final username = entry.key;
           final accepted = entry.value.invitationAnswer;
+
+          // Skip the admin user
+          if (username == adminUserName) {
+            return false;
+          }
+
           if (_showAccepted && accepted == true) {
             return true;
           } else if (_showPending && accepted == null) {
@@ -411,7 +464,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           return false;
         }).toList();
 
-        filteredUsers = Map.fromEntries(filteredEntries);
+        final filteredUsers = Map.fromEntries(filteredEntries);
 
         return Scaffold(
           appBar: AppBar(
@@ -488,6 +541,25 @@ class _EditGroupDataState extends State<EditGroupData> {
                   ),
                   SizedBox(height: 10),
 
+                  // Display Admin Information
+                  if (_currentUserRoleValue == "Administrator")
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Card(
+                        elevation: 5,
+                        child: ListTile(
+                          title: Text('Admin: ${_currentUser!.userName}'),
+                          subtitle: Text('Role: Administrator'),
+                          leading: CircleAvatar(
+                            backgroundImage: Utilities.buildProfileImage(
+                                _currentUser!.photoUrl),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  SizedBox(height: 10),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -545,6 +617,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                     ],
                   ),
                   SizedBox(height: 10),
+
                   // Toggle Filter Button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -578,6 +651,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10),
+
                   // Display Filtered Users
                   Column(
                     children: filteredUsers.entries.isNotEmpty
@@ -609,25 +684,30 @@ class _EditGroupDataState extends State<EditGroupData> {
                                         roleValue.trim() != 'Administrator'
                                             ? DismissDirection.endToStart
                                             : DismissDirection.none,
-                                    // onDismissed: (direction) {
-                                    //   _removeUser(context, userName);
-                                    // },
                                     onDismissed: (direction) {
                                       // Show the confirmation dialog
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
+                                          final isNewUser =
+                                              !_usersInGroupAtFirst.any(
+                                            (user) =>
+                                                user.userName.toLowerCase() ==
+                                                userName.toLowerCase(),
+                                          );
+
                                           return AlertDialog(
-                                            title: Text('Confirm Removal'),
+                                            title: Text(isNewUser
+                                                ? 'Confirm Removal'
+                                                : 'Confirm Action'),
                                             content: Text(
-                                                'Are you sure you want to remove user $userName from the group?'),
+                                              isNewUser
+                                                  ? 'You just added this user. Would you like to remove them from the invitation list?'
+                                                  : 'Are you sure you want to remove user $userName from the group?',
+                                            ),
                                             actions: <Widget>[
                                               TextButton(
                                                 onPressed: () {
-                                                  // Cancel removal, restore the user
-                                                  setState(() {
-                                                    // _usersInGroup.insert(indexToRemove, removedUser);
-                                                  });
                                                   Navigator.of(context)
                                                       .pop(); // Close the dialog
                                                 },
@@ -635,11 +715,11 @@ class _EditGroupDataState extends State<EditGroupData> {
                                               ),
                                               TextButton(
                                                 onPressed: () {
-                                                  // Perform the removal action if confirmed
                                                   _performUserRemoval(
                                                       userName,
                                                       userInviteStatus
                                                           .invitationAnswer);
+
                                                   Navigator.of(context)
                                                       .pop(); // Close the dialog
                                                 },
@@ -650,7 +730,6 @@ class _EditGroupDataState extends State<EditGroupData> {
                                         },
                                       );
                                     },
-
                                     background: Container(
                                       color: Colors.red,
                                       alignment: Alignment.centerRight,
@@ -674,7 +753,6 @@ class _EditGroupDataState extends State<EditGroupData> {
                                           roleValue.trim() != 'Administrator'
                                               ? GestureDetector(
                                                   onTap: () {
-                                                    //TODO In the future, we can change this and add a new feature to perform to avoid duplicity
                                                     _showRoleChangeDialog(
                                                         context, userName);
                                                   },
