@@ -4,7 +4,7 @@ import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firebase_%20services/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/views/log-user/login_init.dart';
 import 'package:flutter/material.dart';
@@ -102,9 +102,9 @@ class _LoginViewState extends State<LoginView> {
 
                   User? userFetched = _loginInitializer.getUser;
                   // Update the user in the provider
-                  final providerManagement =
-                      Provider.of<ProviderManagement>(context, listen: false);
-                  providerManagement.setCurrentUser(userFetched);
+                  final userManagement =
+                      Provider.of<UserManagement>(context, listen: false);
+                  userManagement.setCurrentUser(userFetched);
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
                   // Handle user not found exception

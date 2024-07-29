@@ -3,7 +3,8 @@ import 'dart:developer' as devtools show log;
 import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/services/node_services/user_services.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
@@ -52,7 +53,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   //We define the default colors for the event object
   late Color _selectedEventColor;
   final _colorList = ColorManager.eventColors;
-  late ProviderManagement _providerManagement;
+  late UserManagement _userManagement;
+  late GroupManagement _groupManagement;
   EventService _eventService = new EventService();
   User? _selectedUser; // This will hold the selected user
   List<User> _users = []; // This will hold the list of users
@@ -95,7 +97,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _providerManagement = Provider.of<ProviderManagement>(context);
+    _userManagement = Provider.of<UserManagement>(context);
+    _groupManagement = Provider.of<GroupManagement>(context);
   }
 
   @override
@@ -257,7 +260,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
 
         if (_user != null) {
           _user!.events.add(fetchedEvent);
-          await _providerManagement.updateUser(_user!);
+          await _userManagement.updateUser(_user!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
@@ -265,7 +268,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         } else if (_group != null) {
           _group?.calendar.events.add(fetchedEvent);
           devtools.log("This is the group value: ${_group.toString()}");
-          await _providerManagement.updateGroup(_group!);
+          await _groupManagement.updateGroup(_group!);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

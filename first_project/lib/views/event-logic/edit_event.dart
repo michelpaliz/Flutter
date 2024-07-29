@@ -3,7 +3,8 @@ import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/services/node_services/user_services.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
@@ -44,7 +45,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   late List<Color> _colorList;
   late Group _group;
   // late FirestoreService _storeService;
-  late ProviderManagement _providerManagement;
+  late UserManagement _userManagement;
+  late GroupManagement _groupManagement;
   late EventService _eventService;
   User? _selectedUser;
   List<User> _users = []; // This will hold the list of users
@@ -75,7 +77,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Access the inherited widget in the didChangeDependencies method.
-    _providerManagement = Provider.of<ProviderManagement>(context);
+    _userManagement = Provider.of<UserManagement>(context);
+    _groupManagement = Provider.of<GroupManagement>(context);
     _event = ModalRoute.of(context)!.settings.arguments as Event;
     _noteController.text = _event.note ?? '';
     _selectedStartDate = _event.startDate;
@@ -84,9 +87,9 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _locationController.text = _event.localization!;
     _recurrenceRule = _event.recurrenceRule;
     _isRepetitive = _event.recurrenceRule != null;
-    _group = _providerManagement.currentGroup!;
-    _eventList = _providerManagement.currentUser!.events;
-    _currentUserName = _providerManagement.currentUser?.name;
+    _group = _groupManagement.currentGroup!;
+    _eventList = _userManagement.currentUser!.events;
+    _currentUserName = _userManagement.currentUser?.name;
     _fetchUsers();
   }
 
@@ -180,9 +183,9 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
         );
 
         // Fetch the updated group
-        _group = await _providerManagement.groupService.getGroupById(_group.id);
+        _group = await _groupManagement.groupService.getGroupById(_group.id);
         // Update the group with the new list of events
-        _providerManagement.currentGroup = _group;
+        _groupManagement.currentGroup = _group;
         // Navigator.pop(context, updatedEvent);
       } catch (error) {
         // Handle the error

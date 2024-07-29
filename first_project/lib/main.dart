@@ -4,8 +4,11 @@ import 'package:first_project/l10n/l10n.dart';
 import 'package:first_project/models/event.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
-import 'package:first_project/stateManangement/theme_preference_provider.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/notification_management.dart';
+import 'package:first_project/stateManagement/theme_management.dart';
+import 'package:first_project/stateManagement/theme_preference_provider.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/views/event-logic/add_event.dart';
 import 'package:first_project/views/event-logic/edit_event.dart';
 import 'package:first_project/views/event-logic/event_detail.dart';
@@ -52,8 +55,27 @@ class MyMaterialApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<ProviderManagement>(
-          create: (context) => ProviderManagement(user: null),
+        ChangeNotifierProvider<UserManagement>(
+          create: (context) => UserManagement(
+            notificationManagement: NotificationManagement(),
+            user: null,
+          ),
+        ),
+        ChangeNotifierProvider<GroupManagement>(
+          create: (context) => GroupManagement(
+            userManagement: UserManagement(
+              notificationManagement: NotificationManagement(),
+              user: null,
+            ),
+            // notificationManagement: NotificationManagement(),
+            user: null,
+          ),
+        ),
+        ChangeNotifierProvider<NotificationManagement>(
+          create: (context) => NotificationManagement(),
+        ),
+        ChangeNotifierProvider<ThemeManagement>(
+          create: (context) => ThemeManagement(),
         ),
         ChangeNotifierProvider<ThemePreferenceProvider>(
           create: (context) => ThemePreferenceProvider(),
@@ -138,9 +160,7 @@ class MyMaterialApp extends StatelessWidget {
               AppRoutes.editGroupData: (context) {
                 final args =
                     ModalRoute.of(context)?.settings.arguments as EditGroupData;
-                return EditGroupData(
-                    group: args.group,
-                    users: args.users);
+                return EditGroupData(group: args.group, users: args.users);
               },
               AppRoutes.homePage: (context) => HomePage(),
             },
@@ -159,8 +179,7 @@ class UserInitializer extends StatefulWidget {
       : super(key: key);
 
   @override
-  _UserInitializerState createState
-  () => _UserInitializerState();
+  _UserInitializerState createState() => _UserInitializerState();
 }
 
 class _UserInitializerState extends State<UserInitializer> {
@@ -182,9 +201,12 @@ class _UserInitializerState extends State<UserInitializer> {
 
     // Move the provider state update outside the build method
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final providerManagement =
-          Provider.of<ProviderManagement>(context, listen: false);
-      providerManagement.setCurrentUser(user);
+      final userManagement =
+          Provider.of<UserManagement>(context, listen: false);
+      userManagement.setCurrentUser(user);
+      final groupManagement =
+          Provider.of<GroupManagement>(context, listen: false);
+      groupManagement.setCurrentUser(user);
     });
   }
 

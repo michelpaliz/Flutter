@@ -1,5 +1,4 @@
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
 import 'package:first_project/views/log-user/verify_email_view.dart';
 import 'package:first_project/views/notes_view.dart';
@@ -34,9 +33,8 @@ class HomePage extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.initialize();
 
-    final providerManagement =
-        Provider.of<ProviderManagement>(context, listen: false);
-    providerManagement.setCurrentUser(authProvider.costumeUser);
+    // final userManagement = Provider.of<UserManagement>(context, listen: false);
+    // userManagement.setCurrentUser(authProvider.costumeUser);
   }
 
   Widget _buildUserDependentView(BuildContext context) {

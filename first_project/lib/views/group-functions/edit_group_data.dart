@@ -5,7 +5,8 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -36,12 +37,14 @@ class _EditGroupDataState extends State<EditGroupData> {
   Map<String, UserInviteStatus> _usersInvitationStatus = {};
   late List<User> _usersInGroupForUpdate = [];
   late List<User> _usersInGroupAtFirst;
+  bool _isDismissed = false; // Track if the item is dismissed
 
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
       {}; //Needs to be outside the build (ui state) to avoid loading
-  ProviderManagement? _providerManagement;
+  late UserManagement? _userManagement;
+  late GroupManagement _groupManagement;
   bool _showAccepted = true;
   bool _showPending = true;
   bool _showNotWantedToJoin = true;
@@ -104,9 +107,9 @@ class _EditGroupDataState extends State<EditGroupData> {
   @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
-    _providerManagement =
-        Provider.of<ProviderManagement>(context, listen: false);
-    _currentUser = _providerManagement!.currentUser;
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+    _currentUser = _userManagement!.currentUser;
   }
 
   void _onDataChanged(List<User> updatedUserInGroup,
@@ -286,7 +289,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           .remove(userToRemove); // Remove the user from the list
     });
 
-    _providerManagement!.groupService.removeUserInGroup(
+    _groupManagement.groupService.removeUserInGroup(
       userToRemove.id,
       _group.id,
     ); // Remove user from server
@@ -353,7 +356,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       updatedGroup.invitedUsers = invitations;
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      await _providerManagement!.updateGroup(updatedGroup);
+      await _groupManagement.updateGroup(updatedGroup);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -436,7 +439,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   // ** UI FOR THE SCREEN **
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProviderManagement>(
+    return Consumer<UserManagement>(
       builder: (context, providerManagement, child) {
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
@@ -662,7 +665,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                                 entry.value;
 
                             return FutureBuilder<User?>(
-                              future: _providerManagement!.userService
+                              future: _userManagement!.userService
                                   .getUserByUsername(username),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
@@ -685,6 +688,10 @@ class _EditGroupDataState extends State<EditGroupData> {
                                             ? DismissDirection.endToStart
                                             : DismissDirection.none,
                                     onDismissed: (direction) {
+                                      setState(() {
+                                        _isDismissed = true;
+                                      });
+
                                       // Show the confirmation dialog
                                       showDialog(
                                         context: context,
@@ -708,20 +715,37 @@ class _EditGroupDataState extends State<EditGroupData> {
                                             actions: <Widget>[
                                               TextButton(
                                                 onPressed: () {
+                                                  setState(() {
+                                                    _isDismissed = false;
+                                                  });
                                                   Navigator.of(context)
                                                       .pop(); // Close the dialog
+                                                  // Revert the swipe
+                                                  final scaffold =
+                                                      ScaffoldMessenger.of(
+                                                          context);
+                                                  scaffold.showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                          'Removal action canceled.'),
+                                                      duration:
+                                                          Duration(seconds: 2),
+                                                    ),
+                                                  );
                                                 },
                                                 child: Text('Cancel'),
                                               ),
                                               TextButton(
                                                 onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(); // Close the dialog
                                                   _performUserRemoval(
                                                       userName,
                                                       userInviteStatus
                                                           .invitationAnswer);
-
-                                                  Navigator.of(context)
-                                                      .pop(); // Close the dialog
+                                                  setState(() {
+                                                    _isDismissed = false;
+                                                  });
                                                 },
                                                 child: Text('Confirm'),
                                               ),

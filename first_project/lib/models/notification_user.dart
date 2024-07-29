@@ -1,17 +1,18 @@
 enum NotificationType { alert, reminder, message, update }
+
 enum PriorityLevel { low, medium, high }
 
 class NotificationUser {
   final String id;
-  final String ownerId; // Reference to the owner's ID
+  final String ownerId;
   final String title;
   final String message;
   final DateTime _timestamp;
   final Map<String, String> questionsAndAnswers;
-  final String? groupId; // Optional groupId
-  bool _isRead; // Indicates whether the notification has been read
-  final NotificationType type; // Type of the notification
-  final PriorityLevel priority; // Priority level of the notification
+  final String? groupId;
+  bool _isRead;
+  final NotificationType type;
+  final PriorityLevel priority;
 
   NotificationUser({
     required this.id,
@@ -35,18 +36,46 @@ class NotificationUser {
   }
 
   factory NotificationUser.fromJson(Map<String, dynamic> json) {
-    return NotificationUser(
-      id: json['id'] ?? '',
-      ownerId: json['ownerId'] ?? '',
-      title: json['title'] ?? '',
-      message: json['message'] ?? '',
-      timestamp: DateTime.parse(json['timestamp'] ?? ''),
-      questionsAndAnswers: Map<String, String>.from(json['questionsAndAnswers'] ?? {}),
-      groupId: json['groupId'],
-      isRead: json['isRead'] ?? false,
-      type: NotificationType.values[json['type'] ?? 0],
-      priority: PriorityLevel.values[json['priority'] ?? 1],
-    );
+    try {
+      return NotificationUser(
+        id: json['id'] ?? '',
+        ownerId: json['ownerId'] ?? '',
+        title: json['title'] ?? '',
+        message: json['message'] ?? '',
+        timestamp: json['timestamp'] != null
+            ? DateTime.parse(json['timestamp'])
+            : DateTime.now(),
+        questionsAndAnswers: json['questionsAndAnswers'] != null
+            ? Map<String, String>.from(json['questionsAndAnswers'])
+            : {},
+        groupId: json['groupId'],
+        isRead: json['isRead'] ?? false,
+        type: json['type'] != null &&
+                json['type'] is int &&
+                json['type'] < NotificationType.values.length
+            ? NotificationType.values[json['type']]
+            : NotificationType.message,
+        priority: json['priority'] != null &&
+                json['priority'] is int &&
+                json['priority'] < PriorityLevel.values.length
+            ? PriorityLevel.values[json['priority']]
+            : PriorityLevel.medium,
+      );
+    } catch (e) {
+      print('Error parsing NotificationUser from JSON: $e');
+      return NotificationUser(
+        id: '',
+        ownerId: '',
+        title: 'Unknown',
+        message: 'Error in notification',
+        timestamp: DateTime.now(),
+        questionsAndAnswers: {},
+        groupId: null,
+        isRead: false,
+        type: NotificationType.message,
+        priority: PriorityLevel.medium,
+      );
+    }
   }
 
   Map<String, dynamic> toJson() {

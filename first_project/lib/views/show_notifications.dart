@@ -5,7 +5,9 @@ import 'package:first_project/models/group.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 import 'package:first_project/services/node_services/user_services.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/notification_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,31 +22,42 @@ class ShowNotifications extends StatefulWidget {
 }
 
 class _ShowNotificationsState extends State<ShowNotifications> {
+  late Stream<List<NotificationUser>> _notificationsStream;
   User? _currentUser;
-  ProviderManagement? _providerManagement;
+  late UserManagement? _userManagement;
+  late NotificationManagement _notificationManagement;
+  late GroupManagement _groupManagement;
   late List<NotificationUser> _notifications;
-  UserService _userService = UserService();
-  AuthProvider user = AuthProvider();
+  final UserService _userService = UserService();
+  final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
     super.initState();
-    _notifications = [];
+    _initializeStream();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Retrieve provider management instance
-    _providerManagement =
-        Provider.of<ProviderManagement>(context, listen: false);
+    // Retrieve provider management instances
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+    _notificationManagement =
+        Provider.of<NotificationManagement>(context, listen: false);
+    
 
     // Check and set the current user
-    final newUser = _providerManagement?.currentUser;
+    final newUser = _userManagement?.currentUser;
+
+    _notificationsStream = _notificationManagement.notificationStream;
+
     // Check if the current user has changed
     if (_currentUser != newUser) {
-      _currentUser = newUser;
+      setState(() {
+        _currentUser = newUser;
+      });
       devtools.log("Current User has changed: $_currentUser");
 
       // Fetch and update notifications for the new user
@@ -54,33 +67,34 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
+  void _initializeStream() {
+    _notificationsStream = Stream.empty();
+  }
+
   Future<void> _fetchUserNotifications(String userName) async {
     try {
-      _notifications = await _userService.getNotificationsByUser(userName);
-      _updateNotifications(_notifications);
+      final fetchedNotifications =
+          await _userService.getNotificationsByUser(userName);
+      _updateNotifications(fetchedNotifications);
     } catch (error) {
-      // Handle error
-      print('Error fetching notifications: $error');
+      devtools.log('Error fetching notifications: $error');
     }
   }
 
   Future<void> _fetchAndUpdateNotifications() async {
-    if (_currentUser == null || _providerManagement == null) {
-      // Handle cases where currentUser or providerManagement is null
+    if (_currentUser == null || _userManagement == null) {
       return;
     }
 
     try {
-      devtools.log("Current User here !!: $_currentUser");
+      devtools.log("Fetching notifications for: $_currentUser");
 
       if (_currentUser!.notifications.isNotEmpty) {
         await _fetchUserNotifications(_currentUser!.userName);
-        _updateNotifications(_providerManagement!.notifications);
       } else {
         _updateNotifications([]);
       }
     } catch (error, stackTrace) {
-      // Log the error with the stack trace for better debugging
       devtools.log('Error fetching and updating notifications: $error');
       devtools.log('StackTrace: $stackTrace');
     }
@@ -88,250 +102,166 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   void _updateNotifications(List<NotificationUser> notifications) {
     notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    setState(() {
-      _notifications = notifications;
-      _providerManagement?.updateNotificationStream(_notifications);
-    });
+    if (mounted) {
+      setState(() {
+        _notifications = notifications;
+        _notificationManagement.updateNotificationStream(_notifications);
+      });
+    }
   }
 
-// Asynchronous function to handle confirmation of a notification
   Future<void> _handleConfirmation(String notificationId) async {
-    // Check if there is a current user
     if (_currentUser != null) {
-      // Retrieve the notification with the given ID from the current user's notifications
-      var notification = _providerManagement!.currentUser?.notifications
-          .firstWhere((n) => n.id == notificationId);
+      final notification = _currentUser!.notifications.firstWhere(
+        (n) => n.id == notificationId,
+        orElse: () => null,
+      );
 
-      // If the notification exists and contains a question
       if (notification != null && notification.question.isNotEmpty) {
-        // Fetch the group associated with the notification
-        Group? group = await _providerManagement?.groupService
+        final group = await _groupManagement.groupService
             .getGroupById(notification.groupId);
+        final invitedUsers = group.invitedUsers;
 
-        // If the group does not exist, show a snackbar message and return
-        if (group == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Group does not exist anymore.'),
-            ),
-          );
-          return;
-        }
-
-        // Retrieve the list of invited users for the group
-        Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
-
-        // If the invited users list is not found, show a snackbar message and return
         if (invitedUsers == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Invited users not found.'),
-            ),
-          );
+          _showSnackBar('Invited users not found.');
           return;
         }
 
-        // Iterate over each invited user
-        for (final entry in invitedUsers.entries) {
-          String userName = entry.key; // Get the user's name
-          UserInviteStatus inviteStatus =
-              entry.value; // Get the user's invite status
-          String role = inviteStatus.role; // Get the user's role
-
-          // Mark the invite as accepted using the setter
-          inviteStatus.invitationAnswer = true;
-
-          // Reflect the updated inviteStatus back to the group
-          invitedUsers[userName] = inviteStatus;
-
-          // We add the new users here
-          User user = await _userService.getUserByUsername(userName);
-          group.userIds.add(user.id);
-
-          // If the current user is the one being processed
-          if (userName == _currentUser!.userName) {
-            notification.isAnswered = true; // Mark the notification as answered
-            // Add the user's role to the group's user roles
-            Map<String, String> userRole = {_currentUser!.userName: role};
-            group.userRoles.addEntries(userRole.entries);
-
-            // Add the group ID to the current user's group IDs
-            _currentUser!.groupIds.add(group.id);
-
-            // Update the group with the new user roles
-            await _providerManagement?.updateGroup(group);
-            // Update the current user with the new group ID
-            _providerManagement?.updateCurrentUser(_currentUser!);
-
-            List<Group> updatedGroups = await _providerManagement!.groupService
-                .getGroupsByUser(_currentUser!.userName);
-
-            _providerManagement!.updateGroupStream(updatedGroups);
-
-            // If the widget is still mounted, update the UI
-            if (mounted) {
-              setState(() {
-                // Update UI if needed
-              });
-            }
-
-            // Send a notification to the admin indicating the notification was accepted
-            _sendNotificationToAdmin(notification, true);
-            // Remove the notification
-            await _removeNotification(notification.id);
-
-            // Show a snackbar message indicating the notification was accepted
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Notification accepted.'),
-              ),
-            );
-            return; // Exit after processing the current user's notification
-          }
-        }
+        await _processInvitationConfirmation(notification, invitedUsers, group);
       }
     }
   }
 
-  void _handleNegation(String notificationId) async {
+  Future<void> _processInvitationConfirmation(
+    NotificationUser notification,
+    Map<String, UserInviteStatus> invitedUsers,
+    Group group,
+  ) async {
+    final userName = _currentUser!.userName;
+    final inviteStatus = invitedUsers[userName];
+
+    if (inviteStatus == null) return;
+
+    inviteStatus.invitationAnswer = true;
+    invitedUsers[userName] = inviteStatus;
+
+    final user = await _userService.getUserByUsername(userName);
+    group.userIds.add(user.id);
+    group.userRoles[userName] = inviteStatus.role;
+
+    _currentUser!.groupIds.add(group.id);
+    _userManagement?.updateCurrentUser(_currentUser!);
+
+    final updatedGroups =
+        await _groupManagement.groupService.getGroupsByUser(userName);
+    _groupManagement.updateGroupStream(updatedGroups);
+
+    await _sendNotificationToAdmin(notification, true);
+    await _removeNotification(notification.id);
+
+    _showSnackBar('Notification accepted.');
+  }
+
+  Future<void> _handleNegation(String notificationId) async {
     if (_currentUser != null) {
-      NotificationUser? notification =
-          _currentUser!.notifications.firstWhere((n) => n.id == notificationId);
+      final notification = _currentUser!.notifications.firstWhere(
+        (n) => n.id == notificationId,
+        orElse: () => null,
+      );
 
       if (notification != null &&
-          notification.groupId!.isNotEmpty &&
+          notification.groupId != null &&
           notification.questionsAndAnswers.isNotEmpty) {
-        // Fetch the group associated with the notification
-        Group group = await _providerManagement!.groupService
+        final group = await _groupManagement.groupService
             .getGroupById(notification.groupId!);
-        Map<String, UserInviteStatus>? invitedUsers = group.invitedUsers;
+        final invitedUsers = group.invitedUsers;
 
         if (invitedUsers != null) {
-          String currentUserName = _currentUser!.userName;
-          UserInviteStatus? inviteStatus = invitedUsers[currentUserName];
-
-          if (inviteStatus != null) {
-            inviteStatus.invitationAnswer = false;
-
-            invitedUsers[currentUserName] = inviteStatus;
-            invitedUsers.remove(currentUserName);
-            group.invitedUsers = invitedUsers;
-
-            await _providerManagement!.groupService
-                .updateGroup(group.id, group);
-
-            await _removeNotification(notification.id);
-
-            notification.isRead = true; // Mark as read
-            await _providerManagement!.updateUser(_currentUser!);
-
-            _sendNotificationToAdmin(notification, false);
-
-            if (mounted) {
-              setState(() {
-                // Update UI if needed
-              });
-            }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Notification denied.'),
-              ),
-            );
-          }
+          await _processInvitationNegation(notification, invitedUsers, group);
         }
       }
     }
   }
 
-  // Function to remove a notification by id
+  Future<void> _processInvitationNegation(
+    NotificationUser notification,
+    Map<String, UserInviteStatus> invitedUsers,
+    Group group,
+  ) async {
+    final currentUserName = _currentUser!.userName;
+    final inviteStatus = invitedUsers[currentUserName];
+
+    if (inviteStatus != null) {
+      inviteStatus.invitationAnswer = false;
+      invitedUsers[currentUserName] = inviteStatus;
+      invitedUsers.remove(currentUserName);
+      group.invitedUsers = invitedUsers;
+
+      await _groupManagement.groupService.updateGroup(group.id, group);
+      await _removeNotification(notification.id);
+
+      notification.isRead = true;
+      await _userManagement!.updateUser(_currentUser!);
+
+      await _sendNotificationToAdmin(notification, false);
+
+      _showSnackBar('Notification denied.');
+    }
+  }
+
   Future<void> _removeNotification(String notificationId) async {
     if (_currentUser != null) {
-      NotificationUser? notification =
-          _currentUser!.notifications.firstWhere((n) => n.id == notificationId);
+      final notificationIndex =
+          _currentUser!.notifications.indexWhere((n) => n.id == notificationId);
 
-      if (notification != null) {
-        // Remove the notification from the current user's list
-        _currentUser!.notifications.removeWhere((n) => n.id == notificationId);
+      if (notificationIndex != -1) {
+        _currentUser!.notifications.removeAt(notificationIndex);
+        await _notificationManagement.removeNotificationByIndex(
+            notificationIndex, _userManagement!);
 
-        // Remove the notification from ProviderManagement
-        await _providerManagement!.removeNotification(notification);
-
-        // Use a Completer to handle the asynchronous operation
-        Completer<void> completer = Completer<void>();
-        completer.future.then((_) {
-          // Check if the widget is still mounted before calling setState
-          if (mounted) {
-            setState(() {
-              // Update UI if needed
-            });
-          }
-        });
-
-        // Complete the operation
-        completer.complete();
+        if (mounted) {
+          setState(() {});
+        }
       } else {
         devtools.log('Notification with id $notificationId not found.');
       }
     }
   }
 
-  void _sendNotificationToAdmin(
+  Future<void> _sendNotificationToAdmin(
       NotificationUser notification, bool answer) async {
-    // Create a notification for the admin to inform them about the user's response to the invitation.
-    NotificationUser ntOwner;
+    final ntOwner = NotificationUser(
+      id: notification.id,
+      ownerId: notification.ownerId,
+      title: "Invitation Status ${notification.title.toUpperCase()} Group",
+      message:
+          '${_currentUser!.userName} has ${answer ? 'accepted' : 'denied'} your invitation to join the group',
+      timestamp: DateTime.now(),
+    );
 
-    if (answer) {
-      ntOwner = NotificationUser(
-        id: notification.id,
-        ownerId: notification.ownerId,
-        title: "Invitation Status ${notification.title.toUpperCase()} Group",
-        message:
-            '${_currentUser!.userName} has accepted your invitation to join the group',
-        timestamp: DateTime.now(),
-      );
-    } else {
-      ntOwner = NotificationUser(
-        id: notification.id,
-        ownerId: notification.ownerId,
-        title: "Invitation Status ${notification.title.toUpperCase()} Group",
-        message:
-            '${_currentUser!.userName} has denied your invitation to join the group',
-        timestamp: DateTime.now(),
-      );
-    }
-
-    // Look up for the admin (owner) who created the group.
-    User admin = await _providerManagement!.userService
-        .getUserById(notification.ownerId);
-
-    // Add the notification to the admin's notifications list.
+    final admin =
+        await _userManagement!.userService.getUserById(notification.ownerId);
     admin.notifications.add(ntOwner);
-
-    // Update the hasNotification field.
     admin.hasNewNotifications = true;
-
-    // Update the admin's information.
-    await _providerManagement!.userService.updateUser(admin);
+    await _userManagement!.userService.updateUser(admin);
   }
 
-  // Function to remove all notifications
-  void _removeAllNotifications() async {
+  Future<void> _removeAllNotifications() async {
     if (_currentUser != null) {
-      // Clear notifications using ProviderManagement
-      _providerManagement?.clearNotifications();
-      // Clear notifications locally
+      _notificationManagement.clearNotifications();
       _currentUser!.notifications.clear();
-      // Update user data in Firestore
-      await _providerManagement!.userService.updateUser(_currentUser!);
+      await _userManagement!.userService.updateUser(_currentUser!);
       if (mounted) {
-        setState(() {
-          // Update UI if needed
-        });
+        setState(() {});
       }
     }
   }
 
-  // Function to parse timestamp
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   DateTime parseTimestamp(String timestampString) {
     return DateTime.parse(timestampString);
   }
@@ -349,103 +279,105 @@ class _ShowNotificationsState extends State<ShowNotifications> {
           ),
         ],
       ),
-      body: _notifications.isEmpty
-          ? Center(
-              child: Text('No notifications available.'),
-            )
-          : ListView.separated(
-              itemCount: _notifications.length,
-              separatorBuilder: (context, index) => SizedBox(height: 8.0),
-              itemBuilder: (context, index) {
-                final notification = _notifications[index];
-                bool hasConfirmed = notification.isRead &&
-                    notification.questionsAndAnswers.isNotEmpty &&
-                    notification.isRead;
+      body: StreamBuilder<List<NotificationUser>>(
+        stream: _notificationsStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No notifications available.'));
+          }
 
-                // Skip rendering notifications that have been answered
-                if (hasConfirmed) {
-                  return Container(); // Return an empty container for answered notifications
-                }
-                return Dismissible(
-                  key: Key(notification.id.toString()),
-                  background: Container(
-                    color: Colors.red,
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  secondaryBackground: Container(
-                    color: Colors.red,
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  confirmDismiss: (direction) async {
-                    return await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Confirm Removal"),
-                          content: Text(
-                              "Are you sure you want to remove this notification?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              child: Text("Yes"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(false);
-                              },
-                              child: Text("No"),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  onDismissed: (direction) {
-                    if (direction == DismissDirection.endToStart) {
-                      // Remove the notification only if confirmed
-                      _removeNotification(notification.id);
-                    }
-                  },
-                  child: Card(
-                    elevation: 2.0,
-                    margin:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    child: ListTile(
-                      title: Text(notification.title),
-                      subtitle: Text(notification.message),
-                      trailing: Visibility(
-                        visible: notification.questionsAndAnswers.isNotEmpty,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextButton(
-                              onPressed: () async {
-                                await _handleConfirmation(notification.id);
-                              },
-                              child: Text("Confirm"),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                _handleNegation(notification.id);
-                              },
-                              child: Text("Negate"),
-                            ),
-                          ],
-                        ),
+          final notifications = snapshot.data!;
+
+          return ListView.separated(
+            itemCount: notifications.length,
+            separatorBuilder: (context, index) => SizedBox(height: 8.0),
+            itemBuilder: (context, index) {
+              final notification = notifications[index];
+              final hasConfirmed = notification.isRead &&
+                  notification.questionsAndAnswers.isNotEmpty;
+
+              if (hasConfirmed) {
+                return Container();
+              }
+
+              return Dismissible(
+                key: Key(notification.id.toString()),
+                background: Container(
+                  color: Colors.red,
+                  child: Icon(Icons.delete, color: Colors.white),
+                ),
+                secondaryBackground: Container(
+                  color: Colors.red,
+                  child: Icon(Icons.delete, color: Colors.white),
+                ),
+                confirmDismiss: (direction) async {
+                  return await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("Confirm Removal"),
+                        content: Text(
+                            "Are you sure you want to remove this notification?"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                            },
+                            child: Text("Yes"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                            child: Text("No"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                onDismissed: (direction) {
+                  if (direction == DismissDirection.endToStart) {
+                    _removeNotification(notifications[index].id);
+                  }
+                },
+                child: Card(
+                  elevation: 2.0,
+                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  child: ListTile(
+                    title: Text(notification.title),
+                    subtitle: Text(notification.message),
+                    trailing: Visibility(
+                      visible: notification.questionsAndAnswers.isNotEmpty,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              await _handleConfirmation(notification.id);
+                            },
+                            child: Text("Confirm"),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              await _handleNegation(notification.id);
+                            },
+                            child: Text("Negate"),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

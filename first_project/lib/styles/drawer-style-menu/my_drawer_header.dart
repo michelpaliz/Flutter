@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +23,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   User? _currentUser;
   // Define a variable to store the selected image.
   XFile? _selectedImage;
+  late UserManagement _userManagement;
 
   @override
   void initState() {
@@ -39,10 +40,10 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    _userManagement = Provider.of<UserManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _currentUser = providerManagement.currentUser;
+    _currentUser = _userManagement.currentUser;
     // _storeService = FirestoreService.firebase(providerManagement);
   }
 
@@ -95,10 +96,11 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
             onTap: _pickImage, // Call the _pickImage function when tapped
             child: CircleAvatar(
                 radius: 30, // Adjust the size as needed
-                backgroundImage: (_currentUser!.photoUrl.toString().isEmpty)
-                    ? AssetImage('assets/images/default_profile.png')
-                    : NetworkImage(_currentUser!.photoUrl.toString())
-                        as ImageProvider),
+                backgroundImage:
+                    (_userManagement.currentUser!.photoUrl.toString().isEmpty)
+                        ? AssetImage('assets/images/default_profile.png')
+                        : NetworkImage(_currentUser!.photoUrl.toString())
+                            as ImageProvider),
           ),
 
           SizedBox(height: 5), // Add spacing between image and name

@@ -1,4 +1,4 @@
-import 'package:first_project/stateManangement/provider_management.dart';
+
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -146,21 +146,22 @@ Future<void> _handleLogout(BuildContext context) async {
       final shouldLogout = await showLogOutDialog(context);
       if (shouldLogout) {
         // Call logout method from ProviderManagement
-        final provider = Provider.of<ProviderManagement>(context, listen: false);
-        provider.logout();
-        
+        // final provider =
+        //     Provider.of<ProviderManagement>(context, listen: false);
+        // provider.logout();
+
         // Log out from the AuthService
         await AuthService.firebase().logOut();
-        
+
         // Navigate to the login screen and remove all other routes
-        Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
       }
     } finally {
       _loggingOut = false;
     }
   }
 }
-
 
 Future<bool> showLogOutDialog(BuildContext context) {
   return showDialog<bool>(

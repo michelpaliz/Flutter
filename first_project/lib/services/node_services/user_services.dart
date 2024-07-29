@@ -31,13 +31,20 @@ class UserService {
     }
   }
 
-  Future<List<String>> searchUsers(String username) async {
+  Future<dynamic> searchUsers(String username) async {
     final response = await http.get(
       Uri.parse('$baseUrl/search/${Uri.encodeComponent(username)}'),
     );
 
     if (response.statusCode == 200) {
-      return List<String>.from(jsonDecode(response.body));
+      final data = jsonDecode(response.body);
+      if (data is List) {
+        return List<String>.from(data);
+      } else if (data is Map && data.containsKey('message')) {
+        return data;
+      } else {
+        throw Exception('Unexpected response format');
+      }
     } else {
       // Handle other errors
       throw Exception('Failed to search users: ${response.reasonPhrase}');

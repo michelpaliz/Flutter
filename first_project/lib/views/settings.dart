@@ -1,11 +1,10 @@
 import 'package:first_project/models/user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
 import 'package:first_project/services/firebase_%20services/auth/exceptions/password_exceptions.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/firebase_%20services/firestore_database/exceptions/firestore_exceptions.dart';
 import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
-import 'package:first_project/stateManangement/theme_preference_provider.dart';
+import 'package:first_project/stateManagement/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -42,7 +41,7 @@ class _SettingsState extends State<Settings> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    // final providerManagement = Provider.of<ProviderManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
     // _storeService = FirestoreService.firebase(providerManagement);

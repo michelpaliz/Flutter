@@ -1,7 +1,9 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+
 import 'package:first_project/services/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +21,8 @@ class _GroupSettingsState extends State<GroupSettings> {
   late FirestoreService _storeService;
   late User groupOwner;
   late Group group;
+  late UserManagement _userManagement;
+  late GroupManagement _groupManagement;
 
   @override
   void initState() {
@@ -30,7 +34,8 @@ class _GroupSettingsState extends State<GroupSettings> {
     super.didChangeDependencies();
 
     // Access the inherited widget in the didChangeDependencies method.
-    final providerManagement = Provider.of<ProviderManagement>(context);
+    _userManagement = Provider.of<UserManagement>(context);
+    _groupManagement = Provider.of<GroupManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
     //TODO:IMPLEMENT NEW SERVICE

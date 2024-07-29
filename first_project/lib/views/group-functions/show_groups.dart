@@ -1,7 +1,9 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/notification_user.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/notification_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
 import 'package:first_project/utilities/utilities.dart';
@@ -30,9 +32,10 @@ class _ShowGroupsState extends State<ShowGroups> {
   late Color textColor;
   late Color cardBackgroundColor;
   String? _currentRole;
-  ProviderManagement? _providerManagement;
+  late UserManagement? _userManagement;
+  late GroupManagement _groupManagement;
+  late NotificationManagement _notificationManagement;
   List<Group>? _groupListFetched;
-  Stream<List<NotificationUser>>? _streamNotification;
 
   //*LOGIC FOR THE VIEW //
 
@@ -47,15 +50,17 @@ class _ShowGroupsState extends State<ShowGroups> {
     super.didChangeDependencies();
 
     // Retrieve provider management instance
-    _providerManagement =
-        Provider.of<ProviderManagement>(context, listen: false);
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
 
-    _streamNotification = _providerManagement!.notificationStream;
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+
+    _notificationManagement =
+        Provider.of<NotificationManagement>(context, listen: false);
 
     // Check and set the current user
-    final newUser = _providerManagement?.currentUser;
+    final newUser = _userManagement?.currentUser;
 
-    _groupListFetched = _providerManagement!.groups;
+    _groupListFetched = _groupManagement.groups;
 
     devtools.log("Current User : $newUser");
 
@@ -75,7 +80,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
 
   Future<void> _fetchAndUpdateGroups() async {
-    if (_currentUser == null || _providerManagement == null) {
+    if (_currentUser == null || _userManagement == null) {
       // Handle cases where currentUser or providerManagement is null
       return;
     }
@@ -85,7 +90,7 @@ class _ShowGroupsState extends State<ShowGroups> {
 
       if (_currentUser!.groupIds.isNotEmpty) {
         // Fetch groups for the current user
-        List<Group> groups = await _providerManagement!.groupService
+        List<Group> groups = await _groupManagement.groupService
             .getGroupsByUser(_currentUser!.userName);
         devtools.log("Group list !!!: ${groups.toString()}");
         // Update the group stream with the fetched groups
@@ -93,7 +98,7 @@ class _ShowGroupsState extends State<ShowGroups> {
       } else {
         setState(() {
           _groupListFetched = [];
-          _providerManagement!.updateGroupStream(_groupListFetched!);
+          _groupManagement.updateGroupStream(_groupListFetched!);
         });
       }
 
@@ -110,7 +115,7 @@ class _ShowGroupsState extends State<ShowGroups> {
   void _updateGroups(List<Group> groups) {
     setState(() {
       _groupListFetched = groups;
-      _providerManagement!.updateGroupStream(_groupListFetched!);
+      _groupManagement.updateGroupStream(_groupListFetched!);
     });
   }
 
@@ -164,7 +169,7 @@ class _ShowGroupsState extends State<ShowGroups> {
 
     if (deleteConfirmed == true && mounted) {
       try {
-        bool result = await _providerManagement!.removeGroup(group);
+        bool result = await _groupManagement.removeGroup(group);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result
@@ -172,7 +177,8 @@ class _ShowGroupsState extends State<ShowGroups> {
                 : "Error deleting group:"),
           ),
         );
-        if (result) setState(() {});
+        if (result) Navigator.of(context).pop(false);
+        setState(() {});
       } catch (error) {
         // Handle the error
       }
@@ -181,7 +187,7 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   void _leaveGroup(BuildContext context, Group group) async {
     // Check if the current user is the admin of the group
-    bool isGroupAdmin = _providerManagement!.currentUser!.id == group.ownerId;
+    bool isGroupAdmin = _userManagement!.currentUser!.id == group.ownerId;
 
     // Display confirmation dialog with custom message for admin
     bool confirm = await _showConfirmationDialog(
@@ -192,7 +198,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     );
 
     if (confirm) {
-      await _providerManagement!.groupService
+      await _groupManagement.groupService
           .removeUserInGroup(_currentUser!.id, group.id);
     }
   }
@@ -246,8 +252,8 @@ class _ShowGroupsState extends State<ShowGroups> {
           child: GestureDetector(
             onTap: () async {
               // User _groupOwner = await _storeService.getOwnerFromGroup(group);
-              User _groupOwner = await _providerManagement!.userService
-                  .getUserById(group.ownerId);
+              User _groupOwner =
+                  await _userManagement!.userService.getUserById(group.ownerId);
               showProfileAlertDialog(context, group, _groupOwner);
             },
             child: MouseRegion(
@@ -335,38 +341,56 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
   // }
 
-    void _updateNotificationIcon() {
-      
-    }
-
   Widget _buildNotificationIconButton(BuildContext context) {
-    return Consumer<ProviderManagement>(
+    return Consumer<NotificationManagement>(
       builder: (context, provider, child) {
-        final notifications = provider.notifications;
-        final hasNotifications = notifications.isNotEmpty;
+        return StreamBuilder<List<NotificationUser>>(
+          stream: _notificationManagement.notificationStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.showNotifications);
+                },
+              );
+            }
 
-        return IconButton(
-          icon: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              Icon(Icons.notifications),
-              if (hasNotifications)
-                Icon(Icons.brightness_1, size: 10, color: Colors.red),
-            ],
-          ),
-          onPressed: () {
-            // Navigate to the notifications page
-            _updateNotificationIcon();
-            Navigator.pushNamed(context, AppRoutes.showNotifications);
+            final notifications = snapshot.data ?? [];
+            final unreadNotifications =
+                notifications.where((n) => !n.isRead).toList();
+            final hasUnreadNotifications = unreadNotifications.isNotEmpty;
+
+            return IconButton(
+              icon: Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  Icon(Icons.notifications),
+                  if (hasUnreadNotifications)
+                    Positioned(
+                      right: 0,
+                      child:
+                          Icon(Icons.brightness_1, size: 10, color: Colors.red),
+                    ),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.showNotifications);
+                _notificationManagement
+                    .markNotificationsAsRead(); // Optionally mark as read
+              },
+            );
           },
         );
       },
     );
   }
 
+//**  WE CAN USE STREAMS OR CONSUMER  */
+
   Widget buildBody(BuildContext context) {
     return StreamBuilder<List<Group>>(
-      stream: _providerManagement?.groupStream,
+      stream: _groupManagement.groupStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -389,6 +413,27 @@ class _ShowGroupsState extends State<ShowGroups> {
       },
     );
   }
+
+  // Widget buildBody(BuildContext context) {
+  //   return Consumer<ProviderManagement>(
+  //     builder: (context, providerManagement, child) {
+  //       final groups = providerManagement.groupManagement.groups;
+
+  //       if (groups.isEmpty) {
+  //         return Center(child: Text('No groups available.'));
+  //       }
+
+  //       return Column(
+  //         children: [
+  //           _buildWelcomeContainer(context),
+  //           _buildChangeViewRow(context),
+  //           SizedBox(height: 20),
+  //           _buildGroupListView(groups),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildWelcomeContainer(BuildContext context) {
     return Container(
@@ -460,7 +505,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     return InkWell(
       onTap: () async {
         User _groupOwner =
-            await _providerManagement!.userService.getUserById(group.ownerId);
+            await _userManagement!.userService.getUserById(group.ownerId);
         showProfileAlertDialog(context, group, _groupOwner);
       },
       onHover: (hovering) {
@@ -522,11 +567,11 @@ class _ShowGroupsState extends State<ShowGroups> {
                 onPressed: () {
                   Group? groupFetched;
 
-                  if (_providerManagement!.currentGroup != null) {
-                    groupFetched = _providerManagement!.currentGroup!;
+                  if (_groupManagement.currentGroup != null) {
+                    groupFetched = _groupManagement.currentGroup!;
                   } else {
-                    _providerManagement!.currentGroup = group;
-                    groupFetched = _providerManagement!.currentGroup;
+                    _groupManagement.currentGroup = group;
+                    groupFetched = _groupManagement.currentGroup;
                   }
                   Navigator.pushNamed(
                     context,
@@ -560,12 +605,11 @@ class _ShowGroupsState extends State<ShowGroups> {
                   TextButton(
                     onPressed: () async {
                       // Edit group logic here
-                      var selectedGroup = await _providerManagement!
-                          .groupService
+                      var selectedGroup = await _groupManagement.groupService
                           .getGroupById(group.id);
                       List<User> users = [];
                       for (var userID in selectedGroup.userIds) {
-                        User user = await _providerManagement!.userService
+                        User user = await _userManagement!.userService
                             .getUserById(userID);
                         users.add(user);
                       }
@@ -582,7 +626,6 @@ class _ShowGroupsState extends State<ShowGroups> {
                   TextButton(
                     onPressed: () {
                       // Remove group logic here
-                      Navigator.of(context).pop();
                       _showDeleteConfirmationDialog(group);
                     },
                     child: Text(AppLocalizations.of(context)!.remove),
@@ -611,6 +654,4 @@ class _ShowGroupsState extends State<ShowGroups> {
       },
     );
   }
-  
-
 }

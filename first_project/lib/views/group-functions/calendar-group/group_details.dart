@@ -3,7 +3,8 @@ import 'package:first_project/models/mettingDataSource.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/node_services/event_services.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
@@ -43,7 +44,8 @@ class _GroupDetailsState extends State<GroupDetails> {
   late Map<String, String> _users;
   String userRole = "";
   late User? _user;
-  late ProviderManagement? _providerManagement;
+  late UserManagement _userManagement;
+  late GroupManagement _groupManagement;
   late EventService _eventService;
   late DataSource dataSource;
 
@@ -74,9 +76,10 @@ class _GroupDetailsState extends State<GroupDetails> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _providerManagement = Provider.of<ProviderManagement>(context);
-    if (_providerManagement!.currentGroup != _group) {
-      _group = _providerManagement!.currentGroup!;
+    _userManagement = Provider.of<UserManagement>(context);
+    _groupManagement = Provider.of<GroupManagement>(context);
+    if (_groupManagement.currentGroup != _group) {
+      _group = _groupManagement.currentGroup!;
       _events = _group.calendar.events;
       _updateCalendarDataSource();
     }
@@ -105,7 +108,7 @@ class _GroupDetailsState extends State<GroupDetails> {
         // Replace the old event with the updated one
         _events[index] = updatedEvent;
         _group.calendar.events = _events;
-        _providerManagement!.currentGroup = _group;
+        _groupManagement.currentGroup = _group;
         _updateCalendarDataSource();
       }
     } catch (error) {
@@ -116,8 +119,7 @@ class _GroupDetailsState extends State<GroupDetails> {
 
   Future<void> _reloadData() async {
     // Group? group = await _storeService.getGroupFromId(_group.id);
-    Group? group =
-        await _providerManagement!.groupService.getGroupById(_group.id);
+    Group? group = await _groupManagement.groupService.getGroupById(_group.id);
     setState(() {
       _appointments = [];
       _group = group;
@@ -156,7 +158,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
     // await _storeService.updateGroup(_group);
-    await _providerManagement!.updateGroup(_group);
+    await _groupManagement.updateGroup(_group);
 
     // Update the UI by removing the event from the list
     setState(() {
@@ -299,7 +301,6 @@ class _GroupDetailsState extends State<GroupDetails> {
             });
           });
         },
-        
         showNavigationArrow: true,
         firstDayOfWeek: DateTime.monday,
         initialSelectedDate: DateTime.now(),

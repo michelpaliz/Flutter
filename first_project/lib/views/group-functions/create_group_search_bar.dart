@@ -1,7 +1,8 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/user_services.dart';
-import 'package:first_project/stateManangement/provider_management.dart';
+
+import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   Group? _group;
   List<User> _usersInGroup = [];
   UserService userService = UserService();
-  late ProviderManagement _providerManagement;
+  late UserManagement _userManagement;
 
   @override
   void initState() {
@@ -45,11 +46,10 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     super.didChangeDependencies();
 
     // Retrieve provider management instance
-    _providerManagement =
-        Provider.of<ProviderManagement>(context, listen: false);
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
 
     // Set the current user
-    _currentUser = _providerManagement.currentUser;
+    _currentUser = _userManagement.currentUser;
     if (_currentUser != null) {
       // Initialize the roles map
       setState(() {
@@ -85,25 +85,37 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
-
   void _searchUser(String username) async {
     try {
-      final List<String> foundUsers =
-          await userService.searchUsers(username.toLowerCase());
+      final response = await userService.searchUsers(username.toLowerCase());
 
       if (!mounted) return;
 
-      List<String> filteredResults = foundUsers.where((userName) {
-        return !_usersInGroup.any((user) => user.userName == userName) &&
-            !_userRoles.containsKey(userName);
-      }).toList();
+      if (response is Map && response.containsKey('message')) {
+        // Handle the case where the server returns a message
+        setState(() {
+          searchResults = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message']),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else if (response is List<String>) {
+        // Handle the case where the server returns a list of users
+        List<String> filteredResults = response.where((userName) {
+          return !_usersInGroup.any((user) => user.userName == userName) &&
+              !_userRoles.containsKey(userName);
+        }).toList();
 
-      setState(() {
-        searchResults = filteredResults;
-      });
+        setState(() {
+          searchResults = filteredResults;
+        });
 
-      if (searchResults.isEmpty) {
-        print('User not found');
+        if (searchResults.isEmpty) {
+          print('User not found');
+        }
       }
     } catch (e) {
       print('Error searching for users: $e');
@@ -124,6 +136,14 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
           _userRoles[user.userName] = 'Member';
           _usersInGroup.add(user);
           widget.onDataChanged(_usersInGroup, _userRoles);
+
+          // Show a message when the user is added
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('User added: ${user.userName}'),
+              duration: Duration(seconds: 2),
+            ),
+          );
         }
       });
 

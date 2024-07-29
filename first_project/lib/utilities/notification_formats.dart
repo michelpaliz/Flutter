@@ -17,6 +17,7 @@ class NotificationFormats {
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
       groupId: group.id,
+      isRead: false,
       type: NotificationType.update, // Set type
       priority: PriorityLevel.medium, // Default priority
     );
@@ -34,6 +35,7 @@ class NotificationFormats {
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
       groupId: group.id,
+      isRead: false,
       type: NotificationType.update, // Set type
       priority: PriorityLevel.medium, // Default priority
     );
@@ -52,8 +54,11 @@ class NotificationFormats {
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
-      questionsAndAnswers: {userNotificationQuestion: ''}, // Initialize map with a question
+      questionsAndAnswers: {
+        userNotificationQuestion: ''
+      }, // Initialize map with a question
       groupId: group.id,
+      isRead: false,
       type: NotificationType.alert, // Set type to alert
       priority: PriorityLevel.high, // Set priority to high
     );
@@ -77,6 +82,7 @@ class NotificationFormats {
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
       groupId: group.id,
+      isRead: false,
       type: NotificationType.message, // Set type to message
       priority: PriorityLevel.low, // Set priority to low
     );
