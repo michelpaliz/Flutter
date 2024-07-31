@@ -16,7 +16,6 @@ class GroupManagement extends ChangeNotifier {
   final GroupService groupService = GroupService();
   final UserService userService = UserService();
   // final NotificationManagement notificationManagement;
-  final UserManagement userManagement;
   final _groupController = StreamController<List<Group>>.broadcast();
   Stream<List<Group>> get groupStream => _groupController.stream;
 
@@ -28,8 +27,6 @@ class GroupManagement extends ChangeNotifier {
 
   GroupManagement({
     required User? user,
-    // required this.notificationManagement,
-    required this.userManagement,
   }) {
     if (user != null) {
       currentUser = user; // Initialize currentUser
@@ -74,7 +71,7 @@ class GroupManagement extends ChangeNotifier {
   }
 
   Future<bool> addGroup(
-      Group group, NotificationManagement notificationManagement) async {
+      Group group, NotificationManagement notificationManagement, UserManagement userManagement) async {
     // if (currentUser == null) {
     //   print('Current user is not set.');
     //   return false;
@@ -90,7 +87,7 @@ class GroupManagement extends ChangeNotifier {
       notifyListeners();
 
       // Fetch the current user from the user service
-      User user = await userService.getUserByUsername(currentUser!.userName);
+      User user = await userService.getUserByUsername(userManagement.currentUser!.userName);
 
       // Add the group ID to the current user's groupIds
       user.groupIds.add(group.id);
@@ -139,7 +136,7 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
-  Future<void> updateGroup(Group updateGroup) async {
+  Future<void> updateGroup(Group updateGroup, UserManagement userManagement) async {
     if (currentUser == null) {
       print('Current user is not set.');
       return;

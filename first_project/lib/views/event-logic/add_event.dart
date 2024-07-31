@@ -268,7 +268,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         } else if (_group != null) {
           _group?.calendar.events.add(fetchedEvent);
           devtools.log("This is the group value: ${_group.toString()}");
-          await _groupManagement.updateGroup(_group!);
+          await _groupManagement.updateGroup(_group!, _userManagement);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

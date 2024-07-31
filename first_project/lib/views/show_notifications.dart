@@ -3,7 +3,6 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
-import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManagement/group_management.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
@@ -24,12 +23,11 @@ class ShowNotifications extends StatefulWidget {
 class _ShowNotificationsState extends State<ShowNotifications> {
   late Stream<List<NotificationUser>> _notificationsStream;
   User? _currentUser;
-  late UserManagement? _userManagement;
+  late UserManagement _userManagement;
   late NotificationManagement _notificationManagement;
   late GroupManagement _groupManagement;
   late List<NotificationUser> _notifications;
   final UserService _userService = UserService();
-  final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
@@ -41,26 +39,20 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Retrieve provider management instances
     _userManagement = Provider.of<UserManagement>(context, listen: false);
     _groupManagement = Provider.of<GroupManagement>(context, listen: false);
     _notificationManagement =
         Provider.of<NotificationManagement>(context, listen: false);
-    
 
-    // Check and set the current user
-    final newUser = _userManagement?.currentUser;
-
+    final newUser = _userManagement.currentUser;
     _notificationsStream = _notificationManagement.notificationStream;
 
-    // Check if the current user has changed
     if (_currentUser != newUser) {
       setState(() {
         _currentUser = newUser;
       });
       devtools.log("Current User has changed: $_currentUser");
 
-      // Fetch and update notifications for the new user
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _fetchAndUpdateNotifications();
       });
@@ -82,7 +74,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   }
 
   Future<void> _fetchAndUpdateNotifications() async {
-    if (_currentUser == null || _userManagement == null) {
+    if (_currentUser == null) {
       return;
     }
 
@@ -150,14 +142,15 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     group.userRoles[userName] = inviteStatus.role;
 
     _currentUser!.groupIds.add(group.id);
-    _userManagement?.updateCurrentUser(_currentUser!);
+    _userManagement.updateCurrentUser(_currentUser!);
 
     final updatedGroups =
         await _groupManagement.groupService.getGroupsByUser(userName);
     _groupManagement.updateGroupStream(updatedGroups);
 
     await _sendNotificationToAdmin(notification, true);
-    await _removeNotification(notification.id);
+    await _removeNotificationByIndex(
+        _currentUser!.notifications.indexOf(notification));
 
     _showSnackBar('Notification accepted.');
   }
@@ -198,10 +191,11 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       group.invitedUsers = invitedUsers;
 
       await _groupManagement.groupService.updateGroup(group.id, group);
-      await _removeNotification(notification.id);
+      await _removeNotificationByIndex(
+          _currentUser!.notifications.indexOf(notification));
 
       notification.isRead = true;
-      await _userManagement!.updateUser(_currentUser!);
+      await _userManagement.updateUser(_currentUser!);
 
       await _sendNotificationToAdmin(notification, false);
 
@@ -209,21 +203,14 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
-  Future<void> _removeNotification(String notificationId) async {
+  Future<void> _removeNotificationByIndex(int index) async {
     if (_currentUser != null) {
-      final notificationIndex =
-          _currentUser!.notifications.indexWhere((n) => n.id == notificationId);
-
-      if (notificationIndex != -1) {
-        _currentUser!.notifications.removeAt(notificationIndex);
-        await _notificationManagement.removeNotificationByIndex(
-            notificationIndex, _userManagement!);
-
-        if (mounted) {
-          setState(() {});
-        }
-      } else {
-        devtools.log('Notification with id $notificationId not found.');
+      bool success = await _notificationManagement.removeNotificationByIndex(
+          index, _userManagement);
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to remove notification')),
+        );
       }
     }
   }
@@ -240,17 +227,17 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     );
 
     final admin =
-        await _userManagement!.userService.getUserById(notification.ownerId);
+        await _userManagement.userService.getUserById(notification.ownerId);
     admin.notifications.add(ntOwner);
     admin.hasNewNotifications = true;
-    await _userManagement!.userService.updateUser(admin);
+    await _userManagement.userService.updateUser(admin);
   }
 
   Future<void> _removeAllNotifications() async {
     if (_currentUser != null) {
       _notificationManagement.clearNotifications();
       _currentUser!.notifications.clear();
-      await _userManagement!.userService.updateUser(_currentUser!);
+      await _userManagement.userService.updateUser(_currentUser!);
       if (mounted) {
         setState(() {});
       }
@@ -342,7 +329,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                 },
                 onDismissed: (direction) {
                   if (direction == DismissDirection.endToStart) {
-                    _removeNotification(notifications[index].id);
+                    _removeNotificationByIndex(index);
                   }
                 },
                 child: Card(

@@ -158,7 +158,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
     // await _storeService.updateGroup(_group);
-    await _groupManagement.updateGroup(_group);
+    await _groupManagement.updateGroup(_group, _userManagement);
 
     // Update the UI by removing the event from the list
     setState(() {

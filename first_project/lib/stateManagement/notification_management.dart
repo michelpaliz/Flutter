@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/notification_user.dart';
+import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/notification_services.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
@@ -55,40 +56,40 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
-  Future<bool> removeNotificationByIndex(
-      int index, UserManagement userManagement) async {
+  Future<bool> removeNotificationByIndex(int index, UserManagement userManagement) async {
+    devtools.log('Attempting to remove notification at index: $index');
+    devtools.log('Current notifications length: ${_notifications.length}');
+
     if (index < 0 || index >= _notifications.length) {
-      print('Index out of range');
+      devtools.log('Index out of range');
       return false;
     }
 
     try {
       NotificationUser notification = _notifications[index];
+      devtools.log('Notification to remove: ${notification.id}');
 
-      // Remove the notification from the local list
       _notifications.removeAt(index);
-      _notifications = _sortNotificationsByDate(_notifications);
+      devtools.log('Notification removed from _notifications list');
 
-      // Update the user notifications list
-      userManagement.currentUser!.notifications.removeWhere((n) => n.id == notification.id);
+      userManagement.currentUser?.notifications = _notifications;
+      // userManagement.currentUser!.notifications.removeWhere((n) => n.id == notification.id);
+      devtools.log('Notification removed from userManagement.currentUser!.notifications');
 
-      // Update the user in the database
-      // await userService.updateUser(user);
       await userManagement.updateUser(userManagement.currentUser!);
+      devtools.log('User updated successfully');
 
-      // Update the notification stream
       _notificationController.add(_notifications);
       notifyListeners();
 
-      // Also remove from the backend
-      await notificationService.deleteNotification(notification.id);
-
+      devtools.log('Notification removed successfully');
       return true;
     } catch (e) {
-      print('Failed to remove notification: $e');
+      devtools.log('Failed to remove notification: $e');
       return false;
     }
   }
+
 
   void clearNotifications() {
     _notifications.clear();
@@ -96,15 +97,17 @@ class NotificationManagement extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNotification(NotificationUser notification, user,
+  Future<void> addNotification(NotificationUser notification, User user,
       UserManagement userManagement) async {
     try {
       await notificationService.createNotification(notification);
       // await userService.updateUser(user);
+      List<NotificationUser> notificationList = [];
+      notificationList = _sortNotificationsByDate(user.notifications);
+      user.notifications = notificationList;
       await userManagement.updateUser(user);
       if (user.id == notification.ownerId) {
         _notifications.add(notification);
-        _notifications = _sortNotificationsByDate(_notifications);
         _notificationController.add(_notifications);
       }
       notifyListeners();
