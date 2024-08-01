@@ -35,9 +35,9 @@ class GroupService {
     }
   }
 
-  Future<Group> updateGroup(String id, Group group) async {
+  Future<Group> updateGroup(Group group) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/$id'),
+      Uri.parse('$baseUrl/${group.id}'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

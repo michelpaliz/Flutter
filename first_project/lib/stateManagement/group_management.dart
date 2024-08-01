@@ -71,12 +71,9 @@ class GroupManagement extends ChangeNotifier {
   }
 
   Future<bool> addGroup(
-      Group group, NotificationManagement notificationManagement, UserManagement userManagement) async {
-    // if (currentUser == null) {
-    //   print('Current user is not set.');
-    //   return false;
-    // }
-
+      Group group,
+      NotificationManagement notificationManagement,
+      UserManagement userManagement) async {
     try {
       // Create the group in the group service
       await groupService.createGroup(group);
@@ -87,7 +84,8 @@ class GroupManagement extends ChangeNotifier {
       notifyListeners();
 
       // Fetch the current user from the user service
-      User user = await userService.getUserByUsername(userManagement.currentUser!.userName);
+      User user = await userService
+          .getUserByUsername(userManagement.currentUser!.userName);
 
       // Add the group ID to the current user's groupIds
       user.groupIds.add(group.id);
@@ -105,7 +103,8 @@ class GroupManagement extends ChangeNotifier {
       }
 
       // Save the notification to the database
-      await notificationManagement.addNotification(userNotification, user, userManagement);
+      await notificationManagement.addNotification(
+          userNotification, user, userManagement);
 
       // Send invitations to invited users
       for (final userName in group.invitedUsers!.keys) {
@@ -136,52 +135,60 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
-  Future<void> updateGroup(Group updateGroup, UserManagement userManagement) async {
-    if (currentUser == null) {
-      print('Current user is not set.');
-      return;
-    }
+  Future<void> updateGroup(
+      Group updatedGroup, UserManagement userManagement) async {
+    try {
+      final notificationFormat = NotificationFormats();
+      NotificationUser editingNotification = notificationFormat
+          .whenEditingGroup(updatedGroup, userManagement.currentUser!);
 
-    final notificationFormat = NotificationFormats();
-    NotificationUser editingNotification = notificationFormat.whenEditingGroup(
-        updateGroup, userManagement.currentUser!);
+      // Retrieve the user's role using their ID from group.userRoles
+      String? userRole = updatedGroup.userRoles[userManagement.currentUser!.id];
 
-    // Retrieve the user's role using their ID from group.userRoles
-    String? userRole = updateGroup.userRoles[userManagement.currentUser!.id];
-
-    // Check if user has "Administration" or "Co-Administrator" roles
-    if (userRole == 'Administration' || userRole == 'Co-Administrator') {
-      // Check for duplicates before adding
-      if (!notificationFormat.isDuplicateNotification(
-          userManagement.currentUser!.notifications, editingNotification)) {
-        userManagement.currentUser!.notifications.add(editingNotification);
-        await userService.updateUser(userManagement.currentUser!);
+      // Check if user has "Administration" or "Co-Administrator" roles
+      if (userRole == 'Administration' || userRole == 'Co-Administrator') {
+        // Check for duplicates before adding
+        if (!notificationFormat.isDuplicateNotification(
+            userManagement.currentUser!.notifications, editingNotification)) {
+          userManagement.currentUser!.notifications.add(editingNotification);
+          await userService.updateUser(userManagement.currentUser!);
+        }
       }
-    }
 
-    for (final userName in updateGroup.invitedUsers!.keys) {
-      final user = await userService.getUserByUsername(userName);
-      notificationFormat.createGroupInvitation(updateGroup, user);
+      // Notify invited users about the update
+      for (final userName in updatedGroup.invitedUsers!.keys) {
+        final user = await userService.getUserByUsername(userName);
+        notificationFormat.createGroupInvitation(updatedGroup, user);
 
-      NotificationUser newUserHasBeenAdded = notificationFormat
-          .newUserHasBeenAdded(updateGroup, userManagement.currentUser!);
+        NotificationUser newUserHasBeenAdded = notificationFormat
+            .newUserHasBeenAdded(updatedGroup, userManagement.currentUser!);
 
-      // Check for duplicates before adding
-      if (!notificationFormat.isDuplicateNotification(
-          user.notifications, newUserHasBeenAdded)) {
-        user.notifications.add(newUserHasBeenAdded);
-        await userService.updateUser(user);
+        // Check for duplicates before adding
+        if (!notificationFormat.isDuplicateNotification(
+            user.notifications, newUserHasBeenAdded)) {
+          user.notifications.add(newUserHasBeenAdded);
+          await userService.updateUser(user);
+        }
       }
-    }
 
-    await groupService.updateGroup(updateGroup.id, updateGroup);
-    _currentGroup = updateGroup;
+      // Update the group in the service
+      await groupService.updateGroup(updatedGroup);
 
-    final index = _groups.indexWhere((g) => g.id == updateGroup.id);
-    if (index != -1) {
-      _groups[index] = updateGroup;
-      _groupController.add(_groups); // Add updated groups to the stream
+      // Update the current group locally
+      _currentGroup = updatedGroup;
+
+      // Update the groups list and notify listeners
+      final index = _groups.indexWhere((g) => g.id == updatedGroup.id);
+      if (index != -1) {
+        _groups[index] = updatedGroup;
+      } else {
+        _groups.add(updatedGroup);
+      }
+      _groupController
+          .add(_groups); // Update the stream with the new groups list
       notifyListeners();
+    } catch (e) {
+      print('Failed to update group: $e');
     }
   }
 

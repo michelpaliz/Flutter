@@ -34,7 +34,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
   Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
-  Map<String, UserInviteStatus> _usersInvitationStatus = {};
+  Map<String, UserInviteStatus> _usersInvitationAtFirst = {};
   late List<User> _usersInGroupForUpdate = [];
   late List<User> _usersInGroupAtFirst;
   bool _isDismissed = false; // Track if the item is dismissed
@@ -77,13 +77,13 @@ class _EditGroupDataState extends State<EditGroupData> {
     _usersInGroupForUpdate = widget.users;
     _usersInGroupAtFirst = widget.users;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
-      _usersInvitationStatus = _group.invitedUsers!;
+      _usersInvitationAtFirst = _group.invitedUsers!;
     }
 
     if (_currentUser!.id == _group.ownerId) {
       _currentUserRoleValue = "Administrator";
     } else {
-      for (var entry in _usersInvitationStatus.entries) {
+      for (var entry in _usersInvitationAtFirst.entries) {
         var userName = entry.key;
         var userInvitationStatus = entry.value;
 
@@ -131,7 +131,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       _userUpdatedRoles = updatedUserRoles;
       _usersInGroupForUpdate = updatedUserInGroup;
       // Merge new users into the existing _usersInvitationStatus
-      _usersInvitationStatus.addAll(newUsersInvitationStatus);
+      _usersInvitationAtFirst.addAll(newUsersInvitationStatus);
     });
   }
 
@@ -220,7 +220,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       _usersInGroupForUpdate.removeWhere(
         (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
       );
-      _usersInvitationStatus.remove(fetchedUserName);
+      _usersInvitationAtFirst.remove(fetchedUserName);
       _userUpdatedRoles.remove(fetchedUserName);
     });
 
@@ -330,7 +330,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           ownerId: _currentUser!.id,
           userRoles: _userRolesAtFirst,
           calendar: _group.calendar,
-          invitedUsers: null,
+          invitedUsers: _usersInvitationAtFirst,
           userIds: _group.userIds,
           createdTime: DateTime.now(),
           description: _groupDescription,
@@ -355,6 +355,8 @@ class _EditGroupDataState extends State<EditGroupData> {
       //we update the group's invitedUsers property
       updatedGroup.invitedUsers = invitations;
 
+      print('Updated Group: ${updatedGroup.toString()}');
+
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
       await _groupManagement.updateGroup(updatedGroup, _userManagement!);
 
@@ -376,7 +378,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       context: context,
       builder: (BuildContext context) {
         // Get the user invite status for the specific user
-        UserInviteStatus? userInviteStatus = _usersInvitationStatus[userName];
+        UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
 
         return Container(
           height: 200,
@@ -448,7 +450,7 @@ class _EditGroupDataState extends State<EditGroupData> {
         final adminUserName = _currentUserRoleValue == "Administrator"
             ? _currentUser!.userName
             : null;
-        final filteredEntries = _usersInvitationStatus.entries.where((entry) {
+        final filteredEntries = _usersInvitationAtFirst.entries.where((entry) {
           final username = entry.key;
           final accepted = entry.value.invitationAnswer;
 
@@ -869,7 +871,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                   ElevatedButton(
                     onPressed: () {
                       UserInviteStatus? userInviteStatus =
-                          _usersInvitationStatus[userName];
+                          _usersInvitationAtFirst[userName];
                       if (userInviteStatus != null &&
                           userInviteStatus.invitationAnswer == true) {
                         showDialog(

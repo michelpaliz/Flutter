@@ -190,7 +190,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       invitedUsers.remove(currentUserName);
       group.invitedUsers = invitedUsers;
 
-      await _groupManagement.groupService.updateGroup(group.id, group);
+      await _groupManagement.groupService.updateGroup(group);
       await _removeNotificationByIndex(
           _currentUser!.notifications.indexOf(notification));
 
