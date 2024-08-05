@@ -6,6 +6,7 @@ import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
@@ -38,13 +39,13 @@ class _EditGroupDataState extends State<EditGroupData> {
   late List<User> _usersInGroupForUpdate = [];
   late List<User> _usersInGroupAtFirst;
   bool _isDismissed = false; // Track if the item is dismissed
-
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
       {}; //Needs to be outside the build (ui state) to avoid loading
   late UserManagement? _userManagement;
   late GroupManagement _groupManagement;
+  late NotificationManagement _notificationManagement;
   bool _showAccepted = true;
   bool _showPending = true;
   bool _showNotWantedToJoin = true;
@@ -109,6 +110,8 @@ class _EditGroupDataState extends State<EditGroupData> {
     super.didChangeDependencies();
     _userManagement = Provider.of<UserManagement>(context, listen: false);
     _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+    _notificationManagement =
+        Provider.of<NotificationManagement>(context, listen: false);
     _currentUser = _userManagement!.currentUser;
   }
 
@@ -358,12 +361,15 @@ class _EditGroupDataState extends State<EditGroupData> {
       print('Updated Group: ${updatedGroup.toString()}');
 
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-      await _groupManagement.updateGroup(updatedGroup, _userManagement!);
+      await _groupManagement.updateGroup(
+          updatedGroup, _userManagement!, _notificationManagement, invitations);
 
       // Show a success message using a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.groupEdited)),
       );
+
+      Navigator.pop(context);
 
       return true; // Return true to indicate that the group creation was successful.
     } catch (e) {

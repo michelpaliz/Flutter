@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
+import 'package:first_project/enums/broad_category.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManagement/group_management.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
+import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +23,10 @@ class ShowNotifications extends StatefulWidget {
 }
 
 class _ShowNotificationsState extends State<ShowNotifications> {
+  final BroadCategoryManager _categoryManager = BroadCategoryManager();
+  BroadCategory _selectedCategory =
+      BroadCategory.group; // Initialize with an appropriate value
+
   late Stream<List<NotificationUser>> _notificationsStream;
   User? _currentUser;
   late UserManagement _userManagement;
@@ -148,11 +154,22 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         await _groupManagement.groupService.getGroupsByUser(userName);
     _groupManagement.updateGroupStream(updatedGroups);
 
-    await _sendNotificationToAdmin(notification, true);
-    await _removeNotificationByIndex(
-        _currentUser!.notifications.indexOf(notification));
+    // We are going to send the join notification to the recipient user
+    final notificationFormat = NotificationFormats();
+    NotificationUser invitationNotification =
+        notificationFormat.newUserHasBeenAdded(group, _currentUser!);
 
-    _showSnackBar('Notification accepted.');
+    bool notificationAdded = await _notificationManagement.addNotification(
+        invitationNotification, _userManagement);
+
+    if (notificationAdded) {
+      await _sendNotificationToAdmin(notification, true);
+      await _removeNotificationByIndex(
+          _currentUser!.notifications.indexOf(notification));
+      _showSnackBar('Notification accepted.');
+    } else {
+      _showSnackBar('Failed to send join notification.');
+    }
   }
 
   Future<void> _handleNegation(String notificationId) async {
@@ -224,6 +241,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       message:
           '${_currentUser!.userName} has ${answer ? 'accepted' : 'denied'} your invitation to join the group',
       timestamp: DateTime.now(),
+      category: Category.groupUpdate,
     );
 
     final admin =
@@ -266,104 +284,149 @@ class _ShowNotificationsState extends State<ShowNotifications> {
           ),
         ],
       ),
-      body: StreamBuilder<List<NotificationUser>>(
-        stream: _notificationsStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No notifications available.'));
-          }
+      body: Column(
+        children: [
+          // Dynamic list of buttons for filtering
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: BroadCategory.values.map((category) {
+                bool isSelected = _selectedCategory == category;
 
-          final notifications = snapshot.data!;
-
-          return ListView.separated(
-            itemCount: notifications.length,
-            separatorBuilder: (context, index) => SizedBox(height: 8.0),
-            itemBuilder: (context, index) {
-              final notification = notifications[index];
-              final hasConfirmed = notification.isRead &&
-                  notification.questionsAndAnswers.isNotEmpty;
-
-              if (hasConfirmed) {
-                return Container();
-              }
-
-              return Dismissible(
-                key: Key(notification.id.toString()),
-                background: Container(
-                  color: Colors.red,
-                  child: Icon(Icons.delete, color: Colors.white),
-                ),
-                secondaryBackground: Container(
-                  color: Colors.red,
-                  child: Icon(Icons.delete, color: Colors.white),
-                ),
-                confirmDismiss: (direction) async {
-                  return await showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text("Confirm Removal"),
-                        content: Text(
-                            "Are you sure you want to remove this notification?"),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
-                            },
-                            child: Text("Yes"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                            child: Text("No"),
-                          ),
-                        ],
-                      );
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _categoryManager.filterNotifications(category);
+                        _selectedCategory =
+                            category; // Update the selected category
+                      });
                     },
-                  );
-                },
-                onDismissed: (direction) {
-                  if (direction == DismissDirection.endToStart) {
-                    _removeNotificationByIndex(index);
-                  }
-                },
-                child: Card(
-                  elevation: 2.0,
-                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Text(notification.title),
-                    subtitle: Text(notification.message),
-                    trailing: Visibility(
-                      visible: notification.questionsAndAnswers.isNotEmpty,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton(
-                            onPressed: () async {
-                              await _handleConfirmation(notification.id);
-                            },
-                            child: Text("Confirm"),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              await _handleNegation(notification.id);
-                            },
-                            child: Text("Negate"),
-                          ),
-                        ],
-                      ),
+                    style: ElevatedButton.styleFrom(
+                      primary: isSelected
+                          ? Colors.green
+                          : const Color.fromARGB(255, 33, 180, 243), // Change colors as desired
                     ),
+                    child:
+                        Text(category.toString().toUpperCase().split('.').last),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              }).toList(),
+            ),
+          ),
+
+          // Notification list
+          Expanded(
+            child: StreamBuilder<List<NotificationUser>>(
+              stream: _notificationsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No notifications available.'));
+                }
+
+                final notifications = snapshot.data!
+                    .where((notification) =>
+                        _categoryManager.selectedCategory == null ||
+                        _categoryManager
+                                .categoryMapping[notification.category] ==
+                            _categoryManager.selectedCategory)
+                    .toList();
+
+                return ListView.separated(
+                  itemCount: notifications.length,
+                  separatorBuilder: (context, index) => SizedBox(height: 8.0),
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    final hasConfirmed = notification.isRead &&
+                        notification.questionsAndAnswers.isNotEmpty;
+
+                    if (hasConfirmed) {
+                      return Container();
+                    }
+
+                    return Dismissible(
+                      key: Key(notification.id.toString()),
+                      background: Container(
+                        color: Colors.red,
+                        child: Icon(Icons.delete, color: Colors.white),
+                      ),
+                      secondaryBackground: Container(
+                        color: Colors.red,
+                        child: Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (direction) async {
+                        return await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Confirm Removal"),
+                              content: Text(
+                                  "Are you sure you want to remove this notification?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  child: Text("Yes"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(false);
+                                  },
+                                  child: Text("No"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      onDismissed: (direction) {
+                        if (direction == DismissDirection.endToStart) {
+                          _removeNotificationByIndex(index);
+                        }
+                      },
+                      child: Card(
+                        elevation: 2.0,
+                        margin: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: ListTile(
+                          title: Text(notification.title),
+                          subtitle: Text(notification.message),
+                          trailing: Visibility(
+                            visible:
+                                notification.questionsAndAnswers.isNotEmpty,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton(
+                                  onPressed: () async {
+                                    await _handleConfirmation(notification.id);
+                                  },
+                                  child: Text("Confirm"),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    await _handleNegation(notification.id);
+                                  },
+                                  child: Text("Negate"),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:first_project/models/user.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/utilities/color_manager.dart';
@@ -46,6 +47,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   late User? _user;
   late UserManagement _userManagement;
   late GroupManagement _groupManagement;
+  late NotificationManagement _notificationManagement;
   late EventService _eventService;
   late DataSource dataSource;
 
@@ -78,6 +80,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     super.didChangeDependencies();
     _userManagement = Provider.of<UserManagement>(context);
     _groupManagement = Provider.of<GroupManagement>(context);
+    _notificationManagement = Provider.of<NotificationManagement>(context);
     if (_groupManagement.currentGroup != _group) {
       _group = _groupManagement.currentGroup!;
       _events = _group.calendar.events;
@@ -158,7 +161,8 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
     // await _storeService.updateGroup(_group);
-    await _groupManagement.updateGroup(_group, _userManagement);
+    await _groupManagement.updateGroup(
+        _group, _userManagement, _notificationManagement,_group.invitedUsers);
 
     // Update the UI by removing the event from the list
     setState(() {

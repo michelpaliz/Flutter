@@ -56,7 +56,8 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
-  Future<bool> removeNotificationByIndex(int index, UserManagement userManagement) async {
+  Future<bool> removeNotificationByIndex(
+      int index, UserManagement userManagement) async {
     devtools.log('Attempting to remove notification at index: $index');
     devtools.log('Current notifications length: ${_notifications.length}');
 
@@ -74,7 +75,8 @@ class NotificationManagement extends ChangeNotifier {
 
       userManagement.currentUser?.notifications = _notifications;
       // userManagement.currentUser!.notifications.removeWhere((n) => n.id == notification.id);
-      devtools.log('Notification removed from userManagement.currentUser!.notifications');
+      devtools.log(
+          'Notification removed from userManagement.currentUser!.notifications');
 
       await userManagement.updateUser(userManagement.currentUser!);
       devtools.log('User updated successfully');
@@ -90,6 +92,42 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
+  Future<bool> addNotification(
+      NotificationUser notification, UserManagement userManagement) async {
+    try {
+      User? user = userManagement.currentUser;
+
+      // Ensure the user is authenticated
+      if (user == null) {
+        print('Current user is not set.');
+        return false;
+      }
+
+      devtools.log('Notification ${notification}');
+
+      // Create the notification in the service
+      await notificationService.createNotification(notification);
+
+      // Add the notification to the user's list
+      user.notifications.add(notification);
+
+      // Update the user with the new notification
+      await userManagement.updateUser(user);
+
+      // Update the notification stream
+
+      if (user.id == notification.ownerId) {
+        _notifications.add(notification);
+        _notifications = _sortNotificationsByDate(_notifications);
+        notifyListeners();
+      }
+
+      return true;
+    } catch (e) {
+      print('Failed to add notification: $e');
+      return false;
+    }
+  }
 
   void clearNotifications() {
     _notifications.clear();
@@ -97,24 +135,38 @@ class NotificationManagement extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNotification(NotificationUser notification, User user,
-      UserManagement userManagement) async {
-    try {
-      await notificationService.createNotification(notification);
-      // await userService.updateUser(user);
-      List<NotificationUser> notificationList = [];
-      notificationList = _sortNotificationsByDate(user.notifications);
-      user.notifications = notificationList;
-      await userManagement.updateUser(user);
-      if (user.id == notification.ownerId) {
-        _notifications.add(notification);
-        _notificationController.add(_notifications);
-      }
-      notifyListeners();
-    } catch (e) {
-      print('Failed to add notification: $e');
-    }
-  }
+  // Future<bool> addNotificationForInvitedUser(NotificationUser notification,
+  //     User user, UserManagement userManagement) async {
+  //   try {
+  //     // Create the notification using the service
+  //     await notificationService.createNotification(notification);
+
+  //     // Update the user with the new notification
+  //     List<NotificationUser> updatedNotificationList =
+  //         _sortNotificationsByDate([...user.notifications, notification]);
+  //     user.notifications = updatedNotificationList;
+
+  //     bool userUpdateSuccess = await userManagement.updateUser(user);
+  //     if (!userUpdateSuccess) {
+  //       print('Failed to update user: ${user.id}');
+  //       return false;
+  //     }
+
+  //     // Update the global notifications stream if the user is the owner of the notification
+  //     if (user.id == notification.ownerId) {
+  //       _notifications.add(notification);
+  //       _notifications =
+  //           _sortNotificationsByDate([..._notifications, notification]);
+  //       _notificationController.add(_notifications);
+  //     }
+
+  //     notifyListeners();
+  //     return true;
+  //   } catch (e) {
+  //     print('Error adding notification for invited user: $e');
+  //     return false;
+  //   }
+  // }
 
   @override
   void dispose() {

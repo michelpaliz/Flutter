@@ -2,6 +2,24 @@ enum NotificationType { alert, reminder, message, update }
 
 enum PriorityLevel { low, medium, high }
 
+enum Category {
+  groupCreation,
+  groupUpdate,
+  groupInvitation,
+  userRemoval,
+  userInvitation,
+  eventReminder,
+  taskUpdate,
+  message,
+  systemAlert,
+  actionRequired,
+  achievement,
+  billing,
+  systemUpdate,
+  feedbackRequest,
+  errorReport,
+}
+
 class NotificationUser {
   final String id;
   final String ownerId;
@@ -13,6 +31,7 @@ class NotificationUser {
   bool _isRead;
   final NotificationType type;
   final PriorityLevel priority;
+  final Category category;
 
   NotificationUser({
     required this.id,
@@ -25,6 +44,7 @@ class NotificationUser {
     bool isRead = false,
     this.type = NotificationType.message,
     this.priority = PriorityLevel.medium,
+    required this.category,
   })  : _timestamp = timestamp,
         _isRead = isRead;
 
@@ -60,6 +80,11 @@ class NotificationUser {
                 json['priority'] < PriorityLevel.values.length
             ? PriorityLevel.values[json['priority']]
             : PriorityLevel.medium,
+        category: json['category'] != null &&
+                json['category'] is int &&
+                json['category'] < Category.values.length
+            ? Category.values[json['category']]
+            : Category.message,
       );
     } catch (e) {
       print('Error parsing NotificationUser from JSON: $e');
@@ -74,6 +99,7 @@ class NotificationUser {
         isRead: false,
         type: NotificationType.message,
         priority: PriorityLevel.medium,
+        category: Category.message,
       );
     }
   }
@@ -90,6 +116,7 @@ class NotificationUser {
       'isRead': _isRead,
       'type': type.index,
       'priority': priority.index,
+      'category': category.index,
     };
   }
 
@@ -105,6 +132,7 @@ class NotificationUser {
         'groupId: $groupId, '
         'isRead: $_isRead, '
         'type: $type, '
-        'priority: $priority)';
+        'priority: $priority, '
+        'category: $category)';
   }
 }

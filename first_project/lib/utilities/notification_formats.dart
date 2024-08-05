@@ -20,6 +20,7 @@ class NotificationFormats {
       isRead: false,
       type: NotificationType.update, // Set type
       priority: PriorityLevel.medium, // Default priority
+      category: Category.groupCreation, // Set category
     );
     return _notificationUser;
   }
@@ -38,6 +39,7 @@ class NotificationFormats {
       isRead: false,
       type: NotificationType.update, // Set type
       priority: PriorityLevel.medium, // Default priority
+      category: Category.groupUpdate, // Set category
     );
     return editNotification;
   }
@@ -61,6 +63,7 @@ class NotificationFormats {
       isRead: false,
       type: NotificationType.alert, // Set type to alert
       priority: PriorityLevel.high, // Set priority to high
+      category: Category.groupInvitation, // Set category
     );
 
     user.notifications.add(userNotification);
@@ -85,6 +88,7 @@ class NotificationFormats {
       isRead: false,
       type: NotificationType.message, // Set type to message
       priority: PriorityLevel.low, // Set priority to low
+      category: Category.groupUpdate, // Set category
     );
 
     user.notifications.add(userNotification);
@@ -93,11 +97,83 @@ class NotificationFormats {
     return userNotification;
   }
 
-  bool isDuplicateNotification(
+  NotificationUser userRemovedFromGroup(Group group, User user, User admin) {
+    final userNotificationTitle = 'User Removed from Group';
+    final userNotificationMessage =
+        '${user.userName} has been removed from the group: ${group.groupName}';
+
+    final adminNotification = NotificationUser(
+      id: Utilities.generateRandomId(10), // Generate a new ID
+      ownerId: admin.id,
+      title: userNotificationTitle,
+      message: userNotificationMessage,
+      timestamp: DateTime.now(),
+      questionsAndAnswers: {}, // Initialize as an empty map
+      groupId: group.id,
+      isRead: false,
+      type: NotificationType.alert, // Set type to alert
+      priority: PriorityLevel.high, // Set priority to high
+      category: Category.userRemoval, // Set category
+    );
+
+    admin.notifications.add(adminNotification);
+    admin.hasNewNotifications = true;
+
+    return adminNotification;
+  }
+
+  NotificationUser eventReminder(DateTime eventDate, User user) {
+    final userNotificationTitle = 'Upcoming Event Reminder';
+    final userNotificationMessage =
+        'Don\'t forget about your event on ${eventDate.toLocal()}';
+
+    final userNotification = NotificationUser(
+      id: Utilities.generateRandomId(10),
+      ownerId: user.id,
+      title: userNotificationTitle,
+      message: userNotificationMessage,
+      timestamp: DateTime.now(),
+      questionsAndAnswers: {},
+      groupId: null,
+      isRead: false,
+      type: NotificationType.reminder,
+      priority: PriorityLevel.high,
+      category: Category.eventReminder,
+    );
+
+    user.notifications.add(userNotification);
+    user.hasNewNotifications = true;
+
+    return userNotification;
+  }
+
+  //   NotificationUser taskUpdate(String taskName, User user) {
+  //   final userNotificationTitle = 'Task Updated';
+  //   final userNotificationMessage = 'The task "$taskName" has been updated.';
+
+  //   final userNotification = NotificationUser(
+  //     id: Utilities.generateRandomId(10),
+  //     ownerId: user.id,
+  //     title: userNotificationTitle,
+  //     message: userNotificationMessage,
+  //     timestamp: DateTime.now(),
+  //     questionsAndAnswers: {},
+  //     groupId: null,
+  //     isRead: false,
+  //     type: NotificationType.update,
+  //     priority: PriorityLevel.medium,
+  //     category: Category.taskUpdate,
+  //   );
+
+  //   user.notifications.add(userNotification);
+  //   user.hasNewNotifications = true;
+
+  //   return userNotification;
+  // }
+
+  static bool isDuplicateNotification(
       List<NotificationUser> notifications, NotificationUser newNotification) {
     return notifications.any((notification) =>
-        notification.title == newNotification.title &&
-        notification.message == newNotification.message &&
-        notification.ownerId == newNotification.ownerId);
+        notification.id == newNotification.id); // Check all relevant fields
   }
 }

@@ -4,6 +4,7 @@ import 'dart:developer' as devtools show log;
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/node_services/group_services.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
@@ -96,38 +97,23 @@ class GroupManagement extends ChangeNotifier {
           notificationFormat.whenCreatingGroup(group, user);
 
       // Check for duplicates before adding
-      if (!notificationFormat.isDuplicateNotification(
-          user.notifications, userNotification)) {
-        user.notifications.add(userNotification);
-        user.hasNewNotifications = true;
-      }
+      user.notifications.add(userNotification);
+      user.hasNewNotifications = true;
 
       // Save the notification to the database
       await notificationManagement.addNotification(
-          userNotification, user, userManagement);
+          userNotification, userManagement);
 
-      // Send invitations to invited users
-      for (final userName in group.invitedUsers!.keys) {
-        // Fetch the invited user from the user service
-        User invitedUser = await userService.getUserByUsername(userName);
+      bool result = await _notifyUserInvitation(
+          group, notificationManagement, userManagement, group.invitedUsers);
 
-        // Create a group invitation notification for the invited user
-        NotificationUser invitedUserNotification =
-            notificationFormat.createGroupInvitation(group, invitedUser);
-
-        // Check for duplicates before adding
-        if (!notificationFormat.isDuplicateNotification(
-            invitedUser.notifications, invitedUserNotification)) {
-          invitedUser.notifications.add(invitedUserNotification);
-          invitedUser.hasNewNotifications = true;
-        }
-
-        // Save the notification to the database
-        await notificationManagement.addNotification(
-            invitedUserNotification, invitedUser, userManagement);
+      if (result) {
+        userManagement.updateUser(user);
+        devtools.log("Group added = ${user.toString()}");
+      } else {
+        devtools.log("Group couldn't be added = ${user.toString()}");
       }
 
-      devtools.log("Updated user = ${user.toString()}");
       return true;
     } catch (e) {
       print('Failed to add group: $e');
@@ -135,8 +121,91 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
+  Future<bool> _notifyUserInvitation(
+      Group group,
+      NotificationManagement notificationManagement,
+      UserManagement userManagement,
+      Map<String, UserInviteStatus>? invitedUsers) async {
+    final notificationFormat = NotificationFormats();
+
+    try {
+      // Track users to ensure notifications are added only once
+      final Set<String> notifiedUserIds = {};
+
+      for (final userName in invitedUsers!.keys) {
+        // Retrieve the invited user
+        final invitedUser = await userService.getUserByUsername(userName);
+
+        // Skip if we have already processed notifications for this user
+        if (notifiedUserIds.contains(invitedUser.id)) {
+          print('Notification already sent to user $userName');
+          continue;
+        }
+
+        // Create a group invitation notification
+        NotificationUser invitationNotification =
+            notificationFormat.createGroupInvitation(group, invitedUser);
+
+        // Check if the notification already exists in the user's notifications
+        bool isDuplicate = NotificationFormats.isDuplicateNotification(
+            invitedUser.notifications, invitationNotification);
+
+        if (!isDuplicate) {
+          // Add the notification to the user's list if it's not a duplicate
+          invitedUser.notifications.add(invitationNotification);
+          print('Added notification for user $userName');
+
+          // Add the notification to the NotificationManagement system
+          bool notificationSuccess = await notificationManagement
+              .addNotification(invitationNotification, userManagement);
+          if (!notificationSuccess) {
+            print('Failed to add notification for user: $userName');
+            return false;
+          }
+
+          // Update the user with the new notification
+          bool userUpdateSuccess = await userManagement.updateUser(invitedUser);
+          if (!userUpdateSuccess) {
+            print('Failed to update user: $userName');
+            return false;
+          }
+
+          // Mark this user as notified
+          notifiedUserIds.add(invitedUser.id);
+        } else {
+          print('Duplicate notification found for user $userName');
+        }
+      }
+
+      // Update the group in the service
+      await groupService.updateGroup(group);
+
+      // Update the current group locally
+      _currentGroup = group;
+
+      // Update the groups list and notify listeners
+      final index = _groups.indexWhere((g) => g.id == group.id);
+      if (index != -1) {
+        _groups[index] = group;
+      } else {
+        _groups.add(group);
+      }
+      _groupController
+          .add(_groups); // Update the stream with the new groups list
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      print('Failed to notify users for invitation: $e');
+      return false;
+    }
+  }
+
   Future<void> updateGroup(
-      Group updatedGroup, UserManagement userManagement) async {
+      Group updatedGroup,
+      UserManagement userManagement,
+      NotificationManagement notificationManagement,
+      Map<String, UserInviteStatus>? invitedUsers) async {
     try {
       final notificationFormat = NotificationFormats();
       NotificationUser editingNotification = notificationFormat
@@ -148,7 +217,7 @@ class GroupManagement extends ChangeNotifier {
       // Check if user has "Administration" or "Co-Administrator" roles
       if (userRole == 'Administration' || userRole == 'Co-Administrator') {
         // Check for duplicates before adding
-        if (!notificationFormat.isDuplicateNotification(
+        if (!NotificationFormats.isDuplicateNotification(
             userManagement.currentUser!.notifications, editingNotification)) {
           userManagement.currentUser!.notifications.add(editingNotification);
           await userService.updateUser(userManagement.currentUser!);
@@ -156,37 +225,13 @@ class GroupManagement extends ChangeNotifier {
       }
 
       // Notify invited users about the update
-      for (final userName in updatedGroup.invitedUsers!.keys) {
-        final user = await userService.getUserByUsername(userName);
-        notificationFormat.createGroupInvitation(updatedGroup, user);
-
-        NotificationUser newUserHasBeenAdded = notificationFormat
-            .newUserHasBeenAdded(updatedGroup, userManagement.currentUser!);
-
-        // Check for duplicates before adding
-        if (!notificationFormat.isDuplicateNotification(
-            user.notifications, newUserHasBeenAdded)) {
-          user.notifications.add(newUserHasBeenAdded);
-          await userService.updateUser(user);
-        }
-      }
-
-      // Update the group in the service
-      await groupService.updateGroup(updatedGroup);
-
-      // Update the current group locally
-      _currentGroup = updatedGroup;
-
-      // Update the groups list and notify listeners
-      final index = _groups.indexWhere((g) => g.id == updatedGroup.id);
-      if (index != -1) {
-        _groups[index] = updatedGroup;
+      bool result = await _notifyUserInvitation(
+          updatedGroup, notificationManagement, userManagement, invitedUsers);
+      if (result) {
+        devtools.log("Group updated = ${updatedGroup.toString()}");
       } else {
-        _groups.add(updatedGroup);
+        devtools.log("Group couldn't be updated = ${updatedGroup.toString()}");
       }
-      _groupController
-          .add(_groups); // Update the stream with the new groups list
-      notifyListeners();
     } catch (e) {
       print('Failed to update group: $e');
     }

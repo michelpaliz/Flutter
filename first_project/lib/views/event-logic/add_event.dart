@@ -4,6 +4,7 @@ import 'package:first_project/models/recurrence_rule.dart';
 import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManagement/group_management.dart';
+import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
 import 'package:first_project/utilities/color_manager.dart';
@@ -55,6 +56,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   final _colorList = ColorManager.eventColors;
   late UserManagement _userManagement;
   late GroupManagement _groupManagement;
+  late NotificationManagement _notificationManagement;
   EventService _eventService = new EventService();
   User? _selectedUser; // This will hold the selected user
   List<User> _users = []; // This will hold the list of users
@@ -268,7 +270,8 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         } else if (_group != null) {
           _group?.calendar.events.add(fetchedEvent);
           devtools.log("This is the group value: ${_group.toString()}");
-          await _groupManagement.updateGroup(_group!, _userManagement);
+          await _groupManagement.updateGroup(_group!, _userManagement,
+              _notificationManagement, _group!.invitedUsers);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

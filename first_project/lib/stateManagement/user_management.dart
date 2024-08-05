@@ -70,13 +70,11 @@ class UserManagement extends ChangeNotifier {
   Future<bool> updateUser(User newUser) async {
     try {
       await userService.updateUser(newUser);
-      _currentUser = newUser;
       if (_currentUser != null) {
         if (newUser.id == _currentUser!.id) {
           _currentUser = newUser;
         }
       }
-
       notifyListeners();
       return true;
     } catch (e) {
