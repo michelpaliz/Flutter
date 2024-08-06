@@ -160,7 +160,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         notificationFormat.newUserHasBeenAdded(group, _currentUser!);
 
     bool notificationAdded = await _notificationManagement.addNotification(
-        invitationNotification, _userManagement);
+        invitationNotification, _userManagement, null);
 
     if (notificationAdded) {
       await _sendNotificationToAdmin(notification, true);

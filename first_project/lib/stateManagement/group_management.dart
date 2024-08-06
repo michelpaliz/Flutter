@@ -102,7 +102,7 @@ class GroupManagement extends ChangeNotifier {
 
       // Save the notification to the database
       await notificationManagement.addNotification(
-          userNotification, userManagement);
+          userNotification, userManagement, null);
 
       bool result = await _notifyUserInvitation(
           group, notificationManagement, userManagement, group.invitedUsers);
@@ -129,51 +129,43 @@ class GroupManagement extends ChangeNotifier {
     final notificationFormat = NotificationFormats();
 
     try {
-      // Track users to ensure notifications are added only once
-      final Set<String> notifiedUserIds = {};
-
       for (final userName in invitedUsers!.keys) {
         // Retrieve the invited user
         final invitedUser = await userService.getUserByUsername(userName);
-
-        // Skip if we have already processed notifications for this user
-        if (notifiedUserIds.contains(invitedUser.id)) {
-          print('Notification already sent to user $userName');
-          continue;
-        }
 
         // Create a group invitation notification
         NotificationUser invitationNotification =
             notificationFormat.createGroupInvitation(group, invitedUser);
 
-        // Check if the notification already exists in the user's notifications
+        devtools.log(
+            "Created invitation notification for $userName: $invitationNotification");
+
+        // Check for duplicates and remove if found
         bool isDuplicate = NotificationFormats.isDuplicateNotification(
             invitedUser.notifications, invitationNotification);
 
-        if (!isDuplicate) {
-          // Add the notification to the user's list if it's not a duplicate
-          invitedUser.notifications.add(invitationNotification);
-          print('Added notification for user $userName');
+        if (isDuplicate) {
+          invitedUser.notifications.removeWhere(
+              (notification) => notification.id == invitationNotification.id);
+          print('Removed duplicate notification for user $userName');
+        }
+        // Add the new notification
+        invitedUser.notifications.add(invitationNotification);
+        print('Added notification for user $userName');
 
-          // Add the notification to the NotificationManagement system
-          bool notificationSuccess = await notificationManagement
-              .addNotification(invitationNotification, userManagement);
-          if (!notificationSuccess) {
-            print('Failed to add notification for user: $userName');
-            return false;
-          }
+        // Add the notification to the NotificationManagement system
+        bool notificationSuccess = await notificationManagement.addNotification(
+            invitationNotification, userManagement, invitedUser);
+        if (!notificationSuccess) {
+          print('Failed to add notification for user: $userName');
+          return false;
+        }
 
-          // Update the user with the new notification
-          bool userUpdateSuccess = await userManagement.updateUser(invitedUser);
-          if (!userUpdateSuccess) {
-            print('Failed to update user: $userName');
-            return false;
-          }
-
-          // Mark this user as notified
-          notifiedUserIds.add(invitedUser.id);
-        } else {
-          print('Duplicate notification found for user $userName');
+        // Update the user with the new notification
+        bool userUpdateSuccess = await userManagement.updateUser(invitedUser);
+        if (!userUpdateSuccess) {
+          print('Failed to update user: $userName');
+          return false;
         }
       }
 
@@ -212,16 +204,19 @@ class GroupManagement extends ChangeNotifier {
           .whenEditingGroup(updatedGroup, userManagement.currentUser!);
 
       // Retrieve the user's role using their ID from group.userRoles
-      String? userRole = updatedGroup.userRoles[userManagement.currentUser!.id];
+      String? userRole =
+          updatedGroup.userRoles[userManagement.currentUser!.userName];
 
       // Check if user has "Administration" or "Co-Administrator" roles
-      if (userRole == 'Administration' || userRole == 'Co-Administrator') {
+      if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
         // Check for duplicates before adding
-        if (!NotificationFormats.isDuplicateNotification(
-            userManagement.currentUser!.notifications, editingNotification)) {
-          userManagement.currentUser!.notifications.add(editingNotification);
-          await userService.updateUser(userManagement.currentUser!);
-        }
+        // if (!NotificationFormats.isDuplicateNotification(
+        //     userManagement.currentUser!.notifications, editingNotification)) {
+        //   userManagement.currentUser!.notifications.add(editingNotification);
+        //   await userService.updateUser(userManagement.currentUser!);
+        // }
+        userManagement.currentUser!.notifications.add(editingNotification);
+        await userService.updateUser(userManagement.currentUser!);
       }
 
       // Notify invited users about the update

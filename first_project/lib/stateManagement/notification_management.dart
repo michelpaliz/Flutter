@@ -92,30 +92,32 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
-  Future<bool> addNotification(
-      NotificationUser notification, UserManagement userManagement) async {
+  Future<bool> addNotification(NotificationUser notification,
+      UserManagement userManagement, User? invitedUser) async {
     try {
-      User? user = userManagement.currentUser;
+      // If invitedUser is not null, use it, otherwise use the current user
+      User? user = invitedUser ?? userManagement.currentUser;
 
       // Ensure the user is authenticated
       if (user == null) {
-        print('Current user is not set.');
+        print('User is not set.');
         return false;
       }
 
-      devtools.log('Notification ${notification}');
+      devtools.log(
+          'Adding notification for user: ${user.userName}, Notification: $notification');
 
       // Create the notification in the service
       await notificationService.createNotification(notification);
 
-      // Add the notification to the user's list
-      user.notifications.add(notification);
+      //!this will cause duplicate notifications
+      // // Add the notification to the user's list
+      // user.notifications.add(notification);
 
       // Update the user with the new notification
       await userManagement.updateUser(user);
 
       // Update the notification stream
-
       if (user.id == notification.ownerId) {
         _notifications.add(notification);
         _notifications = _sortNotificationsByDate(_notifications);

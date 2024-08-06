@@ -52,7 +52,7 @@ class NotificationFormats {
 
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
-      ownerId: user.id,
+      ownerId: group.ownerId, //
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
