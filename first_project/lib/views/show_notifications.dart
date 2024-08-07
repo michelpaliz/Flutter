@@ -10,6 +10,7 @@ import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../models/notification_user.dart';
@@ -253,11 +254,39 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   Future<void> _removeAllNotifications() async {
     if (_currentUser != null) {
-      _notificationManagement.clearNotifications();
-      _currentUser!.notifications.clear();
-      await _userManagement.userService.updateUser(_currentUser!);
-      if (mounted) {
-        setState(() {});
+      bool? confirm = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Confirm Removal"),
+            content: Text(
+                "Are you sure you want to remove all notifications? This action cannot be undone."),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true); // User confirms
+                },
+                child: Text("Yes"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false); // User cancels
+                },
+                child: Text("No"),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm == true) {
+        // Proceed with removing all notifications
+        _notificationManagement.clearNotifications();
+        _currentUser!.notifications.clear();
+        await _userManagement.userService.updateUser(_currentUser!);
+        if (mounted) {
+          setState(() {});
+        }
       }
     }
   }
@@ -269,6 +298,55 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   DateTime parseTimestamp(String timestampString) {
     return DateTime.parse(timestampString);
+  }
+
+  String _formatTimeDifference(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 60) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} minutes ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      return 'Last 30 days';
+    } else {
+      return DateFormat('MMM d, yyyy').format(dateTime);
+    }
+  }
+
+  Map<String, List<NotificationUser>> _groupNotifications(
+      List<NotificationUser> notifications) {
+    final now = DateTime.now();
+    final Map<String, List<NotificationUser>> grouped = {
+      'Recent': [],
+      'Last 7 days': [],
+      'Last 30 days': [],
+      'Older': [],
+    };
+
+    for (var notification in notifications) {
+      final difference = now.difference(notification.timestamp);
+      if (difference.inSeconds < 60) {
+        grouped['Recent']!.add(notification);
+      } else if (difference.inMinutes < 60) {
+        grouped['Recent']!.add(notification);
+      } else if (difference.inHours < 24) {
+        grouped['Recent']!.add(notification);
+      } else if (difference.inDays < 7) {
+        grouped['Last 7 days']!.add(notification);
+      } else if (difference.inDays < 30) {
+        grouped['Last 30 days']!.add(notification);
+      } else {
+        grouped['Older']!.add(notification);
+      }
+    }
+
+    return grouped;
   }
 
   @override
@@ -294,7 +372,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                 bool isSelected = _selectedCategory == category;
 
                 return Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -305,8 +383,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                     },
                     style: ElevatedButton.styleFrom(
                       primary: isSelected
-                          ? Colors.green
-                          : const Color.fromARGB(255, 33, 180, 243), // Change colors as desired
+                          ? Color.fromARGB(255, 6, 150, 138)
+                          : Color.fromARGB(
+                              255, 17, 158, 219), // Change colors as desired
                     ),
                     child:
                         Text(category.toString().toUpperCase().split('.').last),
@@ -329,7 +408,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                   return Center(child: Text('No notifications available.'));
                 }
 
-                final notifications = snapshot.data!
+                final notificationsByCategory = snapshot.data!
                     .where((notification) =>
                         _categoryManager.selectedCategory == null ||
                         _categoryManager
@@ -337,91 +416,159 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                             _categoryManager.selectedCategory)
                     .toList();
 
-                return ListView.separated(
-                  itemCount: notifications.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 8.0),
-                  itemBuilder: (context, index) {
-                    final notification = notifications[index];
-                    final hasConfirmed = notification.isRead &&
-                        notification.questionsAndAnswers.isNotEmpty;
+                final groupedNotifications =
+                    _groupNotifications(notificationsByCategory);
 
-                    if (hasConfirmed) {
-                      return Container();
-                    }
+                devtools
+                    .log("Notifications list is this ${groupedNotifications}");
 
-                    return Dismissible(
-                      key: Key(notification.id.toString()),
-                      background: Container(
-                        color: Colors.red,
-                        child: Icon(Icons.delete, color: Colors.white),
-                      ),
-                      secondaryBackground: Container(
-                        color: Colors.red,
-                        child: Icon(Icons.delete, color: Colors.white),
-                      ),
-                      confirmDismiss: (direction) async {
-                        return await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Confirm Removal"),
-                              content: Text(
-                                  "Are you sure you want to remove this notification?"),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(true);
-                                  },
-                                  child: Text("Yes"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(false);
-                                  },
-                                  child: Text("No"),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      onDismissed: (direction) {
-                        if (direction == DismissDirection.endToStart) {
-                          _removeNotificationByIndex(index);
-                        }
-                      },
-                      child: Card(
-                        elevation: 2.0,
-                        margin: EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        child: ListTile(
-                          title: Text(notification.title),
-                          subtitle: Text(notification.message),
-                          trailing: Visibility(
-                            visible:
-                                notification.questionsAndAnswers.isNotEmpty,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextButton(
-                                  onPressed: () async {
-                                    await _handleConfirmation(notification.id);
-                                  },
-                                  child: Text("Confirm"),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    await _handleNegation(notification.id);
-                                  },
-                                  child: Text("Negate"),
-                                ),
-                              ],
-                            ),
+                return ListView(
+                  children: groupedNotifications.entries.expand((entry) {
+                    final sectionTitle = entry.key;
+                    final sectionNotifications = entry.value;
+
+                    return [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          sectionTitle,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    );
-                  },
+                      ...sectionNotifications.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final notification = entry.value;
+                        final hasConfirmed = notification.isRead &&
+                            notification.questionsAndAnswers.isNotEmpty;
+
+                        if (hasConfirmed) {
+                          return Container();
+                        }
+
+                        return Dismissible(
+                          key: Key(notification.id.toString()),
+                          background: Container(
+                            color:
+                                Colors.blue, // Background color for left swipe
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.only(
+                                left: 16.0), // Padding from the left edge
+                            child: Icon(Icons.info,
+                                color: Colors.white), // Icon for left swipe
+                          ),
+                          secondaryBackground: Container(
+                            color:
+                                Colors.red, // Background color for right swipe
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(
+                                right: 16.0), // Padding from the right edge
+                            child: Icon(Icons.delete,
+                                color: Colors.white), // Icon for right swipe
+                          ),
+                          confirmDismiss: (direction) async {
+                            if (direction == DismissDirection.endToStart) {
+                              return await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Confirm Removal"),
+                                    content: Text(
+                                        "Are you sure you want to remove this notification?"),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(true);
+                                        },
+                                        child: Text("Yes"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(false);
+                                        },
+                                        child: Text("No"),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                            return false; // Only confirm dismissal for right swipe
+                          },
+                          onDismissed: (direction) {
+                            if (direction == DismissDirection.endToStart) {
+                              _removeNotificationByIndex(index);
+                            }
+                          },
+                          child: Card(
+                            elevation: 2.0,
+                            margin: EdgeInsets.symmetric(
+                                vertical: 10.0,
+                                horizontal: 20.0), // Increased margin
+                            child: Padding(
+                              padding: EdgeInsets.all(
+                                  12.5), // Added padding inside the card
+                              child: ListTile(
+                                contentPadding: EdgeInsets
+                                    .zero, // Remove default padding of ListTile
+                                title: Text(
+                                  notification.title,
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                        height:
+                                            8.0), // Add space between message and timestamp
+                                    Text(notification.message),
+                                    SizedBox(
+                                        height:
+                                            4.0), // Add space before timestamp
+                                    Text(
+                                      _formatTimeDifference(
+                                          notification.timestamp),
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Visibility(
+                                  visible: notification
+                                      .questionsAndAnswers.isNotEmpty,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () async {
+                                          await _handleConfirmation(
+                                              notification.id);
+                                        },
+                                        child: Text("Confirm"),
+                                      ),
+                                      SizedBox(
+                                          width:
+                                              8.0), // Add space between buttons
+                                      TextButton(
+                                        onPressed: () async {
+                                          await _handleNegation(
+                                              notification.id);
+                                        },
+                                        child: Text("Negate"),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList()
+                    ];
+                  }).toList(),
                 );
               },
             ),
@@ -430,10 +577,10 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       ),
     );
   }
-}
 
-void main() {
-  runApp(MaterialApp(
-    home: ShowNotifications(),
-  ));
+  void main() {
+    runApp(MaterialApp(
+      home: ShowNotifications(),
+    ));
+  }
 }

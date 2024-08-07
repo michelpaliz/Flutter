@@ -79,7 +79,8 @@ class NotificationManagement extends ChangeNotifier {
           'Notification removed from userManagement.currentUser!.notifications');
 
       await userManagement.updateUser(userManagement.currentUser!);
-      devtools.log('User updated successfully');
+      devtools.log(
+          'User updated successfully ${userManagement.currentUser?.notifications}');
 
       _notificationController.add(_notifications);
       notifyListeners();
