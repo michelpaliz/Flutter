@@ -101,8 +101,11 @@ class GroupManagement extends ChangeNotifier {
       user.hasNewNotifications = true;
 
       // Save the notification to the database
+      // await notificationManagement.addNotification(
+      //     userNotification, userManagement, null);
+
       await notificationManagement.addNotification(
-          userNotification, userManagement, null);
+          userNotification, userManagement);
 
       bool result = await _notifyUserInvitation(
           group, notificationManagement, userManagement, group.invitedUsers);
@@ -154,8 +157,10 @@ class GroupManagement extends ChangeNotifier {
         print('Added notification for user $userName');
 
         // Add the notification to the NotificationManagement system
+        // bool notificationSuccess = await notificationManagement.addNotification(
+        //     invitationNotification, userManagement, invitedUser);
         bool notificationSuccess = await notificationManagement.addNotification(
-            invitationNotification, userManagement, invitedUser);
+            invitationNotification, userManagement);
         if (!notificationSuccess) {
           print('Failed to add notification for user: $userName');
           return false;

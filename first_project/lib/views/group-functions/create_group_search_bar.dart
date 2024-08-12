@@ -1,7 +1,6 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/services/node_services/user_services.dart';
-
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
@@ -130,6 +129,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   void _addUser(String username) async {
     try {
       final User user = await userService.getUserByUsername(username);
+
+      if (!mounted) return; // Check if the widget is still in the tree
 
       setState(() {
         if (!_userRoles.containsKey(user.userName)) {

@@ -93,33 +93,77 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
-  Future<bool> addNotification(NotificationUser notification,
-      UserManagement userManagement, User? invitedUser) async {
-    try {
-      // If invitedUser is not null, use it, otherwise use the current user
-      User? user = invitedUser ?? userManagement.currentUser;
+  /// New function to remove a notification by its ID
+  Future<bool> removeNotificationById(
+      String notificationId, UserManagement userManagement) async {
+    devtools.log('Attempting to remove notification with ID: $notificationId');
 
-      // Ensure the user is authenticated
-      if (user == null) {
-        print('User is not set.');
+    try {
+      // Find the index of the notification with the given ID
+      int index = _notifications.indexWhere((ntf) => ntf.id == notificationId);
+
+      if (index == -1) {
+        devtools.log('Notification with ID $notificationId not found');
         return false;
       }
 
+      NotificationUser notification = _notifications[index];
+      devtools.log('Notification to remove: ${notification.id}');
+
+      // Remove the notification
+      _notifications.removeAt(index);
+      devtools.log('Notification removed from _notifications list');
+
+      // Update the user's notifications
+      userManagement.currentUser?.notifications = _notifications;
       devtools.log(
-          'Adding notification for user: ${user.userName}, Notification: $notification');
+          'Notification removed from userManagement.currentUser!.notifications');
+
+      // Persist the user update
+      await userManagement.updateUser(userManagement.currentUser!);
+      devtools.log(
+          'User updated successfully ${userManagement.currentUser?.notifications}');
+
+      // Update the notification stream
+      _notificationController.add(_notifications);
+      notifyListeners();
+
+      devtools.log('Notification removed successfully');
+      return true;
+    } catch (e) {
+      devtools.log('Failed to remove notification: $e');
+      return false;
+    }
+  }
+
+  Future<bool> addNotification(
+      NotificationUser notification, UserManagement userManagement) async {
+    try {
+      User admin =
+          await userManagement.userService.getUserById(notification.senderId);
+      User invitedUser = await userManagement.userService
+          .getUserById(notification.recipientId);
+
+      User? updateUser;
+      if (admin.id == notification.recipientId) {
+        updateUser = admin;
+      } else {
+        updateUser = invitedUser;
+        updateUser.notifications.add(notification);
+      }
 
       // Create the notification in the service
       await notificationService.createNotification(notification);
 
       //!this will cause duplicate notifications
-      // // Add the notification to the user's list
-      // user.notifications.add(notification);
+      // Add the notification to the user's list
+      // updateUser.notifications.add(notification);
 
       // Update the user with the new notification
-      await userManagement.updateUser(user);
+      await userManagement.updateUser(updateUser);
 
       // Update the notification stream
-      if (user.id == notification.ownerId) {
+      if (updateUser.id == userManagement.currentUser!.id) {
         _notifications.add(notification);
         _notifications = _sortNotificationsByDate(_notifications);
         notifyListeners();

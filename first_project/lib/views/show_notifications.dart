@@ -17,7 +17,8 @@ import '../models/notification_user.dart';
 import '../models/user.dart';
 
 class ShowNotifications extends StatefulWidget {
-  const ShowNotifications({Key? key}) : super(key: key);
+  final User user;
+  const ShowNotifications({required this.user, Key? key}) : super(key: key);
 
   @override
   State<ShowNotifications> createState() => _ShowNotificationsState();
@@ -29,7 +30,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       BroadCategory.group; // Initialize with an appropriate value
 
   late Stream<List<NotificationUser>> _notificationsStream;
-  User? _currentUser;
+  late User _currentUser = widget.user;
   late UserManagement _userManagement;
   late NotificationManagement _notificationManagement;
   late GroupManagement _groupManagement;
@@ -39,10 +40,16 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   @override
   void initState() {
     super.initState();
+
+    // Initialize _currentUser using the passed user
+    _currentUser = widget.user;
+
     _initializeStream();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _fetchAndUpdateNotifications();
+    });
   }
 
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -51,18 +58,20 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     _notificationManagement =
         Provider.of<NotificationManagement>(context, listen: false);
 
-    final newUser = _userManagement.currentUser;
-    _notificationsStream = _notificationManagement.notificationStream;
-
-    if (_currentUser != newUser) {
+    // Check if _userManagement.currentUser is not null
+    if (_userManagement.currentUser != null) {
+      _currentUser = _userManagement.currentUser!;
+      _notificationsStream = _notificationManagement.notificationStream;
       setState(() {
-        _currentUser = newUser;
+        _currentUser;
       });
-      devtools.log("Current User has changed: $_currentUser");
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _fetchAndUpdateNotifications();
       });
+    } else {
+      // Handle the case where currentUser is null, e.g., by showing a loading indicator
+      devtools.log("Current User is null");
     }
   }
 
@@ -81,15 +90,11 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   }
 
   Future<void> _fetchAndUpdateNotifications() async {
-    if (_currentUser == null) {
-      return;
-    }
-
     try {
       devtools.log("Fetching notifications for: $_currentUser");
 
-      if (_currentUser!.notifications.isNotEmpty) {
-        await _fetchUserNotifications(_currentUser!.userName);
+      if (_currentUser.notifications.isNotEmpty) {
+        await _fetchUserNotifications(_currentUser.userName);
       } else {
         _updateNotifications([]);
       }
@@ -109,24 +114,28 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
-  Future<void> _handleConfirmation(String notificationId) async {
-    if (_currentUser != null) {
-      final notification = _currentUser!.notifications.firstWhere(
-        (n) => n.id == notificationId,
-        orElse: () => null,
-      );
+  Future<void> _handleConfirmation(NotificationUser notification) async {
+    // Check if there are any questions and answers in the notification
+    if (notification.questionsAndAnswers.isNotEmpty) {
+      try {
+        // Fetch the group details using the group ID from the notification
+        final groupFetched = await _groupManagement.groupService
+            .getGroupById(notification.groupId!);
+        final invitedUsers = groupFetched.invitedUsers;
 
-      if (notification != null && notification.question.isNotEmpty) {
-        final group = await _groupManagement.groupService
-            .getGroupById(notification.groupId);
-        final invitedUsers = group.invitedUsers;
-
+        // If no invited users are found, show a snackbar message
         if (invitedUsers == null) {
           _showSnackBar('Invited users not found.');
           return;
         }
 
-        await _processInvitationConfirmation(notification, invitedUsers, group);
+        // Process the invitation confirmation
+        await _processInvitationConfirmation(
+            notification, invitedUsers, groupFetched);
+      } catch (e) {
+        // Log the error and show a snackbar message if fetching the group fails
+        devtools.log('Error fetching group: $e');
+        _showSnackBar('Error fetching group information.');
       }
     }
   }
@@ -136,60 +145,94 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     Map<String, UserInviteStatus> invitedUsers,
     Group group,
   ) async {
-    final userName = _currentUser!.userName;
-    final inviteStatus = invitedUsers[userName];
+    User userInvited = await _userService.getUserById(notification.recipientId);
 
-    if (inviteStatus == null) return;
+    //!UPDATE THE USER INVITED INVITATION
 
-    inviteStatus.invitationAnswer = true;
-    invitedUsers[userName] = inviteStatus;
+    for (NotificationUser ntf in userInvited.notifications) {
+      if (ntf.groupId == group.id) {
+        // Assuming there's only one key-value pair in questionsAndAnswers
+        String questionKey = ntf.questionsAndAnswers.keys.first;
 
-    final user = await _userService.getUserByUsername(userName);
-    group.userIds.add(user.id);
-    group.userRoles[userName] = inviteStatus.role;
+        // Update the value for the specific key
+        ntf.questionsAndAnswers
+            .update(questionKey, (value) => 'Has accepted the invitation');
+      }
+    }
 
-    _currentUser!.groupIds.add(group.id);
-    _userManagement.updateCurrentUser(_currentUser!);
+    devtools.log("User invited ${userInvited}");
 
-    final updatedGroups =
-        await _groupManagement.groupService.getGroupsByUser(userName);
-    _groupManagement.updateGroupStream(updatedGroups);
+    //!UPDATE THE GROUP INVITATION DATA FOR THE INVITED USER
 
-    // We are going to send the join notification to the recipient user
+    // Get the invited user's username
+    final inviteStatus = invitedUsers[userInvited.userName];
+
+    // Update the invitation answer to true
+    inviteStatus!.invitationAnswer = true;
+    invitedUsers[userInvited.userName] = inviteStatus;
+
+    // Fetch the user details using the username
+    group.userIds.add(userInvited.id);
+    group.userRoles[userInvited.userName] = inviteStatus.role;
+
+    // Add the group ID to the invited user's group IDs and update the user
+    userInvited.groupIds.add(group.id);
+
+    // Call the second function to update the group and send notifications
+    await _updateGroupAndSendNotifications(
+        notification, userInvited, group, invitedUsers);
+  }
+
+  Future<void> _updateGroupAndSendNotifications(
+    NotificationUser notification,
+    User userInvited,
+    Group group,
+    Map<String, UserInviteStatus> invitedUsers,
+  ) async {
+    devtools.log("Update group ${group}");
+    devtools.log("Update admin ${userInvited}");
+
+    //!UPDATE THE DATA FOR THE DB
+    await _userManagement.updateUser(userInvited);
+    await _groupManagement.updateGroup(
+        group, _userManagement, _notificationManagement, invitedUsers);
+
+    // Create a new notification for the user being added to the group
     final notificationFormat = NotificationFormats();
     NotificationUser invitationNotification =
-        notificationFormat.newUserHasBeenAdded(group, _currentUser!);
+        notificationFormat.welcomeNewUserGroup(group, userInvited);
 
+    // Add the notification and check if it was successful
     bool notificationAdded = await _notificationManagement.addNotification(
-        invitationNotification, _userManagement, null);
+        invitationNotification, _userManagement);
 
     if (notificationAdded) {
+      // Send a notification to the admin and remove the original notification if it exists
       await _sendNotificationToAdmin(notification, true);
-      await _removeNotificationByIndex(
-          _currentUser!.notifications.indexOf(notification));
-      _showSnackBar('Notification accepted.');
+
+      // Remove the original notification by its ID
+      bool notificationRemoved = await _notificationManagement
+          .removeNotificationById(notification.id, _userManagement);
+
+      if (notificationRemoved) {
+        _showSnackBar('Notification accepted.');
+      } else {
+        _showSnackBar('Notification not found.');
+      }
     } else {
       _showSnackBar('Failed to send join notification.');
     }
   }
 
-  Future<void> _handleNegation(String notificationId) async {
-    if (_currentUser != null) {
-      final notification = _currentUser!.notifications.firstWhere(
-        (n) => n.id == notificationId,
-        orElse: () => null,
-      );
+  Future<void> _handleNegation(NotificationUser notification) async {
+    if (notification.groupId != null &&
+        notification.questionsAndAnswers.isNotEmpty) {
+      final group = await _groupManagement.groupService
+          .getGroupById(notification.groupId!);
+      final invitedUsers = group.invitedUsers;
 
-      if (notification != null &&
-          notification.groupId != null &&
-          notification.questionsAndAnswers.isNotEmpty) {
-        final group = await _groupManagement.groupService
-            .getGroupById(notification.groupId!);
-        final invitedUsers = group.invitedUsers;
-
-        if (invitedUsers != null) {
-          await _processInvitationNegation(notification, invitedUsers, group);
-        }
+      if (invitedUsers != null) {
+        await _processInvitationNegation(notification, invitedUsers, group);
       }
     }
   }
@@ -199,7 +242,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     Map<String, UserInviteStatus> invitedUsers,
     Group group,
   ) async {
-    final currentUserName = _currentUser!.userName;
+    User userInvited = await _userService.getUserById(notification.recipientId);
+    final currentUserName = userInvited.userName;
     final inviteStatus = invitedUsers[currentUserName];
 
     if (inviteStatus != null) {
@@ -209,27 +253,35 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       group.invitedUsers = invitedUsers;
 
       await _groupManagement.groupService.updateGroup(group);
-      await _removeNotificationByIndex(
-          _currentUser!.notifications.indexOf(notification));
 
-      notification.isRead = true;
-      await _userManagement.updateUser(_currentUser!);
+      // Obtain the invited user
+      final invitedUser = userInvited;
 
-      await _sendNotificationToAdmin(notification, false);
+      // Update the notification list by removing the notification
+      int notificationIndex = invitedUser.notifications.indexOf(notification);
+      if (notificationIndex != -1) {
+        invitedUser.notifications.removeAt(notificationIndex);
+        notification.isRead = true;
+        await _userManagement.updateUser(invitedUser);
 
-      _showSnackBar('Notification denied.');
+        devtools.log('This is the invited user ${invitedUser}');
+
+        await _sendNotificationToAdmin(notification, false);
+
+        _showSnackBar('Notification denied.');
+      } else {
+        _showSnackBar('Notification not found.');
+      }
     }
   }
 
   Future<void> _removeNotificationByIndex(int index) async {
-    if (_currentUser != null) {
-      bool success = await _notificationManagement.removeNotificationByIndex(
-          index, _userManagement);
-      if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to remove notification')),
-        );
-      }
+    bool success = await _notificationManagement.removeNotificationByIndex(
+        index, _userManagement);
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove notification')),
+      );
     }
   }
 
@@ -237,56 +289,55 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       NotificationUser notification, bool answer) async {
     final ntOwner = NotificationUser(
       id: notification.id,
-      ownerId: notification.ownerId,
+      senderId: notification.senderId,
+      recipientId: notification.senderId,
       title: "Invitation Status ${notification.title.toUpperCase()} Group",
       message:
-          '${_currentUser!.userName} has ${answer ? 'accepted' : 'denied'} your invitation to join the group',
+          '${_currentUser.userName} has ${answer ? 'accepted' : 'denied'} your invitation to join the group',
       timestamp: DateTime.now(),
       category: Category.groupUpdate,
     );
 
     final admin =
-        await _userManagement.userService.getUserById(notification.ownerId);
+        await _userManagement.userService.getUserById(notification.senderId);
     admin.notifications.add(ntOwner);
     admin.hasNewNotifications = true;
     await _userManagement.userService.updateUser(admin);
   }
 
   Future<void> _removeAllNotifications() async {
-    if (_currentUser != null) {
-      bool? confirm = await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Confirm Removal"),
-            content: Text(
-                "Are you sure you want to remove all notifications? This action cannot be undone."),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true); // User confirms
-                },
-                child: Text("Yes"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false); // User cancels
-                },
-                child: Text("No"),
-              ),
-            ],
-          );
-        },
-      );
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Removal"),
+          content: Text(
+              "Are you sure you want to remove all notifications? This action cannot be undone."),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // User confirms
+              },
+              child: Text("Yes"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // User cancels
+              },
+              child: Text("No"),
+            ),
+          ],
+        );
+      },
+    );
 
-      if (confirm == true) {
-        // Proceed with removing all notifications
-        _notificationManagement.clearNotifications();
-        _currentUser!.notifications.clear();
-        await _userManagement.userService.updateUser(_currentUser!);
-        if (mounted) {
-          setState(() {});
-        }
+    if (confirm == true) {
+      // Proceed with removing all notifications
+      _notificationManagement.clearNotifications();
+      _currentUser.notifications.clear();
+      await _userManagement.userService.updateUser(_currentUser);
+      if (mounted) {
+        setState(() {});
       }
     }
   }
@@ -545,7 +596,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                                       TextButton(
                                         onPressed: () async {
                                           await _handleConfirmation(
-                                              notification.id);
+                                              notification);
                                         },
                                         child: Text("Confirm"),
                                       ),
@@ -554,8 +605,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                                               8.0), // Add space between buttons
                                       TextButton(
                                         onPressed: () async {
-                                          await _handleNegation(
-                                              notification.id);
+                                          await _handleNegation(notification);
                                         },
                                         child: Text("Negate"),
                                       ),
@@ -580,7 +630,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   void main() {
     runApp(MaterialApp(
-      home: ShowNotifications(),
+      home: ShowNotifications(user: widget.user),
     ));
   }
 }

@@ -22,7 +22,8 @@ enum Category {
 
 class NotificationUser {
   final String id;
-  final String ownerId;
+  final String senderId; // Represents the user responsible for this notification
+  final String recipientId; // Represents the user who receives this notification
   final String title;
   final String message;
   final DateTime _timestamp;
@@ -35,7 +36,8 @@ class NotificationUser {
 
   NotificationUser({
     required this.id,
-    required this.ownerId,
+    required this.senderId,
+    required this.recipientId,
     required this.title,
     required this.message,
     required DateTime timestamp,
@@ -59,7 +61,8 @@ class NotificationUser {
     try {
       return NotificationUser(
         id: json['id'] ?? '',
-        ownerId: json['ownerId'] ?? '',
+        senderId: json['senderId'] ?? '',
+        recipientId: json['recipientId'] ?? '',
         title: json['title'] ?? '',
         message: json['message'] ?? '',
         timestamp: json['timestamp'] != null
@@ -90,7 +93,8 @@ class NotificationUser {
       print('Error parsing NotificationUser from JSON: $e');
       return NotificationUser(
         id: '',
-        ownerId: '',
+        senderId: '',
+        recipientId: '',
         title: 'Unknown',
         message: 'Error in notification',
         timestamp: DateTime.now(),
@@ -107,7 +111,8 @@ class NotificationUser {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'ownerId': ownerId,
+      'senderId': senderId,
+      'recipientId': recipientId,
       'title': title,
       'message': message,
       'timestamp': _timestamp.toIso8601String(),
@@ -124,7 +129,8 @@ class NotificationUser {
   String toString() {
     return 'NotificationUser('
         'id: $id, '
-        'ownerId: $ownerId, '
+        'senderId: $senderId, '
+        'recipientId: $recipientId, '
         'title: $title, '
         'message: $message, '
         'timestamp: $_timestamp, '

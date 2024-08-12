@@ -387,51 +387,125 @@ class _EditGroupDataState extends State<EditGroupData> {
         UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
 
         return Container(
-          height: 200,
+          height: 150,
+          padding: EdgeInsets.all(16.0),
           child: userInviteStatus != null
-              ? ListTile(
-                  title: Text(userName),
-                  subtitle: RichText(
-                    text: TextSpan(
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "User Information", // Title
                       style: TextStyle(
-                        fontSize: 14.0,
-                        color: Color.fromARGB(255, 22, 151, 134),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                        color: Colors.black, // Set the title color
                       ),
-                      children: <TextSpan>[
-                        TextSpan(text: 'Role: '),
-                        TextSpan(
-                          text: '${userInviteStatus.role}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        TextSpan(text: ',   '),
-                        userInviteStatus.invitationAnswer != null
-                            ? TextSpan(
-                                text: 'Accepted: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                                children: <TextSpan>[
-                                  TextSpan(
-                                    text:
-                                        '${userInviteStatus.invitationAnswer}',
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                ],
-                              )
-                            : TextSpan(
-                                text: 'Accepted: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                                children: <TextSpan>[
-                                  TextSpan(
-                                    text: 'Answer Pending',
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                ],
-                              ),
-                      ],
                     ),
-                  ),
+                    SizedBox(height: 8.0), // Space between title and user name
+                    ListTile(
+                      title: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "User name: ",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 22, 151,
+                                    134), // Set the color to black
+                              ),
+                            ),
+                            TextSpan(
+                              text: userName,
+                              style: TextStyle(
+                                color: Colors.blue,
+                                // Set the desired color
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 8.0), // Space between lines
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Color.fromARGB(255, 22, 151, 134),
+                              ),
+                              children: <TextSpan>[
+                                TextSpan(
+                                    text: 'Role: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                                TextSpan(
+                                  text: '${userInviteStatus.role}',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 8.0), // Space between lines
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Color.fromARGB(255, 22, 151, 134),
+                              ),
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: 'Accepted: ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                userInviteStatus.invitationAnswer != null
+                                    ? TextSpan(
+                                        text:
+                                            '${userInviteStatus.invitationAnswer}',
+                                        style: TextStyle(color: Colors.blue),
+                                        children: [
+                                          // Check if the answer is "Answer Pending" or "Not Accepted"
+                                          if (userInviteStatus
+                                                      .invitationAnswer ==
+                                                  'Answer Pending' ||
+                                              userInviteStatus
+                                                      .invitationAnswer ==
+                                                  'Not Accepted')
+                                            TextSpan(
+                                              text:
+                                                  ' (Attempts: ${userInviteStatus.attempts}/3)',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                        ],
+                                      )
+                                    : TextSpan(
+                                        text: 'Answer Pending',
+                                        style: TextStyle(color: Colors.blue),
+                                        children: [
+                                          // Show the number of attempts if the answer is pending
+                                          TextSpan(
+                                            text:
+                                                ' (Attempts: ${userInviteStatus.attempts}/3)',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.normal,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 )
               : Center(
                   child: Text(

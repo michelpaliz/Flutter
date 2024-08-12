@@ -28,7 +28,6 @@ import 'package:first_project/views/show_notifications.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_localizations/flutter_localizations.dart';
-// Logic for my view
 import 'package:provider/provider.dart';
 
 import 'models/group.dart';
@@ -58,12 +57,12 @@ class MyMaterialApp extends StatelessWidget {
         ChangeNotifierProvider<UserManagement>(
           create: (context) => UserManagement(
             notificationManagement: NotificationManagement(),
-            user: null,
+            user: authService.costumeUser,
           ),
         ),
         ChangeNotifierProvider<GroupManagement>(
           create: (context) => GroupManagement(
-            user: null,
+            user: authService.costumeUser,
           ),
         ),
         ChangeNotifierProvider<NotificationManagement>(
@@ -83,85 +82,79 @@ class MyMaterialApp extends StatelessWidget {
       child: Consumer<ThemePreferenceProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-              theme: themeProvider.themeData,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: L10n.all,
-              routes: {
-                AppRoutes.settings: (context) => const Settings(),
-                AppRoutes.loginRoute: (context) => LoginView(),
-                AppRoutes.registerRoute: (context) => const RegisterView(),
-                AppRoutes.passwordRecoveryRoute: (context) =>
-                    PasswordRecoveryScreen(),
-                AppRoutes.userCalendar: (context) => const NotesView(),
-                AppRoutes.verifyEmailRoute: (context) =>
-                    const VerifyEmailView(),
-                AppRoutes.editEvent: (context) {
-                  final event =
-                      ModalRoute.of(context)?.settings.arguments as Event?;
-                  if (event != null) {
-                    return EditNoteScreen(event: event);
-                  }
-                  return SizedBox
-                      .shrink(); // Return an empty widget or handle the error
-                },
-                AppRoutes.showGroups: (context) => ShowGroups(),
-                AppRoutes.createGroupData: (context) => CreateGroupData(),
-                AppRoutes.showNotifications: (context) => ShowNotifications(),
-                AppRoutes.groupSettings: (context) {
-                  final group =
-                      ModalRoute.of(context)?.settings.arguments as Group?;
-                  if (group != null) {
-                    return GroupSettings(group: group);
-                  }
-                  return SizedBox
-                      .shrink(); // Return an empty widget or handle the error
-                },
-                AppRoutes.groupCalendar: (context) {
-                  final group =
-                      ModalRoute.of(context)?.settings.arguments as Group?;
-                  if (group != null) {
-                    return GroupDetails(group: group);
-                  }
-                  return SizedBox
-                      .shrink(); // Return an empty widget or handle the error
-                },
-                AppRoutes.addEvent: (context) {
-                  final dynamic arg =
-                      ModalRoute.of(context)?.settings.arguments;
-
-                  User? user;
-                  Group? group;
-
-                  if (arg is User) {
-                    user = arg;
-                  } else if (arg is Group) {
-                    group = arg;
-                  }
-
-                  return EventNoteWidget(user: user, group: group);
-                },
-                AppRoutes.eventDetail: (context) {
-                  final event =
-                      ModalRoute.of(context)?.settings.arguments as Event?;
-                  if (event != null) {
-                    return EventDetail(event: event);
-                  }
-                  return SizedBox
-                      .shrink(); // Return an empty widget or handle the error
-                },
-                AppRoutes.editGroupData: (context) {
-                  final args = ModalRoute.of(context)?.settings.arguments
-                      as EditGroupData;
-                  return EditGroupData(group: args.group, users: args.users);
-                },
-                AppRoutes.homePage: (context) => HomePage(),
+            theme: themeProvider.themeData,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: L10n.all,
+            routes: {
+              AppRoutes.settings: (context) => const Settings(),
+              AppRoutes.loginRoute: (context) => LoginView(),
+              AppRoutes.registerRoute: (context) => const RegisterView(),
+              AppRoutes.passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
+              AppRoutes.userCalendar: (context) => const NotesView(),
+              AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
+              AppRoutes.editEvent: (context) {
+                final event = ModalRoute.of(context)?.settings.arguments as Event?;
+                if (event != null) {
+                  return EditNoteScreen(event: event);
+                }
+                return SizedBox.shrink(); // Handle null case
               },
-              home: RegisterView());
+              AppRoutes.showGroups: (context) => ShowGroups(),
+              AppRoutes.createGroupData: (context) => CreateGroupData(),
+              AppRoutes.showNotifications: (context) {
+                final user = ModalRoute.of(context)?.settings.arguments as User?;
+                if (user != null) {
+                  return ShowNotifications(user: user);
+                }
+                return SizedBox.shrink(); // Handle null case
+              },
+              AppRoutes.groupSettings: (context) {
+                final group = ModalRoute.of(context)?.settings.arguments as Group?;
+                if (group != null) {
+                  return GroupSettings(group: group);
+                }
+                return SizedBox.shrink(); // Handle null case
+              },
+              AppRoutes.groupCalendar: (context) {
+                final group = ModalRoute.of(context)?.settings.arguments as Group?;
+                if (group != null) {
+                  return GroupDetails(group: group);
+                }
+                return SizedBox.shrink(); // Handle null case
+              },
+              AppRoutes.addEvent: (context) {
+                final dynamic arg = ModalRoute.of(context)?.settings.arguments;
+                User? user;
+                Group? group;
+
+                if (arg is User) {
+                  user = arg;
+                } else if (arg is Group) {
+                  group = arg;
+                }
+
+                return EventNoteWidget(user: user, group: group);
+              },
+              AppRoutes.eventDetail: (context) {
+                final event = ModalRoute.of(context)?.settings.arguments as Event?;
+                if (event != null) {
+                  return EventDetail(event: event);
+                }
+                return SizedBox.shrink(); // Handle null case
+              },
+              AppRoutes.editGroupData: (context) {
+                final args = ModalRoute.of(context)?.settings.arguments as EditGroupData;
+                return EditGroupData(group: args.group, users: args.users);
+              },
+              AppRoutes.homePage: (context) => HomePage(),
+            },
+            home: UserInitializer(authService: authService), // Use UserInitializer here
+          );
         },
       ),
     );
@@ -171,8 +164,7 @@ class MyMaterialApp extends StatelessWidget {
 class UserInitializer extends StatefulWidget {
   final AuthService authService;
 
-  const UserInitializer({Key? key, required this.authService})
-      : super(key: key);
+  const UserInitializer({Key? key, required this.authService}) : super(key: key);
 
   @override
   _UserInitializerState createState() => _UserInitializerState();
@@ -181,6 +173,7 @@ class UserInitializer extends StatefulWidget {
 class _UserInitializerState extends State<UserInitializer> {
   User? user;
   bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -189,31 +182,42 @@ class _UserInitializerState extends State<UserInitializer> {
   }
 
   Future<void> _initializeUser() async {
-    final user = await widget.authService.generateUserCustomModel();
-    setState(() {
-      this.user = user;
-      isLoading = false;
-    });
+    try {
+      final fetchedUser = await widget.authService.generateUserCustomModel();
+      setState(() {
+        user = fetchedUser;
+        isLoading = false;
+      });
 
-    // Move the provider state update outside the build method
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userManagement =
-          Provider.of<UserManagement>(context, listen: false);
-      userManagement.setCurrentUser(user);
-      final groupManagement =
-          Provider.of<GroupManagement>(context, listen: false);
-      groupManagement.setCurrentUser(user);
-    });
+      // Update the providers after the user data is fetched
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final userManagement = Provider.of<UserManagement>(context, listen: false);
+        userManagement.setCurrentUser(user);
+
+        final groupManagement = Provider.of<GroupManagement>(context, listen: false);
+        groupManagement.setCurrentUser(user);
+      });
+    } catch (e) {
+      print('Failed to initialize user: $e');
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Failed to load user data. Please try again later.';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
+    } else if (errorMessage != null) {
+      return Scaffold(
+        body: Center(child: Text(errorMessage!)),
+      );
     } else if (user != null) {
-      return HomePage(); // Ensure HomePage uses the correct providers
+      return HomePage(); // User is available
     } else {
-      return RegisterView(); // Ensure RegisterView uses the correct providers
+      return RegisterView(); // User is not available
     }
   }
 }

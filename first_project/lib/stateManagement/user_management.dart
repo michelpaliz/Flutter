@@ -40,7 +40,7 @@ class UserManagement extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateCostumeUser(User? userUpdated) async {
+  Future<void> updateUserFromDB(User? userUpdated) async {
     if (userUpdated != null) {
       _currentUser = userUpdated;
       if (userUpdated.email.isNotEmpty) {
@@ -67,12 +67,12 @@ class UserManagement extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateUser(User newUser) async {
+  Future<bool> updateUser(User updatedUser) async {
     try {
-      await userService.updateUser(newUser);
+      await userService.updateUser(updatedUser);
       if (_currentUser != null) {
-        if (newUser.id == _currentUser!.id) {
-          _currentUser = newUser;
+        if (updatedUser.id == _currentUser!.id) {
+          updateCurrentUser(updatedUser);
         }
       }
       notifyListeners();

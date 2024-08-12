@@ -11,7 +11,8 @@ class NotificationFormats {
     final congratulatoryMessage = 'You created the group: ${group.groupName}';
     _notificationUser = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
-      ownerId: admin.id,
+      senderId: admin.id,
+      recipientId: admin.id,
       title: congratulatoryTitle,
       message: congratulatoryMessage,
       timestamp: DateTime.now(),
@@ -30,7 +31,8 @@ class NotificationFormats {
     final description = 'You edited the group: ${group.groupName}';
     final editNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
-      ownerId: admin.id,
+      senderId: admin.id,
+      recipientId: admin.id,
       title: title,
       message: description,
       timestamp: DateTime.now(),
@@ -44,7 +46,7 @@ class NotificationFormats {
     return editNotification;
   }
 
-  NotificationUser createGroupInvitation(Group group, User user) {
+  NotificationUser createGroupInvitation(Group group, User member) {
     final userNotificationTitle = 'Join ${group.groupName}';
     final userNotificationMessage =
         'You have been invited to join the group: ${group.groupName}';
@@ -52,7 +54,8 @@ class NotificationFormats {
 
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
-      ownerId: group.ownerId, //
+      senderId: group.ownerId,
+      recipientId: member.id,
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
@@ -66,20 +69,21 @@ class NotificationFormats {
       category: Category.groupInvitation, // Set category
     );
 
-    user.notifications.add(userNotification);
-    user.hasNewNotifications = true;
+    member.notifications.add(userNotification);
+    member.hasNewNotifications = true;
 
     return userNotification;
   }
 
-  NotificationUser newUserHasBeenAdded(Group group, User user) {
+  NotificationUser welcomeNewUserGroup(Group group, User member) {
     final userNotificationTitle = '${group.groupName}';
     final userNotificationMessage =
         'You have joined the group: ${group.groupName}';
 
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
-      ownerId: user.id,
+      senderId: group.ownerId,
+      recipientId: member.id,
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
@@ -91,20 +95,21 @@ class NotificationFormats {
       category: Category.groupUpdate, // Set category
     );
 
-    user.notifications.add(userNotification);
-    user.hasNewNotifications = true;
+    member.notifications.add(userNotification);
+    member.hasNewNotifications = true;
 
     return userNotification;
   }
 
-  NotificationUser userRemovedFromGroup(Group group, User user, User admin) {
+  NotificationUser userRemovedFromGroup(Group group, User member, User admin) {
     final userNotificationTitle = 'User Removed from Group';
     final userNotificationMessage =
-        '${user.userName} has been removed from the group: ${group.groupName}';
+        '${member.userName} has been removed from the group: ${group.groupName}';
 
     final adminNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
-      ownerId: admin.id,
+      senderId: admin.id,
+      recipientId: member.id,
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
@@ -129,7 +134,8 @@ class NotificationFormats {
 
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10),
-      ownerId: user.id,
+      senderId: user.id,
+      recipientId: user.id,
       title: userNotificationTitle,
       message: userNotificationMessage,
       timestamp: DateTime.now(),
