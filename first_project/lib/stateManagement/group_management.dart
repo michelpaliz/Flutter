@@ -74,7 +74,8 @@ class GroupManagement extends ChangeNotifier {
   Future<bool> addGroup(
       Group group,
       NotificationManagement notificationManagement,
-      UserManagement userManagement) async {
+      UserManagement userManagement,
+      Map<String, UserInviteStatus>? invitedUsers) async {
     try {
       // Create the group in the group service
       await groupService.createGroup(group);
@@ -93,22 +94,19 @@ class GroupManagement extends ChangeNotifier {
 
       // Create a notification for the current user
       NotificationFormats notificationFormat = NotificationFormats();
-      NotificationUser userNotification =
+      NotificationUser adminNotification =
           notificationFormat.whenCreatingGroup(group, user);
 
       // Check for duplicates before adding
-      user.notifications.add(userNotification);
+      user.notifications.add(adminNotification);
       user.hasNewNotifications = true;
 
       // Save the notification to the database
-      // await notificationManagement.addNotification(
-      //     userNotification, userManagement, null);
-
-      await notificationManagement.addNotification(
-          userNotification, userManagement);
+      await notificationManagement.addNotificationToDB(
+          adminNotification, userManagement);
 
       bool result = await _notifyUserInvitation(
-          group, notificationManagement, userManagement, group.invitedUsers);
+          group, notificationManagement, userManagement, invitedUsers);
 
       if (result) {
         userManagement.updateUser(user);
@@ -131,50 +129,40 @@ class GroupManagement extends ChangeNotifier {
       Map<String, UserInviteStatus>? invitedUsers) async {
     final notificationFormat = NotificationFormats();
 
+    // Convert the current group invited users to a Set of usernames
+    final currentInvitedUserNames = group.invitedUsers?.keys.toSet() ?? {};
+
+    // Convert the new invited users to a Set of usernames
+    final newInviteeUserNames = invitedUsers?.keys.toSet() ?? {};
+
+    // Find new invitees that are not in the current invited users
+    final usersToNotify =
+        currentInvitedUserNames.difference(newInviteeUserNames);
+
     try {
-      for (final userName in invitedUsers!.keys) {
-        // Retrieve the invited user
-        final invitedUser = await userService.getUserByUsername(userName);
+      if (usersToNotify.isNotEmpty) {
+        for (final userName in usersToNotify) {
+          // Retrieve the invited user
+          final invitedUser = await userService.getUserByUsername(userName);
 
-        // Create a group invitation notification
-        NotificationUser invitationNotification =
-            notificationFormat.createGroupInvitation(group, invitedUser);
+          // Create a group invitation notification
+          NotificationUser invitationNotification =
+              notificationFormat.createGroupInvitation(group, invitedUser);
 
-        devtools.log(
-            "Created invitation notification for $userName: $invitationNotification");
+          devtools.log(
+              "Created invitation notification for $userName: $invitationNotification");
 
-        // Check for duplicates and remove if found
-        bool isDuplicate = NotificationFormats.isDuplicateNotification(
-            invitedUser.notifications, invitationNotification);
-
-        if (isDuplicate) {
-          invitedUser.notifications.removeWhere(
-              (notification) => notification.id == invitationNotification.id);
-          print('Removed duplicate notification for user $userName');
-        }
-        // Add the new notification
-        invitedUser.notifications.add(invitationNotification);
-        print('Added notification for user $userName');
-
-        // Add the notification to the NotificationManagement system
-        // bool notificationSuccess = await notificationManagement.addNotification(
-        //     invitationNotification, userManagement, invitedUser);
-        bool notificationSuccess = await notificationManagement.addNotification(
-            invitationNotification, userManagement);
-        if (!notificationSuccess) {
-          print('Failed to add notification for user: $userName');
-          return false;
-        }
-
-        // Update the user with the new notification
-        bool userUpdateSuccess = await userManagement.updateUser(invitedUser);
-        if (!userUpdateSuccess) {
-          print('Failed to update user: $userName');
-          return false;
+          // Add the notification to the NotificationManagement system
+          bool notificationSuccess = await notificationManagement
+              .addNotificationToDB(invitationNotification, userManagement);
+          if (!notificationSuccess) {
+            print('Failed to add notification for user: $userName');
+            return false;
+          }
         }
       }
 
-      // Update the group in the service
+      // Always update the group in the service
       await groupService.updateGroup(group);
 
       // Update the current group locally
@@ -214,12 +202,6 @@ class GroupManagement extends ChangeNotifier {
 
       // Check if user has "Administration" or "Co-Administrator" roles
       if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
-        // Check for duplicates before adding
-        // if (!NotificationFormats.isDuplicateNotification(
-        //     userManagement.currentUser!.notifications, editingNotification)) {
-        //   userManagement.currentUser!.notifications.add(editingNotification);
-        //   await userService.updateUser(userManagement.currentUser!);
-        // }
         userManagement.currentUser!.notifications.add(editingNotification);
         await userService.updateUser(userManagement.currentUser!);
       }

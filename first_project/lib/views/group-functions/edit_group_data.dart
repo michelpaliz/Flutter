@@ -356,7 +356,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       });
 
       //we update the group's invitedUsers property
-      updatedGroup.invitedUsers = invitations;
+      // updatedGroup.invitedUsers = invitations;
 
       print('Updated Group: ${updatedGroup.toString()}');
 

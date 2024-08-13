@@ -199,12 +199,12 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
     // Create a new notification for the user being added to the group
     final notificationFormat = NotificationFormats();
-    NotificationUser invitationNotification =
+    NotificationUser invitedUserHasJoined =
         notificationFormat.welcomeNewUserGroup(group, userInvited);
 
     // Add the notification and check if it was successful
-    bool notificationAdded = await _notificationManagement.addNotification(
-        invitationNotification, _userManagement);
+    bool notificationAdded = await _notificationManagement.addNotificationToDB(
+        invitedUserHasJoined, _userManagement);
 
     if (notificationAdded) {
       // Send a notification to the admin and remove the original notification if it exists
@@ -212,7 +212,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
       // Remove the original notification by its ID
       bool notificationRemoved = await _notificationManagement
-          .removeNotificationById(notification.id, _userManagement);
+          .removeNotificationById(notification, _userManagement);
 
       if (notificationRemoved) {
         _showSnackBar('Notification accepted.');

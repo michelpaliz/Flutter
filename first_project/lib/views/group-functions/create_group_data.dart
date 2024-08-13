@@ -262,7 +262,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       //** UPLOAD THE GROUP CREATED TO FIRESTORE */
 
       bool result = await Provider.of<GroupManagement>(context, listen: false)
-          .addGroup(newGroup, _notificationManagement, _userManagement!);
+          .addGroup(newGroup, _notificationManagement, _userManagement!, {});
 
       return result; // Return true to indicate that the group creation was successful.
     } catch (e) {
