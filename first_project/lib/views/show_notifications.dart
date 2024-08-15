@@ -242,35 +242,45 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     Map<String, UserInviteStatus> invitedUsers,
     Group group,
   ) async {
+    // Retrieve the user who was invited
     User userInvited = await _userService.getUserById(notification.recipientId);
     final currentUserName = userInvited.userName;
     final inviteStatus = invitedUsers[currentUserName];
 
     if (inviteStatus != null) {
+      // Update the invitation status and remove the user from the invited list
       inviteStatus.invitationAnswer = false;
       invitedUsers[currentUserName] = inviteStatus;
       invitedUsers.remove(currentUserName);
       group.invitedUsers = invitedUsers;
 
+      // Update the group in the database
       await _groupManagement.groupService.updateGroup(group);
 
-      // Obtain the invited user
-      final invitedUser = userInvited;
+      // Create a new notification for the user denying the group invitation
+      final notificationFormat = NotificationFormats();
+      NotificationUser denyNotification =
+          notificationFormat.notificationUserDenyGroup(group, userInvited);
 
-      // Update the notification list by removing the notification
-      int notificationIndex = invitedUser.notifications.indexOf(notification);
-      if (notificationIndex != -1) {
-        invitedUser.notifications.removeAt(notificationIndex);
-        notification.isRead = true;
-        await _userManagement.updateUser(invitedUser);
+      // Add the denial notification to the database
+      bool notificationAdded = await _notificationManagement
+          .addNotificationToDB(denyNotification, _userManagement);
 
-        devtools.log('This is the invited user ${invitedUser}');
+      // Remove the original invitation notification
+      bool notificationRemoved = await _notificationManagement
+          .removeNotificationById(notification, _userManagement);
 
+      if (notificationAdded && notificationRemoved) {
+        // Send a notification to the admin and show a success message
         await _sendNotificationToAdmin(notification, false);
-
         _showSnackBar('Notification denied.');
       } else {
-        _showSnackBar('Notification not found.');
+        if (!notificationAdded) {
+          _showSnackBar('Failed to send notification.');
+        }
+        if (!notificationRemoved) {
+          _showSnackBar('Notification not found.');
+        }
       }
     }
   }

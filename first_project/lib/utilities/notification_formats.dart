@@ -101,6 +101,34 @@ class NotificationFormats {
     return userNotification;
   }
 
+  NotificationUser notificationUserDenyGroup(Group group, User member) {
+    final userNotificationTitle = '${group.groupName}';
+    final userNotificationMessage =
+        'You have denied the invitation to join the group: ${group.groupName}';
+
+    final userNotification = NotificationUser(
+      id: Utilities.generateRandomId(10), // Generate a new ID
+      senderId: group.ownerId,
+      recipientId: member.id,
+      title: userNotificationTitle,
+      message: userNotificationMessage,
+      timestamp: DateTime.now(),
+      questionsAndAnswers: {}, // Initialize as an empty map
+      groupId: group.id,
+      isRead: false,
+      type: NotificationType
+          .alert, // Set type to warning (or choose another type if more appropriate)
+      priority:
+          PriorityLevel.medium, // Set priority to medium (or adjust as needed)
+      category: Category.groupUpdate, // Set category
+    );
+
+    member.notifications.add(userNotification);
+    member.hasNewNotifications = true;
+
+    return userNotification;
+  }
+
   NotificationUser userRemovedFromGroup(Group group, User member, User admin) {
     final userNotificationTitle = 'User Removed from Group';
     final userNotificationMessage =
