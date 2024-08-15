@@ -224,16 +224,37 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     }
   }
 
-  Future<void> _handleNegation(NotificationUser notification) async {
+  Future<void> _handleNegation(
+    NotificationUser notification,
+  ) async {
     if (notification.groupId != null &&
         notification.questionsAndAnswers.isNotEmpty) {
       final group = await _groupManagement.groupService
           .getGroupById(notification.groupId!);
       final invitedUsers = group.invitedUsers;
 
-      if (invitedUsers != null) {
-        await _processInvitationNegation(notification, invitedUsers, group);
+      User userInvited =
+          await _userService.getUserById(notification.recipientId);
+
+      // //!UPDATE THE USER INVITED INVITATION
+
+      for (NotificationUser ntf in userInvited.notifications) {
+        if (ntf.groupId == group.id) {
+          // Assuming there's only one key-value pair in questionsAndAnswers
+          String questionKey = ntf.questionsAndAnswers.keys.first;
+
+          // Update the value for the specific key
+          ntf.questionsAndAnswers
+              .update(questionKey, (value) => 'Has denied the invitation');
+        }
       }
+
+      // //!UPDATE THE DATA FOR THE DB
+      await _userManagement.updateUser(userInvited);
+      // await _groupManagement.updateGroup(
+      //     group, _userManagement, _notificationManagement, invitedUsers);
+
+      await _processInvitationNegation(notification, invitedUsers!, group);
     }
   }
 
@@ -251,7 +272,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       // Update the invitation status and remove the user from the invited list
       inviteStatus.invitationAnswer = false;
       invitedUsers[currentUserName] = inviteStatus;
-      invitedUsers.remove(currentUserName);
+      // // invitedUsers.remove(currentUserName);
       group.invitedUsers = invitedUsers;
 
       // Update the group in the database

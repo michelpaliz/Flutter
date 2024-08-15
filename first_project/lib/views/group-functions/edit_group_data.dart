@@ -726,7 +726,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                         },
                       ),
                       FilterChip(
-                        label: Text('Not Wanted to Join'),
+                        label: Text('Not Accepted'),
                         selected: _showNotWantedToJoin,
                         onSelected: (selected) {
                           setState(() {
