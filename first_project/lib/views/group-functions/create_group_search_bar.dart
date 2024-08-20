@@ -1,5 +1,6 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
+import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
@@ -30,7 +31,10 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   TextEditingController _searchController = TextEditingController();
   User? _currentUser;
   Group? _group;
-  List<User> _usersInGroup = [];
+  List<User> _usersAlreadyInGroup = [];
+  Map<String, UserInviteStatus>?
+      _invitedUsers; // New field to store invited users and their answers
+  // New field to store invited users and their answers>
   UserService userService = UserService();
   late UserManagement _userManagement;
 
@@ -63,6 +67,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
         _currentUser = widget.user;
         _group = widget.group;
 
+        _invitedUsers = _group?.invitedUsers;
+
         // Initialize userRoles
         _userRoles[_currentUser!.userName] = 'Administrator';
 
@@ -78,7 +84,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       for (var id in _group!.userIds) {
         User user = await userService.getUserById(id);
         setState(() {
-          _usersInGroup.add(user);
+          _usersAlreadyInGroup.add(user);
         });
       }
     }
@@ -104,7 +110,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       } else if (response is List<String>) {
         // Handle the case where the server returns a list of users
         List<String> filteredResults = response.where((userName) {
-          return !_usersInGroup.any((user) => user.userName == userName) &&
+          return !_usersAlreadyInGroup
+                  .any((user) => user.userName == userName) &&
               !_userRoles.containsKey(userName);
         }).toList();
 
@@ -126,6 +133,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
   }
 
+  //Let's handle the case when the user has already a data/history entry
   void _addUser(String username) async {
     try {
       final User user = await userService.getUserByUsername(username);
@@ -133,19 +141,94 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       if (!mounted) return; // Check if the widget is still in the tree
 
       setState(() {
-        if (!_userRoles.containsKey(user.userName)) {
-          _userRoles[user.userName] = 'Member';
-          _usersInGroup.add(user);
-          widget.onDataChanged(_usersInGroup, _userRoles);
-
-          // Show a message when the user is added
+        // Check if the user is already in the group
+        if (_userRoles.containsKey(user.userName)) {
+          // Show a message that the user is already in the group
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('User added: ${user.userName}'),
+              content: Text('User is already in the group: ${user.userName}'),
               duration: Duration(seconds: 2),
             ),
           );
+          return; // Exit the method early
         }
+
+        // Check if the user has an invite record
+        if (_invitedUsers!.containsKey(user.userName)) {
+          UserInviteStatus inviteStatus = _invitedUsers![user.userName]!;
+
+          // Handle different invite statuses
+          switch (inviteStatus.status) {
+            case 'Resolved':
+              if (inviteStatus.invitationAnswer == true) {
+                // The user accepted the invitation but is not yet in the group
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'User has already accepted the invitation: ${user.userName}'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              } else if (inviteStatus.invitationAnswer == false) {
+                // The user declined the invitation
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'User has declined the invitation: ${user.userName}'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              } else if (DateTime.now()
+                      .difference(inviteStatus.sendingDate)
+                      .inDays >
+                  5) {
+                // The invitation has expired
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'User\'s invitation has expired: ${user.userName}'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+              return; // Exit the method early
+
+            case 'Unresolved':
+              // The invitation is still pending
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'User\'s invitation is still pending: ${user.userName}'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              return; // Exit the method early
+
+            default:
+              // Handle any other unexpected cases
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'User has an unknown invite status: ${user.userName}'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              return; // Exit the method early
+          }
+        }
+
+        // If the user is not in the group and has no relevant invite record, add the user
+        _userRoles[user.userName] = 'Member';
+        _usersAlreadyInGroup.add(user);
+        widget.onDataChanged(_usersAlreadyInGroup, _userRoles);
+
+        // Show a message when the user is added
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('User added: ${user.userName}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       });
 
       print('User added: ${user.userName}');
@@ -167,9 +250,9 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     }
 
     setState(() {
-      _usersInGroup.removeWhere((u) => u.userName == username);
+      _usersAlreadyInGroup.removeWhere((u) => u.userName == username);
       _userRoles.remove(username);
-      widget.onDataChanged(_usersInGroup, _userRoles);
+      widget.onDataChanged(_usersAlreadyInGroup, _userRoles);
     });
 
     print('Removed user: $username');
@@ -277,7 +360,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                           onChanged: (newValue) {
                             setState(() {
                               _userRoles[username] = newValue!;
-                              widget.onDataChanged(_usersInGroup, _userRoles);
+                              widget.onDataChanged(
+                                  _usersAlreadyInGroup, _userRoles);
                             });
                           },
                         ),

@@ -379,145 +379,6 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  void _showInvitedUserDialog(BuildContext context, String userName) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        // Get the user invite status for the specific user
-        UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
-
-        return Container(
-          height: 150,
-          padding: EdgeInsets.all(16.0),
-          child: userInviteStatus != null
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "User Information", // Title
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                        color: Colors.black, // Set the title color
-                      ),
-                    ),
-                    SizedBox(height: 8.0), // Space between title and user name
-                    ListTile(
-                      title: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "User name: ",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 22, 151,
-                                    134), // Set the color to black
-                              ),
-                            ),
-                            TextSpan(
-                              text: userName,
-                              style: TextStyle(
-                                color: Colors.blue,
-                                // Set the desired color
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 8.0), // Space between lines
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Color.fromARGB(255, 22, 151, 134),
-                              ),
-                              children: <TextSpan>[
-                                TextSpan(
-                                    text: 'Role: ',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                                TextSpan(
-                                  text: '${userInviteStatus.role}',
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 8.0), // Space between lines
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Color.fromARGB(255, 22, 151, 134),
-                              ),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: 'Accepted: ',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                userInviteStatus.invitationAnswer != null
-                                    ? TextSpan(
-                                        text:
-                                            '${userInviteStatus.invitationAnswer}',
-                                        style: TextStyle(color: Colors.blue),
-                                        children: [
-                                          // Check if the answer is "Answer Pending" or "Not Accepted"
-                                          if (userInviteStatus
-                                                      .invitationAnswer ==
-                                                  'Answer Pending' ||
-                                              userInviteStatus
-                                                      .invitationAnswer ==
-                                                  'Not Accepted')
-                                            TextSpan(
-                                              text:
-                                                  ' (Attempts: ${userInviteStatus.attempts}/3)',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.normal,
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                        ],
-                                      )
-                                    : TextSpan(
-                                        text: 'Answer Pending',
-                                        style: TextStyle(color: Colors.blue),
-                                        children: [
-                                          // Show the number of attempts if the answer is pending
-                                          TextSpan(
-                                            text:
-                                                ' (Attempts: ${userInviteStatus.attempts}/3)',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              : Center(
-                  child: Text(
-                    'No user found with the given username.',
-                    style: TextStyle(fontSize: 14.0),
-                  ),
-                ),
-        );
-      },
-    );
-  }
-
   // ** UI FOR THE SCREEN **
   @override
   Widget build(BuildContext context) {
@@ -918,16 +779,97 @@ class _EditGroupDataState extends State<EditGroupData> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String? selectedRole = _userUpdatedRoles[
-            userName]; // Local variable to hold the selected role
+        String? selectedRole = _userUpdatedRoles[userName];
+        UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
+        String informativeMessage = '';
+        bool showResendButton = false;
+
+        if (userInviteStatus != null) {
+          if (userInviteStatus.invitationAnswer == null) {
+            informativeMessage =
+                'The invitation is pending. No action is required yet.';
+          } else if (userInviteStatus.invitationAnswer == false) {
+            if (userInviteStatus.attempts == 1) {
+              informativeMessage =
+                  'The user declined the invitation. You can resend the invitation after 2 weeks.';
+              showResendButton = DateTime.now()
+                      .difference(userInviteStatus.sendingDate)
+                      .inDays >=
+                  14;
+            } else if (userInviteStatus.attempts == 2) {
+              informativeMessage =
+                  'The user declined the invitation again. You can resend the invitation after 1 month.';
+              showResendButton = DateTime.now()
+                      .difference(userInviteStatus.sendingDate)
+                      .inDays >=
+                  30;
+            } else if (userInviteStatus.attempts >= 3) {
+              informativeMessage =
+                  'The user has declined the invitation three times. No more attempts are allowed.';
+              showResendButton = false;
+            }
+          } else if (userInviteStatus.invitationAnswer == true) {
+            informativeMessage =
+                'The user accepted the invitation and is already in the group.';
+          }
+        } else {
+          informativeMessage = 'No invitation record found for this user.';
+        }
 
         return AlertDialog(
-          title: Text('Change Role'),
+          title: Text('Change Role for $userName'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (userInviteStatus != null) ...[
+                    ListTile(
+                      title: RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.black),
+                          children: [
+                            TextSpan(
+                              text: "Invitation Status: ",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 22, 151, 134),
+                              ),
+                            ),
+                            TextSpan(
+                              text: '${userInviteStatus.status}',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ],
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 8.0),
+                          Text(
+                            informativeMessage,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          if (showResendButton) ...[
+                            SizedBox(height: 10.0),
+                            ElevatedButton(
+                              onPressed: () {
+                                // Logic to resend the invitation
+                                _resendInvitation(userName);
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Resend Invitation'),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                  ],
                   DropdownButtonFormField<String>(
                     value: selectedRole,
                     items: ['Co-Administrator', 'Member'].map((String role) {
@@ -938,7 +880,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                     }).toList(),
                     onChanged: (String? newRole) {
                       setState(() {
-                        selectedRole = newRole; // Update the local variable
+                        selectedRole = newRole;
                       });
                     },
                     decoration: InputDecoration(
@@ -946,38 +888,6 @@ class _EditGroupDataState extends State<EditGroupData> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                       border: OutlineInputBorder(),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      UserInviteStatus? userInviteStatus =
-                          _usersInvitationAtFirst[userName];
-                      if (userInviteStatus != null &&
-                          userInviteStatus.invitationAnswer == true) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Information'),
-                              content:
-                                  Text('The user is already in the group.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      } else {
-                        Navigator.of(context).pop();
-                        _showInvitedUserDialog(context, userName);
-                      }
-                    },
-                    child: Text('Check Invitation Status'),
                   ),
                 ],
               );
@@ -987,8 +897,7 @@ class _EditGroupDataState extends State<EditGroupData> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  _userUpdatedRoles[userName] =
-                      selectedRole!; // Persist the selected role to the main state
+                  _userUpdatedRoles[userName] = selectedRole!;
                 });
                 Navigator.of(context).pop();
               },
@@ -1005,4 +914,397 @@ class _EditGroupDataState extends State<EditGroupData> {
       },
     );
   }
+
+  void _resendInvitation(String userName) {
+    // Logic to handle the resending of the invitation
+    // Update the UserInviteStatus with a new sending date and increment the attempts
+    if (_usersInvitationAtFirst.containsKey(userName)) {
+      UserInviteStatus userInviteStatus = _usersInvitationAtFirst[userName]!;
+      userInviteStatus.attempts += 1;
+      userInviteStatus.sendingDate = DateTime.now();
+      userInviteStatus.invitationAnswer = null; // Reset to pending
+      userInviteStatus.status = 'Unresolved';
+      userInviteStatus.informationStatus = 'Pending';
+
+      // Update the invite status in your data source, if necessary
+    }
+  }
+
+  // void _showRoleChangeDialog(BuildContext context, String userName) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       String? selectedRole = _userUpdatedRoles[userName];
+  //       UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
+
+  //       return AlertDialog(
+  //         title: Text('Change Role for $userName'),
+  //         content: StatefulBuilder(
+  //           builder: (BuildContext context, StateSetter setState) {
+  //             return Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 if (userInviteStatus != null) ...[
+  //                   ListTile(
+  //                     title: RichText(
+  //                       text: TextSpan(
+  //                         style: TextStyle(color: Colors.black),
+  //                         children: [
+  //                           TextSpan(
+  //                             text: "Invitation Status: ",
+  //                             style: TextStyle(
+  //                               fontWeight: FontWeight.bold,
+  //                               color: Color.fromARGB(255, 22, 151, 134),
+  //                             ),
+  //                           ),
+  //                           TextSpan(
+  //                             text: '${userInviteStatus.status}',
+  //                             style: TextStyle(
+  //                               color: Colors.blue,
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                     subtitle: Column(
+  //                       crossAxisAlignment: CrossAxisAlignment.start,
+  //                       children: [
+  //                         SizedBox(height: 8.0),
+  //                         RichText(
+  //                           text: TextSpan(
+  //                             style: TextStyle(
+  //                               fontSize: 14.0,
+  //                               color: Color.fromARGB(255, 22, 151, 134),
+  //                             ),
+  //                             children: [
+  //                               TextSpan(
+  //                                 text: 'Role: ',
+  //                                 style: TextStyle(fontWeight: FontWeight.bold),
+  //                               ),
+  //                               TextSpan(
+  //                                 text: '${userInviteStatus.role}',
+  //                                 style: TextStyle(color: Colors.blue),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                         SizedBox(height: 8.0),
+  //                         RichText(
+  //                           text: TextSpan(
+  //                             style: TextStyle(
+  //                               fontSize: 14.0,
+  //                               color: Color.fromARGB(255, 22, 151, 134),
+  //                             ),
+  //                             children: [
+  //                               TextSpan(
+  //                                 text: 'Accepted: ',
+  //                                 style: TextStyle(fontWeight: FontWeight.bold),
+  //                               ),
+  //                               TextSpan(
+  //                                 text:
+  //                                     userInviteStatus.invitationAnswer == null
+  //                                         ? 'Answer Pending'
+  //                                         : userInviteStatus.invitationAnswer!
+  //                                             ? 'Yes'
+  //                                             : 'No',
+  //                                 style: TextStyle(color: Colors.blue),
+  //                                 children: [
+  //                                   if (userInviteStatus.invitationAnswer ==
+  //                                           false ||
+  //                                       userInviteStatus.invitationAnswer ==
+  //                                           null)
+  //                                     TextSpan(
+  //                                       text:
+  //                                           ' (Attempts: ${userInviteStatus.attempts}/3)',
+  //                                       style: TextStyle(
+  //                                         color: Colors.red,
+  //                                       ),
+  //                                     ),
+  //                                 ],
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                   SizedBox(height: 20),
+  //                 ],
+  //                 DropdownButtonFormField<String>(
+  //                   value: selectedRole,
+  //                   items: ['Co-Administrator', 'Member'].map((String role) {
+  //                     return DropdownMenuItem<String>(
+  //                       value: role,
+  //                       child: Text(role),
+  //                     );
+  //                   }).toList(),
+  //                   onChanged: (String? newRole) {
+  //                     setState(() {
+  //                       selectedRole = newRole;
+  //                     });
+  //                   },
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Select Role',
+  //                     contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+  //                     border: OutlineInputBorder(),
+  //                   ),
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               setState(() {
+  //                 _userUpdatedRoles[userName] = selectedRole!;
+  //               });
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Text('OK'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Text('Cancel'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  //SHOW INVITATION STATUS AND INFORMATION
+
+  // void _showRoleChangeDialog(BuildContext context, String userName) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       String? selectedRole = _userUpdatedRoles[
+  //           userName]; // Local variable to hold the selected role
+
+  //       return AlertDialog(
+  //         title: Text('Change Role'),
+  //         content: StatefulBuilder(
+  //           builder: (BuildContext context, StateSetter setState) {
+  //             return Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 DropdownButtonFormField<String>(
+  //                   value: selectedRole,
+  //                   items: ['Co-Administrator', 'Member'].map((String role) {
+  //                     return DropdownMenuItem<String>(
+  //                       value: role,
+  //                       child: Text(role),
+  //                     );
+  //                   }).toList(),
+  //                   onChanged: (String? newRole) {
+  //                     setState(() {
+  //                       selectedRole = newRole; // Update the local variable
+  //                     });
+  //                   },
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Select Role',
+  //                     contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+  //                     border: OutlineInputBorder(),
+  //                   ),
+  //                 ),
+  //                 SizedBox(height: 20),
+  //                 ElevatedButton(
+  //                   onPressed: () {
+  //                     UserInviteStatus? userInviteStatus =
+  //                         _usersInvitationAtFirst[userName];
+  //                     if (userInviteStatus != null &&
+  //                         userInviteStatus.invitationAnswer == true) {
+  //                       showDialog(
+  //                         context: context,
+  //                         builder: (BuildContext context) {
+  //                           return AlertDialog(
+  //                             title: Text('Information'),
+  //                             content:
+  //                                 Text('The user is already in the group.'),
+  //                             actions: [
+  //                               TextButton(
+  //                                 onPressed: () {
+  //                                   Navigator.of(context).pop();
+  //                                 },
+  //                                 child: Text('OK'),
+  //                               ),
+  //                             ],
+  //                           );
+  //                         },
+  //                       );
+  //                     } else {
+  //                       Navigator.of(context).pop();
+  //                       _showInvitedUserDialog(context, userName);
+  //                     }
+  //                   },
+  //                   child: Text('Check Invitation Status'),
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               setState(() {
+  //                 _userUpdatedRoles[userName] =
+  //                     selectedRole!; // Persist the selected role to the main state
+  //               });
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Text('OK'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Text('Cancel'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+  // void _showInvitedUserDialog(BuildContext context, String userName) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       // Get the user invite status for the specific user
+  //       UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
+
+  //       return Container(
+  //         height: 150,
+  //         padding: EdgeInsets.all(16.0),
+  //         child: userInviteStatus != null
+  //             ? Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Text(
+  //                     "User Information", // Title
+  //                     style: TextStyle(
+  //                       fontWeight: FontWeight.bold,
+  //                       fontSize: 16.0,
+  //                       color: Colors.black, // Set the title color
+  //                     ),
+  //                   ),
+  //                   SizedBox(height: 8.0), // Space between title and user name
+  //                   ListTile(
+  //                     title: RichText(
+  //                       text: TextSpan(
+  //                         children: [
+  //                           TextSpan(
+  //                             text: "User name: ",
+  //                             style: TextStyle(
+  //                               fontWeight: FontWeight.bold,
+  //                               color: Color.fromARGB(255, 22, 151,
+  //                                   134), // Set the color to black
+  //                             ),
+  //                           ),
+  //                           TextSpan(
+  //                             text: userName,
+  //                             style: TextStyle(
+  //                               color: Colors.blue,
+  //                               // Set the desired color
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                     subtitle: Column(
+  //                       crossAxisAlignment: CrossAxisAlignment.start,
+  //                       children: [
+  //                         SizedBox(height: 8.0), // Space between lines
+  //                         RichText(
+  //                           text: TextSpan(
+  //                             style: TextStyle(
+  //                               fontSize: 14.0,
+  //                               color: Color.fromARGB(255, 22, 151, 134),
+  //                             ),
+  //                             children: <TextSpan>[
+  //                               TextSpan(
+  //                                   text: 'Role: ',
+  //                                   style: TextStyle(
+  //                                     fontWeight: FontWeight.bold,
+  //                                   )),
+  //                               TextSpan(
+  //                                 text: '${userInviteStatus.role}',
+  //                                 style: TextStyle(
+  //                                   color: Colors.blue,
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                         SizedBox(height: 8.0), // Space between lines
+  //                         RichText(
+  //                           text: TextSpan(
+  //                             style: TextStyle(
+  //                               fontSize: 14.0,
+  //                               color: Color.fromARGB(255, 22, 151, 134),
+  //                             ),
+  //                             children: <TextSpan>[
+  //                               TextSpan(
+  //                                 text: 'Accepted: ',
+  //                                 style: TextStyle(fontWeight: FontWeight.bold),
+  //                               ),
+  //                               userInviteStatus.invitationAnswer != null
+  //                                   ? TextSpan(
+  //                                       text:
+  //                                           '${userInviteStatus.invitationAnswer}',
+  //                                       style: TextStyle(color: Colors.blue),
+  //                                       children: [
+  //                                         // Check if the answer is "Answer Pending" or "Not Accepted"
+  //                                         if (userInviteStatus
+  //                                                     .invitationAnswer ==
+  //                                                 'Answer Pending' ||
+  //                                             userInviteStatus
+  //                                                     .invitationAnswer ==
+  //                                                 'Not Accepted')
+  //                                           TextSpan(
+  //                                             text:
+  //                                                 ' (Attempts: ${userInviteStatus.attempts}/3)',
+  //                                             style: TextStyle(
+  //                                               fontWeight: FontWeight.normal,
+  //                                               color: Colors.red,
+  //                                             ),
+  //                                           ),
+  //                                       ],
+  //                                     )
+  //                                   : TextSpan(
+  //                                       text: 'Answer Pending',
+  //                                       style: TextStyle(color: Colors.blue),
+  //                                       children: [
+  //                                         // Show the number of attempts if the answer is pending
+  //                                         TextSpan(
+  //                                           text:
+  //                                               ' (Attempts: ${userInviteStatus.attempts}/3)',
+  //                                           style: TextStyle(
+  //                                             fontWeight: FontWeight.normal,
+  //                                             color: Colors.red,
+  //                                           ),
+  //                                         ),
+  //                                       ],
+  //                                     ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ],
+  //               )
+  //             : Center(
+  //                 child: Text(
+  //                   'No user found with the given username.',
+  //                   style: TextStyle(fontSize: 14.0),
+  //                 ),
+  //               ),
+  //       );
+  //     },
+  //   );
+  // }
 }
