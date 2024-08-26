@@ -149,16 +149,16 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
     //!UPDATE THE USER INVITED INVITATION
 
-    for (NotificationUser ntf in userInvited.notifications) {
-      if (ntf.groupId == group.id) {
-        // Assuming there's only one key-value pair in questionsAndAnswers
-        String questionKey = ntf.questionsAndAnswers.keys.first;
+    // for (NotificationUser ntf in userInvited.notifications) {
+    //   if (ntf.groupId == group.id) {
+    //     // Assuming there's only one key-value pair in questionsAndAnswers
+    //     String questionKey = ntf.questionsAndAnswers.keys.first;
 
-        // Update the value for the specific key
-        ntf.questionsAndAnswers
-            .update(questionKey, (value) => 'Has accepted the invitation');
-      }
-    }
+    //     // Update the value for the specific key
+    //     ntf.questionsAndAnswers
+    //         .update(questionKey, (value) => 'Has accepted the invitation');
+    //   }
+    // }
 
     devtools.log("User invited ${userInvited}");
 

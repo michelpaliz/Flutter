@@ -138,7 +138,8 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   bool _hasPermissions(Group groupSelected) {
     _currentRole = _getRole(_currentUser!, groupSelected.userRoles);
-    return _currentRole == "Administrator";
+    return _currentRole == "Administrator" ||
+        _currentRole == "Co-Administrator";
   }
 
   void _showDeleteConfirmationDialog(Group group) async {
@@ -341,78 +342,81 @@ class _ShowGroupsState extends State<ShowGroups> {
   }
   // }
 
-Widget _buildNotificationIconButton(BuildContext context) {
-  return Consumer2<UserManagement, NotificationManagement>(
-    builder: (context, userManagement, notificationManagement, child) {
-      // Check if currentUser is null and handle it appropriately
-      final currentUser = userManagement.currentUser;
-      if (currentUser == null) {
-        // Handle the case where the currentUser is null
-        return IconButton(
-          icon: Icon(Icons.notifications),
-          onPressed: () {
-            // Optionally navigate to a default page or show an error
-          },
-        );
-      }
-
-      return StreamBuilder<List<NotificationUser>>(
-        stream: notificationManagement.notificationStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {
-                _navigateToShowNotifications(context, currentUser);
-              },
-            );
-          }
-
-          if (snapshot.hasError) {
-            // Handle error state
-            print('Error fetching notifications: ${snapshot.error}');
-            return IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {
-                _navigateToShowNotifications(context, currentUser);
-              },
-            );
-          }
-
-          final notifications = snapshot.data ?? [];
-          final unreadNotifications = notifications.where((n) => !n.isRead).toList();
-          final hasUnreadNotifications = unreadNotifications.isNotEmpty;
-
+  Widget _buildNotificationIconButton(BuildContext context) {
+    return Consumer2<UserManagement, NotificationManagement>(
+      builder: (context, userManagement, notificationManagement, child) {
+        // Check if currentUser is null and handle it appropriately
+        final currentUser = userManagement.currentUser;
+        if (currentUser == null) {
+          // Handle the case where the currentUser is null
           return IconButton(
-            icon: Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Icon(Icons.notifications),
-                if (hasUnreadNotifications)
-                  Positioned(
-                    right: 0,
-                    child: Icon(Icons.brightness_1, size: 10, color: Colors.red),
-                  ),
-              ],
-            ),
+            icon: Icon(Icons.notifications),
             onPressed: () {
-              _navigateToShowNotifications(context, currentUser);
-              notificationManagement.markNotificationsAsRead(); // Optionally mark as read
+              // Optionally navigate to a default page or show an error
             },
           );
-        },
-      );
-    },
-  );
-}
+        }
 
-void _navigateToShowNotifications(BuildContext context, User currentUser) {
-  Navigator.pushNamed(
-    context,
-    AppRoutes.showNotifications,
-    arguments: currentUser, // Pass the User object as an argument
-  );
-}
+        return StreamBuilder<List<NotificationUser>>(
+          stream: notificationManagement.notificationStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: () {
+                  _navigateToShowNotifications(context, currentUser);
+                },
+              );
+            }
+
+            if (snapshot.hasError) {
+              // Handle error state
+              print('Error fetching notifications: ${snapshot.error}');
+              return IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: () {
+                  _navigateToShowNotifications(context, currentUser);
+                },
+              );
+            }
+
+            final notifications = snapshot.data ?? [];
+            final unreadNotifications =
+                notifications.where((n) => !n.isRead).toList();
+            final hasUnreadNotifications = unreadNotifications.isNotEmpty;
+
+            return IconButton(
+              icon: Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  Icon(Icons.notifications),
+                  if (hasUnreadNotifications)
+                    Positioned(
+                      right: 0,
+                      child:
+                          Icon(Icons.brightness_1, size: 10, color: Colors.red),
+                    ),
+                ],
+              ),
+              onPressed: () {
+                _navigateToShowNotifications(context, currentUser);
+                notificationManagement
+                    .markNotificationsAsRead(); // Optionally mark as read
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _navigateToShowNotifications(BuildContext context, User currentUser) {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.showNotifications,
+      arguments: currentUser, // Pass the User object as an argument
+    );
+  }
 
 //**  WE CAN USE STREAMS OR CONSUMER  */
 

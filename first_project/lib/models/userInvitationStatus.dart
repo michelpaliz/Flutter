@@ -74,6 +74,17 @@ class UserInviteStatus {
     );
   }
 
+   // Method to create a deep copy of UserInviteStatus
+  UserInviteStatus copy() {
+    return UserInviteStatus(
+      id: this.id,
+      role: this.role,
+      attempts: this.attempts,
+      sendingDate: DateTime.fromMillisecondsSinceEpoch(this.sendingDate.millisecondsSinceEpoch),
+      invitationAnswer: this.invitationAnswer,
+    );
+  }
+
   @override
   String toString() {
     return 'UserInviteStatus{id: $id, invitationAnswer: $invitationAnswer, role: $role, sendingDate: $sendingDate, informationStatus: $informationStatus, attempts: $attempts, status: $status}';

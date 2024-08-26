@@ -35,10 +35,13 @@ class _EditGroupDataState extends State<EditGroupData> {
   User? _currentUser = AuthService.firebase().costumeUser;
   Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
   Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
+  Map<String, UserInviteStatus> _usersInvitationUpdated = {};
   Map<String, UserInviteStatus> _usersInvitationAtFirst = {};
   late List<User> _usersInGroupForUpdate = [];
   late List<User> _usersInGroupAtFirst;
   bool _isDismissed = false; // Track if the item is dismissed
+  bool _isNewUser = false;
+  bool _addingNewUser = false;
   late final Group _group;
   String _imageURL = "";
   Map<String, Future<User?>> userFutures =
@@ -52,6 +55,20 @@ class _EditGroupDataState extends State<EditGroupData> {
   late String _currentUserRoleValue;
   // Update _usersInvitationStatus with new users
   Map<String, UserInviteStatus> newUsersInvitationStatus = {};
+  List<String> _uniqueNewKeysList = [];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Ensure that the dependencies are initialized
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+    _notificationManagement = Provider.of<NotificationManagement>(context,
+        listen: false); // Ensure _currentUser is initialized
+
+    // If you need to initialize other variables or methods here, do so.
+  }
 
   @override
   void initState() {
@@ -78,24 +95,32 @@ class _EditGroupDataState extends State<EditGroupData> {
     _usersInGroupForUpdate = widget.users;
     _usersInGroupAtFirst = widget.users;
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
-      _usersInvitationAtFirst = _group.invitedUsers!;
+      // Create a deep copy of the map
+      _usersInvitationAtFirst =
+          Map<String, UserInviteStatus>.from(_group.invitedUsers!);
+
+      // Create a deep copy of _usersInvitationAtFirst for _usersInvitationUpdated
+      _usersInvitationUpdated = _usersInvitationAtFirst
+          .map((key, value) => MapEntry(key, value.copy()));
     }
 
     if (_currentUser!.id == _group.ownerId) {
       _currentUserRoleValue = "Administrator";
     } else {
-      for (var entry in _usersInvitationAtFirst.entries) {
+      for (var entry in _usersInvitationUpdated.entries) {
         var userName = entry.key;
         var userInvitationStatus = entry.value;
 
         // Check if current user ID matches the userName in the map
-        if (_currentUser!.id == userName) {
+        if (_currentUser!.userName == userName) {
           // Do something with the userInvitationStatus
           _currentUserRoleValue = userInvitationStatus.role;
           break; // Exit the loop if the user is found
         }
       }
     }
+
+    
   }
 
   @override
@@ -105,21 +130,14 @@ class _EditGroupDataState extends State<EditGroupData> {
     super.dispose();
   }
 
-  @override
-  Future<void> didChangeDependencies() async {
-    super.didChangeDependencies();
-    _userManagement = Provider.of<UserManagement>(context, listen: false);
-    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
-    _notificationManagement =
-        Provider.of<NotificationManagement>(context, listen: false);
-    _currentUser = _userManagement!.currentUser;
-  }
-
   void _onDataChanged(List<User> updatedUserInGroup,
       Map<String, String> updatedUserRoles) async {
     // Print the new data before updating the state
     print('Updated User In Group: $updatedUserInGroup');
     print('Updated User Roles: $updatedUserRoles');
+
+    // Create a map for new users invitation statuses
+    Map<String, UserInviteStatus> newUsersInvitationStatus = {};
 
     for (var user in updatedUserInGroup) {
       newUsersInvitationStatus[user.userName] = UserInviteStatus(
@@ -129,12 +147,27 @@ class _EditGroupDataState extends State<EditGroupData> {
         sendingDate: DateTime.now(), // Assuming 'Member' is the default role
       );
     }
+    // The uniqueNewKeysList will contain the keys that are present in the newUsersInvitationStatus map but not in the _usersInvitationUpdate
+    // Determine which keys are in newUsersInvitationStatus but not in _usersInvitationUpdate
+    final newKeys = newUsersInvitationStatus.keys.toSet();
+    final existingKeys = _usersInvitationUpdated.keys.toSet();
+    final uniqueNewKeys = newKeys.difference(existingKeys);
+
+    // Convert the set of unique new keys to a list
+    _uniqueNewKeysList = uniqueNewKeys.toList();
+
+    if (_usersInGroupAtFirst != _usersInGroupForUpdate) {
+      _addingNewUser = true;
+    }
 
     setState(() {
       _userUpdatedRoles = updatedUserRoles;
       _usersInGroupForUpdate = updatedUserInGroup;
-      // Merge new users into the existing _usersInvitationStatus
-      _usersInvitationAtFirst.addAll(newUsersInvitationStatus);
+      _usersInvitationUpdated =
+          newUsersInvitationStatus; // Update the invitation status
+
+      // Print the unique keys list for debugging purposes
+      print('Unique new keys: $_uniqueNewKeysList');
     });
   }
 
@@ -207,11 +240,11 @@ class _EditGroupDataState extends State<EditGroupData> {
 
   void _performUserRemoval(String fetchedUserName, bool? invitationStatus) {
     // Check if the user is newly added (not in the initial list of users)
-    final isNewUser = !_usersInGroupAtFirst.any(
-      (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
-    );
+    // final isNewUser = !_usersInGroupAtFirst.any(
+    //   (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
+    // );
 
-    if (isNewUser) {
+    if (_isNewUser) {
       _handleNewUserRemoval(fetchedUserName);
     } else {
       _handleExistingUserRemoval(fetchedUserName, invitationStatus);
@@ -223,7 +256,7 @@ class _EditGroupDataState extends State<EditGroupData> {
       _usersInGroupForUpdate.removeWhere(
         (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
       );
-      _usersInvitationAtFirst.remove(fetchedUserName);
+      _usersInvitationUpdated.remove(fetchedUserName);
       _userUpdatedRoles.remove(fetchedUserName);
     });
 
@@ -236,74 +269,131 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
+  // Function to handle the removal of an existing user who was already in the group
   void _handleExistingUserRemoval(
       String fetchedUserName, bool? invitationStatus) {
-    // Check invitation status
-    if (invitationStatus == null) {
-      // User hasn't yet answered the invitation
+    // If the user is already in the group, remove them from both the group and the invite record
+    if (_usersInGroupForUpdate.any((user) =>
+        user.userName.toLowerCase() == fetchedUserName.toLowerCase())) {
+      setState(() {
+        _userUpdatedRoles.remove(fetchedUserName);
+        _usersInGroupForUpdate.removeWhere((user) =>
+            user.userName.toLowerCase() == fetchedUserName.toLowerCase());
+        _usersInvitationUpdated
+            .remove(fetchedUserName); // Remove the invite record as well
+      });
+
+      // Remove user from server
+      _groupManagement.groupService.removeUserInGroup(
+        fetchedUserName, // Use the actual user ID or username as needed by the service
+        _group.id,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'User $fetchedUserName already has an invitation, so cannot be removed. It will expire in 5 days if not answered.',
-          ),
+              'User $fetchedUserName removed from the group and their invitation record has been deleted.'),
           duration: Duration(seconds: 5),
         ),
       );
-      setState(() {});
-      return;
+    } else if (invitationStatus == null) {
+      // Handle users with pending invites
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'User $fetchedUserName has a pending invitation and cannot be removed until the invitation is answered.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
     } else if (invitationStatus == false) {
-      // User does not want to join
+      // Handle users who declined the invitation
+      // setState(() {
+      //   _userUpdatedRoles.remove(fetchedUserName);
+      //   _usersInGroupForUpdate.removeWhere((user) =>
+      //       user.userName.toLowerCase() == fetchedUserName.toLowerCase());
+      //   // Keep the invite record intact for non-accepted invites
+      // });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'User $fetchedUserName has declined the invitation and is not in the group. This user will have a maximum of 3 attempts to send a request for this group.',
-          ),
+              'User $fetchedUserName declined the invitation, but the invitation record is retained.'),
           duration: Duration(seconds: 5),
         ),
       );
-      setState(() {});
-      return;
     }
-
-    // Find the user to remove by userName
-    User? userToRemove;
-    for (var user in _usersInGroupForUpdate) {
-      if (user.userName.toLowerCase() == fetchedUserName.toLowerCase()) {
-        userToRemove = user;
-        break;
-      }
-    }
-
-    // If the user is not found in the group
-    if (userToRemove == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('User $fetchedUserName not found in the group.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    // Perform the removal action
-    setState(() {
-      _userUpdatedRoles.remove(fetchedUserName);
-      _usersInGroupForUpdate
-          .remove(userToRemove); // Remove the user from the list
-    });
-
-    _groupManagement.groupService.removeUserInGroup(
-      userToRemove.id,
-      _group.id,
-    ); // Remove user from server
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('User $fetchedUserName removed from the group.'),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
+
+  // void _handleExistingUserRemoval(
+  //     String fetchedUserName, bool? invitationStatus) {
+  //   // Check invitation status
+  //   if (invitationStatus == null) {
+  //     // User hasn't yet answered the invitation
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           'User $fetchedUserName already has an invitation, so cannot be removed. It will expire in 5 days if not answered.',
+  //         ),
+  //         duration: Duration(seconds: 5),
+  //       ),
+  //     );
+  //     setState(() {});
+  //     return;
+  //   } else if (invitationStatus == false) {
+  //     // User does not want to join
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           'User $fetchedUserName has declined the invitation and is not in the group. This user will have a maximum of 3 attempts to send a request for this group.',
+  //         ),
+  //         duration: Duration(seconds: 5),
+  //       ),
+  //     );
+  //     setState(() {});
+  //     return;
+  //   }
+
+  //   //! Perform the user removal when the user is in the group */
+
+  //   // Find the user to remove by userName
+  //   User? userToRemove;
+  //   for (var user in _usersInGroupForUpdate) {
+  //     if (user.userName.toLowerCase() == fetchedUserName.toLowerCase()) {
+  //       userToRemove = user;
+  //       break;
+  //     }
+  //   }
+
+  //   // If the user is not found in the group
+  //   if (userToRemove == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('User $fetchedUserName not found in the group.'),
+  //         duration: Duration(seconds: 2),
+  //       ),
+  //     );
+  //     return;
+  //   }
+
+  //   // Perform the removal action
+  //   setState(() {
+  //     _userUpdatedRoles.remove(fetchedUserName);
+  //     _usersInGroupForUpdate
+  //         .remove(userToRemove); // Remove the user from the list
+  //   });
+
+  //   _groupManagement.groupService.removeUserInGroup(
+  //     userToRemove.id,
+  //     _group.id,
+  //   ); // Remove user from server
+
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('User $fetchedUserName removed from the group.'),
+  //       duration: Duration(seconds: 2),
+  //     ),
+  //   );
+  // }
 
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
   Future<bool> _updatingGroup() async {
@@ -326,6 +416,11 @@ class _EditGroupDataState extends State<EditGroupData> {
             await Utilities.pickAndUploadImageGroup(_group.id, _selectedImage);
       }
 
+      //We update the map in case the admin has edited any members data
+      if (_usersInvitationUpdated != _usersInvitationAtFirst) {
+        _usersInvitationUpdated = _usersInvitationAtFirst;
+      }
+
       // Edit the group object with the appropriate attributes
       Group updatedGroup = Group(
           id: _group.id,
@@ -333,7 +428,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           ownerId: _currentUser!.id,
           userRoles: _userRolesAtFirst,
           calendar: _group.calendar,
-          invitedUsers: _usersInvitationAtFirst,
+          invitedUsers: _usersInvitationUpdated,
           userIds: _group.userIds,
           createdTime: DateTime.now(),
           description: _groupDescription,
@@ -341,26 +436,29 @@ class _EditGroupDataState extends State<EditGroupData> {
 
       //** ADD THE INVITED USERS  */
       Map<String, UserInviteStatus> invitations = {};
-      //Now we proceed to create an invitation object
-      _userUpdatedRoles.forEach((key, value) {
-        // Check if the user's role is not "Administrator"
-        if (value != 'Administrator') {
-          final invitationStatus = UserInviteStatus(
-              id: _group.id,
-              role: '$value',
-              invitationAnswer:
-                  null, // It's null because the user hasn't answered yet
-              sendingDate: DateTime.now());
-          invitations[key] = invitationStatus;
-        }
-      });
+
+      if (_addingNewUser) {
+        //Now we proceed to create an invitation object
+        _userUpdatedRoles.forEach((key, value) {
+          // Check if the user's role is not "Administrator"
+          if (value != 'Administrator') {
+            final invitationStatus = UserInviteStatus(
+                id: _group.id,
+                role: '$value',
+                invitationAnswer:
+                    null, // It's null because the user hasn't answered yet
+                sendingDate: DateTime.now());
+            invitations[key] = invitationStatus;
+          }
+        });
+      }
 
       //we update the group's invitedUsers property
       // updatedGroup.invitedUsers = invitations;
 
       print('Updated Group: ${updatedGroup.toString()}');
 
-      //** UPLOAD THE GROUP CREATED TO FIRESTORE */
+      //** UPLOAD THE GROUP CREATED TO OUR DB*/
       await _groupManagement.updateGroup(
           updatedGroup, _userManagement!, _notificationManagement, invitations);
 
@@ -391,7 +489,7 @@ class _EditGroupDataState extends State<EditGroupData> {
         final adminUserName = _currentUserRoleValue == "Administrator"
             ? _currentUser!.userName
             : null;
-        final filteredEntries = _usersInvitationAtFirst.entries.where((entry) {
+        final filteredEntries = _usersInvitationUpdated.entries.where((entry) {
           final username = entry.key;
           final accepted = entry.value.invitationAnswer;
 
@@ -603,13 +701,13 @@ class _EditGroupDataState extends State<EditGroupData> {
                   Column(
                     children: filteredUsers.entries.isNotEmpty
                         ? filteredUsers.entries.map((entry) {
-                            final String username = entry.key;
+                            final String userName = entry.key;
                             final UserInviteStatus userInviteStatus =
                                 entry.value;
 
                             return FutureBuilder<User?>(
                               future: _userManagement!.userService
-                                  .getUserByUsername(username),
+                                  .getUserByUsername(userName),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
@@ -618,8 +716,6 @@ class _EditGroupDataState extends State<EditGroupData> {
                                   return Text('Error: ${snapshot.error}');
                                 } else if (snapshot.hasData) {
                                   final user = snapshot.data!;
-                                  final userName = user
-                                      .userName; // Assuming this is how you get username from User object
                                   final roleValue =
                                       _userUpdatedRoles[userName] ??
                                           userInviteStatus.role;
@@ -639,19 +735,15 @@ class _EditGroupDataState extends State<EditGroupData> {
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
-                                          final isNewUser =
-                                              !_usersInGroupAtFirst.any(
-                                            (user) =>
-                                                user.userName.toLowerCase() ==
-                                                userName.toLowerCase(),
-                                          );
+                                          _isNewUser = _uniqueNewKeysList
+                                              .contains(userName.toLowerCase());
 
                                           return AlertDialog(
-                                            title: Text(isNewUser
+                                            title: Text(_isNewUser
                                                 ? 'Confirm Removal'
                                                 : 'Confirm Action'),
                                             content: Text(
-                                              isNewUser
+                                              _isNewUser
                                                   ? 'You just added this user. Would you like to remove them from the invitation list?'
                                                   : 'Are you sure you want to remove user $userName from the group?',
                                             ),
@@ -663,7 +755,6 @@ class _EditGroupDataState extends State<EditGroupData> {
                                                   });
                                                   Navigator.of(context)
                                                       .pop(); // Close the dialog
-                                                  // Revert the swipe
                                                   final scaffold =
                                                       ScaffoldMessenger.of(
                                                           context);
@@ -744,7 +835,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                             );
                           }).toList()
                         : [Text("No user roles available")],
-                  ),
+                  )
                 ],
               ),
             ),
@@ -780,11 +871,15 @@ class _EditGroupDataState extends State<EditGroupData> {
       context: context,
       builder: (BuildContext context) {
         String? selectedRole = _userUpdatedRoles[userName];
-        UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
+        UserInviteStatus? userInviteStatus = _usersInvitationUpdated[userName];
         String informativeMessage = '';
-        bool showResendButton = false;
+        bool showRoleDropdown = false;
+        String additionalMessage = '';
 
         if (userInviteStatus != null) {
+          final int daysSinceSent =
+              DateTime.now().difference(userInviteStatus.sendingDate).inDays;
+
           if (userInviteStatus.invitationAnswer == null) {
             informativeMessage =
                 'The invitation is pending. No action is required yet.';
@@ -792,25 +887,28 @@ class _EditGroupDataState extends State<EditGroupData> {
             if (userInviteStatus.attempts == 1) {
               informativeMessage =
                   'The user declined the invitation. You can resend the invitation after 2 weeks.';
-              showResendButton = DateTime.now()
-                      .difference(userInviteStatus.sendingDate)
-                      .inDays >=
-                  14;
+              if (daysSinceSent >= 2) {
+                showRoleDropdown = true;
+                additionalMessage =
+                    'Time has passed. You can now change the role and resend the invitation.';
+              }
             } else if (userInviteStatus.attempts == 2) {
               informativeMessage =
                   'The user declined the invitation again. You can resend the invitation after 1 month.';
-              showResendButton = DateTime.now()
-                      .difference(userInviteStatus.sendingDate)
-                      .inDays >=
-                  30;
+              if (daysSinceSent >= 30) {
+                showRoleDropdown = true;
+                additionalMessage =
+                    'Time has passed. You can now change the role and resend the invitation.';
+              }
             } else if (userInviteStatus.attempts >= 3) {
               informativeMessage =
                   'The user has declined the invitation three times. No more attempts are allowed.';
-              showResendButton = false;
+              showRoleDropdown = false;
             }
           } else if (userInviteStatus.invitationAnswer == true) {
             informativeMessage =
                 'The user accepted the invitation and is already in the group.';
+            showRoleDropdown = true;
           }
         } else {
           informativeMessage = 'No invitation record found for this user.';
@@ -854,15 +952,15 @@ class _EditGroupDataState extends State<EditGroupData> {
                               color: Colors.black87,
                             ),
                           ),
-                          if (showResendButton) ...[
+                          if (additionalMessage.isNotEmpty) ...[
                             SizedBox(height: 10.0),
-                            ElevatedButton(
-                              onPressed: () {
-                                // Logic to resend the invitation
-                                _resendInvitation(userName);
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('Resend Invitation'),
+                            Text(
+                              additionalMessage,
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ],
@@ -870,25 +968,26 @@ class _EditGroupDataState extends State<EditGroupData> {
                     ),
                     SizedBox(height: 20),
                   ],
-                  DropdownButtonFormField<String>(
-                    value: selectedRole,
-                    items: ['Co-Administrator', 'Member'].map((String role) {
-                      return DropdownMenuItem<String>(
-                        value: role,
-                        child: Text(role),
-                      );
-                    }).toList(),
-                    onChanged: (String? newRole) {
-                      setState(() {
-                        selectedRole = newRole;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Select Role',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                      border: OutlineInputBorder(),
+                  if (showRoleDropdown) // Only show the role dropdown based on conditions
+                    DropdownButtonFormField<String>(
+                      value: selectedRole,
+                      items: ['Co-Administrator', 'Member'].map((String role) {
+                        return DropdownMenuItem<String>(
+                          value: role,
+                          child: Text(role),
+                        );
+                      }).toList(),
+                      onChanged: (String? newRole) {
+                        setState(() {
+                          selectedRole = newRole;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Select Role',
+                        contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                  ),
                 ],
               );
             },
@@ -896,6 +995,10 @@ class _EditGroupDataState extends State<EditGroupData> {
           actions: [
             TextButton(
               onPressed: () {
+                if (showRoleDropdown && additionalMessage.isNotEmpty) {
+                  // Update the user's status to resend the invitation
+                  _updateStatus(userName);
+                }
                 setState(() {
                   _userUpdatedRoles[userName] = selectedRole!;
                 });
@@ -915,396 +1018,23 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
-  void _resendInvitation(String userName) {
-    // Logic to handle the resending of the invitation
-    // Update the UserInviteStatus with a new sending date and increment the attempts
-    if (_usersInvitationAtFirst.containsKey(userName)) {
-      UserInviteStatus userInviteStatus = _usersInvitationAtFirst[userName]!;
-      userInviteStatus.attempts += 1;
-      userInviteStatus.sendingDate = DateTime.now();
-      userInviteStatus.invitationAnswer = null; // Reset to pending
-      userInviteStatus.status = 'Unresolved';
-      userInviteStatus.informationStatus = 'Pending';
+  void _updateStatus(String userName) {
+    if (_usersInvitationUpdated.containsKey(userName)) {
+      // Create a copy of the original UserInviteStatus object
+      UserInviteStatus originalStatus = _usersInvitationUpdated[userName]!;
+      UserInviteStatus updatedStatus = UserInviteStatus(
+        id: originalStatus.id,
+        role: originalStatus.role,
+        attempts: originalStatus.attempts + 1,
+        sendingDate: DateTime.now(),
+        invitationAnswer: null, // Reset to pending
+      );
 
-      // Update the invite status in your data source, if necessary
+      // Now update your secondary map or state with the modified copy
+      _usersInvitationAtFirst[userName] = updatedStatus;
+
+      // Optionally, you can also update the main map if needed only after certain conditions are met
+      // _usersInvitationAtFirst[userName] = updatedStatus;
     }
   }
-
-  // void _showRoleChangeDialog(BuildContext context, String userName) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       String? selectedRole = _userUpdatedRoles[userName];
-  //       UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
-
-  //       return AlertDialog(
-  //         title: Text('Change Role for $userName'),
-  //         content: StatefulBuilder(
-  //           builder: (BuildContext context, StateSetter setState) {
-  //             return Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 if (userInviteStatus != null) ...[
-  //                   ListTile(
-  //                     title: RichText(
-  //                       text: TextSpan(
-  //                         style: TextStyle(color: Colors.black),
-  //                         children: [
-  //                           TextSpan(
-  //                             text: "Invitation Status: ",
-  //                             style: TextStyle(
-  //                               fontWeight: FontWeight.bold,
-  //                               color: Color.fromARGB(255, 22, 151, 134),
-  //                             ),
-  //                           ),
-  //                           TextSpan(
-  //                             text: '${userInviteStatus.status}',
-  //                             style: TextStyle(
-  //                               color: Colors.blue,
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                     subtitle: Column(
-  //                       crossAxisAlignment: CrossAxisAlignment.start,
-  //                       children: [
-  //                         SizedBox(height: 8.0),
-  //                         RichText(
-  //                           text: TextSpan(
-  //                             style: TextStyle(
-  //                               fontSize: 14.0,
-  //                               color: Color.fromARGB(255, 22, 151, 134),
-  //                             ),
-  //                             children: [
-  //                               TextSpan(
-  //                                 text: 'Role: ',
-  //                                 style: TextStyle(fontWeight: FontWeight.bold),
-  //                               ),
-  //                               TextSpan(
-  //                                 text: '${userInviteStatus.role}',
-  //                                 style: TextStyle(color: Colors.blue),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                         SizedBox(height: 8.0),
-  //                         RichText(
-  //                           text: TextSpan(
-  //                             style: TextStyle(
-  //                               fontSize: 14.0,
-  //                               color: Color.fromARGB(255, 22, 151, 134),
-  //                             ),
-  //                             children: [
-  //                               TextSpan(
-  //                                 text: 'Accepted: ',
-  //                                 style: TextStyle(fontWeight: FontWeight.bold),
-  //                               ),
-  //                               TextSpan(
-  //                                 text:
-  //                                     userInviteStatus.invitationAnswer == null
-  //                                         ? 'Answer Pending'
-  //                                         : userInviteStatus.invitationAnswer!
-  //                                             ? 'Yes'
-  //                                             : 'No',
-  //                                 style: TextStyle(color: Colors.blue),
-  //                                 children: [
-  //                                   if (userInviteStatus.invitationAnswer ==
-  //                                           false ||
-  //                                       userInviteStatus.invitationAnswer ==
-  //                                           null)
-  //                                     TextSpan(
-  //                                       text:
-  //                                           ' (Attempts: ${userInviteStatus.attempts}/3)',
-  //                                       style: TextStyle(
-  //                                         color: Colors.red,
-  //                                       ),
-  //                                     ),
-  //                                 ],
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                   SizedBox(height: 20),
-  //                 ],
-  //                 DropdownButtonFormField<String>(
-  //                   value: selectedRole,
-  //                   items: ['Co-Administrator', 'Member'].map((String role) {
-  //                     return DropdownMenuItem<String>(
-  //                       value: role,
-  //                       child: Text(role),
-  //                     );
-  //                   }).toList(),
-  //                   onChanged: (String? newRole) {
-  //                     setState(() {
-  //                       selectedRole = newRole;
-  //                     });
-  //                   },
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Select Role',
-  //                     contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-  //                     border: OutlineInputBorder(),
-  //                   ),
-  //                 ),
-  //               ],
-  //             );
-  //           },
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               setState(() {
-  //                 _userUpdatedRoles[userName] = selectedRole!;
-  //               });
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Text('OK'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Text('Cancel'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  //SHOW INVITATION STATUS AND INFORMATION
-
-  // void _showRoleChangeDialog(BuildContext context, String userName) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       String? selectedRole = _userUpdatedRoles[
-  //           userName]; // Local variable to hold the selected role
-
-  //       return AlertDialog(
-  //         title: Text('Change Role'),
-  //         content: StatefulBuilder(
-  //           builder: (BuildContext context, StateSetter setState) {
-  //             return Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 DropdownButtonFormField<String>(
-  //                   value: selectedRole,
-  //                   items: ['Co-Administrator', 'Member'].map((String role) {
-  //                     return DropdownMenuItem<String>(
-  //                       value: role,
-  //                       child: Text(role),
-  //                     );
-  //                   }).toList(),
-  //                   onChanged: (String? newRole) {
-  //                     setState(() {
-  //                       selectedRole = newRole; // Update the local variable
-  //                     });
-  //                   },
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Select Role',
-  //                     contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-  //                     border: OutlineInputBorder(),
-  //                   ),
-  //                 ),
-  //                 SizedBox(height: 20),
-  //                 ElevatedButton(
-  //                   onPressed: () {
-  //                     UserInviteStatus? userInviteStatus =
-  //                         _usersInvitationAtFirst[userName];
-  //                     if (userInviteStatus != null &&
-  //                         userInviteStatus.invitationAnswer == true) {
-  //                       showDialog(
-  //                         context: context,
-  //                         builder: (BuildContext context) {
-  //                           return AlertDialog(
-  //                             title: Text('Information'),
-  //                             content:
-  //                                 Text('The user is already in the group.'),
-  //                             actions: [
-  //                               TextButton(
-  //                                 onPressed: () {
-  //                                   Navigator.of(context).pop();
-  //                                 },
-  //                                 child: Text('OK'),
-  //                               ),
-  //                             ],
-  //                           );
-  //                         },
-  //                       );
-  //                     } else {
-  //                       Navigator.of(context).pop();
-  //                       _showInvitedUserDialog(context, userName);
-  //                     }
-  //                   },
-  //                   child: Text('Check Invitation Status'),
-  //                 ),
-  //               ],
-  //             );
-  //           },
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               setState(() {
-  //                 _userUpdatedRoles[userName] =
-  //                     selectedRole!; // Persist the selected role to the main state
-  //               });
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Text('OK'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Text('Cancel'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  // void _showInvitedUserDialog(BuildContext context, String userName) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       // Get the user invite status for the specific user
-  //       UserInviteStatus? userInviteStatus = _usersInvitationAtFirst[userName];
-
-  //       return Container(
-  //         height: 150,
-  //         padding: EdgeInsets.all(16.0),
-  //         child: userInviteStatus != null
-  //             ? Column(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   Text(
-  //                     "User Information", // Title
-  //                     style: TextStyle(
-  //                       fontWeight: FontWeight.bold,
-  //                       fontSize: 16.0,
-  //                       color: Colors.black, // Set the title color
-  //                     ),
-  //                   ),
-  //                   SizedBox(height: 8.0), // Space between title and user name
-  //                   ListTile(
-  //                     title: RichText(
-  //                       text: TextSpan(
-  //                         children: [
-  //                           TextSpan(
-  //                             text: "User name: ",
-  //                             style: TextStyle(
-  //                               fontWeight: FontWeight.bold,
-  //                               color: Color.fromARGB(255, 22, 151,
-  //                                   134), // Set the color to black
-  //                             ),
-  //                           ),
-  //                           TextSpan(
-  //                             text: userName,
-  //                             style: TextStyle(
-  //                               color: Colors.blue,
-  //                               // Set the desired color
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                     subtitle: Column(
-  //                       crossAxisAlignment: CrossAxisAlignment.start,
-  //                       children: [
-  //                         SizedBox(height: 8.0), // Space between lines
-  //                         RichText(
-  //                           text: TextSpan(
-  //                             style: TextStyle(
-  //                               fontSize: 14.0,
-  //                               color: Color.fromARGB(255, 22, 151, 134),
-  //                             ),
-  //                             children: <TextSpan>[
-  //                               TextSpan(
-  //                                   text: 'Role: ',
-  //                                   style: TextStyle(
-  //                                     fontWeight: FontWeight.bold,
-  //                                   )),
-  //                               TextSpan(
-  //                                 text: '${userInviteStatus.role}',
-  //                                 style: TextStyle(
-  //                                   color: Colors.blue,
-  //                                 ),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                         SizedBox(height: 8.0), // Space between lines
-  //                         RichText(
-  //                           text: TextSpan(
-  //                             style: TextStyle(
-  //                               fontSize: 14.0,
-  //                               color: Color.fromARGB(255, 22, 151, 134),
-  //                             ),
-  //                             children: <TextSpan>[
-  //                               TextSpan(
-  //                                 text: 'Accepted: ',
-  //                                 style: TextStyle(fontWeight: FontWeight.bold),
-  //                               ),
-  //                               userInviteStatus.invitationAnswer != null
-  //                                   ? TextSpan(
-  //                                       text:
-  //                                           '${userInviteStatus.invitationAnswer}',
-  //                                       style: TextStyle(color: Colors.blue),
-  //                                       children: [
-  //                                         // Check if the answer is "Answer Pending" or "Not Accepted"
-  //                                         if (userInviteStatus
-  //                                                     .invitationAnswer ==
-  //                                                 'Answer Pending' ||
-  //                                             userInviteStatus
-  //                                                     .invitationAnswer ==
-  //                                                 'Not Accepted')
-  //                                           TextSpan(
-  //                                             text:
-  //                                                 ' (Attempts: ${userInviteStatus.attempts}/3)',
-  //                                             style: TextStyle(
-  //                                               fontWeight: FontWeight.normal,
-  //                                               color: Colors.red,
-  //                                             ),
-  //                                           ),
-  //                                       ],
-  //                                     )
-  //                                   : TextSpan(
-  //                                       text: 'Answer Pending',
-  //                                       style: TextStyle(color: Colors.blue),
-  //                                       children: [
-  //                                         // Show the number of attempts if the answer is pending
-  //                                         TextSpan(
-  //                                           text:
-  //                                               ' (Attempts: ${userInviteStatus.attempts}/3)',
-  //                                           style: TextStyle(
-  //                                             fontWeight: FontWeight.normal,
-  //                                             color: Colors.red,
-  //                                           ),
-  //                                         ),
-  //                                       ],
-  //                                     ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ],
-  //               )
-  //             : Center(
-  //                 child: Text(
-  //                   'No user found with the given username.',
-  //                   style: TextStyle(fontSize: 14.0),
-  //                 ),
-  //               ),
-  //       );
-  //     },
-  //   );
-  // }
 }
