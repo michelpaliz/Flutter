@@ -8,7 +8,7 @@ class GroupService {
   final String baseUrl =
       'http://192.168.1.16:3000/api/groups'; // Update with your server URL
 
-  Future<Group> createGroup(Group group) async {
+  Future<bool> createGroup(Group group) async {
     devtools.log('Create group ${group}');
     final response = await http.post(
       Uri.parse('$baseUrl'),
@@ -19,7 +19,8 @@ class GroupService {
     );
 
     if (response.statusCode == 201) {
-      return Group.fromJson(jsonDecode(response.body));
+      // return Group.fromJson(jsonDecode(response.body));
+      return true;
     } else {
       throw Exception('Failed to create group: ${response.reasonPhrase}');
     }
@@ -60,8 +61,7 @@ class GroupService {
   }
 
   Future<List<Group>> getGroupsByUser(String userName) async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/user/$userName'));
+    final response = await http.get(Uri.parse('$baseUrl/user/$userName'));
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -71,7 +71,7 @@ class GroupService {
     }
   }
 
-  Future<Group> removeUserInGroup(String userId, String groupId) async {
+  Future<bool> removeUserInGroup(String userId, String groupId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/$groupId/users/$userId'),
       headers: <String, String>{
@@ -80,7 +80,8 @@ class GroupService {
     );
 
     if (response.statusCode == 200) {
-      return Group.fromJson(jsonDecode(response.body));
+      // return Group.fromJson(jsonDecode(response.body));
+      return true;
     } else {
       throw Exception(
           'Failed to remove user from group: ${response.reasonPhrase}');

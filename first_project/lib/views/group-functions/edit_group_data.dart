@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/models/group.dart';
+import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/stateManagement/group_management.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
+import 'package:first_project/utilities/notification_formats.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -33,13 +36,17 @@ class _EditGroupDataState extends State<EditGroupData> {
   TextEditingController _searchController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   User? _currentUser = AuthService.firebase().costumeUser;
-  Map<String, String> _userUpdatedRoles = {}; // Map to store user roles
-  Map<String, String> _userRolesAtFirst = {}; // Map to store user roles
-  Map<String, UserInviteStatus> _usersInvitationUpdated = {};
+
+  late List<User> _usersInGroup = [];
+  late Map<String, String> _usersRoles = {};
+  late Map<String, UserInviteStatus> _usersInvitations = {};
+  Map<String, String> _userRolesAtFirst = {};
   Map<String, UserInviteStatus> _usersInvitationAtFirst = {};
-  late List<User> _usersInGroupForUpdate = [];
-  late List<User> _usersInGroupAtFirst;
-  bool _isDismissed = false; // Track if the item is dismissed
+
+  /*!************************ */
+
+  // late List<User> _usersInGroupAtFirst;
+
   bool _isNewUser = false;
   bool _addingNewUser = false;
   late final Group _group;
@@ -58,21 +65,21 @@ class _EditGroupDataState extends State<EditGroupData> {
   List<String> _uniqueNewKeysList = [];
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Ensure that the dependencies are initialized
-    _userManagement = Provider.of<UserManagement>(context, listen: false);
-    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
-    _notificationManagement = Provider.of<NotificationManagement>(context,
-        listen: false); // Ensure _currentUser is initialized
-
-    // If you need to initialize other variables or methods here, do so.
+  void initState() {
+    super.initState();
+    _initializeGroupData();
+    _initializeUserRoles();
   }
 
   @override
-  void initState() {
-    super.initState();
+  void dispose() {
+    _descriptionController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _initializeGroupData() {
+    // logic to initialize group data
     _group = widget.group;
     _groupName = _group.groupName;
     _groupDescription = _group.description;
@@ -90,24 +97,26 @@ class _EditGroupDataState extends State<EditGroupData> {
         ? null
         : XFile(
             _group.photo); // Initialize _selectedImage with the existing image
-    _userUpdatedRoles = _group.userRoles;
-    _userRolesAtFirst = _group.userRoles;
-    _usersInGroupForUpdate = widget.users;
-    _usersInGroupAtFirst = widget.users;
+    _usersRoles = _group.userRoles;
+  }
+
+  //*We init the variables for the functions
+  void _initializeUserRoles() {
     if (_group.invitedUsers != null && _group.invitedUsers!.isNotEmpty) {
       // Create a deep copy of the map
       _usersInvitationAtFirst =
           Map<String, UserInviteStatus>.from(_group.invitedUsers!);
 
       // Create a deep copy of _usersInvitationAtFirst for _usersInvitationUpdated
-      _usersInvitationUpdated = _usersInvitationAtFirst
+      _usersInvitations = _usersInvitationAtFirst
           .map((key, value) => MapEntry(key, value.copy()));
     }
 
+    //Select the current user role based in the group data
     if (_currentUser!.id == _group.ownerId) {
       _currentUserRoleValue = "Administrator";
     } else {
-      for (var entry in _usersInvitationUpdated.entries) {
+      for (var entry in _usersInvitations.entries) {
         var userName = entry.key;
         var userInvitationStatus = entry.value;
 
@@ -119,17 +128,41 @@ class _EditGroupDataState extends State<EditGroupData> {
         }
       }
     }
-
-    
   }
+
+  //** Here we notify changes for the user in our group */
 
   @override
-  void dispose() {
-    _descriptionController.dispose();
-    _searchController.dispose();
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Ensure that the dependencies are initialized
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+    _notificationManagement =
+        Provider.of<NotificationManagement>(context, listen: false);
+
+    // Listen to the usersInGroupStream for changes so we can make changes for our data
+    _groupManagement.usersInGroupStream.listen((users) {
+      setState(() {
+        _usersInGroup = users;
+      });
+    });
+
+    _groupManagement.userRolesStream.listen((users) {
+      setState(() {
+        _userRolesAtFirst = users;
+      });
+    });
+
+    // _groupManagement.usersInvitationStatus.listen((users) {
+    //   setState(() {
+    //     _usersInvitations = users;
+    //   });
+    // });
   }
 
+  //* Here we passed the updated data but be aware this data is not uploaded in our db
   void _onDataChanged(List<User> updatedUserInGroup,
       Map<String, String> updatedUserRoles) async {
     // Print the new data before updating the state
@@ -144,26 +177,22 @@ class _EditGroupDataState extends State<EditGroupData> {
         id: user.id,
         invitationAnswer: null, // Set the default or expected invitation status
         role: updatedUserRoles[user.userName] ?? 'Member',
-        sendingDate: DateTime.now(), // Assuming 'Member' is the default role
+        sendingDate: DateTime.now(),
       );
     }
     // The uniqueNewKeysList will contain the keys that are present in the newUsersInvitationStatus map but not in the _usersInvitationUpdate
     // Determine which keys are in newUsersInvitationStatus but not in _usersInvitationUpdate
     final newKeys = newUsersInvitationStatus.keys.toSet();
-    final existingKeys = _usersInvitationUpdated.keys.toSet();
+    final existingKeys = _usersInvitations.keys.toSet();
     final uniqueNewKeys = newKeys.difference(existingKeys);
 
     // Convert the set of unique new keys to a list
     _uniqueNewKeysList = uniqueNewKeys.toList();
 
-    if (_usersInGroupAtFirst != _usersInGroupForUpdate) {
-      _addingNewUser = true;
-    }
-
     setState(() {
-      _userUpdatedRoles = updatedUserRoles;
-      _usersInGroupForUpdate = updatedUserInGroup;
-      _usersInvitationUpdated =
+      _usersRoles = updatedUserRoles;
+      _usersInGroup = updatedUserInGroup;
+      _usersInvitations =
           newUsersInvitationStatus; // Update the invitation status
 
       // Print the unique keys list for debugging purposes
@@ -234,167 +263,6 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  //** REMOVE USER */
-
-// Function to perform the removal of a user from the group
-
-  void _performUserRemoval(String fetchedUserName, bool? invitationStatus) {
-    // Check if the user is newly added (not in the initial list of users)
-    // final isNewUser = !_usersInGroupAtFirst.any(
-    //   (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
-    // );
-
-    if (_isNewUser) {
-      _handleNewUserRemoval(fetchedUserName);
-    } else {
-      _handleExistingUserRemoval(fetchedUserName, invitationStatus);
-    }
-  }
-
-  void _handleNewUserRemoval(String fetchedUserName) {
-    setState(() {
-      _usersInGroupForUpdate.removeWhere(
-        (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
-      );
-      _usersInvitationUpdated.remove(fetchedUserName);
-      _userUpdatedRoles.remove(fetchedUserName);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'User $fetchedUserName removed before sending any invitation.'),
-        duration: Duration(seconds: 5),
-      ),
-    );
-  }
-
-  // Function to handle the removal of an existing user who was already in the group
-  void _handleExistingUserRemoval(
-      String fetchedUserName, bool? invitationStatus) {
-    // If the user is already in the group, remove them from both the group and the invite record
-    if (_usersInGroupForUpdate.any((user) =>
-        user.userName.toLowerCase() == fetchedUserName.toLowerCase())) {
-      setState(() {
-        _userUpdatedRoles.remove(fetchedUserName);
-        _usersInGroupForUpdate.removeWhere((user) =>
-            user.userName.toLowerCase() == fetchedUserName.toLowerCase());
-        _usersInvitationUpdated
-            .remove(fetchedUserName); // Remove the invite record as well
-      });
-
-      // Remove user from server
-      _groupManagement.groupService.removeUserInGroup(
-        fetchedUserName, // Use the actual user ID or username as needed by the service
-        _group.id,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'User $fetchedUserName removed from the group and their invitation record has been deleted.'),
-          duration: Duration(seconds: 5),
-        ),
-      );
-    } else if (invitationStatus == null) {
-      // Handle users with pending invites
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'User $fetchedUserName has a pending invitation and cannot be removed until the invitation is answered.'),
-          duration: Duration(seconds: 5),
-        ),
-      );
-    } else if (invitationStatus == false) {
-      // Handle users who declined the invitation
-      // setState(() {
-      //   _userUpdatedRoles.remove(fetchedUserName);
-      //   _usersInGroupForUpdate.removeWhere((user) =>
-      //       user.userName.toLowerCase() == fetchedUserName.toLowerCase());
-      //   // Keep the invite record intact for non-accepted invites
-      // });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'User $fetchedUserName declined the invitation, but the invitation record is retained.'),
-          duration: Duration(seconds: 5),
-        ),
-      );
-    }
-  }
-
-  // void _handleExistingUserRemoval(
-  //     String fetchedUserName, bool? invitationStatus) {
-  //   // Check invitation status
-  //   if (invitationStatus == null) {
-  //     // User hasn't yet answered the invitation
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(
-  //           'User $fetchedUserName already has an invitation, so cannot be removed. It will expire in 5 days if not answered.',
-  //         ),
-  //         duration: Duration(seconds: 5),
-  //       ),
-  //     );
-  //     setState(() {});
-  //     return;
-  //   } else if (invitationStatus == false) {
-  //     // User does not want to join
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(
-  //           'User $fetchedUserName has declined the invitation and is not in the group. This user will have a maximum of 3 attempts to send a request for this group.',
-  //         ),
-  //         duration: Duration(seconds: 5),
-  //       ),
-  //     );
-  //     setState(() {});
-  //     return;
-  //   }
-
-  //   //! Perform the user removal when the user is in the group */
-
-  //   // Find the user to remove by userName
-  //   User? userToRemove;
-  //   for (var user in _usersInGroupForUpdate) {
-  //     if (user.userName.toLowerCase() == fetchedUserName.toLowerCase()) {
-  //       userToRemove = user;
-  //       break;
-  //     }
-  //   }
-
-  //   // If the user is not found in the group
-  //   if (userToRemove == null) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('User $fetchedUserName not found in the group.'),
-  //         duration: Duration(seconds: 2),
-  //       ),
-  //     );
-  //     return;
-  //   }
-
-  //   // Perform the removal action
-  //   setState(() {
-  //     _userUpdatedRoles.remove(fetchedUserName);
-  //     _usersInGroupForUpdate
-  //         .remove(userToRemove); // Remove the user from the list
-  //   });
-
-  //   _groupManagement.groupService.removeUserInGroup(
-  //     userToRemove.id,
-  //     _group.id,
-  //   ); // Remove user from server
-
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text('User $fetchedUserName removed from the group.'),
-  //       duration: Duration(seconds: 2),
-  //     ),
-  //   );
-  // }
-
   //** HERE WE START EDITING THE GROUP WE PRESS HERE THE BUTTON */
   Future<bool> _updatingGroup() async {
     if (_groupName.trim().isEmpty) {
@@ -417,8 +285,8 @@ class _EditGroupDataState extends State<EditGroupData> {
       }
 
       //We update the map in case the admin has edited any members data
-      if (_usersInvitationUpdated != _usersInvitationAtFirst) {
-        _usersInvitationUpdated = _usersInvitationAtFirst;
+      if (_usersInvitations != _usersInvitationAtFirst) {
+        _usersInvitations = _usersInvitationAtFirst;
       }
 
       // Edit the group object with the appropriate attributes
@@ -428,7 +296,7 @@ class _EditGroupDataState extends State<EditGroupData> {
           ownerId: _currentUser!.id,
           userRoles: _userRolesAtFirst,
           calendar: _group.calendar,
-          invitedUsers: _usersInvitationUpdated,
+          invitedUsers: _usersInvitations,
           userIds: _group.userIds,
           createdTime: DateTime.now(),
           description: _groupDescription,
@@ -439,7 +307,7 @@ class _EditGroupDataState extends State<EditGroupData> {
 
       if (_addingNewUser) {
         //Now we proceed to create an invitation object
-        _userUpdatedRoles.forEach((key, value) {
+        _usersRoles.forEach((key, value) {
           // Check if the user's role is not "Administrator"
           if (value != 'Administrator') {
             final invitationStatus = UserInviteStatus(
@@ -477,6 +345,107 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
+  //** REMOVE USER */
+
+// Function to perform the removal of a user from the group
+
+  void _performUserRemoval(String fetchedUserName, bool? invitationStatus) {
+    // Fetch the user based on userName
+    final fetchedUser = _usersInGroup.firstWhere(
+        (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase());
+
+    if (_isNewUser) {
+      _handleNewUserRemoval(fetchedUser.userName);
+    } else {
+      _handleExistingUserRemoval(fetchedUser, invitationStatus);
+    }
+  }
+
+  void _handleNewUserRemoval(String fetchedUserName) {
+    setState(() {
+      _usersInGroup.removeWhere(
+        (user) => user.userName.toLowerCase() == fetchedUserName.toLowerCase(),
+      );
+      _usersInvitations.remove(fetchedUserName);
+      _usersRoles.remove(fetchedUserName);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'User $fetchedUserName removed before sending any invitation.'),
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+
+  // Function to handle the removal of an existing user who was already in the group
+  Future<void> _handleExistingUserRemoval(
+      User fetchedUser, bool? invitationStatus) async {
+    // If the user is already in the group, remove them from both the group and the invite record
+    if (_usersInGroup.any((user) =>
+        user.userName.toLowerCase() == fetchedUser.userName.toLowerCase())) {
+      setState(() {
+        _usersRoles.remove(fetchedUser.userName);
+        _usersInGroup.removeWhere((user) =>
+            user.userName.toLowerCase() == fetchedUser.userName.toLowerCase());
+        _usersInvitations
+            .remove(fetchedUser.userName); // Remove the invite record as well
+      });
+
+      // Remove user from server
+      bool result = await _groupManagement.groupService.removeUserInGroup(
+        fetchedUser
+            .id, // Use the actual user ID or username as needed by the service
+        _group.id,
+      );
+
+      if (result) {
+        User admin =
+            await _userManagement!.userService.getUserById(fetchedUser.id);
+
+        NotificationFormats notificationFormats = new NotificationFormats();
+
+        NotificationUser ntfAdmin = notificationFormats.userRemovedFromGroup(
+            _group, fetchedUser, admin);
+
+        NotificationUser ntfMember =
+            notificationFormats.notifyUserRemoval(_group, fetchedUser, admin);
+
+        await _notificationManagement.addNotificationToDB(
+            ntfAdmin, _userManagement!);
+
+        await _notificationManagement.addNotificationToDB(
+            ntfMember, _userManagement!);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'User ${fetchedUser.userName} removed from the group and their invitation record has been deleted.'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    } else if (invitationStatus == null) {
+      // Handle users with pending invites
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'User $fetchedUser.userName has a pending invitation and cannot be removed until the invitation is answered.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } else if (invitationStatus == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'User ${fetchedUser.userName} declined the invitation, but the invitation record is retained.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
   // ** UI FOR THE SCREEN **
   @override
   Widget build(BuildContext context) {
@@ -484,12 +453,13 @@ class _EditGroupDataState extends State<EditGroupData> {
       builder: (context, providerManagement, child) {
         final TITLE_MAX_LENGTH = 25;
         final DESCRIPTION_MAX_LENGTH = 100;
+        bool _isDismissed = false; // Track if the item is dismissed
 
         // Filter out the admin user from the _usersInvitationStatus map
         final adminUserName = _currentUserRoleValue == "Administrator"
             ? _currentUser!.userName
             : null;
-        final filteredEntries = _usersInvitationUpdated.entries.where((entry) {
+        final filteredEntries = _usersInvitations.entries.where((entry) {
           final username = entry.key;
           final accepted = entry.value.invitationAnswer;
 
@@ -716,9 +686,8 @@ class _EditGroupDataState extends State<EditGroupData> {
                                   return Text('Error: ${snapshot.error}');
                                 } else if (snapshot.hasData) {
                                   final user = snapshot.data!;
-                                  final roleValue =
-                                      _userUpdatedRoles[userName] ??
-                                          userInviteStatus.role;
+                                  final roleValue = _usersRoles[userName] ??
+                                      userInviteStatus.role;
 
                                   return Dismissible(
                                     key: Key(userName),
@@ -870,8 +839,8 @@ class _EditGroupDataState extends State<EditGroupData> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String? selectedRole = _userUpdatedRoles[userName];
-        UserInviteStatus? userInviteStatus = _usersInvitationUpdated[userName];
+        String? selectedRole = _usersRoles[userName];
+        UserInviteStatus? userInviteStatus = _usersInvitations[userName];
         String informativeMessage = '';
         bool showRoleDropdown = false;
         String additionalMessage = '';
@@ -1000,7 +969,7 @@ class _EditGroupDataState extends State<EditGroupData> {
                   _updateStatus(userName);
                 }
                 setState(() {
-                  _userUpdatedRoles[userName] = selectedRole!;
+                  _usersRoles[userName] = selectedRole!;
                 });
                 Navigator.of(context).pop();
               },
@@ -1019,9 +988,9 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   void _updateStatus(String userName) {
-    if (_usersInvitationUpdated.containsKey(userName)) {
+    if (_usersInvitations.containsKey(userName)) {
       // Create a copy of the original UserInviteStatus object
-      UserInviteStatus originalStatus = _usersInvitationUpdated[userName]!;
+      UserInviteStatus originalStatus = _usersInvitations[userName]!;
       UserInviteStatus updatedStatus = UserInviteStatus(
         id: originalStatus.id,
         role: originalStatus.role,

@@ -1,10 +1,9 @@
+import 'dart:developer' as devtools show log;
+
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:first_project/models/mettingDataSource.dart';
-import 'package:first_project/models/user.dart';
-import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/services/node_services/event_services.dart';
 import 'package:first_project/stateManagement/group_management.dart';
-import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/utilities/color_manager.dart';
@@ -35,7 +34,6 @@ class _GroupDetailsState extends State<GroupDetails> {
   late List<Event> _events;
   late DateTime _selectedDate;
   // late FirestoreService _storeService;
-  late AuthService _authService;
   var _userOrGroupObject;
   late List<Appointment> _appointments;
   late CalendarView _selectedView;
@@ -44,10 +42,8 @@ class _GroupDetailsState extends State<GroupDetails> {
   late double _calendarHeight;
   late Map<String, String> _users;
   String userRole = "";
-  late User? _user;
   late UserManagement _userManagement;
   late GroupManagement _groupManagement;
-  late NotificationManagement _notificationManagement;
   late EventService _eventService;
   late DataSource dataSource;
 
@@ -63,14 +59,9 @@ class _GroupDetailsState extends State<GroupDetails> {
     _selectedDate = DateTime.now().toUtc();
     _selectedView = CalendarView.month;
     _controller = CalendarController();
-    _authService = AuthService.firebase();
     _appointments = [];
     _eventService = EventService();
-    _user = _authService.costumeUser;
     dataSource = new DataSource(_group.calendar.events);
-    if (_user != null) {
-      userRole = _getRoleByName(_user!.userName)!;
-    }
     _users = _group.userRoles;
     _userOrGroupObject = _group;
   }
@@ -80,7 +71,9 @@ class _GroupDetailsState extends State<GroupDetails> {
     super.didChangeDependencies();
     _userManagement = Provider.of<UserManagement>(context);
     _groupManagement = Provider.of<GroupManagement>(context);
-    _notificationManagement = Provider.of<NotificationManagement>(context);
+    devtools.log(
+        "This is currentUser from details : ${_userManagement.currentUser}");
+    userRole = _getRoleByName(_userManagement.currentUser!.userName)!;
     if (_groupManagement.currentGroup != _group) {
       _group = _groupManagement.currentGroup!;
       _events = _group.calendar.events;
@@ -161,8 +154,8 @@ class _GroupDetailsState extends State<GroupDetails> {
     // Update the events for the user in Firestore
     _group.calendar.events.removeWhere((e) => e.id == event.id);
     // await _storeService.updateGroup(_group);
-    await _groupManagement.updateGroup(
-        _group, _userManagement, _notificationManagement,_group.invitedUsers);
+    // await _groupManagement.updateGroup(
+    //     _group, _userManagement, _notificationManagement,_group.invitedUsers);
 
     // Update the UI by removing the event from the list
     setState(() {

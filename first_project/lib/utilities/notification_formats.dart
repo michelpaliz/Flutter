@@ -155,6 +155,33 @@ class NotificationFormats {
     return adminNotification;
   }
 
+  NotificationUser notifyUserRemoval(Group group, User member, User admin) {
+  final userNotificationTitle = 'User Removed from Group';
+  final userNotificationMessage =
+      'You have been removed from the group: ${group.groupName} by ${admin.userName}';
+
+  final recipientNotification = NotificationUser(
+    id: Utilities.generateRandomId(10), // Generate a new ID
+    senderId: admin.id,
+    recipientId: member.id,
+    title: userNotificationTitle,
+    message: userNotificationMessage,
+    timestamp: DateTime.now(),
+    questionsAndAnswers: {}, // Initialize as an empty map
+    groupId: group.id,
+    isRead: false,
+    type: NotificationType.alert, // Set type to alert
+    priority: PriorityLevel.high, // Set priority to high
+    category: Category.userRemoval, // Set category
+  );
+
+  member.notifications.add(recipientNotification);
+  member.hasNewNotifications = true;
+
+  return recipientNotification;
+}
+
+
   NotificationUser eventReminder(DateTime eventDate, User user) {
     final userNotificationTitle = 'Upcoming Event Reminder';
     final userNotificationMessage =

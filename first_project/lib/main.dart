@@ -1,7 +1,8 @@
+import 'dart:developer' as devtools show log;
+
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/l10n/l10n.dart';
-import 'package:first_project/models/event.dart';
+import 'package:first_project/models/routes.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_provider.dart';
 import 'package:first_project/services/firebase_%20services/auth/logic_backend/auth_service.dart';
 import 'package:first_project/stateManagement/group_management.dart';
@@ -9,28 +10,13 @@ import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/theme_management.dart';
 import 'package:first_project/stateManagement/theme_preference_provider.dart';
 import 'package:first_project/stateManagement/user_management.dart';
-import 'package:first_project/views/event-logic/add_event.dart';
-import 'package:first_project/views/event-logic/edit_event.dart';
-import 'package:first_project/views/event-logic/event_detail.dart';
-import 'package:first_project/views/group-functions/calendar-group/group_details.dart';
-import 'package:first_project/views/group-functions/calendar-group/group_settings.dart';
-import 'package:first_project/views/group-functions/create_group_data.dart';
-import 'package:first_project/views/group-functions/edit_group_data.dart';
-import 'package:first_project/views/group-functions/show_groups.dart';
 import 'package:first_project/views/home_page.dart';
-import 'package:first_project/views/log-user/login_view.dart';
-import 'package:first_project/views/log-user/recover_password.dart';
 import 'package:first_project/views/log-user/register_view.dart';
-import 'package:first_project/views/log-user/verify_email_view.dart';
-import 'package:first_project/views/notes_view.dart';
-import 'package:first_project/views/settings.dart';
-import 'package:first_project/views/show_notifications.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'models/group.dart';
 import 'models/user.dart';
 
 void main() async {
@@ -90,70 +76,9 @@ class MyMaterialApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
             ],
             supportedLocales: L10n.all,
-            routes: {
-              AppRoutes.settings: (context) => const Settings(),
-              AppRoutes.loginRoute: (context) => LoginView(),
-              AppRoutes.registerRoute: (context) => const RegisterView(),
-              AppRoutes.passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
-              AppRoutes.userCalendar: (context) => const NotesView(),
-              AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
-              AppRoutes.editEvent: (context) {
-                final event = ModalRoute.of(context)?.settings.arguments as Event?;
-                if (event != null) {
-                  return EditNoteScreen(event: event);
-                }
-                return SizedBox.shrink(); // Handle null case
-              },
-              AppRoutes.showGroups: (context) => ShowGroups(),
-              AppRoutes.createGroupData: (context) => CreateGroupData(),
-              AppRoutes.showNotifications: (context) {
-                final user = ModalRoute.of(context)?.settings.arguments as User?;
-                if (user != null) {
-                  return ShowNotifications(user: user);
-                }
-                return SizedBox.shrink(); // Handle null case
-              },
-              AppRoutes.groupSettings: (context) {
-                final group = ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return GroupSettings(group: group);
-                }
-                return SizedBox.shrink(); // Handle null case
-              },
-              AppRoutes.groupCalendar: (context) {
-                final group = ModalRoute.of(context)?.settings.arguments as Group?;
-                if (group != null) {
-                  return GroupDetails(group: group);
-                }
-                return SizedBox.shrink(); // Handle null case
-              },
-              AppRoutes.addEvent: (context) {
-                final dynamic arg = ModalRoute.of(context)?.settings.arguments;
-                User? user;
-                Group? group;
-
-                if (arg is User) {
-                  user = arg;
-                } else if (arg is Group) {
-                  group = arg;
-                }
-
-                return EventNoteWidget(user: user, group: group);
-              },
-              AppRoutes.eventDetail: (context) {
-                final event = ModalRoute.of(context)?.settings.arguments as Event?;
-                if (event != null) {
-                  return EventDetail(event: event);
-                }
-                return SizedBox.shrink(); // Handle null case
-              },
-              AppRoutes.editGroupData: (context) {
-                final args = ModalRoute.of(context)?.settings.arguments as EditGroupData;
-                return EditGroupData(group: args.group, users: args.users);
-              },
-              AppRoutes.homePage: (context) => HomePage(),
-            },
-            home: UserInitializer(authService: authService), // Use UserInitializer here
+            routes: routes,
+            home: UserInitializer(
+                authService: authService), // Use UserInitializer here
           );
         },
       ),
@@ -164,7 +89,8 @@ class MyMaterialApp extends StatelessWidget {
 class UserInitializer extends StatefulWidget {
   final AuthService authService;
 
-  const UserInitializer({Key? key, required this.authService}) : super(key: key);
+  const UserInitializer({Key? key, required this.authService})
+      : super(key: key);
 
   @override
   _UserInitializerState createState() => _UserInitializerState();
@@ -184,21 +110,27 @@ class _UserInitializerState extends State<UserInitializer> {
   Future<void> _initializeUser() async {
     try {
       final fetchedUser = await widget.authService.generateUserCustomModel();
+      devtools.log('Fetched user ${fetchedUser}');
       setState(() {
         user = fetchedUser;
         isLoading = false;
       });
 
-      // Update the providers after the user data is fetched
+      devtools.log('Fetched userr ${user}');
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final userManagement = Provider.of<UserManagement>(context, listen: false);
+        final userManagement =
+            Provider.of<UserManagement>(context, listen: false);
         userManagement.setCurrentUser(user);
 
-        final groupManagement = Provider.of<GroupManagement>(context, listen: false);
+        devtools.log('Fetched user ${userManagement.currentUser}');
+
+        final groupManagement =
+            Provider.of<GroupManagement>(context, listen: false);
         groupManagement.setCurrentUser(user);
       });
     } catch (e) {
-      print('Failed to initialize user: $e');
+      devtools.log('Failed to initialize user: $e');
       setState(() {
         isLoading = false;
         errorMessage = 'Failed to load user data. Please try again later.';
@@ -214,7 +146,9 @@ class _UserInitializerState extends State<UserInitializer> {
       return Scaffold(
         body: Center(child: Text(errorMessage!)),
       );
-    } else if (user != null) {
+    } else if (Provider.of<UserManagement>(context, listen: false)
+            .currentUser !=
+        null) {
       return HomePage(); // User is available
     } else {
       return RegisterView(); // User is not available

@@ -154,6 +154,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
         }
 
         // Check if the user has an invite record
+        // TODO: RESOLVE THIS LATER WHEN THE USER HAS NOT ANY RECORD 
         if (_invitedUsers!.containsKey(user.userName)) {
           UserInviteStatus inviteStatus = _invitedUsers![user.userName]!;
 

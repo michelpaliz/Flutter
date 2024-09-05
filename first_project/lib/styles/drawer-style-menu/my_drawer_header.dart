@@ -1,3 +1,4 @@
+import 'dart:developer' as devtools show log;
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -43,8 +44,12 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     _userManagement = Provider.of<UserManagement>(context);
 
     // Initialize the _storeService using the providerManagement.
-    _currentUser = _userManagement.currentUser;
-    // _storeService = FirestoreService.firebase(providerManagement);
+    // devtools.log("Error fetching groups: ${_userManagement.currentUser}");
+
+    User? user = _userManagement.currentUser;
+    if (user != null) {
+      _currentUser = user;
+    }
   }
 
   // Function to pick an image from the gallery
@@ -96,11 +101,10 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
             onTap: _pickImage, // Call the _pickImage function when tapped
             child: CircleAvatar(
                 radius: 30, // Adjust the size as needed
-                backgroundImage:
-                    (_userManagement.currentUser!.photoUrl.toString().isEmpty)
-                        ? AssetImage('assets/images/default_profile.png')
-                        : NetworkImage(_currentUser!.photoUrl.toString())
-                            as ImageProvider),
+                backgroundImage: (_currentUser!.photoUrl.toString().isEmpty)
+                    ? AssetImage('assets/images/default_profile.png')
+                    : NetworkImage(_currentUser!.photoUrl.toString())
+                        as ImageProvider),
           ),
 
           SizedBox(height: 5), // Add spacing between image and name

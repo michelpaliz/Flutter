@@ -32,9 +32,6 @@ class HomePage extends StatelessWidget {
   Future<void> _initializeUser(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.initialize();
-
-    // final userManagement = Provider.of<UserManagement>(context, listen: false);
-    // userManagement.setCurrentUser(authProvider.costumeUser);
   }
 
   Widget _buildUserDependentView(BuildContext context) {

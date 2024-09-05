@@ -34,90 +34,37 @@ class _ShowGroupsState extends State<ShowGroups> {
   String? _currentRole;
   late UserManagement? _userManagement;
   late GroupManagement _groupManagement;
-  late NotificationManagement _notificationManagement;
-  List<Group>? _groupListFetched;
 
   //*LOGIC FOR THE VIEW //
 
   @override
   void initState() {
     super.initState();
-    _groupListFetched = [];
   }
 
-  @override
+  // @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Retrieve provider management instance
+    //Init our services
     _userManagement = Provider.of<UserManagement>(context, listen: false);
-
     _groupManagement = Provider.of<GroupManagement>(context, listen: false);
 
-    _notificationManagement =
-        Provider.of<NotificationManagement>(context, listen: false);
+    //Initialize the currentUser locally for this view
+    _currentUser = _userManagement!.currentUser;
 
-    // Check and set the current user
-    final newUser = _userManagement?.currentUser;
+    initGroupList();
 
-    _groupListFetched = _groupManagement.groups;
+    devtools.log("This is currentUser from user management: ${_currentUser}");
 
-    devtools.log("Current User : $newUser");
-
-    // Check if the current user has changed
-    if (_currentUser != newUser) {
-      _currentUser = newUser;
-      devtools.log("Current User has changed: $_currentUser");
-
-      // Reset the group list when the user changes
-      _groupListFetched = [];
-
-      // Fetch and update groups for the new user
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await _fetchAndUpdateGroups();
-      });
-    }
+    devtools.log(
+        "This is currentUser: group management ${_groupManagement.currentUser}");
   }
 
-  Future<void> _fetchAndUpdateGroups() async {
-    if (_currentUser == null || _userManagement == null) {
-      // Handle cases where currentUser or providerManagement is null
-      return;
-    }
-
-    try {
-      devtools.log("Current User here !!: $_currentUser");
-
-      if (_currentUser!.groupIds.isNotEmpty) {
-        // Fetch groups for the current user
-        List<Group> groups = await _groupManagement.groupService
-            .getGroupsByUser(_currentUser!.userName);
-        devtools.log("Group list !!!: ${groups.toString()}");
-        // Update the group stream with the fetched groups
-        _updateGroups(groups);
-      } else {
-        setState(() {
-          _groupListFetched = [];
-          _groupManagement.updateGroupStream(_groupListFetched!);
-        });
-      }
-
-      // Log the user's group IDs and fetched groups for debugging
-      // devtools.log('User Group IDs: ${_currentUser!.groupIds}');
-      // devtools.log('Fetched Groups: $_groupListFetched');
-    } catch (error, stackTrace) {
-      // Log the error with the stack trace for better debugging
-      print('Error fetching and updating groups: $error');
-      devtools.log('StackTrace: $stackTrace');
-    }
+  void initGroupList() {
+    _groupManagement.fetchAndInitializeGroups(_currentUser!.groupIds);
   }
 
-  void _updateGroups(List<Group> groups) {
-    setState(() {
-      _groupListFetched = groups;
-      _groupManagement.updateGroupStream(_groupListFetched!);
-    });
-  }
+  //** GROUP FUNCTIONS FOR THE USER TO CREATE GROUPS OR REMOVE GROUPS */
 
   void _toggleScrollDirection() {
     setState(() {
@@ -170,7 +117,8 @@ class _ShowGroupsState extends State<ShowGroups> {
 
     if (deleteConfirmed == true && mounted) {
       try {
-        bool result = await _groupManagement.removeGroup(group);
+        bool result =
+            await _groupManagement.removeGroup(group, _userManagement!);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result
@@ -424,32 +372,70 @@ class _ShowGroupsState extends State<ShowGroups> {
     return StreamBuilder<List<Group>>(
       stream: _groupManagement.groupStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+        // Log snapshot state for better tracking
+        devtools.log('StreamBuilder state: ${snapshot.connectionState}');
+        devtools.log('StreamBuilder data: ${snapshot.data}');
+        devtools.log('StreamBuilder error: ${snapshot.error}');
+
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          // Show loading indicator only when there's no data and waiting
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          // If an error occurred in the stream, display an error message
+          return _buildErrorWidget('Error: ${snapshot.error}');
+        } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+          // If the stream has returned an empty list, show a message
+          return _buildNoGroupsAvailableWidget();
+        } else if (snapshot.hasData) {
+          // If the stream has data and it's not empty, show the groups
+          List<Group> groups = snapshot.data!;
+          return _buildGroupListBody(groups, context);
         } else {
-          List<Group> groups = snapshot.data ?? [];
-          if (groups.isEmpty) {
-            return Center(child: Text('No groups available.'));
-          }
-          return Column(
-            children: [
-              _buildWelcomeContainer(context),
-              _buildChangeViewRow(context),
-              SizedBox(height: 20),
-              _buildGroupListView(groups),
-            ],
-          );
+          // Catch-all fallback
+          return _buildNoGroupsAvailableWidget();
         }
       },
     );
   }
 
+// Helper widget to show when no groups are available
+  Widget _buildNoGroupsAvailableWidget() {
+    return Center(
+      child: Text(
+        'No groups available.',
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+      ),
+    );
+  }
+
+// Helper widget to show in case of errors
+  Widget _buildErrorWidget(String errorMessage) {
+    return Center(
+      child: Text(
+        errorMessage,
+        style: TextStyle(fontSize: 16, color: Colors.red),
+      ),
+    );
+  }
+
+// Widget to build the body when groups are available
+  Widget _buildGroupListBody(List<Group> groups, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildWelcomeContainer(context),
+        _buildChangeViewRow(context),
+        SizedBox(height: 20),
+        _buildGroupListView(groups), // Pass groups to ListView builder
+      ],
+    );
+  }
+
   // Widget buildBody(BuildContext context) {
-  //   return Consumer<ProviderManagement>(
+  //   return Consumer<GroupManagement>(
   //     builder: (context, providerManagement, child) {
-  //       final groups = providerManagement.groupManagement.groups;
+  //       final groups = _groupManagement.groups;
 
   //       if (groups.isEmpty) {
   //         return Center(child: Text('No groups available.'));

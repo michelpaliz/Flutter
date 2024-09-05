@@ -8,27 +8,31 @@ import 'package:flutter/material.dart';
 class UserManagement extends ChangeNotifier {
   User? _currentUser;
   final UserService userService = UserService();
-  final NotificationManagement notificationManagement;
+  final NotificationManagement _notificationManagement;
   final _userController = StreamController<User?>.broadcast();
   Stream<User?> get userStream => _userController.stream;
 
   User? get currentUser => _currentUser;
 
-  UserManagement({required User? user, required this.notificationManagement}) {
-    _currentUser = user;
+  UserManagement(
+      {required User? user,
+      required NotificationManagement notificationManagement})
+      : _notificationManagement = notificationManagement {
     if (user != null) {
-      _initNotifications(user);
+      setCurrentUser(user);
     }
   }
 
 // In the provided code, updateCurrentUser already performs the tasks of setting the current user, updating the stream, initializing notifications if the user is not null, and notifying listeners. Therefore, there is no need for a separate setCurrentUser method unless you want to add more specific behavior to distinguish between setting and updating the current user.
 
   void setCurrentUser(User? user) {
-    updateCurrentUser(user);
+    updateCurrentUser(
+      user,
+    );
   }
 
   void _initNotifications(User user) {
-    notificationManagement.initNotifications(user.notifications);
+    _notificationManagement.initNotifications(user.notifications);
   }
 
   void updateCurrentUser(User? user) {

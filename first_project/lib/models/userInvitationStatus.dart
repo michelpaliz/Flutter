@@ -14,7 +14,8 @@ class UserInviteStatus {
     required this.sendingDate,
     this.attempts = 1,
   })  : _invitationAnswer = invitationAnswer,
-        informationStatus = _computeInformationStatus(invitationAnswer, sendingDate),
+        informationStatus =
+            _computeInformationStatus(invitationAnswer, sendingDate),
         status = _computeStatus(invitationAnswer, sendingDate);
 
   bool? get invitationAnswer => _invitationAnswer;
@@ -25,7 +26,8 @@ class UserInviteStatus {
     status = _computeStatus(value, sendingDate);
   }
 
-  static String _computeInformationStatus(bool? accepted, DateTime sendingDate) {
+  static String _computeInformationStatus(
+      bool? accepted, DateTime sendingDate) {
     if (accepted == true) {
       return 'Accepted';
     } else if (accepted == false) {
@@ -74,15 +76,26 @@ class UserInviteStatus {
     );
   }
 
-   // Method to create a deep copy of UserInviteStatus
+  // Method to create a deep copy of UserInviteStatus
   UserInviteStatus copy() {
     return UserInviteStatus(
       id: this.id,
       role: this.role,
       attempts: this.attempts,
-      sendingDate: DateTime.fromMillisecondsSinceEpoch(this.sendingDate.millisecondsSinceEpoch),
+      sendingDate: DateTime.fromMillisecondsSinceEpoch(
+          this.sendingDate.millisecondsSinceEpoch),
       invitationAnswer: this.invitationAnswer,
     );
+  }
+
+  bool isEqual(UserInviteStatus other) {
+    return id == other.id &&
+        _invitationAnswer == other._invitationAnswer &&
+        role == other.role &&
+        sendingDate == other.sendingDate &&
+        informationStatus == other.informationStatus &&
+        attempts == other.attempts &&
+        status == other.status;
   }
 
   @override

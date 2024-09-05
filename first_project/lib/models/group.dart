@@ -31,7 +31,6 @@ class Group {
     Map<String, UserInviteStatus>? invitedUsers,
   }) : invitedUsers = invitedUsers ?? {};
 
-
   factory Group.fromJson(Map<String, dynamic> json) {
     List<String> userIds = List<String>.from(json['userIds'] ?? []);
     Map<String, dynamic> invitedUsersJson = json['invitedUsers'] ?? {};
@@ -78,6 +77,32 @@ class Group {
       'photo': photo,
       'invitedUsers': invitedUsersJson,
     };
+  }
+
+  bool isEqual(Group other) {
+    return id == other.id &&
+        groupName == other.groupName &&
+        ownerId == other.ownerId &&
+        userRoles == other.userRoles &&
+        calendar == other.calendar &&
+        userIds == other.userIds &&
+        createdTime == other.createdTime &&
+        repetitiveEvents == other.repetitiveEvents &&
+        description == other.description &&
+        photo == other.photo &&
+        _areInvitedUsersEqual(invitedUsers, other.invitedUsers);
+  }
+
+  bool _areInvitedUsersEqual(Map<String, UserInviteStatus>? map1,
+      Map<String, UserInviteStatus>? map2) {
+    if (map1 == null && map2 == null) return true;
+    if (map1 == null || map2 == null) return false;
+    if (map1.length != map2.length) return false;
+    for (var key in map1.keys) {
+      if (!map2.containsKey(key) || !map1[key]!.isEqual(map2[key]!))
+        return false;
+    }
+    return true;
   }
 
   @override

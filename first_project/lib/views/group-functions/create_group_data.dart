@@ -1,3 +1,4 @@
+import 'dart:developer' as devtools show log;
 import 'dart:io';
 
 import 'package:first_project/enums/color_properties.dart';
@@ -34,6 +35,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   late List<User> _usersInGroup;
   UserService _userService = UserService();
   UserManagement? _userManagement;
+  GroupManagement? _groupManagement;
   late NotificationManagement _notificationManagement;
 
   @override
@@ -54,11 +56,11 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     _notificationManagement =
         Provider.of<NotificationManagement>(context, listen: false);
     _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
   }
 
   void _onDataChanged(
@@ -76,6 +78,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     _updateUserInGroup(updatedUserInGroup);
   }
 
+  //*** GROUP DATA FUNCTIONS TO CREATE GROUP */
+
   // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
@@ -86,61 +90,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       setState(() {
         _selectedImage = pickedImage;
       });
-    }
-  }
-
-  void onSearch(String query) {
-    // You can perform your search action with the 'query' parameter
-    print('Search query: $query');
-    // Add your logic here
-  }
-
-  //Save the group but first send the data to firestore
-  void _saveGroup() async {
-    if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
-      bool groupCreated =
-          await _creatingGroup(); // Call _creatingGroup and await the result
-
-      if (groupCreated) {
-        // Group creation was successful, show a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.groupCreated),
-          ),
-        );
-
-        // Navigate back to the previous screen
-        Navigator.of(context).pop();
-      } else {
-        // Group creation failed, show an error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.failedToCreateGroup),
-          ),
-        );
-      }
-
-      print('Group name: $_groupName');
-      print('Group description: $_groupDescription');
-    } else {
-      // Display an error message or prevent the action
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text(AppLocalizations.of(context)!.requiredTextFields),
-            actions: <Widget>[
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
     }
   }
 
@@ -177,98 +126,166 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     }
   }
 
+  //Save the group but first send the data to firestore
+  void _saveGroup() async {
+    if (_groupName.isNotEmpty && _groupDescription.isNotEmpty) {
+      // Show a loading indicator while the group is being created
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Center(child: CircularProgressIndicator());
+        },
+      );
+
+      try {
+        bool groupCreated =
+            await _creatingGroup(); // Call _creatingGroup and await the result
+
+        if (mounted) {
+          Navigator.of(context)
+              .pop(); // Close the loading dialog if the widget is still mounted
+
+          if (groupCreated) {
+            // Group creation was successful, show a success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.groupCreated),
+              ),
+            );
+
+            // Navigate back to the previous screen
+            Navigator.of(context).pop();
+          } else {
+            // Group creation failed, show an error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content:
+                    Text(AppLocalizations.of(context)!.failedToCreateGroup),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.of(context)
+              .pop(); // Ensure the dialog is closed even on error
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.failedToCreateGroup),
+            ),
+          );
+        }
+
+        print("Error in _saveGroup: $e");
+      }
+    } else {
+      // Display an error message or prevent the action
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text(AppLocalizations.of(context)!.requiredTextFields),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+  }
+
   Future<bool> _creatingGroup() async {
+    // Check if the group name is empty or only contains whitespace
     if (_groupName.trim().isEmpty) {
-      // Show a SnackBar with the error message when the group name is empty or contains only whitespace characters
+      // Show an error message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.groupNameRequired),
           duration: Duration(seconds: 2),
         ),
       );
-      return false; // Return false to indicate that the group creation failed.
+      return false; // Exit early since group creation can't proceed without a name
     }
 
     try {
-      //** CREATING THE GROUP*/
-      // Generate a unique ID for the group (You can use any method to generate an ID, like a timestamp-based ID, UUID, etc.)
+      // Step 1: Generate a unique ID for the group
       String groupId = Uuid().v4().substring(0, 10);
 
-      // We are gonna only add the current user to the group, the others would need to accept the group's notification.
-      // User userServer = await _userService.getUserById(_currentUser!.id);
+      // Step 2: Get the current user's data from the server
       User userServer =
           await _userService.getUserByUsername(_currentUser!.userName);
 
-      List<User> users = [];
-      users.add(userServer);
+      // Step 3: Create a list with the current user as the only initial member of the group
+      List<User> users = [userServer];
 
-      //Now we are going to create the link of the image selected for the group
+      // Step 4: Upload the group image if one has been selected
       String imageURL = "";
-
       if (_selectedImage != null) {
         imageURL =
             await Utilities.pickAndUploadImageGroup(groupId, _selectedImage);
       }
 
-      //We are going to keep only the owner/administrator of the group in the group
-      // Filter and map admin users to their JSON representation
-      Map<String, String> adminUsersJson = Map.fromEntries(
-        _userRoles.entries.where((entry) => entry.value == 'Administrator'),
+      // Step 5: Define the admin of the group as the current user
+      Map<String, String> adminUsersJson = {_currentUser!.userName: 'Administrator'};
+
+      // Step 6: Generate a unique ID for the calendar associated with the group
+      String calendarId = Uuid().v4().substring(0, 10);
+
+      // Step 7: Create the Group object with all necessary details
+      Group newGroup = Group(
+        id: groupId,
+        groupName: _groupName,
+        ownerId: _currentUser!.id, // Current user is the owner and admin
+        userRoles: adminUsersJson, // Only the current user is an admin
+        calendar: new Calendar(calendarId, _groupName),
+        userIds: [
+          _currentUser!.id
+        ], // The current user is the only member for now
+        invitedUsers: null, // Invitations will be created next
+        createdTime: DateTime.now(),
+        description: _groupDescription,
+        photo: imageURL,
       );
 
-      // Generate a random ID using Firestore
-      final uuid = Uuid();
-      final randomId = uuid.v4();
-      // Limit the number of characters to 10
-      final limitedId = randomId.substring(0, 10);
-
-      List<String> userIds = [];
-
-      userIds.add(_currentUser!.id);
-
-      // Create the group object with the appropriate attributes
-      Group newGroup = Group(
-          id: groupId,
-          groupName: _groupName,
-          ownerId: _currentUser!.id,
-          userRoles: adminUsersJson,
-          calendar: new Calendar(limitedId, _groupName),
-          userIds: userIds,
-          invitedUsers: null,
-          createdTime: DateTime.now(),
-          description: _groupDescription,
-          photo: imageURL);
-
-      //** ADD THE INVITED USERS  */
+      // Step 8: Create invitations for other users (excluding the admin)
       Map<String, UserInviteStatus> invitations = {};
-      //Now we proceed to create an invitation object
-      _userRoles.forEach((key, value) {
-        // Check if the user's role is not "Administrator"
-        if (value != 'Administrator') {
-          final invitationStatus = UserInviteStatus(
+      _userRoles.forEach((userId, role) {
+        if (userId != _currentUser!.id) {
+          // Exclude the admin from invitations
+          invitations[userId] = UserInviteStatus(
             id: newGroup.id,
-            role: '$value',
+            role: role,
             invitationAnswer: null,
             sendingDate: DateTime.now(),
             attempts: 1,
           );
-          invitations[key] = invitationStatus;
         }
       });
 
-      //we update the group's invitedUsers property
+      // Step 9: Assign the invitations to the group
       newGroup.invitedUsers = invitations;
 
-      //** UPLOAD THE GROUP CREATED TO FIRESTORE */
-
-      bool result = await Provider.of<GroupManagement>(context, listen: false)
+      // Step 10: Upload the new group to Firestore and return the result
+      bool result = await _groupManagement!
           .addGroup(newGroup, _notificationManagement, _userManagement!, {});
 
-      return result; // Return true to indicate that the group creation was successful.
+      devtools.log("THIS IS RESULT ${result}");
+
+      return result; // Return true if the group was successfully created
     } catch (e) {
-      // Handle any errors that may occur during the process.
+      // Log any errors that occur during the process
       print("Error creating group: $e");
-      return false; // Return false to indicate that the group creation failed.
+      return false; // Return false to indicate that group creation failed
     }
   }
 
