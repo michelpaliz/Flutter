@@ -3,7 +3,6 @@ import 'package:first_project/models/user.dart';
 import 'package:first_project/models/userInvitationStatus.dart';
 import 'package:first_project/services/node_services/user_services.dart';
 import 'package:first_project/stateManagement/user_management.dart';
-import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -32,9 +31,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   User? _currentUser;
   Group? _group;
   List<User> _usersAlreadyInGroup = [];
-  Map<String, UserInviteStatus>?
-      _invitedUsers; // New field to store invited users and their answers
-  // New field to store invited users and their answers>
+  Map<String, UserInviteStatus>? _invitedUsers;
   UserService userService = UserService();
   late UserManagement _userManagement;
 
@@ -47,17 +44,11 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Retrieve provider management instance
     _userManagement = Provider.of<UserManagement>(context, listen: false);
-
-    // Set the current user
     _currentUser = _userManagement.currentUser;
+
     if (_currentUser != null) {
-      // Initialize the roles map
-      setState(() {
-        _userRoles[_currentUser!.userName] = 'Administrator';
-      });
+      _setCurrentUserRole();
     }
   }
 
@@ -66,27 +57,34 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       setState(() {
         _currentUser = widget.user;
         _group = widget.group;
-
         _invitedUsers = _group?.invitedUsers;
-
-        // Initialize userRoles
-        _userRoles[_currentUser!.userName] = 'Administrator';
-
-        // Populate userRoles with existing group data
-        _group!.invitedUsers?.forEach((username, user) {
-          if (user.invitationAnswer == true) {
-            _userRoles[username] = user.role;
-          }
-        });
+        _setCurrentUserRole();
+        _populateUserRolesWithInvites();
       });
+      await _loadGroupUsers();
+    }
+  }
 
-      // Load users in group
-      for (var id in _group!.userIds) {
-        User user = await userService.getUserById(id);
-        setState(() {
-          _usersAlreadyInGroup.add(user);
-        });
+  void _setCurrentUserRole() {
+    setState(() {
+      _userRoles[_currentUser!.userName] = 'Administrator';
+    });
+  }
+
+  void _populateUserRolesWithInvites() {
+    _group?.invitedUsers?.forEach((username, inviteStatus) {
+      if (inviteStatus.invitationAnswer == true) {
+        _userRoles[username] = inviteStatus.role;
       }
+    });
+  }
+
+  Future<void> _loadGroupUsers() async {
+    for (var id in _group!.userIds) {
+      User user = await userService.getUserById(id);
+      setState(() {
+        _usersAlreadyInGroup.add(user);
+      });
     }
   }
 
@@ -97,156 +95,91 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
       if (!mounted) return;
 
       if (response is Map && response.containsKey('message')) {
-        // Handle the case where the server returns a message
-        setState(() {
-          searchResults = [];
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message']),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        _clearSearchResults();
+        _showSnackBar(response['message']);
       } else if (response is List<String>) {
-        // Handle the case where the server returns a list of users
-        List<String> filteredResults = response.where((userName) {
-          return !_usersAlreadyInGroup
-                  .any((user) => user.userName == userName) &&
-              !_userRoles.containsKey(userName);
-        }).toList();
-
-        setState(() {
-          searchResults = filteredResults;
-        });
-
-        if (searchResults.isEmpty) {
-          print('User not found');
-        }
+        _filterSearchResults(response);
       }
     } catch (e) {
       print('Error searching for users: $e');
-      if (mounted) {
-        setState(() {
-          searchResults = [];
-        });
-      }
+      _clearSearchResults();
     }
   }
 
-  //Let's handle the case when the user has already a data/history entry
+  void _clearSearchResults() {
+    setState(() {
+      searchResults = [];
+    });
+  }
+
+  void _filterSearchResults(List<String> response) {
+    setState(() {
+      searchResults = response
+          .where((userName) =>
+              !_usersAlreadyInGroup.any((user) => user.userName == userName) &&
+              !_userRoles.containsKey(userName))
+          .toList();
+
+      if (searchResults.isEmpty) {
+        print('User not found');
+      }
+    });
+  }
+
   void _addUser(String username) async {
     try {
       final User user = await userService.getUserByUsername(username);
 
-      if (!mounted) return; // Check if the widget is still in the tree
+      if (!mounted) return;
 
-      setState(() {
-        // Check if the user is already in the group
-        if (_userRoles.containsKey(user.userName)) {
-          // Show a message that the user is already in the group
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('User is already in the group: ${user.userName}'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-          return; // Exit the method early
-        }
+      if (_userRoles.containsKey(user.userName)) {
+        _showSnackBar('User is already in the group: ${user.userName}');
+        return;
+      }
 
-        // Check if the user has an invite record
-        // TODO: RESOLVE THIS LATER WHEN THE USER HAS NOT ANY RECORD 
-        if (_invitedUsers!.containsKey(user.userName)) {
-          UserInviteStatus inviteStatus = _invitedUsers![user.userName]!;
+      if (_invitedUsers != null && _invitedUsers!.containsKey(user.userName)) {
+        _handleInviteStatus(user, _invitedUsers![user.userName]!);
+        return;
+      }
 
-          // Handle different invite statuses
-          switch (inviteStatus.status) {
-            case 'Resolved':
-              if (inviteStatus.invitationAnswer == true) {
-                // The user accepted the invitation but is not yet in the group
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'User has already accepted the invitation: ${user.userName}'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              } else if (inviteStatus.invitationAnswer == false) {
-                // The user declined the invitation
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'User has declined the invitation: ${user.userName}'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              } else if (DateTime.now()
-                      .difference(inviteStatus.sendingDate)
-                      .inDays >
-                  5) {
-                // The invitation has expired
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'User\'s invitation has expired: ${user.userName}'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-              return; // Exit the method early
-
-            case 'Unresolved':
-              // The invitation is still pending
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'User\'s invitation is still pending: ${user.userName}'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-              return; // Exit the method early
-
-            default:
-              // Handle any other unexpected cases
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'User has an unknown invite status: ${user.userName}'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-              return; // Exit the method early
-          }
-        }
-
-        // If the user is not in the group and has no relevant invite record, add the user
-        _userRoles[user.userName] = 'Member';
-        _usersAlreadyInGroup.add(user);
-        widget.onDataChanged(_usersAlreadyInGroup, _userRoles);
-
-        // Show a message when the user is added
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('User added: ${user.userName}'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      });
-
-      print('User added: ${user.userName}');
+      _addUserToGroup(user);
     } catch (e) {
       print('Error searching for user: $e');
     }
   }
 
+  void _handleInviteStatus(User user, UserInviteStatus inviteStatus) {
+    if (inviteStatus.status == 'Resolved') {
+      if (inviteStatus.invitationAnswer == true) {
+        _showSnackBar('User has accepted the invitation: ${user.userName}');
+      } else if (inviteStatus.invitationAnswer == false) {
+        _showSnackBar('User has declined the invitation: ${user.userName}');
+      } else if (_isInvitationExpired(inviteStatus)) {
+        _showSnackBar('User\'s invitation has expired: ${user.userName}');
+      }
+    } else if (inviteStatus.status == 'Unresolved') {
+      _showSnackBar('User\'s invitation is still pending: ${user.userName}');
+    } else {
+      _showSnackBar('User has an unknown invite status: ${user.userName}');
+    }
+  }
+
+  bool _isInvitationExpired(UserInviteStatus inviteStatus) {
+    return DateTime.now().difference(inviteStatus.sendingDate).inDays > 5;
+  }
+
+  void _addUserToGroup(User user) {
+    setState(() {
+      _userRoles[user.userName] = 'Member';
+      _usersAlreadyInGroup.add(user);
+      widget.onDataChanged(_usersAlreadyInGroup, _userRoles);
+      _showSnackBar('User added: ${user.userName}');
+    });
+  }
+
   void _removeUser(String username) {
     if (username == _currentUser?.userName) {
-      print('Cannot remove current user: $username');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.cannotRemoveYourself),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _showSnackBar(AppLocalizations.of(context)!.cannotRemoveYourself);
       return;
     }
 
@@ -263,218 +196,197 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_userRoles.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
-                child: Text(
-                  "Administrator",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _currentUser!.userName,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      margin: EdgeInsets.only(right: 15),
-                      decoration: BoxDecoration(
-                        color: ThemeColors.getContainerBackgroundColor(context),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Administrator',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
-                child: Text(
-                  "Users",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: _userRoles.length,
-                itemBuilder: (context, index) {
-                  final username = _userRoles.keys.toList()[index];
-                  if (username == _currentUser!.userName) return Container();
-                  final userRole = _userRoles[username] ?? 'Member';
+        _buildAdminSection(),
+        if (_userRoles.isNotEmpty) _buildUsersList() else _buildEmptyState(),
+      ],
+    );
+  }
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 15.0, vertical: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          username,
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        DropdownButton<String>(
-                          value: userRole,
-                          icon: Icon(Icons.arrow_drop_down),
-                          iconSize: 24,
-                          elevation: 16,
-                          style: TextStyle(
-                              color: ThemeColors.getTextColor(context)),
-                          underline: Container(
-                            height: 2,
-                            color: ThemeColors.getTextColor(context),
-                          ),
-                          items: [
-                            DropdownMenuItem<String>(
-                              value: 'Co-Administrator',
-                              child: Center(
-                                  child: Text('Co-Administrator',
-                                      style: TextStyle(fontSize: 14))),
-                            ),
-                            DropdownMenuItem<String>(
-                              value: 'Member',
-                              child: Center(
-                                  child: Text('Member',
-                                      style: TextStyle(fontSize: 14))),
-                            ),
-                          ],
-                          onChanged: (newValue) {
-                            setState(() {
-                              _userRoles[username] = newValue!;
-                              widget.onDataChanged(
-                                  _usersAlreadyInGroup, _userRoles);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          )
-        else if (searchResults.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 5),
-              Center(
-                child: Text(
-                  "SEARCH RESULTS",
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: searchResults.length,
-                  itemBuilder: (context, index) {
-                    final searchResult = searchResults[index];
+  Widget _buildAdminSection() {
+    if (_userRoles.isEmpty) return Container();
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        searchResult,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-                  },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(_currentUser!.userName, style: _boldTextStyle()),
+          _roleBadge('Administrator'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUsersList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: _userRoles.length,
+      itemBuilder: (context, index) {
+        final username = _userRoles.keys.toList()[index];
+        if (username == _currentUser!.userName) return Container();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+          child: GestureDetector(
+            onTap: () {
+              _showRoleChangeDialog(username);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(username, style: _boldTextStyle()),
+                _roleBadge(_userRoles[username]!),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () => _removeUser(username),
                 ),
-              ),
-            ],
-          )
-        else
-          Center(
-            child: Text(
-              AppLocalizations.of(context)!.userNotFound,
-              style: TextStyle(
-                fontSize: 16,
-              ),
+              ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showRoleChangeDialog(String username) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Change Role for $username'),
+          content: DropdownButton<String>(
+            value: _userRoles[username],
+            items: [
+              DropdownMenuItem(value: 'Member', child: Text('Member')),
+              DropdownMenuItem(
+                  value: 'Co-Administrator', child: Text('Co-Administrator')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _userRoles[username] = value!;
+                widget.onDataChanged(_usersAlreadyInGroup, _userRoles);
+              });
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      child: Text('No users in group', style: TextStyle(fontSize: 16)),
+    );
+  }
+
+  TextStyle _boldTextStyle() {
+    return TextStyle(fontWeight: FontWeight.bold, fontSize: 16);
+  }
+
+  Widget _roleBadge(String role) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: Colors.grey.shade300,
+      ),
+      child: Text(role, style: TextStyle(color: Colors.black, fontSize: 14)),
+    );
+  }
+
+  Widget _roleDropdown(String username) {
+    return DropdownButton<String>(
+      value: _userRoles[username],
+      items: [
+        DropdownMenuItem(value: 'Member', child: Text('Member')),
+        DropdownMenuItem(
+            value: 'Co-Administrator', child: Text('Co-Administrator')),
       ],
+      onChanged: (value) {
+        setState(() {
+          _userRoles[username] = value!;
+          widget.onDataChanged(_usersAlreadyInGroup, _userRoles);
+        });
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSearchBar(),
+        SizedBox(height: 10),
+        _buildSelectedUsersList(),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomSearchBar(
+          controller: _searchController,
+          onChanged: (username) {
+            if (username.length >= 3) {
+              _searchUser(username);
+            } else {
+              _clearSearchResults();
+            }
+          },
+          onSearch: () {
+            if (_searchController.text.length >= 3) {
+              _searchUser(_searchController.text);
+            }
+          },
+          onClear: () {
+            _searchController.clear();
+            _clearSearchResults();
+          },
+        ),
+        _buildSearchResults(),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (searchResults.isEmpty) return Container();
+
     return Container(
-      height: 250,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-              child: CustomSearchBar(
-                controller: _searchController,
-                onChanged: (value) => _searchUser(value),
-                onSearch: () {}, // Provide an empty function as a placeholder
-                onClear: () {
-                  _searchController.clear();
-                  _searchUser('');
-                },
+      margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      child: Column(
+        children: searchResults.map((username) {
+          return GestureDetector(
+            onTap: () {
+              _addUser(username);
+              _searchController.clear();
+              setState(() {
+                searchResults.clear();
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(username, style: _boldTextStyle()),
+                  Icon(Icons.add, color: Colors.green),
+                ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: searchResults.map((userName) {
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50.0, vertical: 5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(userName),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          _addUser(userName); // Call the addUser function here
-                        },
-                        icon: Icon(Icons.add),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          _removeUser(
-                              userName); // Call the removeUser function here
-                        },
-                        icon: Icon(Icons.remove),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-            _buildSelectedUsersList()
-          ],
-        ),
+          );
+        }).toList(),
       ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }
