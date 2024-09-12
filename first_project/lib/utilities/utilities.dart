@@ -78,6 +78,13 @@ class Utilities {
     }
   }
 
+   static Widget buildProfileImageWidget(String url) {
+    return CircleAvatar(
+      backgroundImage: NetworkImage(url),
+      radius: 20,
+    );
+  }
+
   /** Select and generate a URL image for the image returns the URL of the image */
   static Future<String> pickAndUploadImageGroup(
       String groupID, XFile? imageFile) async {

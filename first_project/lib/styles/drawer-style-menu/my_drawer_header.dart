@@ -1,4 +1,3 @@
-import 'dart:developer' as devtools show log;
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
