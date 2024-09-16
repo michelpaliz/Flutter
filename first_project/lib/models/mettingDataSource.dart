@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:first_project/models/event.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +34,7 @@ class DataSource extends CalendarDataSource<Event> {
     return appointments![index].isAllDay;
   }
 
+  // Updated convertAppointmentToObject to match the new Event class structure
   @override
   Event convertAppointmentToObject(Event customData, Appointment appointment) {
     return Event(
@@ -50,15 +50,18 @@ class DataSource extends CalendarDataSource<Event> {
       note: customData.note,
       description: customData.description,
       eventColorIndex: customData.eventColorIndex,
-    );
+      recipients: customData.recipients, // Keep the recipient list
+      ownerID: customData.ownerID, // Include the ownerID (creator of the event)
+    )..updateHistory = customData.updateHistory; // Copy the update history
   }
 
+  // Setter for events to reset and notify listeners
   set events(List<Event>? newEvents) {
     appointments = newEvents?.map(_generateRecurringAppointment).toList();
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
   }
 
-  // Method to calculate the number of days between two dates avoiding leap years
+  // Method to calculate the number of days between two dates, avoiding leap years
   int _calculateDaysBetweenDatesAvoidLeapYears(DateTime startDate, DateTime endDate) {
     final difference = endDate.difference(startDate).inDays;
     return difference;
@@ -86,6 +89,7 @@ class DataSource extends CalendarDataSource<Event> {
     }
   }
 
+  // Method to generate an appointment from an Event, including recurrence logic
   Appointment _generateRecurringAppointment(Event event) {
     final startDate = event.startDate;
     final endDate = event.endDate;
@@ -101,17 +105,19 @@ class DataSource extends CalendarDataSource<Event> {
     final daysOfWeek = recurrenceRule?.daysOfWeek;
     if (daysOfWeek != null) {
       for (var day in daysOfWeek) {
-        final abbreviation = _convertDayToRRulePattern(day.toString() );
+        final abbreviation = _convertDayToRRulePattern(day.toString());
         weeklyDays.add(abbreviation);
       }
     }
 
+    // Create an Appointment object for the calendar
     final appointment = Appointment(
       id: event.id,
       startTime: startDate.toUtc(),
       endTime: endDate.toUtc(),
       subject: event.description ?? "",
       color: ColorManager().getColor(event.eventColorIndex),
+      isAllDay: event.allDay,
     );
 
     // Create recurrence rule string pattern based on the type

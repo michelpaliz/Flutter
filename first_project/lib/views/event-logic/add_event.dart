@@ -202,19 +202,25 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   }
 
   void _addEvent() async {
+    // Get the event title from the text controller
     String eventTitle = _titleController.text;
 
-    // Remove unwanted characters and formatting
+    // Clean up the location text by removing unwanted characters
     String extractedText =
         _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
 
-    String uniqueId = Utilities.generateRandomId(10);
+    List<String> _usersIds = [];
 
-    String updatedInf = "Last update was by ${_user!.id}";
+    //Fill up the user's id in the list for the selected uses
+    for (var user in _selectedUsers) {
+      _usersIds.add(user.id);
+    }
 
+    // Check if the event title is not empty
     if (eventTitle.trim().isNotEmpty) {
+      // Create a new event object with the provided details
       Event newEvent = Event(
-          id: uniqueId,
+          id: Utilities.generateRandomId(10),
           startDate: _selectedStartDate,
           endDate: _selectedEndDate,
           title: _titleController.text,
@@ -224,20 +230,25 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           allDay: event?.allDay ?? false,
           description: _descriptionController.text,
           eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
-          updatedByText: updatedInf,
-          recipient: _selectedUser?.id);
+          recipients: _usersIds,
+          ownerID: _user!.id);
 
+      // Check if repetitive events are allowed in the group
       bool allowRepetitiveHours = _group!.repetitiveEvents;
-      // Log new event details
+
+      // Create an update information
+      newEvent.addUpdate(_user!.id);
+
+      // Log the new event details
       devtools.log("New Event: ${newEvent.startDate.toIso8601String()}");
 
-      // Log the event list before checking
+      // Log the current event list before checking for duplicates
       devtools.log("Event list before checking: ${_eventList.toString()}");
 
+      // Check if an event with the same start date and time already exists
       bool eventExists = false;
       if (allowRepetitiveHours && _eventList.isNotEmpty) {
         eventExists = _eventList.any((event) {
-          // Compare the events' start dates only if the event is on the same day as the new event
           return event.startDate.year == newEvent.startDate.year &&
               event.startDate.month == newEvent.startDate.month &&
               event.startDate.day == newEvent.startDate.day &&
@@ -245,6 +256,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         });
       }
 
+      // If a duplicate event exists, show a dialog and return
       if (eventExists) {
         showDialog(
           context: context,
@@ -266,8 +278,10 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
         return;
       }
 
+      // Try to add the new event using the event service
       bool eventAdded = await _eventService.createEvent(newEvent);
 
+      // If the event was added successfully
       if (eventAdded) {
         Event fetchedEvent = _eventService.event;
         setState(() {
@@ -275,6 +289,7 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           devtools.log("Updated Event List: ${_eventList.toString()}");
         });
 
+        // Update the user's event list and show a success message
         if (_user != null) {
           _user!.events.add(fetchedEvent);
           await _userManagement.updateUser(_user!);
@@ -282,7 +297,9 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
           );
-        } else if (_group != null) {
+        }
+        // Update the group's event list and show a success message
+        else if (_group != null) {
           _group?.calendar.events.add(fetchedEvent);
           devtools.log("This is the group value: ${_group.toString()}");
           await _groupManagement.updateGroup(_group!, _userManagement,
@@ -294,8 +311,11 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           );
         }
 
+        // Clear the input fields
         _clearFields();
-      } else {
+      }
+      // If the event was not added, show an error dialog
+      else {
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -314,12 +334,15 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
           },
         );
       }
-    } else {
+    }
+    // If the event title is empty, show an error message
+    else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.errorEventNote)),
       );
     }
 
+    // Reload the screen
     _reloadScreen();
   }
 
