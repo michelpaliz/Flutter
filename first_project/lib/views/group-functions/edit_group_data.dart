@@ -63,6 +63,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   // Update _usersInvitationStatus with new users
   Map<String, UserInviteStatus> newUsersInvitationStatus = {};
   List<String> _uniqueNewKeysList = [];
+  bool _isDismissed = false;
 
   @override
   void initState() {
@@ -451,34 +452,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   Widget build(BuildContext context) {
     return Consumer<UserManagement>(
       builder: (context, providerManagement, child) {
-        final TITLE_MAX_LENGTH = 25;
-        final DESCRIPTION_MAX_LENGTH = 100;
-        bool _isDismissed = false; // Track if the item is dismissed
-
-        // Filter out the admin user from the _usersInvitationStatus map
-        final adminUserName = _currentUserRoleValue == "Administrator"
-            ? _currentUser!.userName
-            : null;
-        final filteredEntries = _usersInvitations.entries.where((entry) {
-          final username = entry.key;
-          final accepted = entry.value.invitationAnswer;
-
-          // Skip the admin user
-          if (username == adminUserName) {
-            return false;
-          }
-
-          if (_showAccepted && accepted == true) {
-            return true;
-          } else if (_showPending && accepted == null) {
-            return true;
-          } else if (_showNotWantedToJoin && accepted == false) {
-            return true;
-          }
-          return false;
-        }).toList();
-
-        final filteredUsers = Map.fromEntries(filteredEntries);
+        final filteredUsers = _filterUsers();
 
         return Scaffold(
           appBar: AppBar(
@@ -489,349 +463,350 @@ class _EditGroupDataState extends State<EditGroupData> {
               padding: const EdgeInsets.all(15.0),
               child: Column(
                 children: [
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor:
-                          _selectedImage != null ? Colors.transparent : null,
-                      backgroundImage: _imageURL.isNotEmpty
-                          ? CachedNetworkImageProvider(_imageURL)
-                              as ImageProvider<Object>?
-                          : _selectedImage != null
-                              ? FileImage(File(_selectedImage!.path))
-                              : null,
-                      child: _imageURL.isEmpty && _selectedImage == null
-                          ? Icon(
-                              Icons.add_a_photo,
-                              size: 50,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                  ),
+                  _buildGroupImageSection(),
                   SizedBox(height: 10),
-                  Text(
-                    'Put Group Image',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                  _buildGroupNameField(),
                   SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: TextEditingController(text: _groupName),
-                      onChanged: (value) {
-                        if (value.length <= 25) {
-                          _groupName = value;
-                        }
-                      },
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(TITLE_MAX_LENGTH),
-                      ],
-                      decoration: InputDecoration(
-                        labelText: 'Group Name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: <Widget>[
-                        TextField(
-                          controller: _descriptionController,
-                          maxLines: 5,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(
-                                DESCRIPTION_MAX_LENGTH),
-                          ],
-                          decoration: InputDecoration(
-                            labelText: 'Group Description',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildGroupDescriptionField(),
                   SizedBox(height: 10),
-
-                  // Display Admin Information
                   if (_currentUserRoleValue == "Administrator")
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Card(
-                        elevation: 5,
-                        child: ListTile(
-                          title: Text('Admin: ${_currentUser!.userName}'),
-                          subtitle: Text('Role: Administrator'),
-                          leading: CircleAvatar(
-                            backgroundImage: Utilities.buildProfileImage(
-                                _currentUser!.photoUrl),
-                          ),
-                        ),
-                      ),
-                    ),
-
+                    _buildAdminInfoCard(),
                   SizedBox(height: 10),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Add People to Group',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      SizedBox(width: 15),
-                      TextButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Dialog(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Center(
-                                        child: Text(
-                                          'Add People to Group',
-                                          style: TextStyle(
-                                            fontFamily: 'Lato',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: CreateGroupSearchBar(
-                                        onDataChanged: _onDataChanged,
-                                        user: _currentUser,
-                                        group: _group,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('Close'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: Center(
-                          child: Text('Add User'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildAddPeopleSection(context),
                   SizedBox(height: 10),
-
-                  // Toggle Filter Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      FilterChip(
-                        label: Text('Accepted'),
-                        selected: _showAccepted,
-                        onSelected: (selected) {
-                          setState(() {
-                            _showAccepted = selected;
-                          });
-                        },
-                      ),
-                      FilterChip(
-                        label: Text('Pending'),
-                        selected: _showPending,
-                        onSelected: (selected) {
-                          setState(() {
-                            _showPending = selected;
-                          });
-                        },
-                      ),
-                      FilterChip(
-                        label: Text('Not Accepted'),
-                        selected: _showNotWantedToJoin,
-                        onSelected: (selected) {
-                          setState(() {
-                            _showNotWantedToJoin = selected;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                  _buildFilterChips(),
                   SizedBox(height: 10),
-
-                  // Display Filtered Users
-                  Column(
-                    children: filteredUsers.entries.isNotEmpty
-                        ? filteredUsers.entries.map((entry) {
-                            final String userName = entry.key;
-                            final UserInviteStatus userInviteStatus =
-                                entry.value;
-
-                            return FutureBuilder<User?>(
-                              future: _userManagement!.userService
-                                  .getUserByUsername(userName),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return CircularProgressIndicator();
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else if (snapshot.hasData) {
-                                  final user = snapshot.data!;
-                                  final roleValue = _usersRoles[userName] ??
-                                      userInviteStatus.role;
-
-                                  return Dismissible(
-                                    key: Key(userName),
-                                    direction:
-                                        roleValue.trim() != 'Administrator'
-                                            ? DismissDirection.endToStart
-                                            : DismissDirection.none,
-                                    onDismissed: (direction) {
-                                      setState(() {
-                                        _isDismissed = true;
-                                      });
-
-                                      // Show the confirmation dialog
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          _isNewUser = _uniqueNewKeysList
-                                              .contains(userName.toLowerCase());
-
-                                          return AlertDialog(
-                                            title: Text(_isNewUser
-                                                ? 'Confirm Removal'
-                                                : 'Confirm Action'),
-                                            content: Text(
-                                              _isNewUser
-                                                  ? 'You just added this user. Would you like to remove them from the invitation list?'
-                                                  : 'Are you sure you want to remove user $userName from the group?',
-                                            ),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _isDismissed = false;
-                                                  });
-                                                  Navigator.of(context)
-                                                      .pop(); // Close the dialog
-                                                  final scaffold =
-                                                      ScaffoldMessenger.of(
-                                                          context);
-                                                  scaffold.showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'Removal action canceled.'),
-                                                      duration:
-                                                          Duration(seconds: 2),
-                                                    ),
-                                                  );
-                                                },
-                                                child: Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(); // Close the dialog
-                                                  _performUserRemoval(
-                                                      userName,
-                                                      userInviteStatus
-                                                          .invitationAnswer);
-                                                  setState(() {
-                                                    _isDismissed = false;
-                                                  });
-                                                },
-                                                child: Text('Confirm'),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                    background: Container(
-                                      color: Colors.red,
-                                      alignment: Alignment.centerRight,
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 20),
-                                      child: Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    child: ListTile(
-                                      title: Text(userName),
-                                      subtitle: Text(roleValue),
-                                      leading: CircleAvatar(
-                                        radius: 30,
-                                        backgroundImage:
-                                            Utilities.buildProfileImage(
-                                                user.photoUrl),
-                                      ),
-                                      trailing:
-                                          roleValue.trim() != 'Administrator'
-                                              ? GestureDetector(
-                                                  onTap: () {
-                                                    _showRoleChangeDialog(
-                                                        context, userName);
-                                                  },
-                                                  child: Icon(
-                                                    Icons.settings,
-                                                    color: Colors.blue,
-                                                  ),
-                                                )
-                                              : SizedBox.shrink(),
-                                      onTap: roleValue.trim() != 'Administrator'
-                                          ? () {
-                                              _showRoleChangeDialog(
-                                                  context, userName);
-                                            }
-                                          : null,
-                                    ),
-                                  );
-                                } else {
-                                  return Text('User not found');
-                                }
-                              },
-                            );
-                          }).toList()
-                        : [Text("No user roles available")],
-                  )
+                  _buildFilteredUsersList(filteredUsers),
                 ],
               ),
             ),
           ),
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              child: TextButton(
-                onPressed: () {
-                  _performGroupUpdate();
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.group_add_rounded),
-                    SizedBox(width: 8),
-                    Text('Edit', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
-              ),
-            ),
-          ),
+          bottomNavigationBar: _buildBottomNavigation(),
         );
       },
+    );
+  }
+
+  Map<String, UserInviteStatus> _filterUsers() {
+    final adminUserName = _currentUserRoleValue == "Administrator"
+        ? _currentUser!.userName
+        : null;
+
+    final filteredEntries = _usersInvitations.entries.where((entry) {
+      final username = entry.key;
+      final accepted = entry.value.invitationAnswer;
+
+      if (username == adminUserName) return false;
+      if (_showAccepted && accepted == true) return true;
+      if (_showPending && accepted == null) return true;
+      if (_showNotWantedToJoin && accepted == false) return true;
+      return false;
+    }).toList();
+
+    return Map.fromEntries(filteredEntries);
+  }
+
+  Widget _buildGroupImageSection() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: CircleAvatar(
+        radius: 50,
+        backgroundColor: _selectedImage != null ? Colors.transparent : null,
+        backgroundImage: _imageURL.isNotEmpty
+            ? CachedNetworkImageProvider(_imageURL) as ImageProvider<Object>?
+            : _selectedImage != null
+                ? FileImage(File(_selectedImage!.path))
+                : null,
+        child: _imageURL.isEmpty && _selectedImage == null
+            ? Icon(Icons.add_a_photo, size: 50, color: Colors.white)
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildGroupNameField() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: TextEditingController(text: _groupName),
+        onChanged: (value) {
+          if (value.length <= 25) {
+            _groupName = value;
+          }
+        },
+        inputFormatters: [LengthLimitingTextInputFormatter(25)],
+        decoration: InputDecoration(
+          labelText: 'Group Name',
+          border: OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupDescriptionField() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: _descriptionController,
+        maxLines: 5,
+        inputFormatters: [LengthLimitingTextInputFormatter(100)],
+        decoration: InputDecoration(
+          labelText: 'Group Description',
+          border: OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminInfoCard() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        elevation: 5,
+        child: ListTile(
+          title: Text('Admin: ${_currentUser!.userName}'),
+          subtitle: Text('Role: Administrator'),
+          leading: CircleAvatar(
+            backgroundImage:
+                Utilities.buildProfileImage(_currentUser!.photoUrl),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddPeopleSection(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('Add People to Group', style: TextStyle(color: Colors.grey)),
+        SizedBox(width: 15),
+        TextButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Dialog(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            'Add People to Group',
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: CreateGroupSearchBar(
+                          onDataChanged: _onDataChanged,
+                          user: _currentUser,
+                          group: _group,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Close'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+          child: Center(child: Text('Add User')),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        FilterChip(
+          label: Text('Accepted'),
+          selected: _showAccepted,
+          onSelected: (selected) {
+            setState(() {
+              _showAccepted = selected;
+            });
+          },
+        ),
+        FilterChip(
+          label: Text('Pending'),
+          selected: _showPending,
+          onSelected: (selected) {
+            setState(() {
+              _showPending = selected;
+            });
+          },
+        ),
+        FilterChip(
+          label: Text('Not Accepted'),
+          selected: _showNotWantedToJoin,
+          onSelected: (selected) {
+            setState(() {
+              _showNotWantedToJoin = selected;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilteredUsersList(Map<String, UserInviteStatus> filteredUsers) {
+    return Column(
+      children: filteredUsers.entries.isNotEmpty
+          ? filteredUsers.entries.map((entry) {
+              final String userName = entry.key;
+              final UserInviteStatus userInviteStatus = entry.value;
+
+              return FutureBuilder<User?>(
+                future:
+                    _userManagement!.userService.getUserByUsername(userName),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    final user = snapshot.data!;
+                    final roleValue =
+                        _usersRoles[userName] ?? userInviteStatus.role;
+
+                    return _buildUserTile(userName, user, roleValue);
+                  } else {
+                    return Text('User not found');
+                  }
+                },
+              );
+            }).toList()
+          : [Text("No user roles available")],
+    );
+  }
+
+  void _handleDismissedUser(String userName) {
+    setState(() {
+      _isDismissed = true; // Mark the item as dismissed
+    });
+
+    // Show a confirmation dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Check if the user is newly added
+        _isNewUser = _uniqueNewKeysList.contains(userName.toLowerCase());
+
+        return AlertDialog(
+          title: Text(_isNewUser ? 'Confirm Removal' : 'Confirm Action'),
+          content: Text(
+            _isNewUser
+                ? 'You just added this user. Would you like to remove them from the invitation list?'
+                : 'Are you sure you want to remove user $userName from the group?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _isDismissed = false; // Cancel the dismissal
+                });
+                Navigator.of(context).pop(); // Close the dialog
+
+                // Optionally show a snack bar
+                final scaffold = ScaffoldMessenger.of(context);
+                scaffold.showSnackBar(
+                  SnackBar(
+                    content: Text('Removal action canceled.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+
+                // Perform the actual removal of the user
+                _performUserRemoval(
+                    userName, _usersInvitations[userName]?.invitationAnswer);
+
+                setState(() {
+                  _isDismissed = false; // Reset the dismissed flag
+                });
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildUserTile(String userName, User user, String roleValue) {
+    return Dismissible(
+      key: Key(userName),
+      direction: roleValue.trim() != 'Administrator'
+          ? DismissDirection.endToStart
+          : DismissDirection.none,
+      onDismissed: (direction) {
+        _handleDismissedUser(userName);
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Icon(Icons.delete, color: Colors.white),
+      ),
+      child: ListTile(
+        title: Text(userName),
+        subtitle: Text(roleValue),
+        leading: CircleAvatar(
+          radius: 30,
+          backgroundImage: Utilities.buildProfileImage(user.photoUrl),
+        ),
+        trailing: roleValue.trim() != 'Administrator'
+            ? GestureDetector(
+                onTap: () {
+                  _showRoleChangeDialog(context, userName);
+                },
+                child: Icon(Icons.settings, color: Colors.blue),
+              )
+            : SizedBox.shrink(),
+        onTap: roleValue.trim() != 'Administrator'
+            ? () {
+                _showRoleChangeDialog(context, userName);
+              }
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextButton(
+        onPressed: _performGroupUpdate,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.group_add_rounded),
+            SizedBox(width: 8),
+            Text('Edit', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+      ),
     );
   }
 
@@ -841,150 +816,211 @@ class _EditGroupDataState extends State<EditGroupData> {
       builder: (BuildContext context) {
         String? selectedRole = _usersRoles[userName];
         UserInviteStatus? userInviteStatus = _usersInvitations[userName];
-        String informativeMessage = '';
-        bool showRoleDropdown = false;
-        String additionalMessage = '';
+        String informativeMessage = _getInvitationMessage(userInviteStatus);
+        bool showRoleDropdown = _shouldShowRoleDropdown(userInviteStatus);
+        String additionalMessage = _getAdditionalMessage(userInviteStatus);
 
-        if (userInviteStatus != null) {
-          final int daysSinceSent =
-              DateTime.now().difference(userInviteStatus.sendingDate).inDays;
-
-          if (userInviteStatus.invitationAnswer == null) {
-            informativeMessage =
-                'The invitation is pending. No action is required yet.';
-          } else if (userInviteStatus.invitationAnswer == false) {
-            if (userInviteStatus.attempts == 1) {
-              informativeMessage =
-                  'The user declined the invitation. You can resend the invitation after 2 weeks.';
-              if (daysSinceSent >= 2) {
-                showRoleDropdown = true;
-                additionalMessage =
-                    'Time has passed. You can now change the role and resend the invitation.';
-              }
-            } else if (userInviteStatus.attempts == 2) {
-              informativeMessage =
-                  'The user declined the invitation again. You can resend the invitation after 1 month.';
-              if (daysSinceSent >= 30) {
-                showRoleDropdown = true;
-                additionalMessage =
-                    'Time has passed. You can now change the role and resend the invitation.';
-              }
-            } else if (userInviteStatus.attempts >= 3) {
-              informativeMessage =
-                  'The user has declined the invitation three times. No more attempts are allowed.';
-              showRoleDropdown = false;
-            }
-          } else if (userInviteStatus.invitationAnswer == true) {
-            informativeMessage =
-                'The user accepted the invitation and is already in the group.';
-            showRoleDropdown = true;
-          }
-        } else {
-          informativeMessage = 'No invitation record found for this user.';
-        }
-
-        return AlertDialog(
-          title: Text('Change Role for $userName'),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (userInviteStatus != null) ...[
-                    ListTile(
-                      title: RichText(
-                        text: TextSpan(
-                          style: TextStyle(color: Colors.black),
-                          children: [
-                            TextSpan(
-                              text: "Invitation Status: ",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 22, 151, 134),
-                              ),
-                            ),
-                            TextSpan(
-                              text: '${userInviteStatus.status}',
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                          ],
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 8.0),
-                          Text(
-                            informativeMessage,
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          if (additionalMessage.isNotEmpty) ...[
-                            SizedBox(height: 10.0),
-                            Text(
-                              additionalMessage,
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                  ],
-                  if (showRoleDropdown) // Only show the role dropdown based on conditions
-                    DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      items: ['Co-Administrator', 'Member'].map((String role) {
-                        return DropdownMenuItem<String>(
-                          value: role,
-                          child: Text(role),
-                        );
-                      }).toList(),
-                      onChanged: (String? newRole) {
-                        setState(() {
-                          selectedRole = newRole;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Select Role',
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (showRoleDropdown && additionalMessage.isNotEmpty) {
-                  // Update the user's status to resend the invitation
-                  _updateStatus(userName);
-                }
-                setState(() {
-                  _usersRoles[userName] = selectedRole!;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-          ],
+        return _buildRoleChangeDialog(
+          context,
+          userName,
+          selectedRole,
+          informativeMessage,
+          additionalMessage,
+          showRoleDropdown,
+          userInviteStatus,
         );
       },
     );
+  }
+
+  String _getInvitationMessage(UserInviteStatus? userInviteStatus) {
+    if (userInviteStatus == null) {
+      return 'No invitation record found for this user.';
+    }
+
+    if (userInviteStatus.invitationAnswer == null) {
+      return 'The invitation is pending. No action is required yet.';
+    } else if (userInviteStatus.invitationAnswer == false) {
+      if (userInviteStatus.attempts == 1) {
+        return 'The user declined the invitation. You can resend the invitation after 2 weeks.';
+      } else if (userInviteStatus.attempts == 2) {
+        return 'The user declined the invitation again. You can resend the invitation after 1 month.';
+      } else if (userInviteStatus.attempts >= 3) {
+        return 'The user has declined the invitation three times. No more attempts are allowed.';
+      }
+    } else if (userInviteStatus.invitationAnswer == true) {
+      return 'The user accepted the invitation and is already in the group.';
+    }
+
+    return 'Unknown invitation status.';
+  }
+
+  bool _shouldShowRoleDropdown(UserInviteStatus? userInviteStatus) {
+    if (userInviteStatus == null) return false;
+
+    final int daysSinceSent =
+        DateTime.now().difference(userInviteStatus.sendingDate).inDays;
+
+    if (userInviteStatus.invitationAnswer == false) {
+      if (userInviteStatus.attempts == 1 && daysSinceSent >= 2) {
+        return true;
+      } else if (userInviteStatus.attempts == 2 && daysSinceSent >= 30) {
+        return true;
+      }
+    } else if (userInviteStatus.invitationAnswer == true) {
+      return true;
+    }
+    return false;
+  }
+
+  String _getAdditionalMessage(UserInviteStatus? userInviteStatus) {
+    if (userInviteStatus == null) return '';
+
+    final int daysSinceSent =
+        DateTime.now().difference(userInviteStatus.sendingDate).inDays;
+
+    if (userInviteStatus.invitationAnswer == false) {
+      if (userInviteStatus.attempts == 1 && daysSinceSent >= 2) {
+        return 'Time has passed. You can now change the role and resend the invitation.';
+      } else if (userInviteStatus.attempts == 2 && daysSinceSent >= 30) {
+        return 'Time has passed. You can now change the role and resend the invitation.';
+      }
+    }
+    return '';
+  }
+
+  //** CHANGE ROLES FOR THE USERS 
+
+  Widget _buildRoleChangeDialog(
+    BuildContext context,
+    String userName,
+    String? selectedRole,
+    String informativeMessage,
+    String additionalMessage,
+    bool showRoleDropdown,
+    UserInviteStatus? userInviteStatus,
+  ) {
+    return AlertDialog(
+      title: Text('Change Role for $userName'),
+      content: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (userInviteStatus != null)
+                _buildInvitationStatusTile(
+                    informativeMessage, additionalMessage, userInviteStatus),
+              SizedBox(height: 20),
+              if (showRoleDropdown) _buildRoleDropdown(selectedRole, setState),
+            ],
+          );
+        },
+      ),
+      actions: _buildDialogActions(
+          context, userName, selectedRole, showRoleDropdown, additionalMessage),
+    );
+  }
+
+  ListTile _buildInvitationStatusTile(
+    String informativeMessage,
+    String additionalMessage,
+    UserInviteStatus userInviteStatus,
+  ) {
+    return ListTile(
+      title: RichText(
+        text: TextSpan(
+          style: TextStyle(color: Colors.black),
+          children: [
+            TextSpan(
+              text: "Invitation Status: ",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 22, 151, 134),
+              ),
+            ),
+            TextSpan(
+              text: '${userInviteStatus.status}',
+              style: TextStyle(color: Colors.blue),
+            ),
+          ],
+        ),
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 8.0),
+          Text(
+            informativeMessage,
+            style: TextStyle(fontSize: 14.0, color: Colors.black87),
+          ),
+          if (additionalMessage.isNotEmpty) ...[
+            SizedBox(height: 10.0),
+            Text(
+              additionalMessage,
+              style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  DropdownButtonFormField<String> _buildRoleDropdown(
+    String? selectedRole,
+    StateSetter setState,
+  ) {
+    return DropdownButtonFormField<String>(
+      value: selectedRole,
+      items: ['Co-Administrator', 'Member'].map((String role) {
+        return DropdownMenuItem<String>(
+          value: role,
+          child: Text(role),
+        );
+      }).toList(),
+      onChanged: (String? newRole) {
+        setState(() {
+          selectedRole = newRole;
+        });
+      },
+      decoration: InputDecoration(
+        labelText: 'Select Role',
+        contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+        border: OutlineInputBorder(),
+      ),
+    );
+  }
+
+  List<Widget> _buildDialogActions(
+    BuildContext context,
+    String userName,
+    String? selectedRole,
+    bool showRoleDropdown,
+    String additionalMessage,
+  ) {
+    return [
+      TextButton(
+        onPressed: () {
+          if (showRoleDropdown && additionalMessage.isNotEmpty) {
+            _updateStatus(userName);
+          }
+          setState(() {
+            _usersRoles[userName] = selectedRole!;
+          });
+          Navigator.of(context).pop();
+        },
+        child: Text('OK'),
+      ),
+      TextButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        child: Text('Cancel'),
+      ),
+    ];
   }
 
   void _updateStatus(String userName) {

@@ -7,21 +7,29 @@ import 'package:first_project/stateManagement/group_management.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';
-import 'package:first_project/styles/widgets/view-item-styles/selected_user_widget.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/views/event-logic/widgets/dialog/user_expandable_card.dart';
+import 'package:first_project/views/event-logic/widgets/form/add_event_button_widget.dart';
+import 'package:first_project/views/event-logic/widgets/form/color_picker_widget.dart';
+import 'package:first_project/views/event-logic/widgets/form/date_picker_widget.dart';
+import 'package:first_project/views/event-logic/widgets/form/description_input_widget.dart';
+import 'package:first_project/views/event-logic/widgets/form/location_input_widget.dart';
+import 'package:first_project/views/event-logic/widgets/form/note_input_widget.dart';
+import 'package:first_project/views/event-logic/widgets/form/title_input_widget.dart';
+import 'package:first_project/views/event-logic/widgets/repetition_toggle_widget.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
-import 'package:multi_select_flutter/util/multi_select_item.dart';
-import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/event.dart';
 import '../../models/group.dart';
 import '../../models/user.dart';
+// import 'package:flutter_typeahead/flutter_typeahead.dart';
+// import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+// import 'package:multi_select_flutter/util/multi_select_item.dart';
+// import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 
 class EventNoteWidget extends StatefulWidget {
   final User? user;
@@ -355,805 +363,83 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
       body: SingleChildScrollView(
         child: isLoading
             ? Center(child: CircularProgressIndicator())
-            : Container(
+            : Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildColorPicker(context),
+                    ColorPickerWidget(
+                      selectedEventColor: _selectedEventColor,
+                      onColorChanged: (color) {
+                        setState(() {
+                          _selectedEventColor = color!;
+                        });
+                      },
+                      colorList: _colorList,
+                    ),
                     SizedBox(height: 10),
-                    _buildTitleInput(context),
+                    TitleInputWidget(titleController: _titleController),
                     SizedBox(height: 10),
-                    _buildDatePickers(context),
+                    DatePickersWidget(
+                      startDate: _selectedStartDate,
+                      endDate: _selectedEndDate,
+                      onStartDateTap: () => _selectDate(context, true),
+                      onEndDateTap: () => _selectDate(context, false),
+                    ),
                     SizedBox(height: 10),
-                    _buildLocationInput(context),
+                    LocationInputWidget(
+                        locationController: _locationController),
                     SizedBox(height: 10),
-                    _buildDescriptionInput(context),
+                    DescriptionInputWidget(
+                        descriptionController: _descriptionController),
                     SizedBox(height: 10),
-                    _buildNoteInput(context),
-                    SizedBox(height: 20),
-                    _buildRepetitionToggle(context),
+                    NoteInputWidget(noteController: _noteController),
+                    SizedBox(height: 10),
+                    RepetitionToggleWidget(
+                      isRepetitive: isRepetitive,
+                      toggleWidth: toggleWidth,
+                      onTap: () async {
+                        final List<dynamic>? result = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return RepetitionDialog(
+                              selectedStartDate: _selectedStartDate,
+                              selectedEndDate: _selectedEndDate,
+                              initialRecurrenceRule: _recurrenceRule,
+                            );
+                          },
+                        );
+                        if (result != null && result.isNotEmpty) {
+                          setState(() {
+                            isRepetitive = result[1];
+                            _recurrenceRule = result[0] ?? _recurrenceRule;
+                          });
+                        }
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    // UserDropdownTrigger(usersAvailable: _users),
+                    UserExpandableCard(usersAvailable: _users),
                     SizedBox(height: 25),
-                    _dialogButton(context),
-                    SizedBox(height: 25),
-                    _buildAddEventButton(context),
+                    AddEventButtonWidget(
+                      onAddEvent: () {
+                        if (_titleController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Please enter a title for the event.'),
+                            ),
+                          );
+                        } else {
+                          _addEvent();
+                          _reloadScreen();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
       ),
     );
   }
-
-  // Method to create a widget with padding and margins
-// Method to create a widget with padding and margins
-  Widget _buildAnimatedUsersListContainer() {
-    return Container(
-      padding: EdgeInsets.all(16.0), // Adjust padding as needed
-      margin: EdgeInsets.symmetric(
-          vertical: 8.0, horizontal: 16.0), // Adjust margin as needed
-      child: _selectedUsers.isEmpty
-          ? Center(
-              child: Text(
-                'No users selected.',
-                style: TextStyle(
-                    color: Colors
-                        .black), // Display message when no users are selected
-              ),
-            )
-          : AnimatedUsersList(
-              users: _selectedUsers), // Display the list if users are selected
-    );
-  }
-
-  Widget _dialogButton(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: EdgeInsets.all(16.0), // Adjust padding around the container
-        margin: EdgeInsets.all(8.0), // Adjust margin around the container
-        decoration: BoxDecoration(
-          color: Colors.grey[200], // Background color of the container
-          borderRadius: BorderRadius.circular(8.0), // Rounded corners
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4.0,
-              offset: Offset(2, 2), // Shadow position
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Wrap content
-          children: [
-            Text(
-              'Click the button below to select users and view the list.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16.0), // Space between the text and button
-            ElevatedButton(
-              onPressed: () => _showUserSelectionDialog(context),
-              child: Text('Show User Selection'),
-              style: ElevatedButton.styleFrom(
-                primary: Colors.blue, // Button background color
-                onPrimary: Colors.white, // Button text color
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 12.0), // Button padding
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      8.0), // Rounded corners for the button
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildAnimatedUsersListContainer()
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildColorPicker(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.chooseEventColor,
-          style: TextStyle(
-              fontSize: 14, color: Color.fromARGB(255, 121, 122, 124)),
-        ),
-        DropdownButtonFormField<Color>(
-          value: _selectedEventColor,
-          onChanged: (color) {
-            setState(() {
-              _selectedEventColor = color!;
-            });
-          },
-          items: _colorList.map((color) {
-            String colorName = ColorManager.getColorName(color);
-            return DropdownMenuItem<Color>(
-              value: color,
-              child: Row(
-                children: [
-                  Container(
-                    width: 20,
-                    height: 20,
-                    color: color,
-                  ),
-                  SizedBox(width: 10),
-                  Text(colorName),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTitleInput(BuildContext context) {
-    return TextFormField(
-      controller: _titleController,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.title(15),
-      ),
-      maxLength: 15,
-    );
-  }
-
-  Widget _buildDatePickers(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            flex: 1,
-            child: _buildDatePicker(context, true),
-          ),
-          SizedBox(width: 10),
-          Flexible(
-            flex: 1,
-            child: _buildDatePicker(context, false),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDatePicker(BuildContext context, bool isStartDate) {
-    String dateTitle = isStartDate
-        ? AppLocalizations.of(context)!.startDate
-        : AppLocalizations.of(context)!.endDate;
-    DateTime selectedDate = isStartDate ? _selectedStartDate : _selectedEndDate;
-    Color backgroundColor = isStartDate
-        ? Color.fromARGB(255, 92, 206, 134)
-        : Color.fromARGB(255, 223, 106, 106);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          padding: EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          child: Text(
-            dateTitle,
-            style: TextStyle(fontSize: 15, color: Colors.black),
-          ),
-        ),
-        SizedBox(height: 8.0),
-        InkWell(
-          onTap: () => _selectDate(context, isStartDate),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                DateFormat('yyyy-MM-dd').format(selectedDate),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.white),
-              ),
-              Text(
-                DateFormat('hh:mm a').format(selectedDate),
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 28, 58, 82)),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLocationInput(BuildContext context) {
-    return TypeAheadField<String>(
-      textFieldConfiguration: TextFieldConfiguration(
-        controller: _locationController,
-        decoration: InputDecoration(
-          labelText: AppLocalizations.of(context)!.location,
-        ),
-      ),
-      suggestionsCallback: (pattern) async {
-        return await Utilities.getAddressSuggestions(pattern);
-      },
-      itemBuilder: (context, suggestion) {
-        return ListTile(title: Text(suggestion));
-      },
-      onSuggestionSelected: (suggestion) {
-        setState(() {
-          _locationController.text = suggestion;
-        });
-      },
-    );
-  }
-
-  void _showUserSelectionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select users for this event'),
-          content: Container(
-            width: 300, // Set a fixed width for the dialog
-            height: 250, // Set a fixed height for the dialog
-            child: _buildUserSelection(context),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildUserSelection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_users.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Text(
-              'No users available to select.',
-              style: TextStyle(fontSize: 16, color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-          )
-        else
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      bottom: 16.0), // Space below the MultiSelectDialogField
-                  child: MultiSelectDialogField<User>(
-                    items: _users
-                        .map((e) => MultiSelectItem<User>(e, e.userName))
-                        .toList(),
-                    listType: MultiSelectListType.CHIP,
-                    title: Text('Select Users'),
-                    selectedColor: Color.fromARGB(63, 27, 152, 81),
-                    // selectedItemsTextStyle: TextStyle(
-                    //     backgroundColor: Color.fromARGB(255, 231, 231, 231)),
-                    onConfirm: (values) {
-                      setState(() {
-                        _selectedUsers = values;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionInput(BuildContext context) {
-    return TextFormField(
-      controller: _descriptionController,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.description(100),
-      ),
-      maxLength: 100,
-    );
-  }
-
-  Widget _buildNoteInput(BuildContext context) {
-    return TextFormField(
-      controller: _noteController,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.note(50),
-      ),
-      maxLength: 50,
-    );
-  }
-
-  Widget _buildRepetitionToggle(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          AppLocalizations.of(context)!.repetitionDetails,
-          style: TextStyle(fontSize: 15),
-        ),
-        SizedBox(width: 70),
-        GestureDetector(
-          onTap: () async {
-            final List<dynamic>? result = await showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return RepetitionDialog(
-                  selectedStartDate: _selectedStartDate,
-                  selectedEndDate: _selectedEndDate,
-                  initialRecurrenceRule: _recurrenceRule,
-                );
-              },
-            );
-            if (result != null && result.isNotEmpty) {
-              setState(() {
-                isRepetitive = result[1];
-                _recurrenceRule = result[0] ?? _recurrenceRule;
-              });
-            }
-          },
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            width: 2 * toggleWidth,
-            height: 40.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              color: isRepetitive ? Colors.green : Colors.grey,
-            ),
-            child: Center(
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 300),
-                child: Text(
-                  isRepetitive ? 'ON' : 'OFF',
-                  style: TextStyle(
-                      color: isRepetitive
-                          ? Color.fromARGB(255, 28, 86, 120)
-                          : Colors.white),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAddEventButton(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () {
-          if (_titleController.text.isEmpty) {
-            // Show an error message or handle the empty title here
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Please enter a title for the event.'),
-              ),
-            );
-          } else {
-            _addEvent();
-            _reloadScreen();
-          }
-        },
-        child: Text(AppLocalizations.of(context)!.addEvent),
-      ),
-    );
-  }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: Text(AppLocalizations.of(context)!.event),
-  //     ),
-  //     body: SingleChildScrollView(
-  //       // Wrap the Scaffold with SingleChildScrollV
-  //       // iew
-  //       child: isLoading
-  //           ? Center(child: CircularProgressIndicator())
-  //           : Container(
-  //               padding: EdgeInsets.all(16.0),
-  //               child: Column(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   Text(
-  //                     AppLocalizations.of(context)!.chooseEventColor,
-  //                     style: TextStyle(
-  //                         fontSize: 14,
-  //                         color: Color.fromARGB(255, 121, 122, 124)),
-  //                   ),
-  //                   Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       DropdownButtonFormField<Color>(
-  //                         value: _selectedEventColor,
-  //                         onChanged: (color) {
-  //                           setState(() {
-  //                             _selectedEventColor = color!;
-  //                           });
-  //                         },
-  //                         items: _colorList.map((color) {
-  //                           String colorName = ColorManager.getColorName(
-  //                               color); // Get the name of the color
-  //                           return DropdownMenuItem<Color>(
-  //                             value: color,
-  //                             child: Row(
-  //                               children: [
-  //                                 Container(
-  //                                   width: 20, // Adjust the width as needed
-  //                                   height: 20, // Adjust the height as needed
-  //                                   color:
-  //                                       color, // Use the color as the background
-  //                                 ),
-  //                                 SizedBox(
-  //                                     width:
-  //                                         10), // Add spacing between color and name
-  //                                 Text(colorName), // Display the color name
-  //                               ],
-  //                             ),
-  //                           );
-  //                         }).toList(),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   SizedBox(
-  //                       height:
-  //                           10), // Add spacing between the color picker and the title
-  //                   // Title Input
-  //                   Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       TextFormField(
-  //                         controller: _titleController,
-  //                         decoration: InputDecoration(
-  //                           labelText: AppLocalizations.of(context)!.title(15),
-  //                         ),
-  //                         maxLength: 15,
-  //                       ),
-  //                       SizedBox(height: 10),
-  //                     ],
-  //                   ),
-
-  //                   Container(
-  //                     padding:
-  //                         EdgeInsets.all(16.0), // Adjust the padding as needed
-  //                     decoration: BoxDecoration(
-  //                       color: Colors.blue, // Set your desired background color
-  //                       borderRadius: BorderRadius.circular(
-  //                           10.0), // Adjust the border radius as needed
-  //                     ),
-  //                     child: Row(
-  //                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                       children: [
-  //                         Flexible(
-  //                           flex: 1,
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.center,
-  //                             children: [
-  //                               Container(
-  //                                 padding: EdgeInsets.all(
-  //                                     8.0), // Adjust the padding as needed
-  //                                 decoration: BoxDecoration(
-  //                                   color: Color.fromARGB(255, 92, 206,
-  //                                       134), // Set the background color of the title
-  //                                   borderRadius: BorderRadius.circular(
-  //                                       5.0), // Adjust the border radius as needed
-  //                                 ),
-  //                                 child: Text(
-  //                                   AppLocalizations.of(context)!.startDate,
-  //                                   style: TextStyle(
-  //                                       fontSize: 15, color: Colors.black),
-  //                                 ),
-  //                               ),
-  //                               SizedBox(
-  //                                   height: 8.0), // Add margin below the title
-  //                               InkWell(
-  //                                 onTap: () => _selectDate(context, true),
-  //                                 child: Column(
-  //                                   crossAxisAlignment:
-  //                                       CrossAxisAlignment.center,
-  //                                   children: [
-  //                                     Text(
-  //                                       DateFormat('yyyy-MM-dd')
-  //                                           .format(_selectedStartDate),
-  //                                       style: TextStyle(
-  //                                         fontWeight: FontWeight.bold,
-  //                                         fontSize: 15,
-  //                                         color: Colors.white,
-  //                                       ),
-  //                                     ),
-  //                                     Text(
-  //                                       DateFormat('hh:mm a')
-  //                                           .format(_selectedStartDate),
-  //                                       style: TextStyle(
-  //                                         fontSize: 15,
-  //                                         fontWeight: FontWeight.bold,
-  //                                         color: const Color.fromARGB(
-  //                                             255, 28, 58, 82),
-  //                                       ),
-  //                                     ),
-  //                                   ],
-  //                                 ),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                         SizedBox(width: 10),
-  //                         Flexible(
-  //                           flex: 1,
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Container(
-  //                                 padding: EdgeInsets.all(
-  //                                     8.0), // Adjust the padding as needed
-  //                                 decoration: BoxDecoration(
-  //                                   color: Color.fromARGB(255, 223, 106,
-  //                                       106), // Set the background color of the title
-  //                                   borderRadius: BorderRadius.circular(
-  //                                       5.0), // Adjust the border radius as needed
-  //                                 ),
-  //                                 child: Text(
-  //                                   AppLocalizations.of(context)!.endDate,
-  //                                   style: TextStyle(
-  //                                       fontSize: 15, color: Colors.black),
-  //                                 ),
-  //                               ),
-  //                               SizedBox(
-  //                                   height: 8.0), // Add margin below the title
-  //                               InkWell(
-  //                                 onTap: () => _selectDate(context, false),
-  //                                 child: Column(
-  //                                   crossAxisAlignment:
-  //                                       CrossAxisAlignment.center,
-  //                                   children: [
-  //                                     Text(
-  //                                       DateFormat('yyyy-MM-dd')
-  //                                           .format(_selectedEndDate),
-  //                                       style: TextStyle(
-  //                                         fontWeight: FontWeight.bold,
-  //                                         fontSize: 15,
-  //                                         color: Colors.white,
-  //                                       ),
-  //                                     ),
-  //                                     Text(
-  //                                       DateFormat('hh:mm a')
-  //                                           .format(_selectedEndDate),
-  //                                       style: TextStyle(
-  //                                         fontSize: 15,
-  //                                         fontWeight: FontWeight.bold,
-  //                                         color: const Color.fromARGB(
-  //                                             255, 28, 58, 82),
-  //                                       ),
-  //                                     ),
-  //                                   ],
-  //                                 ),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-
-  //                   SizedBox(height: 10),
-  //                   // Location Input
-  //                   // Location Input with Auto-Completion
-  //                   TypeAheadField<String>(
-  //                     textFieldConfiguration: TextFieldConfiguration(
-  //                       controller: _locationController,
-  //                       decoration: InputDecoration(
-  //                         labelText: AppLocalizations.of(context)!.location,
-  //                       ),
-  //                     ),
-  //                     suggestionsCallback: (pattern) async {
-  //                       return await Utilities.getAddressSuggestions(pattern);
-  //                     },
-  //                     itemBuilder: (context, suggestion) {
-  //                       return ListTile(
-  //                         title: Text(suggestion),
-  //                       );
-  //                     },
-  //                     onSuggestionSelected: (suggestion) {
-  //                       setState(() {
-  //                         _locationController.text = suggestion;
-  //                       });
-  //                     },
-  //                   ),
-
-  //                   SizedBox(height: 10),
-
-  //                   Padding(
-  //                     padding: const EdgeInsets.symmetric(vertical: 10.0),
-  //                     child: Text(
-  //                       'Please select a user from the list below and provide a description and note.',
-  //                       style: TextStyle(
-  //                         fontSize: 16,
-  //                         color: Colors.grey[700],
-  //                       ),
-  //                       textAlign: TextAlign.center,
-  //                     ),
-  //                   ),
-
-  //                   // Check if the users list is empty
-  //                   if (_users.isEmpty)
-  //                     Padding(
-  //                       padding: const EdgeInsets.symmetric(vertical: 20.0),
-  //                       child: Text(
-  //                         'No users available to select.',
-  //                         style: TextStyle(fontSize: 16, color: Colors.red),
-  //                         textAlign: TextAlign.center,
-  //                       ),
-  //                     )
-  //                   else
-  //                     Container(
-  //                       decoration: BoxDecoration(),
-  //                       child: Column(
-  //                         // Wrap with a Column to allow multiple widgets inside
-  //                         crossAxisAlignment: CrossAxisAlignment.start,
-  //                         children: [
-  //                           MultiSelectDialogField(
-  //                             items: _users
-  //                                 .map((e) => MultiSelectItem(e, e.userName))
-  //                                 .toList(),
-  //                             listType: MultiSelectListType.CHIP,
-  //                             onConfirm: (values) {
-  //                               setState(() {
-  //                                 _selectedUsers =
-  //                                     values; // Update _selectedUsers on selection
-  //                               });
-  //                             },
-  //                           ),
-
-  //                           SizedBox(
-  //                               height:
-  //                                   10), // Add some space between the dropdown and list
-
-  //                           // Add the AnimatedUsersList here
-  //                           AnimatedUsersList(
-  //                             users:
-  //                                 _selectedUsers, // Pass the updated selected users list
-  //                             // listKey: _listKey, // Pass the GlobalKey
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ),
-
-  //                   SizedBox(height: 10),
-
-  //                   // Description Input
-  //                   TextFormField(
-  //                     controller: _descriptionController,
-  //                     decoration: InputDecoration(
-  //                       labelText:
-  //                           AppLocalizations.of(context)!.description(100),
-  //                     ),
-  //                     maxLength: 100,
-  //                   ),
-
-  //                   SizedBox(height: 10),
-
-  //                   // Note Input
-  //                   TextFormField(
-  //                     controller: _noteController,
-  //                     decoration: InputDecoration(
-  //                       labelText: AppLocalizations.of(context)!.note(50),
-  //                     ),
-  //                     maxLength: 50,
-  //                   ),
-
-  //                   SizedBox(height: 20),
-
-  //                   //**Slide Button to Toggle Repetition */
-  //                   Row(
-  //                     children: [
-  //                       Text(
-  //                         AppLocalizations.of(context)!.repetitionDetails,
-  //                         style: TextStyle(
-  //                           fontSize: 15,
-  //                         ),
-  //                       ),
-  //                       SizedBox(
-  //                         width:
-  //                             70, // Increase the width to add more separation
-  //                       ),
-  //                       GestureDetector(
-  //                         onTap: () async {
-  //                           final List<dynamic>? result = await showDialog(
-  //                             context: context,
-  //                             builder: (BuildContext context) {
-  //                               return RepetitionDialog(
-  //                                   selectedStartDate: _selectedStartDate,
-  //                                   selectedEndDate: _selectedEndDate,
-  //                                   initialRecurrenceRule: _recurrenceRule);
-  //                             },
-  //                           );
-  //                           if (result != null && result.isNotEmpty) {
-  //                             bool updatedIsRepetitive = result[1];
-  //                             RecurrenceRule? updatedRecurrenceRule = result[0];
-
-  //                             // Update isRepetitive and recurrenceRule based on the values from the dialog
-  //                             setState(() {
-  //                               isRepetitive = updatedIsRepetitive;
-  //                               if (updatedRecurrenceRule != null) {
-  //                                 _recurrenceRule = updatedRecurrenceRule;
-  //                               }
-  //                             });
-  //                           }
-  //                         },
-  //                         child: AnimatedContainer(
-  //                           duration: Duration(milliseconds: 300),
-  //                           width: 2 * toggleWidth,
-  //                           height: 40.0,
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20.0),
-  //                             color: isRepetitive ? Colors.green : Colors.grey,
-  //                           ),
-  //                           child: Center(
-  //                             child: AnimatedSwitcher(
-  //                               duration: Duration(milliseconds: 300),
-  //                               child: isRepetitive
-  //                                   ? Text(
-  //                                       'ON',
-  //                                       style: TextStyle(
-  //                                         color:
-  //                                             Color.fromARGB(255, 28, 86, 120),
-  //                                       ),
-  //                                     )
-  //                                   : Text(
-  //                                       'OFF',
-  //                                       style: TextStyle(
-  //                                         color: Colors.white,
-  //                                       ),
-  //                                     ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-
-  //                   // Repetition Dropdown (conditionally shown)
-  //                   SizedBox(height: 25),
-  //                   Center(
-  //                     child: ElevatedButton(
-  //                       onPressed: () {
-  //                         if (_titleController.text.isEmpty) {
-  //                           // Show an error message or handle the empty title here
-  //                         } else {
-  //                           _addEvent();
-  //                           _reloadScreen();
-  //                         }
-  //                       },
-  //                       child: Text(AppLocalizations.of(context)!.addEvent),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //     ),
-  //   );
-  // }
 }
