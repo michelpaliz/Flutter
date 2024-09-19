@@ -8,7 +8,7 @@ class NotificationFormats {
 
   NotificationUser whenCreatingGroup(Group group, User admin) {
     final congratulatoryTitle = 'Congratulations!';
-    final congratulatoryMessage = 'You created the group: ${group.groupName}';
+    final congratulatoryMessage = 'You created the group: ${group.name}';
     _notificationUser = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
       senderId: admin.id,
@@ -28,7 +28,7 @@ class NotificationFormats {
 
   NotificationUser whenEditingGroup(Group group, User admin) {
     final title = 'You have edited this group!';
-    final description = 'You edited the group: ${group.groupName}';
+    final description = 'You edited the group: ${group.name}';
     final editNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
       senderId: admin.id,
@@ -47,9 +47,9 @@ class NotificationFormats {
   }
 
   NotificationUser createGroupInvitation(Group group, User member) {
-    final userNotificationTitle = 'Join ${group.groupName}';
+    final userNotificationTitle = 'Join ${group.name}';
     final userNotificationMessage =
-        'You have been invited to join the group: ${group.groupName}';
+        'You have been invited to join the group: ${group.name}';
     final userNotificationQuestion = 'Would you like to join this group?';
 
     final userNotification = NotificationUser(
@@ -76,9 +76,9 @@ class NotificationFormats {
   }
 
   NotificationUser welcomeNewUserGroup(Group group, User member) {
-    final userNotificationTitle = '${group.groupName}';
+    final userNotificationTitle = '${group.name}';
     final userNotificationMessage =
-        'You have joined the group: ${group.groupName}';
+        'You have joined the group: ${group.name}';
 
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
@@ -102,9 +102,9 @@ class NotificationFormats {
   }
 
   NotificationUser notificationUserDenyGroup(Group group, User member) {
-    final userNotificationTitle = '${group.groupName}';
+    final userNotificationTitle = '${group.name}';
     final userNotificationMessage =
-        'You have denied the invitation to join the group: ${group.groupName}';
+        'You have denied the invitation to join the group: ${group.name}';
 
     final userNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
@@ -132,7 +132,7 @@ class NotificationFormats {
   NotificationUser userRemovedFromGroup(Group group, User member, User admin) {
     final userNotificationTitle = 'User Removed from Group';
     final userNotificationMessage =
-        '${member.userName} has been removed from the group: ${group.groupName}';
+        '${member.userName} has been removed from the group: ${group.name}';
 
     final adminNotification = NotificationUser(
       id: Utilities.generateRandomId(10), // Generate a new ID
@@ -158,7 +158,7 @@ class NotificationFormats {
   NotificationUser notifyUserRemoval(Group group, User member, User admin) {
   final userNotificationTitle = 'User Removed from Group';
   final userNotificationMessage =
-      'You have been removed from the group: ${group.groupName} by ${admin.userName}';
+      'You have been removed from the group: ${group.name} by ${admin.userName}';
 
   final recipientNotification = NotificationUser(
     id: Utilities.generateRandomId(10), // Generate a new ID

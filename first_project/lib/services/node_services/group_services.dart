@@ -36,7 +36,7 @@ class GroupService {
     }
   }
 
-  Future<Group> updateGroup(Group group) async {
+  Future<bool> updateGroup(Group group) async {
     final response = await http.put(
       Uri.parse('$baseUrl/${group.id}'),
       headers: <String, String>{
@@ -46,7 +46,8 @@ class GroupService {
     );
 
     if (response.statusCode == 200) {
-      return Group.fromJson(jsonDecode(response.body));
+      // return Group.fromJson(jsonDecode(response.body));
+      return true;
     } else {
       throw Exception('Failed to update group: ${response.reasonPhrase}');
     }

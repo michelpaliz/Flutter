@@ -12,7 +12,7 @@ import 'package:first_project/stateManagement/group_management.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/views/group-functions/create_group_search_bar.dart';
+import 'package:first_project/views/group-logic/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -244,7 +244,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       // Step 7: Create the Group object with all necessary details
       Group newGroup = Group(
         id: groupId,
-        groupName: _groupName,
+        name: _groupName,
         ownerId: _currentUser!.id, // Current user is the owner and admin
         userRoles: adminUsersJson, // Only the current user is an admin
         calendar: new Calendar(calendarId, _groupName),

@@ -4,7 +4,7 @@ import 'calendar.dart';
 
 class Group {
   final String id;
-  String groupName;
+  String name;
   final String ownerId; // ID of the group owner
   final Map<String, String> userRoles; // Map of user IDs to their roles
   final Calendar calendar; // Shared calendar for the group
@@ -19,7 +19,7 @@ class Group {
 
   Group({
     required this.id,
-    required this.groupName,
+    required this.name,
     required this.ownerId,
     required this.userRoles,
     required this.calendar,
@@ -40,7 +40,7 @@ class Group {
 
     return Group(
       id: json['id'] ?? '',
-      groupName: json['groupName'] ?? '',
+      name: json['groupName'] ?? '',
       ownerId: json['ownerId'] ?? '',
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
       calendar: Calendar.fromJson(json['calendar'] ?? {}),
@@ -66,7 +66,7 @@ class Group {
 
     return {
       'id': id,
-      'groupName': groupName,
+      'groupName': name,
       'ownerId': ownerId,
       'userRoles': userRoles,
       'calendar': calendar.toJson(),
@@ -81,7 +81,7 @@ class Group {
 
   bool isEqual(Group other) {
     return id == other.id &&
-        groupName == other.groupName &&
+        name == other.name &&
         ownerId == other.ownerId &&
         userRoles == other.userRoles &&
         calendar == other.calendar &&
@@ -107,6 +107,6 @@ class Group {
 
   @override
   String toString() {
-    return 'Group{id: $id, groupName: $groupName, ownerId: $ownerId, userRoles: $userRoles, calendar: $calendar, userIds: $userIds, createdTime: $createdTime, repetitiveEvents: $repetitiveEvents, description: $description, photo: $photo, invitedUsers: $invitedUsers}';
+    return 'Group{id: $id, groupName: $name, ownerId: $ownerId, userRoles: $userRoles, calendar: $calendar, userIds: $userIds, createdTime: $createdTime, repetitiveEvents: $repetitiveEvents, description: $description, photo: $photo, invitedUsers: $invitedUsers}';
   }
 }

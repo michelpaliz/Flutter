@@ -10,10 +10,10 @@ abstract class FirestoreRepository {
   Future<void> changeUsername(String newUserName);
   Future<String> updateUser(User user);
   Future<void> deleteGroup(String groupId);
-  Future<List<Group>> fetchUserGroups(List<String>? groupIds);
+  Future<List<bool>> fetchUserGroups(List<String>? groupIds);
   Future<Event?> getEventFromGroupById(String eventId, String groupId);
   Future<Event?> getEventFromUserById(User user, String eventId);
-  Future<Group?> getGroupFromId(String groupId);
+  Future<bool?> getGroupFromId(String groupId);
   Future<User?> getUserById(String userId);
   Future<User?> getUserByName(String userName);
   Future<User?> getUserByUserName(String userName);

@@ -45,7 +45,7 @@ class FirestoreService extends FirestoreRepository {
   Future<void> updateGroup(Group group) => repository.updateGroup(group);
 
   @override
-  Future<Group?> getGroupFromId(String groupId) =>
+  Future<bool?> getGroupFromId(String groupId) =>
       repository.getGroupFromId(groupId);
 
   @override
@@ -60,7 +60,7 @@ class FirestoreService extends FirestoreRepository {
   Future<User?> getUserById(String userId) => repository.getUserById(userId);
 
   @override
-  Future<List<Group>> fetchUserGroups(List<String>? groupIds) =>
+  Future<List<bool>> fetchUserGroups(List<String>? groupIds) =>
       repository.fetchUserGroups(groupIds);
 
   @override

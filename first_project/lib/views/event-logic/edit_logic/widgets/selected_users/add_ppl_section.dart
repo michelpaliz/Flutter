@@ -1,6 +1,6 @@
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/views/group-functions/create_group_search_bar.dart';
+import 'package:first_project/views/group-logic/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 
 class AddPeopleSection extends StatelessWidget {

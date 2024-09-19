@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class AddUserDialog extends StatefulWidget {
   final User? currentUser;
-  final Group? group;
+  final bool? group;
   final Function(String) onAddUser;
 
   const AddUserDialog({

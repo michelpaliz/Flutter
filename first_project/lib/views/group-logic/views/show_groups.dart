@@ -7,15 +7,15 @@ import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/styles/widgets/view-item-styles/button_styles.dart';
 import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/views/group-functions/edit_group_data.dart';
+import 'package:first_project/views/group-logic/views/edit_group_data.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/group.dart';
-import '../../../models/user.dart';
-import '../../enums/routes/appRoutes.dart';
+import '../../../../models/group.dart';
+import '../../../../models/user.dart';
+import '../../../enums/routes/appRoutes.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 
@@ -240,7 +240,7 @@ class _ShowGroupsState extends State<ShowGroups> {
                           ),
                           SizedBox(height: 10), // Add vertical spacing
                           Text(
-                            group.groupName
+                            group.name
                                 .toUpperCase(), // Uppercase group name
                             style: TextStyle(
                               fontSize: 16,
@@ -565,7 +565,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               SizedBox(height: 8), // Add some spacing
               //** GROUP NAME */
               Text(
-                group.groupName,
+                group.name,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
