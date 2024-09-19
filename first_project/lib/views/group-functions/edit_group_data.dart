@@ -10,15 +10,16 @@ import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/views/event-logic/edit_logic/functions/user_removal_service.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/form/bottom_nav.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_description_field.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_image_field.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_name_field.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/add_ppl_section.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/admin_info_card.dart';
-import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/filter_chips.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/filtered_users_list.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/invitation_functions/role_change_dialog.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/user_filter_service.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/user_tile.dart';
@@ -533,61 +534,106 @@ class _EditGroupDataState extends State<EditGroupData> {
                     usersRoles: _usersRoles,
                     userManagement: _userManagement!,
                     buildUserTile: (userName, user, roleValue) {
-                      // Fetch the selectedRole and userInviteStatus for this user
                       String? selectedRole =
                           _usersRoles[userName]; // Get the user's role
                       UserInviteStatus? userInviteStatus = _usersInvitations[
                           userName]; // Get the user's invitation status
+
                       return UserTile(
-                          userName: userName,
-                          user: user,
-                          roleValue: roleValue,
-                          onChangeRole: (name) {
-                            RoleChangeDialog.show(
-                              context,
-                              userName,
-                              selectedRole,
-                              userInviteStatus,
-                              (newRole) => setState(() {
-                                // Handle role selection
-                                _usersRoles[userName] = newRole!;
-                              }),
-                              _usersRoles, // Map of user roles
-                              _usersInvitations, // Map of user invitations
-                              _usersInvitationAtFirst, // Secondary map for tracking invitation changes
-                            );
-                          },
-                          onDismissed: (String userName) {
-                            // Show the DismissUserDialog
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return DismissUserDialog(
-                                  userName: userName,
-                                  isNewUser:
-                                      _usersInvitationAtFirst.containsKey(
-                                          userName), // Check if the user is new
-                                  onCancel: () {
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
-                                  },
-                                  onConfirm: () {
-                                    // Handle the confirmation
-                                    setState(() {
-                                      _usersRoles.remove(
-                                          userName); // Remove the user role
-                                      _usersInvitations.remove(
-                                          userName); // Remove the user invitation
-                                      _usersInvitationAtFirst.remove(
-                                          userName); // Remove from secondary map
-                                    });
-                                    Navigator.of(context)
-                                        .pop(); // Close the dialog
-                                  },
-                                );
-                              },
-                            );
-                          });
+                        userName: userName,
+                        user: user,
+                        roleValue: roleValue,
+                        onChangeRole: (name) {
+                          RoleChangeDialog.show(
+                            context,
+                            userName,
+                            selectedRole,
+                            userInviteStatus,
+                            (newRole) => setState(() {
+                              // Handle role selection
+                              _usersRoles[userName] = newRole!;
+                            }),
+                            _usersRoles,
+                            _usersInvitations,
+                            _usersInvitationAtFirst,
+                          );
+                        },
+                        onDismissed: (String userName) {
+                          // Show the DismissUserDialog
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return DismissUserDialog(
+                                userName: userName,
+                                isNewUser: _usersInvitationAtFirst
+                                    .containsKey(userName),
+                                onCancel: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                },
+                                onConfirm: () async {
+                                  final userRemovalService = UserRemovalService(
+                                    context: context,
+                                    usersInGroup: _usersInGroup,
+                                    usersInvitations: _usersInvitations,
+                                    usersRoles: _usersRoles,
+                                    groupManagement: _groupManagement,
+                                    userManagement: _userManagement!,
+                                    group: _group,
+                                    notificationManagement:
+                                        _notificationManagement,
+                                  );
+
+                                  // Convert the invitation status (String to bool?)
+                                  bool? invitationStatus;
+                                  switch (_usersInvitations[userName]?.status) {
+                                    case 'accepted':
+                                      invitationStatus = true;
+                                      break;
+                                    case 'declined':
+                                      invitationStatus = false;
+                                      break;
+                                    case 'pending':
+                                      invitationStatus = null;
+                                      break;
+                                  }
+
+                                  // Perform the user removal using the service and await the result
+                                  bool success = await userRemovalService
+                                      .performUserRemoval(
+                                    userName,
+                                    invitationStatus,
+                                    _usersInvitationAtFirst
+                                        .containsKey(userName),
+                                  );
+
+                                  // Notify user based on success or failure
+                                  if (success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'User $userName removed successfully.'),
+                                        duration: Duration(seconds: 5),
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Failed to remove user $userName.'),
+                                        duration: Duration(seconds: 5),
+                                      ),
+                                    );
+                                  }
+
+                                  // Close the dialog after confirmation
+                                  Navigator.of(context).pop();
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
                     },
                   ),
                 ],

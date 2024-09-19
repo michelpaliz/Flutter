@@ -6,7 +6,7 @@ class UserTile extends StatelessWidget {
   final String userName;
   final User user;
   final String roleValue;
-  final Function(String userName) onDismissed;
+  final Function(String userName) onDismissed; // Logical removal
   final Function(String userName) onChangeRole;
 
   UserTile({
@@ -24,23 +24,32 @@ class UserTile extends StatelessWidget {
       direction: roleValue.trim() != 'Administrator'
           ? DismissDirection.endToStart
           : DismissDirection.none,
-      onDismissed: (direction) {
-        showDialog(
+      confirmDismiss: (direction) async {
+        bool? confirmDismissal = await showDialog<bool>(
           context: context,
-          builder: (BuildContext context) {
+          builder: (BuildContext dialogContext) {
             return DismissUserDialog(
               userName: userName,
               isNewUser: false, // Update this based on your logic
               onCancel: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(dialogContext).pop(false); // Do not confirm dismissal
               },
               onConfirm: () {
-                onDismissed(userName); // Handle the user dismissal
-                Navigator.of(context).pop(); // Close the dialog
+                // Confirm dismissal but don't remove from state/UI
+                Navigator.of(dialogContext).pop(true);
               },
             );
           },
         );
+
+        // If dismissal is confirmed, we don't want the Dismissible widget to disappear.
+        if (confirmDismissal == true) {
+          // Call the logical removal (e.g., sending a request to the server)
+          onDismissed(userName); 
+        }
+
+        // Returning false prevents the widget from being dismissed in the UI
+        return false;
       },
       background: Container(
         color: Colors.red,
@@ -71,4 +80,3 @@ class UserTile extends StatelessWidget {
     );
   }
 }
-
