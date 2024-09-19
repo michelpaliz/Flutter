@@ -12,6 +12,17 @@ import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:first_project/utilities/utilities.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/form/bottom_nav.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_description_field.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_image_field.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_name_field.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/add_ppl_section.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/admin_info_card.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/filter_chips.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/filtered_users_list.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/role_change_dialog.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/user_filter_service.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/user_tile.dart';
 import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -447,12 +458,18 @@ class _EditGroupDataState extends State<EditGroupData> {
     }
   }
 
-  // ** UI FOR THE SCREEN **
   @override
   Widget build(BuildContext context) {
     return Consumer<UserManagement>(
       builder: (context, providerManagement, child) {
-        final filteredUsers = _filterUsers();
+        final filteredUsers = UserFilterService.filterUsers(
+          _currentUserRoleValue,
+          _currentUser,
+          _usersInvitations,
+          _showAccepted,
+          _showPending,
+          _showNotWantedToJoin,
+        );
 
         return Scaffold(
           appBar: AppBar(
@@ -463,29 +480,150 @@ class _EditGroupDataState extends State<EditGroupData> {
               padding: const EdgeInsets.all(15.0),
               child: Column(
                 children: [
-                  _buildGroupImageSection(),
+                  GroupImageSection(
+                    imageURL: _imageURL,
+                    selectedImage: _selectedImage,
+                    onPickImage: _pickImage,
+                  ),
                   SizedBox(height: 10),
-                  _buildGroupNameField(),
+                  GroupNameField(
+                    groupName: _groupName,
+                    onNameChange: (value) {
+                      if (value.length <= 25) {
+                        _groupName = value;
+                      }
+                    },
+                  ),
                   SizedBox(height: 10),
-                  _buildGroupDescriptionField(),
+                  GroupDescriptionField(
+                    descriptionController: _descriptionController,
+                  ),
                   SizedBox(height: 10),
                   if (_currentUserRoleValue == "Administrator")
-                    _buildAdminInfoCard(),
+                    AdminInfoCard(
+                      currentUser: _currentUser!,
+                    ),
                   SizedBox(height: 10),
-                  _buildAddPeopleSection(context),
+                  AddPeopleSection(
+                    currentUser: _currentUser,
+                    group: _group,
+                    onDataChanged: _onDataChanged,
+                  ),
                   SizedBox(height: 10),
-                  _buildFilterChips(),
+                  FilterChipsSection(
+                    showAccepted: _showAccepted,
+                    showPending: _showPending,
+                    showNotWantedToJoin: _showNotWantedToJoin,
+                    onFilterChange: (String filter, bool isSelected) {
+                      setState(() {
+                        switch (filter) {
+                          case 'Accepted':
+                            _showAccepted = isSelected;
+                            break;
+                          case 'Pending':
+                            _showPending = isSelected;
+                            break;
+                          case 'NotAccepted':
+                            _showNotWantedToJoin = isSelected;
+                            break;
+                        }
+                      });
+                    },
+                  ),
                   SizedBox(height: 10),
-                  _buildFilteredUsersList(filteredUsers),
+                  // UserList(
+                  //   filteredUsers: filteredUsers,
+                  //   usersRoles: _usersRoles,
+                  //   userManagement: _userManagement!,
+                  //   buildUserTile: (userName, user, roleValue) {
+                  //     return UserTile(
+                  //       userName: userName,
+                  //       user: user,
+                  //       roleValue: roleValue,
+                  //       onDismissed: _handleDismissedUser,
+                  //       onChangeRole: (name) =>
+                  //           _showRoleChangeDialog(context, name),
+                  //     );
+                  //   },
+                  // ),
+                  UserList(
+                    filteredUsers: filteredUsers,
+                    usersRoles: _usersRoles,
+                    userManagement: _userManagement!,
+                    buildUserTile: (userName, user, roleValue) {
+                      return UserTile(
+                        userName: userName,
+                        user: user,
+                        roleValue: roleValue,
+                        onDismissed: _handleDismissedUser,
+                        onChangeRole: (name) {
+                          RoleChangeDialog.show(
+                            context,
+                            name,
+                            _usersRoles[name],
+                            _usersInvitations[name],
+                            (newRole) {
+                              setState(() {
+                                if (newRole != null) {
+                                  _usersRoles[name] = newRole;
+                                }
+                              });
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
           ),
-          bottomNavigationBar: _buildBottomNavigation(),
+          bottomNavigationBar:
+              BottomNavigationSection(onGroupUpdate: _performGroupUpdate),
         );
       },
     );
   }
+
+  // // ** UI FOR THE SCREEN **
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Consumer<UserManagement>(
+  //     builder: (context, providerManagement, child) {
+  //       final filteredUsers = _filterUsers();
+
+  //       return Scaffold(
+  //         appBar: AppBar(
+  //           title: Text('Group Data'),
+  //         ),
+  //         body: SingleChildScrollView(
+  //           child: Padding(
+  //             padding: const EdgeInsets.all(15.0),
+  //             child: Column(
+  //               children: [
+  //                 _buildGroupImageSection(),
+  //                 SizedBox(height: 10),
+  //                 _buildGroupNameField(),
+  //                 SizedBox(height: 10),
+  //                 _buildGroupDescriptionField(),
+  //                 SizedBox(height: 10),
+  //                 if (_currentUserRoleValue == "Administrator")
+  //                   _buildAdminInfoCard(),
+  //                 SizedBox(height: 10),
+  //                 _buildAddPeopleSection(context),
+  //                 SizedBox(height: 10),
+  //                 _buildFilterChips(),
+  //                 SizedBox(height: 10),
+  //                 _buildFilteredUsersList(filteredUsers),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //         bottomNavigationBar: _buildBottomNavigation(),
+  //       );
+  //     },
+  //   );
+  // }
 
   Map<String, UserInviteStatus> _filterUsers() {
     final adminUserName = _currentUserRoleValue == "Administrator"
@@ -664,6 +802,24 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
+  Widget _buildBottomNavigation() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextButton(
+        onPressed: _performGroupUpdate,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.group_add_rounded),
+            SizedBox(width: 8),
+            Text('Edit', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+      ),
+    );
+  }
+
   Widget _buildFilteredUsersList(Map<String, UserInviteStatus> filteredUsers) {
     return Column(
       children: filteredUsers.entries.isNotEmpty
@@ -792,24 +948,6 @@ class _EditGroupDataState extends State<EditGroupData> {
     );
   }
 
-  Widget _buildBottomNavigation() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextButton(
-        onPressed: _performGroupUpdate,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.group_add_rounded),
-            SizedBox(width: 8),
-            Text('Edit', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-      ),
-    );
-  }
-
   void _showRoleChangeDialog(BuildContext context, String userName) {
     showDialog(
       context: context,
@@ -889,7 +1027,7 @@ class _EditGroupDataState extends State<EditGroupData> {
     return '';
   }
 
-  //** CHANGE ROLES FOR THE USERS 
+  //** CHANGE ROLES FOR THE USERS
 
   Widget _buildRoleChangeDialog(
     BuildContext context,

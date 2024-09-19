@@ -15,7 +15,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/event.dart';
+import '../../../models/event.dart';
 
 //*
 class EditNoteScreen extends StatefulWidget {
