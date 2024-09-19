@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:first_project/models/group.dart';
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
@@ -18,14 +16,13 @@ import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_im
 import 'package:first_project/views/event-logic/edit_logic/widgets/form/group_name_field.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/add_ppl_section.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/admin_info_card.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/filter_chips.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/filtered_users_list.dart';
-import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/role_change_dialog.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/invitation_functions/role_change_dialog.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/user_filter_service.dart';
 import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/user_tile.dart';
-import 'package:first_project/views/group-functions/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -531,47 +528,66 @@ class _EditGroupDataState extends State<EditGroupData> {
                     },
                   ),
                   SizedBox(height: 10),
-                  // UserList(
-                  //   filteredUsers: filteredUsers,
-                  //   usersRoles: _usersRoles,
-                  //   userManagement: _userManagement!,
-                  //   buildUserTile: (userName, user, roleValue) {
-                  //     return UserTile(
-                  //       userName: userName,
-                  //       user: user,
-                  //       roleValue: roleValue,
-                  //       onDismissed: _handleDismissedUser,
-                  //       onChangeRole: (name) =>
-                  //           _showRoleChangeDialog(context, name),
-                  //     );
-                  //   },
-                  // ),
                   UserList(
                     filteredUsers: filteredUsers,
                     usersRoles: _usersRoles,
                     userManagement: _userManagement!,
                     buildUserTile: (userName, user, roleValue) {
+                      // Fetch the selectedRole and userInviteStatus for this user
+                      String? selectedRole =
+                          _usersRoles[userName]; // Get the user's role
+                      UserInviteStatus? userInviteStatus = _usersInvitations[
+                          userName]; // Get the user's invitation status
                       return UserTile(
-                        userName: userName,
-                        user: user,
-                        roleValue: roleValue,
-                        onDismissed: _handleDismissedUser,
-                        onChangeRole: (name) {
-                          RoleChangeDialog.show(
-                            context,
-                            name,
-                            _usersRoles[name],
-                            _usersInvitations[name],
-                            (newRole) {
-                              setState(() {
-                                if (newRole != null) {
-                                  _usersRoles[name] = newRole;
-                                }
-                              });
-                            },
-                          );
-                        },
-                      );
+                          userName: userName,
+                          user: user,
+                          roleValue: roleValue,
+                          onChangeRole: (name) {
+                            RoleChangeDialog.show(
+                              context,
+                              userName,
+                              selectedRole,
+                              userInviteStatus,
+                              (newRole) => setState(() {
+                                // Handle role selection
+                                _usersRoles[userName] = newRole!;
+                              }),
+                              _usersRoles, // Map of user roles
+                              _usersInvitations, // Map of user invitations
+                              _usersInvitationAtFirst, // Secondary map for tracking invitation changes
+                            );
+                          },
+                          onDismissed: (String userName) {
+                            // Show the DismissUserDialog
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return DismissUserDialog(
+                                  userName: userName,
+                                  isNewUser:
+                                      _usersInvitationAtFirst.containsKey(
+                                          userName), // Check if the user is new
+                                  onCancel: () {
+                                    Navigator.of(context)
+                                        .pop(); // Close the dialog
+                                  },
+                                  onConfirm: () {
+                                    // Handle the confirmation
+                                    setState(() {
+                                      _usersRoles.remove(
+                                          userName); // Remove the user role
+                                      _usersInvitations.remove(
+                                          userName); // Remove the user invitation
+                                      _usersInvitationAtFirst.remove(
+                                          userName); // Remove from secondary map
+                                    });
+                                    Navigator.of(context)
+                                        .pop(); // Close the dialog
+                                  },
+                                );
+                              },
+                            );
+                          });
                     },
                   ),
                 ],
@@ -625,559 +641,559 @@ class _EditGroupDataState extends State<EditGroupData> {
   //   );
   // }
 
-  Map<String, UserInviteStatus> _filterUsers() {
-    final adminUserName = _currentUserRoleValue == "Administrator"
-        ? _currentUser!.userName
-        : null;
+  // Map<String, UserInviteStatus> _filterUsers() {
+  //   final adminUserName = _currentUserRoleValue == "Administrator"
+  //       ? _currentUser!.userName
+  //       : null;
 
-    final filteredEntries = _usersInvitations.entries.where((entry) {
-      final username = entry.key;
-      final accepted = entry.value.invitationAnswer;
+  //   final filteredEntries = _usersInvitations.entries.where((entry) {
+  //     final username = entry.key;
+  //     final accepted = entry.value.invitationAnswer;
 
-      if (username == adminUserName) return false;
-      if (_showAccepted && accepted == true) return true;
-      if (_showPending && accepted == null) return true;
-      if (_showNotWantedToJoin && accepted == false) return true;
-      return false;
-    }).toList();
+  //     if (username == adminUserName) return false;
+  //     if (_showAccepted && accepted == true) return true;
+  //     if (_showPending && accepted == null) return true;
+  //     if (_showNotWantedToJoin && accepted == false) return true;
+  //     return false;
+  //   }).toList();
 
-    return Map.fromEntries(filteredEntries);
-  }
+  //   return Map.fromEntries(filteredEntries);
+  // }
 
-  Widget _buildGroupImageSection() {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: CircleAvatar(
-        radius: 50,
-        backgroundColor: _selectedImage != null ? Colors.transparent : null,
-        backgroundImage: _imageURL.isNotEmpty
-            ? CachedNetworkImageProvider(_imageURL) as ImageProvider<Object>?
-            : _selectedImage != null
-                ? FileImage(File(_selectedImage!.path))
-                : null,
-        child: _imageURL.isEmpty && _selectedImage == null
-            ? Icon(Icons.add_a_photo, size: 50, color: Colors.white)
-            : null,
-      ),
-    );
-  }
+  // Widget _buildGroupImageSection() {
+  //   return GestureDetector(
+  //     onTap: _pickImage,
+  //     child: CircleAvatar(
+  //       radius: 50,
+  //       backgroundColor: _selectedImage != null ? Colors.transparent : null,
+  //       backgroundImage: _imageURL.isNotEmpty
+  //           ? CachedNetworkImageProvider(_imageURL) as ImageProvider<Object>?
+  //           : _selectedImage != null
+  //               ? FileImage(File(_selectedImage!.path))
+  //               : null,
+  //       child: _imageURL.isEmpty && _selectedImage == null
+  //           ? Icon(Icons.add_a_photo, size: 50, color: Colors.white)
+  //           : null,
+  //     ),
+  //   );
+  // }
 
-  Widget _buildGroupNameField() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: TextEditingController(text: _groupName),
-        onChanged: (value) {
-          if (value.length <= 25) {
-            _groupName = value;
-          }
-        },
-        inputFormatters: [LengthLimitingTextInputFormatter(25)],
-        decoration: InputDecoration(
-          labelText: 'Group Name',
-          border: OutlineInputBorder(),
-        ),
-      ),
-    );
-  }
+  // Widget _buildGroupNameField() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(8.0),
+  //     child: TextField(
+  //       controller: TextEditingController(text: _groupName),
+  //       onChanged: (value) {
+  //         if (value.length <= 25) {
+  //           _groupName = value;
+  //         }
+  //       },
+  //       inputFormatters: [LengthLimitingTextInputFormatter(25)],
+  //       decoration: InputDecoration(
+  //         labelText: 'Group Name',
+  //         border: OutlineInputBorder(),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildGroupDescriptionField() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: _descriptionController,
-        maxLines: 5,
-        inputFormatters: [LengthLimitingTextInputFormatter(100)],
-        decoration: InputDecoration(
-          labelText: 'Group Description',
-          border: OutlineInputBorder(),
-        ),
-      ),
-    );
-  }
+  // Widget _buildGroupDescriptionField() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(8.0),
+  //     child: TextField(
+  //       controller: _descriptionController,
+  //       maxLines: 5,
+  //       inputFormatters: [LengthLimitingTextInputFormatter(100)],
+  //       decoration: InputDecoration(
+  //         labelText: 'Group Description',
+  //         border: OutlineInputBorder(),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildAdminInfoCard() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-        elevation: 5,
-        child: ListTile(
-          title: Text('Admin: ${_currentUser!.userName}'),
-          subtitle: Text('Role: Administrator'),
-          leading: CircleAvatar(
-            backgroundImage:
-                Utilities.buildProfileImage(_currentUser!.photoUrl),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildAdminInfoCard() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(8.0),
+  //     child: Card(
+  //       elevation: 5,
+  //       child: ListTile(
+  //         title: Text('Admin: ${_currentUser!.userName}'),
+  //         subtitle: Text('Role: Administrator'),
+  //         leading: CircleAvatar(
+  //           backgroundImage:
+  //               Utilities.buildProfileImage(_currentUser!.photoUrl),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildAddPeopleSection(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Add People to Group', style: TextStyle(color: Colors.grey)),
-        SizedBox(width: 15),
-        TextButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return Dialog(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Center(
-                          child: Text(
-                            'Add People to Group',
-                            style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: CreateGroupSearchBar(
-                          onDataChanged: _onDataChanged,
-                          user: _currentUser,
-                          group: _group,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Close'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-          child: Center(child: Text('Add User')),
-        ),
-      ],
-    );
-  }
+  // Widget _buildAddPeopleSection(BuildContext context) {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.center,
+  //     children: [
+  //       Text('Add People to Group', style: TextStyle(color: Colors.grey)),
+  //       SizedBox(width: 15),
+  //       TextButton(
+  //         onPressed: () {
+  //           showDialog(
+  //             context: context,
+  //             builder: (BuildContext context) {
+  //               return Dialog(
+  //                 child: Column(
+  //                   mainAxisSize: MainAxisSize.min,
+  //                   children: [
+  //                     Padding(
+  //                       padding: const EdgeInsets.all(16.0),
+  //                       child: Center(
+  //                         child: Text(
+  //                           'Add People to Group',
+  //                           style: TextStyle(
+  //                             fontFamily: 'Lato',
+  //                             fontSize: 15,
+  //                             fontWeight: FontWeight.bold,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                     Padding(
+  //                       padding: const EdgeInsets.all(10.0),
+  //                       child: CreateGroupSearchBar(
+  //                         onDataChanged: _onDataChanged,
+  //                         user: _currentUser,
+  //                         group: _group,
+  //                       ),
+  //                     ),
+  //                     TextButton(
+  //                       onPressed: () {
+  //                         Navigator.of(context).pop();
+  //                       },
+  //                       child: Text('Close'),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               );
+  //             },
+  //           );
+  //         },
+  //         child: Center(child: Text('Add User')),
+  //       ),
+  //     ],
+  //   );
+  // }
 
-  Widget _buildFilterChips() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        FilterChip(
-          label: Text('Accepted'),
-          selected: _showAccepted,
-          onSelected: (selected) {
-            setState(() {
-              _showAccepted = selected;
-            });
-          },
-        ),
-        FilterChip(
-          label: Text('Pending'),
-          selected: _showPending,
-          onSelected: (selected) {
-            setState(() {
-              _showPending = selected;
-            });
-          },
-        ),
-        FilterChip(
-          label: Text('Not Accepted'),
-          selected: _showNotWantedToJoin,
-          onSelected: (selected) {
-            setState(() {
-              _showNotWantedToJoin = selected;
-            });
-          },
-        ),
-      ],
-    );
-  }
+  // Widget _buildFilterChips() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //     children: [
+  //       FilterChip(
+  //         label: Text('Accepted'),
+  //         selected: _showAccepted,
+  //         onSelected: (selected) {
+  //           setState(() {
+  //             _showAccepted = selected;
+  //           });
+  //         },
+  //       ),
+  //       FilterChip(
+  //         label: Text('Pending'),
+  //         selected: _showPending,
+  //         onSelected: (selected) {
+  //           setState(() {
+  //             _showPending = selected;
+  //           });
+  //         },
+  //       ),
+  //       FilterChip(
+  //         label: Text('Not Accepted'),
+  //         selected: _showNotWantedToJoin,
+  //         onSelected: (selected) {
+  //           setState(() {
+  //             _showNotWantedToJoin = selected;
+  //           });
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 
-  Widget _buildBottomNavigation() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextButton(
-        onPressed: _performGroupUpdate,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.group_add_rounded),
-            SizedBox(width: 8),
-            Text('Edit', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-      ),
-    );
-  }
+  // Widget _buildBottomNavigation() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(16.0),
+  //     child: TextButton(
+  //       onPressed: _performGroupUpdate,
+  //       child: Row(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Icon(Icons.group_add_rounded),
+  //           SizedBox(width: 8),
+  //           Text('Edit', style: TextStyle(color: Colors.white)),
+  //         ],
+  //       ),
+  //       style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildFilteredUsersList(Map<String, UserInviteStatus> filteredUsers) {
-    return Column(
-      children: filteredUsers.entries.isNotEmpty
-          ? filteredUsers.entries.map((entry) {
-              final String userName = entry.key;
-              final UserInviteStatus userInviteStatus = entry.value;
+  // Widget _buildFilteredUsersList(Map<String, UserInviteStatus> filteredUsers) {
+  //   return Column(
+  //     children: filteredUsers.entries.isNotEmpty
+  //         ? filteredUsers.entries.map((entry) {
+  //             final String userName = entry.key;
+  //             final UserInviteStatus userInviteStatus = entry.value;
 
-              return FutureBuilder<User?>(
-                future:
-                    _userManagement!.userService.getUserByUsername(userName),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData) {
-                    final user = snapshot.data!;
-                    final roleValue =
-                        _usersRoles[userName] ?? userInviteStatus.role;
+  //             return FutureBuilder<User?>(
+  //               future:
+  //                   _userManagement!.userService.getUserByUsername(userName),
+  //               builder: (context, snapshot) {
+  //                 if (snapshot.connectionState == ConnectionState.waiting) {
+  //                   return CircularProgressIndicator();
+  //                 } else if (snapshot.hasError) {
+  //                   return Text('Error: ${snapshot.error}');
+  //                 } else if (snapshot.hasData) {
+  //                   final user = snapshot.data!;
+  //                   final roleValue =
+  //                       _usersRoles[userName] ?? userInviteStatus.role;
 
-                    return _buildUserTile(userName, user, roleValue);
-                  } else {
-                    return Text('User not found');
-                  }
-                },
-              );
-            }).toList()
-          : [Text("No user roles available")],
-    );
-  }
+  //                   return _buildUserTile(userName, user, roleValue);
+  //                 } else {
+  //                   return Text('User not found');
+  //                 }
+  //               },
+  //             );
+  //           }).toList()
+  //         : [Text("No user roles available")],
+  //   );
+  // }
 
-  void _handleDismissedUser(String userName) {
-    setState(() {
-      _isDismissed = true; // Mark the item as dismissed
-    });
+  // void _handleDismissedUser(String userName) {
+  //   setState(() {
+  //     _isDismissed = true; // Mark the item as dismissed
+  //   });
 
-    // Show a confirmation dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // Check if the user is newly added
-        _isNewUser = _uniqueNewKeysList.contains(userName.toLowerCase());
+  //   // Show a confirmation dialog
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       // Check if the user is newly added
+  //       _isNewUser = _uniqueNewKeysList.contains(userName.toLowerCase());
 
-        return AlertDialog(
-          title: Text(_isNewUser ? 'Confirm Removal' : 'Confirm Action'),
-          content: Text(
-            _isNewUser
-                ? 'You just added this user. Would you like to remove them from the invitation list?'
-                : 'Are you sure you want to remove user $userName from the group?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _isDismissed = false; // Cancel the dismissal
-                });
-                Navigator.of(context).pop(); // Close the dialog
+  //       return AlertDialog(
+  //         title: Text(_isNewUser ? 'Confirm Removal' : 'Confirm Action'),
+  //         content: Text(
+  //           _isNewUser
+  //               ? 'You just added this user. Would you like to remove them from the invitation list?'
+  //               : 'Are you sure you want to remove user $userName from the group?',
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             onPressed: () {
+  //               setState(() {
+  //                 _isDismissed = false; // Cancel the dismissal
+  //               });
+  //               Navigator.of(context).pop(); // Close the dialog
 
-                // Optionally show a snack bar
-                final scaffold = ScaffoldMessenger.of(context);
-                scaffold.showSnackBar(
-                  SnackBar(
-                    content: Text('Removal action canceled.'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+  //               // Optionally show a snack bar
+  //               final scaffold = ScaffoldMessenger.of(context);
+  //               scaffold.showSnackBar(
+  //                 SnackBar(
+  //                   content: Text('Removal action canceled.'),
+  //                   duration: Duration(seconds: 2),
+  //                 ),
+  //               );
+  //             },
+  //             child: Text('Cancel'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop(); // Close the dialog
 
-                // Perform the actual removal of the user
-                _performUserRemoval(
-                    userName, _usersInvitations[userName]?.invitationAnswer);
+  //               // Perform the actual removal of the user
+  //               _performUserRemoval(
+  //                   userName, _usersInvitations[userName]?.invitationAnswer);
 
-                setState(() {
-                  _isDismissed = false; // Reset the dismissed flag
-                });
-              },
-              child: Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  //               setState(() {
+  //                 _isDismissed = false; // Reset the dismissed flag
+  //               });
+  //             },
+  //             child: Text('Confirm'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-  Widget _buildUserTile(String userName, User user, String roleValue) {
-    return Dismissible(
-      key: Key(userName),
-      direction: roleValue.trim() != 'Administrator'
-          ? DismissDirection.endToStart
-          : DismissDirection.none,
-      onDismissed: (direction) {
-        _handleDismissedUser(userName);
-      },
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Icon(Icons.delete, color: Colors.white),
-      ),
-      child: ListTile(
-        title: Text(userName),
-        subtitle: Text(roleValue),
-        leading: CircleAvatar(
-          radius: 30,
-          backgroundImage: Utilities.buildProfileImage(user.photoUrl),
-        ),
-        trailing: roleValue.trim() != 'Administrator'
-            ? GestureDetector(
-                onTap: () {
-                  _showRoleChangeDialog(context, userName);
-                },
-                child: Icon(Icons.settings, color: Colors.blue),
-              )
-            : SizedBox.shrink(),
-        onTap: roleValue.trim() != 'Administrator'
-            ? () {
-                _showRoleChangeDialog(context, userName);
-              }
-            : null,
-      ),
-    );
-  }
+  // Widget _buildUserTile(String userName, User user, String roleValue) {
+  //   return Dismissible(
+  //     key: Key(userName),
+  //     direction: roleValue.trim() != 'Administrator'
+  //         ? DismissDirection.endToStart
+  //         : DismissDirection.none,
+  //     onDismissed: (direction) {
+  //       _handleDismissedUser(userName);
+  //     },
+  //     background: Container(
+  //       color: Colors.red,
+  //       alignment: Alignment.centerRight,
+  //       padding: EdgeInsets.symmetric(horizontal: 20),
+  //       child: Icon(Icons.delete, color: Colors.white),
+  //     ),
+  //     child: ListTile(
+  //       title: Text(userName),
+  //       subtitle: Text(roleValue),
+  //       leading: CircleAvatar(
+  //         radius: 30,
+  //         backgroundImage: Utilities.buildProfileImage(user.photoUrl),
+  //       ),
+  //       trailing: roleValue.trim() != 'Administrator'
+  //           ? GestureDetector(
+  //               onTap: () {
+  //                 _showRoleChangeDialog(context, userName);
+  //               },
+  //               child: Icon(Icons.settings, color: Colors.blue),
+  //             )
+  //           : SizedBox.shrink(),
+  //       onTap: roleValue.trim() != 'Administrator'
+  //           ? () {
+  //               _showRoleChangeDialog(context, userName);
+  //             }
+  //           : null,
+  //     ),
+  //   );
+  // }
 
-  void _showRoleChangeDialog(BuildContext context, String userName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String? selectedRole = _usersRoles[userName];
-        UserInviteStatus? userInviteStatus = _usersInvitations[userName];
-        String informativeMessage = _getInvitationMessage(userInviteStatus);
-        bool showRoleDropdown = _shouldShowRoleDropdown(userInviteStatus);
-        String additionalMessage = _getAdditionalMessage(userInviteStatus);
+  // void _showRoleChangeDialog(BuildContext context, String userName) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       String? selectedRole = _usersRoles[userName];
+  //       UserInviteStatus? userInviteStatus = _usersInvitations[userName];
+  //       String informativeMessage = _getInvitationMessage(userInviteStatus);
+  //       bool showRoleDropdown = _shouldShowRoleDropdown(userInviteStatus);
+  //       String additionalMessage = _getAdditionalMessage(userInviteStatus);
 
-        return _buildRoleChangeDialog(
-          context,
-          userName,
-          selectedRole,
-          informativeMessage,
-          additionalMessage,
-          showRoleDropdown,
-          userInviteStatus,
-        );
-      },
-    );
-  }
+  //       return _buildRoleChangeDialog(
+  //         context,
+  //         userName,
+  //         selectedRole,
+  //         informativeMessage,
+  //         additionalMessage,
+  //         showRoleDropdown,
+  //         userInviteStatus,
+  //       );
+  //     },
+  //   );
+  // }
 
-  String _getInvitationMessage(UserInviteStatus? userInviteStatus) {
-    if (userInviteStatus == null) {
-      return 'No invitation record found for this user.';
-    }
+  // String _getInvitationMessage(UserInviteStatus? userInviteStatus) {
+  //   if (userInviteStatus == null) {
+  //     return 'No invitation record found for this user.';
+  //   }
 
-    if (userInviteStatus.invitationAnswer == null) {
-      return 'The invitation is pending. No action is required yet.';
-    } else if (userInviteStatus.invitationAnswer == false) {
-      if (userInviteStatus.attempts == 1) {
-        return 'The user declined the invitation. You can resend the invitation after 2 weeks.';
-      } else if (userInviteStatus.attempts == 2) {
-        return 'The user declined the invitation again. You can resend the invitation after 1 month.';
-      } else if (userInviteStatus.attempts >= 3) {
-        return 'The user has declined the invitation three times. No more attempts are allowed.';
-      }
-    } else if (userInviteStatus.invitationAnswer == true) {
-      return 'The user accepted the invitation and is already in the group.';
-    }
+  //   if (userInviteStatus.invitationAnswer == null) {
+  //     return 'The invitation is pending. No action is required yet.';
+  //   } else if (userInviteStatus.invitationAnswer == false) {
+  //     if (userInviteStatus.attempts == 1) {
+  //       return 'The user declined the invitation. You can resend the invitation after 2 weeks.';
+  //     } else if (userInviteStatus.attempts == 2) {
+  //       return 'The user declined the invitation again. You can resend the invitation after 1 month.';
+  //     } else if (userInviteStatus.attempts >= 3) {
+  //       return 'The user has declined the invitation three times. No more attempts are allowed.';
+  //     }
+  //   } else if (userInviteStatus.invitationAnswer == true) {
+  //     return 'The user accepted the invitation and is already in the group.';
+  //   }
 
-    return 'Unknown invitation status.';
-  }
+  //   return 'Unknown invitation status.';
+  // }
 
-  bool _shouldShowRoleDropdown(UserInviteStatus? userInviteStatus) {
-    if (userInviteStatus == null) return false;
+  // bool _shouldShowRoleDropdown(UserInviteStatus? userInviteStatus) {
+  //   if (userInviteStatus == null) return false;
 
-    final int daysSinceSent =
-        DateTime.now().difference(userInviteStatus.sendingDate).inDays;
+  //   final int daysSinceSent =
+  //       DateTime.now().difference(userInviteStatus.sendingDate).inDays;
 
-    if (userInviteStatus.invitationAnswer == false) {
-      if (userInviteStatus.attempts == 1 && daysSinceSent >= 2) {
-        return true;
-      } else if (userInviteStatus.attempts == 2 && daysSinceSent >= 30) {
-        return true;
-      }
-    } else if (userInviteStatus.invitationAnswer == true) {
-      return true;
-    }
-    return false;
-  }
+  //   if (userInviteStatus.invitationAnswer == false) {
+  //     if (userInviteStatus.attempts == 1 && daysSinceSent >= 2) {
+  //       return true;
+  //     } else if (userInviteStatus.attempts == 2 && daysSinceSent >= 30) {
+  //       return true;
+  //     }
+  //   } else if (userInviteStatus.invitationAnswer == true) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
-  String _getAdditionalMessage(UserInviteStatus? userInviteStatus) {
-    if (userInviteStatus == null) return '';
+  // String _getAdditionalMessage(UserInviteStatus? userInviteStatus) {
+  //   if (userInviteStatus == null) return '';
 
-    final int daysSinceSent =
-        DateTime.now().difference(userInviteStatus.sendingDate).inDays;
+  //   final int daysSinceSent =
+  //       DateTime.now().difference(userInviteStatus.sendingDate).inDays;
 
-    if (userInviteStatus.invitationAnswer == false) {
-      if (userInviteStatus.attempts == 1 && daysSinceSent >= 2) {
-        return 'Time has passed. You can now change the role and resend the invitation.';
-      } else if (userInviteStatus.attempts == 2 && daysSinceSent >= 30) {
-        return 'Time has passed. You can now change the role and resend the invitation.';
-      }
-    }
-    return '';
-  }
+  //   if (userInviteStatus.invitationAnswer == false) {
+  //     if (userInviteStatus.attempts == 1 && daysSinceSent >= 2) {
+  //       return 'Time has passed. You can now change the role and resend the invitation.';
+  //     } else if (userInviteStatus.attempts == 2 && daysSinceSent >= 30) {
+  //       return 'Time has passed. You can now change the role and resend the invitation.';
+  //     }
+  //   }
+  //   return '';
+  // }
 
-  //** CHANGE ROLES FOR THE USERS
+  // //** CHANGE ROLES FOR THE USERS
 
-  Widget _buildRoleChangeDialog(
-    BuildContext context,
-    String userName,
-    String? selectedRole,
-    String informativeMessage,
-    String additionalMessage,
-    bool showRoleDropdown,
-    UserInviteStatus? userInviteStatus,
-  ) {
-    return AlertDialog(
-      title: Text('Change Role for $userName'),
-      content: StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (userInviteStatus != null)
-                _buildInvitationStatusTile(
-                    informativeMessage, additionalMessage, userInviteStatus),
-              SizedBox(height: 20),
-              if (showRoleDropdown) _buildRoleDropdown(selectedRole, setState),
-            ],
-          );
-        },
-      ),
-      actions: _buildDialogActions(
-          context, userName, selectedRole, showRoleDropdown, additionalMessage),
-    );
-  }
+  // Widget _buildRoleChangeDialog(
+  //   BuildContext context,
+  //   String userName,
+  //   String? selectedRole,
+  //   String informativeMessage,
+  //   String additionalMessage,
+  //   bool showRoleDropdown,
+  //   UserInviteStatus? userInviteStatus,
+  // ) {
+  //   return AlertDialog(
+  //     title: Text('Change Role for $userName'),
+  //     content: StatefulBuilder(
+  //       builder: (BuildContext context, StateSetter setState) {
+  //         return Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             if (userInviteStatus != null)
+  //               _buildInvitationStatusTile(
+  //                   informativeMessage, additionalMessage, userInviteStatus),
+  //             SizedBox(height: 20),
+  //             if (showRoleDropdown) _buildRoleDropdown(selectedRole, setState),
+  //           ],
+  //         );
+  //       },
+  //     ),
+  //     actions: _buildDialogActions(
+  //         context, userName, selectedRole, showRoleDropdown, additionalMessage),
+  //   );
+  // }
 
-  ListTile _buildInvitationStatusTile(
-    String informativeMessage,
-    String additionalMessage,
-    UserInviteStatus userInviteStatus,
-  ) {
-    return ListTile(
-      title: RichText(
-        text: TextSpan(
-          style: TextStyle(color: Colors.black),
-          children: [
-            TextSpan(
-              text: "Invitation Status: ",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 22, 151, 134),
-              ),
-            ),
-            TextSpan(
-              text: '${userInviteStatus.status}',
-              style: TextStyle(color: Colors.blue),
-            ),
-          ],
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 8.0),
-          Text(
-            informativeMessage,
-            style: TextStyle(fontSize: 14.0, color: Colors.black87),
-          ),
-          if (additionalMessage.isNotEmpty) ...[
-            SizedBox(height: 10.0),
-            Text(
-              additionalMessage,
-              style: TextStyle(
-                fontSize: 14.0,
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+  // ListTile _buildInvitationStatusTile(
+  //   String informativeMessage,
+  //   String additionalMessage,
+  //   UserInviteStatus userInviteStatus,
+  // ) {
+  //   return ListTile(
+  //     title: RichText(
+  //       text: TextSpan(
+  //         style: TextStyle(color: Colors.black),
+  //         children: [
+  //           TextSpan(
+  //             text: "Invitation Status: ",
+  //             style: TextStyle(
+  //               fontWeight: FontWeight.bold,
+  //               color: Color.fromARGB(255, 22, 151, 134),
+  //             ),
+  //           ),
+  //           TextSpan(
+  //             text: '${userInviteStatus.status}',
+  //             style: TextStyle(color: Colors.blue),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //     subtitle: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         SizedBox(height: 8.0),
+  //         Text(
+  //           informativeMessage,
+  //           style: TextStyle(fontSize: 14.0, color: Colors.black87),
+  //         ),
+  //         if (additionalMessage.isNotEmpty) ...[
+  //           SizedBox(height: 10.0),
+  //           Text(
+  //             additionalMessage,
+  //             style: TextStyle(
+  //               fontSize: 14.0,
+  //               color: Colors.black87,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //         ],
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  DropdownButtonFormField<String> _buildRoleDropdown(
-    String? selectedRole,
-    StateSetter setState,
-  ) {
-    return DropdownButtonFormField<String>(
-      value: selectedRole,
-      items: ['Co-Administrator', 'Member'].map((String role) {
-        return DropdownMenuItem<String>(
-          value: role,
-          child: Text(role),
-        );
-      }).toList(),
-      onChanged: (String? newRole) {
-        setState(() {
-          selectedRole = newRole;
-        });
-      },
-      decoration: InputDecoration(
-        labelText: 'Select Role',
-        contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-        border: OutlineInputBorder(),
-      ),
-    );
-  }
+  // DropdownButtonFormField<String> _buildRoleDropdown(
+  //   String? selectedRole,
+  //   StateSetter setState,
+  // ) {
+  //   return DropdownButtonFormField<String>(
+  //     value: selectedRole,
+  //     items: ['Co-Administrator', 'Member'].map((String role) {
+  //       return DropdownMenuItem<String>(
+  //         value: role,
+  //         child: Text(role),
+  //       );
+  //     }).toList(),
+  //     onChanged: (String? newRole) {
+  //       setState(() {
+  //         selectedRole = newRole;
+  //       });
+  //     },
+  //     decoration: InputDecoration(
+  //       labelText: 'Select Role',
+  //       contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+  //       border: OutlineInputBorder(),
+  //     ),
+  //   );
+  // }
 
-  List<Widget> _buildDialogActions(
-    BuildContext context,
-    String userName,
-    String? selectedRole,
-    bool showRoleDropdown,
-    String additionalMessage,
-  ) {
-    return [
-      TextButton(
-        onPressed: () {
-          if (showRoleDropdown && additionalMessage.isNotEmpty) {
-            _updateStatus(userName);
-          }
-          setState(() {
-            _usersRoles[userName] = selectedRole!;
-          });
-          Navigator.of(context).pop();
-        },
-        child: Text('OK'),
-      ),
-      TextButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        child: Text('Cancel'),
-      ),
-    ];
-  }
+  // List<Widget> _buildDialogActions(
+  //   BuildContext context,
+  //   String userName,
+  //   String? selectedRole,
+  //   bool showRoleDropdown,
+  //   String additionalMessage,
+  // ) {
+  //   return [
+  //     TextButton(
+  //       onPressed: () {
+  //         if (showRoleDropdown && additionalMessage.isNotEmpty) {
+  //           _updateStatus(userName);
+  //         }
+  //         setState(() {
+  //           _usersRoles[userName] = selectedRole!;
+  //         });
+  //         Navigator.of(context).pop();
+  //       },
+  //       child: Text('OK'),
+  //     ),
+  //     TextButton(
+  //       onPressed: () {
+  //         Navigator.of(context).pop();
+  //       },
+  //       child: Text('Cancel'),
+  //     ),
+  //   ];
+  // }
 
-  void _updateStatus(String userName) {
-    if (_usersInvitations.containsKey(userName)) {
-      // Create a copy of the original UserInviteStatus object
-      UserInviteStatus originalStatus = _usersInvitations[userName]!;
-      UserInviteStatus updatedStatus = UserInviteStatus(
-        id: originalStatus.id,
-        role: originalStatus.role,
-        attempts: originalStatus.attempts + 1,
-        sendingDate: DateTime.now(),
-        invitationAnswer: null, // Reset to pending
-      );
+  // void _updateStatus(String userName) {
+  //   if (_usersInvitations.containsKey(userName)) {
+  //     // Create a copy of the original UserInviteStatus object
+  //     UserInviteStatus originalStatus = _usersInvitations[userName]!;
+  //     UserInviteStatus updatedStatus = UserInviteStatus(
+  //       id: originalStatus.id,
+  //       role: originalStatus.role,
+  //       attempts: originalStatus.attempts + 1,
+  //       sendingDate: DateTime.now(),
+  //       invitationAnswer: null, // Reset to pending
+  //     );
 
-      // Now update your secondary map or state with the modified copy
-      _usersInvitationAtFirst[userName] = updatedStatus;
+  //     // Now update your secondary map or state with the modified copy
+  //     _usersInvitationAtFirst[userName] = updatedStatus;
 
-      // Optionally, you can also update the main map if needed only after certain conditions are met
-      // _usersInvitationAtFirst[userName] = updatedStatus;
-    }
-  }
+  //     // Optionally, you can also update the main map if needed only after certain conditions are met
+  //     // _usersInvitationAtFirst[userName] = updatedStatus;
+  //   }
+  // }
 }

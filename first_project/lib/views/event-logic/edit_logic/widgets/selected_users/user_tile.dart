@@ -1,4 +1,5 @@
 import 'package:first_project/models/user.dart';
+import 'package:first_project/views/event-logic/edit_logic/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:flutter/material.dart';
 
 class UserTile extends StatelessWidget {
@@ -24,7 +25,22 @@ class UserTile extends StatelessWidget {
           ? DismissDirection.endToStart
           : DismissDirection.none,
       onDismissed: (direction) {
-        onDismissed(userName);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return DismissUserDialog(
+              userName: userName,
+              isNewUser: false, // Update this based on your logic
+              onCancel: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              onConfirm: () {
+                onDismissed(userName); // Handle the user dismissal
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            );
+          },
+        );
       },
       background: Container(
         color: Colors.red,
@@ -55,3 +71,4 @@ class UserTile extends StatelessWidget {
     );
   }
 }
+
