@@ -1,15 +1,14 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:first_project/backend/firebase_%20services/auth/logic_backend/auth_service.dart';
+import 'package:first_project/backend/firebase_%20services/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/user.dart';
-import '../../services/firebase_ services/auth/logic_backend/auth_service.dart';
-import '../../services/firebase_ services/firestore_database/logic_backend/firestore_service.dart';
-
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
 

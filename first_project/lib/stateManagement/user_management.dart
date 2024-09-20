@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/node_services/user_services.dart';
+import 'package:first_project/backend/node_services/user_services.dart';
 import 'package:first_project/stateManagement/notification_management.dart';
 import 'package:flutter/material.dart';
 

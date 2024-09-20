@@ -3,7 +3,8 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/models/notification_user.dart';
 import 'package:first_project/models/user.dart';
-import 'package:first_project/services/node_services/notification_services.dart';
+import 'package:first_project/backend/node_services/notification_services.dart';
+
 import 'package:first_project/stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 
