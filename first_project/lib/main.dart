@@ -2,22 +2,22 @@ import 'dart:developer' as devtools show log;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/l10n/l10n.dart';
-import 'package:first_project/models/routes.dart';
-import 'package:first_project/backend/firebase_%20services/auth/logic_backend/auth_provider.dart';
-import 'package:first_project/backend/firebase_%20services/auth/logic_backend/auth_service.dart';
-import 'package:first_project/stateManagement/group_management.dart';
-import 'package:first_project/stateManagement/notification_management.dart';
-import 'package:first_project/stateManagement/theme_management.dart';
-import 'package:first_project/stateManagement/theme_preference_provider.dart';
-import 'package:first_project/stateManagement/user_management.dart';
-import 'package:first_project/frontend/home_page.dart';
-import 'package:first_project/frontend/log-user/register_view.dart';
+import 'package:first_project/a-models/routes.dart';
+import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_provider.dart';
+import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
+import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/d-stateManagement/notification_management.dart';
+import 'package:first_project/d-stateManagement/theme_management.dart';
+import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
+import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/c-frontend/home_page.dart';
+import 'package:first_project/c-frontend/c-log-user-section/register_view.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'models/user.dart';
+import 'a-models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

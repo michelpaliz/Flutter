@@ -1,4 +1,4 @@
-import 'package:first_project/models/user.dart';
+import 'package:first_project/a-models/user.dart';
 import 'package:flutter/material.dart';
 
 class AnimatedUsersList extends StatefulWidget {

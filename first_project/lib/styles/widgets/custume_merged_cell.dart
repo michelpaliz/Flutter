@@ -1,4 +1,4 @@
-import 'package:first_project/models/event.dart';
+import 'package:first_project/a-models/event.dart';
 import 'package:flutter/material.dart';
 
 class CustomMergedCell extends StatelessWidget {

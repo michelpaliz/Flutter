@@ -1,6 +1,6 @@
-import 'package:first_project/models/group.dart';
-import 'package:first_project/models/notification_user.dart';
-import 'package:first_project/models/user.dart';
+import 'package:first_project/a-models/group.dart';
+import 'package:first_project/a-models/notification_user.dart';
+import 'package:first_project/a-models/user.dart';
 import 'package:first_project/utilities/utilities.dart';
 
 class NotificationFormats {
