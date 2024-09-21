@@ -20,16 +20,16 @@ import '../../../a-models/group.dart';
 import '../../../enums/routes/appRoutes.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
 
-class GroupDetails extends StatefulWidget {
+class GroupCalendar extends StatefulWidget {
   final Group group;
 
-  const GroupDetails({required this.group, Key? key}) : super(key: key);
+  const GroupCalendar({required this.group, Key? key}) : super(key: key);
 
   @override
-  State<GroupDetails> createState() => _GroupDetailsState();
+  State<GroupCalendar> createState() => _GroupCalendarState();
 }
 
-class _GroupDetailsState extends State<GroupDetails> {
+class _GroupCalendarState extends State<GroupCalendar> {
   late Group _group;
   late List<Event> _events;
   late DateTime _selectedDate;

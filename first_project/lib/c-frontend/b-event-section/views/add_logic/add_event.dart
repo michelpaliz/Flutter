@@ -27,16 +27,16 @@ import '../../../../a-models/event.dart';
 import '../../../../a-models/group.dart';
 import '../../../../a-models/user.dart';
 
-class addEvent extends StatefulWidget {
+class AddEvent extends StatefulWidget {
   final Group group;
 
-  addEvent({Key? key, required this.group}) : super(key: key);
+  AddEvent({Key? key, required this.group}) : super(key: key);
 
   @override
-  _addEventState createState() => _addEventState(group: group);
+  _AddEventState createState() => _AddEventState(group: group);
 }
 
-class _addEventState extends State<addEvent> {
+class _AddEventState extends State<AddEvent> {
   //** LOGIC VARIABLES  */
   late User _user;
   Group _group;
@@ -74,7 +74,7 @@ class _addEventState extends State<addEvent> {
   late Group fetchedUpdatedGroup;
 
   //** LOGIC FOR THE VIEW */////////
-  _addEventState({required Group group}) : _group = group {
+  _AddEventState({required Group group}) : _group = group {
     isLoading = true;
     _initialize();
   }

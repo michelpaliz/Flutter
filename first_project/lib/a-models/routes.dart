@@ -45,18 +45,18 @@ final Map<String, WidgetBuilder> routes = {
   },
   AppRoutes.groupCalendar: (context) {
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
-    return group != null ? GroupDetails(group: group) : SizedBox.shrink();
+    return group != null ? GroupCalendar(group: group) : SizedBox.shrink();
   },
   AppRoutes.addEvent: (context) {
     final arg = ModalRoute.of(context)?.settings.arguments;
 
     if (arg is Group) {
-      return addEvent(
+      return AddEvent(
         group: arg,
       );
     } else {
       // Provide a default instance of Group if none is passed
-      return addEvent(
+      return AddEvent(
         group: Group.createDefaultGroup(),
       );
     }
