@@ -889,6 +889,8 @@ class _GroupCalendarState extends State<GroupCalendar> {
                       updatedGroup; // Update the parent widget's state with the new group
                 });
 
+                //TODO: try to update here the UI using reload 
+
               }
             },
           ),

@@ -5,7 +5,7 @@ import 'package:first_project/a-models/group.dart';
 import 'package:first_project/a-models/user.dart';
 import 'package:first_project/c-frontend/a-group-section/views/create_group_data.dart';
 import 'package:first_project/c-frontend/a-group-section/views/edit_group_data.dart';
-import 'package:first_project/c-frontend/a-group-section/views/group_details.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_settings.dart';
 import 'package:first_project/c-frontend/a-group-section/views/show_groups.dart';
 import 'package:first_project/c-frontend/b-event-section/event_detail.dart';
