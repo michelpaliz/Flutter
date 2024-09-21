@@ -38,6 +38,14 @@ class Calendar {
     );
   }
 
+  static createDefaultCalendar() {
+    return Calendar(
+      'default_calendar_id', // Default ID
+      'Default Calendar Name', // Default Name
+      events: [], // Default empty list of events
+    );
+  }
+
   @override
   String toString() {
     return 'Calendar{id: $_id, name: $_name, events: $_events}';

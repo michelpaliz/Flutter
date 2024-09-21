@@ -1,23 +1,23 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:first_project/a-models/mettingDataSource.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
+import 'package:first_project/c-frontend/b-event-section/event_detail.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/c-frontend/b-event-section/event_detail.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import '../../../enums/routes/appRoutes.dart';
 import '../../../a-models/event.dart';
 import '../../../a-models/group.dart';
+import '../../../enums/routes/appRoutes.dart';
 import '../../../styles/drawer-style-menu/my_drawer.dart';
 
 class GroupDetails extends StatefulWidget {
@@ -33,8 +33,6 @@ class _GroupDetailsState extends State<GroupDetails> {
   late Group _group;
   late List<Event> _events;
   late DateTime _selectedDate;
-  // late FirestoreService _storeService;
-  var _userOrGroupObject;
   late List<Appointment> _appointments;
   late CalendarView _selectedView;
   late CalendarController _controller;
@@ -55,7 +53,7 @@ class _GroupDetailsState extends State<GroupDetails> {
     super.initState();
     _group = widget.group;
     _users = _group.userRoles;
-    _events = [];
+    _events = _group.calendar.events;
     _selectedDate = DateTime.now().toUtc();
     _selectedView = CalendarView.month;
     _controller = CalendarController();
@@ -63,7 +61,6 @@ class _GroupDetailsState extends State<GroupDetails> {
     _eventService = EventService();
     dataSource = new DataSource(_group.calendar.events);
     _users = _group.userRoles;
-    _userOrGroupObject = _group;
   }
 
   @override
@@ -88,7 +85,7 @@ class _GroupDetailsState extends State<GroupDetails> {
   void _updateCalendarDataSource() {
     setState(() {
       // _appointments = _getCalendarDataSource();
-      dataSource.events = _events;
+      dataSource.events = _group.calendar.events;
     });
   }
 
@@ -251,7 +248,7 @@ class _GroupDetailsState extends State<GroupDetails> {
             Navigator.pushNamed(
               context,
               AppRoutes.groupSettings,
-              arguments: _userOrGroupObject,
+              arguments: _group,
             );
           },
         ),
@@ -877,9 +874,22 @@ class _GroupDetailsState extends State<GroupDetails> {
           height: 50,
           child: IconButton(
             icon: Icon(Icons.add, color: Colors.white, size: 25),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.addEvent,
-                  arguments: _userOrGroupObject);
+            onPressed: () async {
+              // Navigate to the add event page and wait for the result (updated group)
+              final updatedGroup = await Navigator.pushNamed(
+                context,
+                AppRoutes.addEvent,
+                arguments: _group, // Pass the current group as an argument
+              );
+
+              // Check if the result is not null (indicating the group was updated)
+              if (updatedGroup != null && updatedGroup is Group) {
+                setState(() {
+                  _group =
+                      updatedGroup; // Update the parent widget's state with the new group
+                });
+
+              }
             },
           ),
         ),

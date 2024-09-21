@@ -3,12 +3,6 @@ import 'dart:developer' as devtools show log;
 import 'package:first_project/a-models/recurrence_rule.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/styles/widgets/repetition_dialog.dart';
-import 'package:first_project/utilities/color_manager.dart';
-import 'package:first_project/utilities/utilities.dart';
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/dialog/user_expandable_card.dart';
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/form/add_event_button_widget.dart';
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/form/color_picker_widget.dart';
@@ -18,6 +12,12 @@ import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/form/note_input_widget.dart';
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/form/title_input_widget.dart';
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/repetition_toggle_widget.dart';
+import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/d-stateManagement/notification_management.dart';
+import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/styles/widgets/repetition_dialog.dart';
+import 'package:first_project/utilities/color_manager.dart';
+import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
@@ -26,26 +26,20 @@ import 'package:provider/provider.dart';
 import '../../../../a-models/event.dart';
 import '../../../../a-models/group.dart';
 import '../../../../a-models/user.dart';
-// import 'package:flutter_typeahead/flutter_typeahead.dart';
-// import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
-// import 'package:multi_select_flutter/util/multi_select_item.dart';
-// import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 
-class EventNoteWidget extends StatefulWidget {
-  final User? user;
-  final Group? group;
+class addEvent extends StatefulWidget {
+  final Group group;
 
-  EventNoteWidget({Key? key, this.user, this.group}) : super(key: key);
+  addEvent({Key? key, required this.group}) : super(key: key);
 
   @override
-  _EventNoteWidgetState createState() =>
-      _EventNoteWidgetState(user: user, group: group);
+  _addEventState createState() => _addEventState(group: group);
 }
 
-class _EventNoteWidgetState extends State<EventNoteWidget> {
+class _addEventState extends State<addEvent> {
   //** LOGIC VARIABLES  */
-  User? _user;
-  Group? _group;
+  late User _user;
+  Group _group;
   Event? event;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
@@ -77,28 +71,23 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   List<User> _selectedUsers = [];
   UserService _userService = new UserService();
   late bool isLoading;
+  late Group fetchedUpdatedGroup;
 
   //** LOGIC FOR THE VIEW */////////
-  _EventNoteWidgetState({User? user, Group? group})
-      : _user = user,
-        _group = group {
+  _addEventState({required Group group}) : _group = group {
     isLoading = true;
     _initialize();
   }
 
   Future<void> _initialize() async {
     _selectedEventColor = _colorList.last;
-    if (_user != null) {
-      // Initialize eventList based on user
-      _eventList = _user!.events;
-    } else if (_group != null) {
-      // Initialize eventList based on group
-      _eventList = _group!.calendar.events;
-      if (_group!.userIds.isNotEmpty) {
-        for (var userId in _group!.userIds) {
-          User user = await _userService.getUserById(userId);
-          _users.add(user);
-        }
+
+    // Initialize eventList based on group
+    _eventList = _group.calendar.events;
+    if (_group.userIds.isNotEmpty) {
+      for (var userId in _group.userIds) {
+        User user = await _userService.getUserById(userId);
+        _users.add(user);
       }
     }
 
@@ -120,8 +109,10 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _notificationManagement = Provider.of<NotificationManagement>(context);
     _userManagement = Provider.of<UserManagement>(context);
     _groupManagement = Provider.of<GroupManagement>(context);
+    _user = _userManagement.currentUser!;
   }
 
   @override
@@ -207,236 +198,245 @@ class _EventNoteWidgetState extends State<EventNoteWidget> {
     }
   }
 
-  void _addEvent() async {
-    // Get the event title from the text controller
-    String eventTitle = _titleController.text;
+  Future<void> _addEvent() async {
+    try {
+      // Get the event title from the text controller
+      String eventTitle = _titleController.text.trim();
 
-    // Clean up the location text by removing unwanted characters
-    String extractedText =
-        _locationController.value.text.replaceAll(RegExp(r'[┤├]'), '');
+      // Clean up the location text by removing unwanted characters
+      String extractedText =
+          _locationController.text.replaceAll(RegExp(r'[┤├]'), '');
 
-    List<String> _usersIds = [];
-
-    //Fill up the user's id in the list for the selected uses
-    for (var user in _selectedUsers) {
-      _usersIds.add(user.id);
-    }
-
-    // Check if the event title is not empty
-    if (eventTitle.trim().isNotEmpty) {
-      // Create a new event object with the provided details
-      Event newEvent = Event(
-          id: Utilities.generateRandomId(10),
-          startDate: _selectedStartDate,
-          endDate: _selectedEndDate,
-          title: _titleController.text,
-          groupId: _group?.id,
-          recurrenceRule: _recurrenceRule,
-          localization: extractedText,
-          allDay: event?.allDay ?? false,
-          description: _descriptionController.text,
-          eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
-          recipients: _usersIds,
-          ownerID: _user!.id);
-
-      // Check if repetitive events are allowed in the group
-      bool allowRepetitiveHours = _group!.repetitiveEvents;
-
-      // Create an update information
-      newEvent.addUpdate(_user!.id);
-
-      // Log the new event details
-      devtools.log("New Event: ${newEvent.startDate.toIso8601String()}");
-
-      // Log the current event list before checking for duplicates
-      devtools.log("Event list before checking: ${_eventList.toString()}");
-
-      // Check if an event with the same start date and time already exists
-      bool eventExists = false;
-      if (allowRepetitiveHours && _eventList.isNotEmpty) {
-        eventExists = _eventList.any((event) {
-          return event.startDate.year == newEvent.startDate.year &&
-              event.startDate.month == newEvent.startDate.month &&
-              event.startDate.day == newEvent.startDate.day &&
-              event.startDate.hour == newEvent.startDate.hour;
-        });
-      }
-
-      // If a duplicate event exists, show a dialog and return
-      if (eventExists) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.repetitionEvent),
-              content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
-              actions: [
-                TextButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                ),
-              ],
-            );
-          },
+      // Ensure the title is not empty
+      if (eventTitle.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorEventNote)),
         );
         return;
       }
 
-      // Try to add the new event using the event service
-      bool eventAdded = await _eventService.createEvent(newEvent);
+      // Gather user IDs for the selected users
+      List<String> _usersIds = _selectedUsers.map((user) => user.id).toList();
 
-      // If the event was added successfully
-      if (eventAdded) {
-        Event fetchedEvent = _eventService.event;
-        setState(() {
-          _eventList.add(fetchedEvent);
-          devtools.log("Updated Event List: ${_eventList.toString()}");
+      // Create a new event object
+      Event newEvent = Event(
+        id: Utilities.generateRandomId(10),
+        startDate: _selectedStartDate,
+        endDate: _selectedEndDate,
+        title: eventTitle,
+        groupId: _group.id,
+        recurrenceRule: _recurrenceRule,
+        localization: extractedText,
+        allDay: event?.allDay ?? false,
+        description: _descriptionController.text,
+        eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
+        recipients: _usersIds,
+        ownerID: _user.id, // Ensure owner ID is valid
+      );
+
+      devtools
+          .log("New Event Created: ${newEvent.startDate.toIso8601String()}");
+
+      // Check for duplicate events if repetitive events are allowed
+      if (_group.repetitiveEvents && _eventList.isNotEmpty) {
+        bool eventExists = _eventList.any((existingEvent) {
+          return existingEvent.startDate.year == newEvent.startDate.year &&
+              existingEvent.startDate.month == newEvent.startDate.month &&
+              existingEvent.startDate.day == newEvent.startDate.day &&
+              existingEvent.startDate.hour == newEvent.startDate.hour;
         });
 
-        // Update the user's event list and show a success message
-        if (_user != null) {
-          _user!.events.add(fetchedEvent);
-          await _userManagement.updateUser(_user!);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
-          );
+        if (eventExists) {
+          // Show repetition event warning dialog
+          _showRepetitionDialog();
+          return;
         }
-        // Update the group's event list and show a success message
-        else if (_group != null) {
-          _group?.calendar.events.add(fetchedEvent);
-          devtools.log("This is the group value: ${_group.toString()}");
-          await _groupManagement.updateGroup(_group!, _userManagement,
-              _notificationManagement, _group!.invitedUsers);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(AppLocalizations.of(context)!.eventAddedGroup)),
-          );
-        }
-
-        // Clear the input fields
-        _clearFields();
       }
-      // If the event was not added, show an error dialog
-      else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.event),
-              content: Text(AppLocalizations.of(context)!.errorEventCreation),
-              actions: [
-                TextButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                ),
-              ],
-            );
-          },
+
+      // Attempt to add the new event through the event service
+      bool eventAdded = await _eventService.createEvent(newEvent);
+
+      if (eventAdded) {
+        // Fetch and log the added event
+        Event fetchedEvent = _eventService.event;
+        devtools.log("Event added successfully: ${fetchedEvent.toString()}");
+
+        // Update local state with the new event
+        setState(() {
+          _eventList.add(fetchedEvent);
+          _user.events.add(fetchedEvent);
+        });
+
+        // Update the user's event list
+        await _userManagement.updateUser(_user);
+
+        // Update the group's event list and sync with group management
+        _group.calendar.events.add(fetchedEvent);
+        await _groupManagement.updateGroup(_group, _userManagement,
+            _notificationManagement, _group.invitedUsers);
+
+        // Fetch the updated group
+        fetchedUpdatedGroup =
+            await _groupManagement.groupService.getGroupById(_group.id);
+
+        _groupManagement.currentGroup = fetchedUpdatedGroup;
+
+        // Show success messages
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.eventCreated)),
         );
-      }
-    }
-    // If the event title is empty, show an error message
-    else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.errorEventNote)),
-      );
-    }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.eventAddedGroup)),
+        );
 
-    // Reload the screen
-    _reloadScreen();
+        // Clear the form fields after successful event creation
+        _clearFields();
+      } else {
+        // Show error dialog if event creation failed
+        _showErrorDialog();
+      }
+    } catch (e) {
+      // Log and handle any unexpected errors
+      devtools.log("Error adding event: $e");
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text(AppLocalizations.of(context)!.errorGeneral)),
+      // );
+    }
+  }
+
+// Helper function to show repetition event warning dialog
+  void _showRepetitionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.repetitionEvent),
+          content: Text(AppLocalizations.of(context)!.repetitionEventInfo),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+// Helper function to show error dialog if event creation fails
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.event),
+          content: Text(AppLocalizations.of(context)!.errorEventCreation),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.event),
-      ),
-      body: SingleChildScrollView(
-        child: isLoading
-            ? Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ColorPickerWidget(
-                      selectedEventColor: _selectedEventColor,
-                      onColorChanged: (color) {
-                        setState(() {
-                          _selectedEventColor = color!;
-                        });
-                      },
-                      colorList: _colorList,
-                    ),
-                    SizedBox(height: 10),
-                    TitleInputWidget(titleController: _titleController),
-                    SizedBox(height: 10),
-                    DatePickersWidget(
-                      startDate: _selectedStartDate,
-                      endDate: _selectedEndDate,
-                      onStartDateTap: () => _selectDate(context, true),
-                      onEndDateTap: () => _selectDate(context, false),
-                    ),
-                    SizedBox(height: 10),
-                    LocationInputWidget(
-                        locationController: _locationController),
-                    SizedBox(height: 10),
-                    DescriptionInputWidget(
-                        descriptionController: _descriptionController),
-                    SizedBox(height: 10),
-                    NoteInputWidget(noteController: _noteController),
-                    SizedBox(height: 10),
-                    RepetitionToggleWidget(
-                      isRepetitive: isRepetitive,
-                      toggleWidth: toggleWidth,
-                      onTap: () async {
-                        final List<dynamic>? result = await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return RepetitionDialog(
-                              selectedStartDate: _selectedStartDate,
-                              selectedEndDate: _selectedEndDate,
-                              initialRecurrenceRule: _recurrenceRule,
-                            );
-                          },
-                        );
-                        if (result != null && result.isNotEmpty) {
+    return WillPopScope(
+      onWillPop: () async {
+        // When the user presses the system back button, pass the updated group
+        // await _addEvent();
+        // Navigator.pop(context, fetchedUpdatedGroup);
+        return true; // Prevents the default back action, since we handle it
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.event),
+        ),
+        body: SingleChildScrollView(
+          child: isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ColorPickerWidget(
+                        selectedEventColor: _selectedEventColor,
+                        onColorChanged: (color) {
                           setState(() {
-                            isRepetitive = result[1];
-                            _recurrenceRule = result[0] ?? _recurrenceRule;
+                            _selectedEventColor = color!;
                           });
-                        }
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    // UserDropdownTrigger(usersAvailable: _users),
-                    UserExpandableCard(usersAvailable: _users),
-                    SizedBox(height: 25),
-                    AddEventButtonWidget(
-                      onAddEvent: () {
-                        if (_titleController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('Please enter a title for the event.'),
-                            ),
+                        },
+                        colorList: _colorList,
+                      ),
+                      SizedBox(height: 10),
+                      TitleInputWidget(titleController: _titleController),
+                      SizedBox(height: 10),
+                      DatePickersWidget(
+                        startDate: _selectedStartDate,
+                        endDate: _selectedEndDate,
+                        onStartDateTap: () => _selectDate(context, true),
+                        onEndDateTap: () => _selectDate(context, false),
+                      ),
+                      SizedBox(height: 10),
+                      LocationInputWidget(
+                          locationController: _locationController),
+                      SizedBox(height: 10),
+                      DescriptionInputWidget(
+                          descriptionController: _descriptionController),
+                      SizedBox(height: 10),
+                      NoteInputWidget(noteController: _noteController),
+                      SizedBox(height: 10),
+                      RepetitionToggleWidget(
+                        isRepetitive: isRepetitive,
+                        toggleWidth: toggleWidth,
+                        onTap: () async {
+                          final List<dynamic>? result = await showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return RepetitionDialog(
+                                selectedStartDate: _selectedStartDate,
+                                selectedEndDate: _selectedEndDate,
+                                initialRecurrenceRule: _recurrenceRule,
+                              );
+                            },
                           );
-                        } else {
-                          _addEvent();
-                          _reloadScreen();
-                        }
-                      },
-                    ),
-                  ],
+                          if (result != null && result.isNotEmpty) {
+                            setState(() {
+                              isRepetitive = result[1];
+                              _recurrenceRule = result[0] ?? _recurrenceRule;
+                            });
+                          }
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      UserExpandableCard(usersAvailable: _users),
+                      SizedBox(height: 25),
+                      AddEventButtonWidget(
+                        onAddEvent: () async {
+                          if (_titleController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('Please enter a title for the event.'),
+                              ),
+                            );
+                          } else {
+                            await _addEvent();
+                            // Pop with the updated group after adding the event
+                            Navigator.pop(context, fetchedUpdatedGroup);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

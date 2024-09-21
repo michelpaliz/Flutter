@@ -107,7 +107,6 @@ class User {
   //   };
   // }
 
-
   // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -194,6 +193,21 @@ class User {
 
   static Future<User> fromFirebaseUser(firebase_auth.User firebaseUser) {
     return getUserByEmail(firebaseUser.email!);
+  }
+
+  static createDefaultUser() {
+    return User(
+      id: 'default_id',
+      authID: 'default_auth_id',
+      name: 'Default User Name',
+      email: 'default@example.com',
+      userName: 'default_username', // Default user name
+      events: [], // Empty list for events
+      groupIds: [], // Empty list for group IDs
+      photoUrl: 'default_photo_url', // Default photo URL or null
+      notifications: [], // Empty list for notifications
+      hasNewNotifications: false, // Default value for new notifications
+    );
   }
 
   @override

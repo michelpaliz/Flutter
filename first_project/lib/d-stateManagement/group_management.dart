@@ -244,12 +244,13 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
-  Future<void> updateGroup(
+  Future<bool> updateGroup(
       Group updatedGroup,
       UserManagement userManagement,
       NotificationManagement notificationManagement,
       Map<String, UserInviteStatus>? invitedUsers) async {
     try {
+      groupService.updateGroup(updatedGroup);
       final notificationFormat = NotificationFormats();
       NotificationUser editingNotification = notificationFormat
           .whenEditingGroup(updatedGroup, userManagement.currentUser!);
@@ -266,12 +267,15 @@ class GroupManagement extends ChangeNotifier {
           updatedGroup, notificationManagement, userManagement, invitedUsers);
       if (result) {
         fetchAndInitializeGroups(currentUser.groupIds); // Re-fetch groups
+        return true; // Indicate success
       } else {
         devtools.log("Group couldn't be updated = ${updatedGroup.toString()}");
+        return false; // Indicate failure
       }
     } catch (e, stackTrace) {
       devtools.log('Failed to update group: $e',
           error: e, stackTrace: stackTrace);
+      return false; // Indicate failure due to exception
     }
   }
 

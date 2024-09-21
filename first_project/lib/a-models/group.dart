@@ -105,6 +105,23 @@ class Group {
     return true;
   }
 
+  static createDefaultGroup() {
+  return Group(
+    id: 'default_id',
+    name: 'Default Group Name',
+    ownerId: 'default_owner_id',
+    userRoles: {}, // Empty map for user roles
+    calendar: Calendar.createDefaultCalendar(), // Assuming Calendar has a default constructor
+    userIds: [], // Empty list for user IDs
+    createdTime: DateTime.now(), // Current time as default
+    repetitiveEvents: false,
+    description: 'Default Description',
+    photo: 'default_photo_url', // Default photo URL or empty string
+    invitedUsers: {}, // Empty map for invited users
+  );
+}
+
+
   @override
   String toString() {
     return 'Group{id: $id, groupName: $name, ownerId: $ownerId, userRoles: $userRoles, calendar: $calendar, userIds: $userIds, createdTime: $createdTime, repetitiveEvents: $repetitiveEvents, description: $description, photo: $photo, invitedUsers: $invitedUsers}';
