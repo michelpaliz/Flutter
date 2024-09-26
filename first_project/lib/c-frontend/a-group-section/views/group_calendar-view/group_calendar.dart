@@ -15,10 +15,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import '../../../a-models/event.dart';
-import '../../../a-models/group.dart';
-import '../../../enums/routes/appRoutes.dart';
-import '../../../styles/drawer-style-menu/my_drawer.dart';
+import '../../../../a-models/event.dart';
+import '../../../../a-models/group.dart';
+import '../../../../enums/routes/appRoutes.dart';
+import '../../../../styles/drawer-style-menu/my_drawer.dart';
 
 class GroupCalendar extends StatefulWidget {
   final Group group;
