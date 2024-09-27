@@ -2,13 +2,13 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/mettingDataSource.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/a-calendar/a-main_calendar_view.dart';
 import 'package:first_project/c-frontend/b-event-section/event_detail.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
-import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:first_project/utilities/color_manager.dart';
-import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
@@ -39,9 +39,10 @@ class _GroupCalendarState extends State<GroupCalendar> {
   late double _screenWidth;
   late double _calendarHeight;
   late Map<String, String> _users;
-  String userRole = "";
+  String _userRole = "";
   late UserManagement _userManagement;
   late GroupManagement _groupManagement;
+  late NotificationManagement _notificationManagement;
   late EventService _eventService;
   late DataSource dataSource;
 
@@ -67,10 +68,11 @@ class _GroupCalendarState extends State<GroupCalendar> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _userManagement = Provider.of<UserManagement>(context);
+    _notificationManagement = Provider.of<NotificationManagement>(context);
     _groupManagement = Provider.of<GroupManagement>(context);
     devtools.log(
         "This is currentUser from details : ${_userManagement.currentUser}");
-    userRole = _getRoleByName(_userManagement.currentUser!.userName)!;
+    _userRole = _getRoleByName(_userManagement.currentUser!.userName)!;
     if (_groupManagement.currentGroup != _group) {
       _group = _groupManagement.currentGroup!;
       _events = _group.calendar.events;
@@ -262,152 +264,163 @@ class _GroupCalendarState extends State<GroupCalendar> {
     );
   }
 
-  Widget _buildBody(BuildContext context) {
-    return Column(
-      children: [
-        _buildCalendar(context),
-        if (userRole == 'Administrator' || userRole == 'Co-Administrator')
-          _buildAddEventButton(context),
-        SizedBox(height: 15),
-      ],
-    );
-  }
+Widget _buildBody(BuildContext context) {
+  return Column(
+    children: [
+      _buildCalendar(context),  // Will use the embedded MainCalendarView here
+      if (_userRole == 'Administrator' || _userRole == 'Co-Administrator')
+        _buildAddEventButton(context),
+      SizedBox(height: 15),
+    ],
+  );
+}
 
-  Widget _buildCalendar(BuildContext context) {
-    Color textColor = ThemeColors.getTextColor(context);
-    return Container(
-      height: _calendarHeight,
-      child: SfCalendar(
-        allowedViews: [
-          CalendarView.month,
-          CalendarView.schedule,
-          CalendarView.day,
-          CalendarView.week,
-          CalendarView.timelineDay,
-          CalendarView.timelineWeek,
-          CalendarView.timelineMonth,
-        ],
-        controller: _controller,
-        onViewChanged: (ViewChangedDetails viewChangedDetails) {
-          Future.delayed(Duration.zero, () {
-            setState(() {
-              _selectedView = _controller.view!;
-            });
-          });
-        },
-        showNavigationArrow: true,
-        firstDayOfWeek: DateTime.monday,
-        initialSelectedDate: DateTime.now(),
-        view: _selectedView,
-        showDatePickerButton: true,
-        headerStyle: CalendarHeaderStyle(
-          textAlign: TextAlign.center,
-        ),
-        onSelectionChanged: (CalendarSelectionDetails details) {
-          if (details.date != null) {
-            Future.delayed(Duration.zero, () {
-              DateTime selectedDateUtc = details.date!.toUtc();
-              setState(() {
-                _selectedDate = selectedDateUtc.toUtc();
-              });
-              _getEventsForDate(selectedDateUtc);
-            });
-          }
-        },
-        scheduleViewMonthHeaderBuilder: (BuildContext buildContext,
-            ScheduleViewMonthHeaderDetails details) {
-          final String monthName = Utilities.getMonthDate(details.date.month);
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Stack(
-              children: [
-                Image(
-                  image: ExactAssetImage(
-                      'assets/images/' + monthName.toLowerCase() + '.png'),
-                  fit: BoxFit.cover,
-                  width: details.bounds.width,
-                  height: details.bounds.height,
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 20,
-                  bottom: 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      color: Colors.grey[200],
-                      child: Text(
-                        monthName + ' ' + details.date.year.toString(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          );
-        },
-        scheduleViewSettings: ScheduleViewSettings(
-          appointmentItemHeight: 150,
-          monthHeaderSettings: MonthHeaderSettings(
-            monthFormat: 'MMMM, yyyy',
-            height: 100,
-            textAlign: TextAlign.left,
-            backgroundColor: Color.fromARGB(255, 3, 87, 102),
-            monthTextStyle: TextStyle(
-              fontFamily: 'lato',
-              fontSize: 22,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-        viewHeaderStyle: ViewHeaderStyle(
-          dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
-          backgroundColor: Color.fromARGB(255, 180, 237, 248),
-          dayTextStyle: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'lato',
-          ),
-        ),
-        monthCellBuilder: (context, details) {
-          return _buildMonthCell(details);
-        },
-        monthViewSettings: MonthViewSettings(
-          showAgenda: true,
-          agendaItemHeight: 85,
-          dayFormat: 'EEE',
-          appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
-          appointmentDisplayCount: 4,
-          showTrailingAndLeadingDates: false,
-          navigationDirection: MonthNavigationDirection.vertical,
-        ),
-        appointmentBuilder:
-            (BuildContext context, CalendarAppointmentDetails details) {
-          switch (_controller.view) {
-            case CalendarView.week:
-              return _buildWeekAppointment(details, textColor, context);
-            case CalendarView.timelineDay:
-              return _buildTimelineDayAppointment(details, textColor, context);
-            case CalendarView.timelineWeek:
-              return _buildTimelineWeekAppointment(details, textColor, context);
-            case CalendarView.timelineMonth:
-              return _buildTimelineMonthAppointment(
-                  details, textColor, context);
-            default:
-              return _defaultBuildAppointment(details, textColor, context);
-          }
-        },
-        dataSource: dataSource,
-      ),
-    );
-  }
+Widget _buildCalendar(BuildContext context) {
+  return MainCalendarView(
+    group: _group,  // Provide the group object here
+    eventService: _eventService,  // Pass EventService instance
+    colorManager:  new ColorManager(),  // Pass ColorManager instance
+    groupManagement: _groupManagement,  // Pass GroupManagement instance
+    userManagement: _userManagement,  // Pass UserManagement instance
+    notificationManagement: _notificationManagement, userRole: _userRole,  // Pass NotificationManagement instance
+  );
+}
+
+  // Widget _buildCalendar(BuildContext context) {
+  //   Color textColor = ThemeColors.getTextColor(context);
+  //   return Container(
+  //     height: _calendarHeight,
+  //     child: SfCalendar(
+  //       allowedViews: [
+  //         CalendarView.month,
+  //         CalendarView.schedule,
+  //         CalendarView.day,
+  //         CalendarView.week,
+  //         CalendarView.timelineDay,
+  //         CalendarView.timelineWeek,
+  //         CalendarView.timelineMonth,
+  //       ],
+  //       controller: _controller,
+  //       onViewChanged: (ViewChangedDetails viewChangedDetails) {
+  //         Future.delayed(Duration.zero, () {
+  //           setState(() {
+  //             _selectedView = _controller.view!;
+  //           });
+  //         });
+  //       },
+  //       showNavigationArrow: true,
+  //       firstDayOfWeek: DateTime.monday,
+  //       initialSelectedDate: DateTime.now(),
+  //       view: _selectedView,
+  //       showDatePickerButton: true,
+  //       headerStyle: CalendarHeaderStyle(
+  //         textAlign: TextAlign.center,
+  //       ),
+  //       onSelectionChanged: (CalendarSelectionDetails details) {
+  //         if (details.date != null) {
+  //           Future.delayed(Duration.zero, () {
+  //             DateTime selectedDateUtc = details.date!.toUtc();
+  //             setState(() {
+  //               _selectedDate = selectedDateUtc.toUtc();
+  //             });
+  //             _getEventsForDate(selectedDateUtc);
+  //           });
+  //         }
+  //       },
+  //       scheduleViewMonthHeaderBuilder: (BuildContext buildContext,
+  //           ScheduleViewMonthHeaderDetails details) {
+  //         final String monthName = Utilities.getMonthDate(details.date.month);
+  //         return Padding(
+  //           padding: const EdgeInsets.all(8.0),
+  //           child: Stack(
+  //             children: [
+  //               Image(
+  //                 image: ExactAssetImage(
+  //                     'assets/images/' + monthName.toLowerCase() + '.png'),
+  //                 fit: BoxFit.cover,
+  //                 width: details.bounds.width,
+  //                 height: details.bounds.height,
+  //               ),
+  //               Positioned(
+  //                 left: 0,
+  //                 right: 0,
+  //                 top: 20,
+  //                 bottom: 0,
+  //                 child: Center(
+  //                   child: Container(
+  //                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //                     color: Colors.grey[200],
+  //                     child: Text(
+  //                       monthName + ' ' + details.date.year.toString(),
+  //                       style: TextStyle(
+  //                         fontSize: 18,
+  //                         fontWeight: FontWeight.bold,
+  //                         color: Colors.grey[700],
+  //                       ),
+  //                       textAlign: TextAlign.center,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               )
+  //             ],
+  //           ),
+  //         );
+  //       },
+  //       scheduleViewSettings: ScheduleViewSettings(
+  //         appointmentItemHeight: 150,
+  //         monthHeaderSettings: MonthHeaderSettings(
+  //           monthFormat: 'MMMM, yyyy',
+  //           height: 100,
+  //           textAlign: TextAlign.left,
+  //           backgroundColor: Color.fromARGB(255, 3, 87, 102),
+  //           monthTextStyle: TextStyle(
+  //             fontFamily: 'lato',
+  //             fontSize: 22,
+  //             fontWeight: FontWeight.w400,
+  //           ),
+  //         ),
+  //       ),
+  //       viewHeaderStyle: ViewHeaderStyle(
+  //         dateTextStyle: TextStyle(fontFamily: 'lato', color: Colors.black),
+  //         backgroundColor: Color.fromARGB(255, 180, 237, 248),
+  //         dayTextStyle: TextStyle(
+  //           color: Colors.black,
+  //           fontWeight: FontWeight.bold,
+  //           fontFamily: 'lato',
+  //         ),
+  //       ),
+  //       monthCellBuilder: (context, details) {
+  //         return _buildMonthCell(details);
+  //       },
+  //       monthViewSettings: MonthViewSettings(
+  //         showAgenda: true,
+  //         agendaItemHeight: 85,
+  //         dayFormat: 'EEE',
+  //         appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
+  //         appointmentDisplayCount: 4,
+  //         showTrailingAndLeadingDates: false,
+  //         navigationDirection: MonthNavigationDirection.vertical,
+  //       ),
+  //       appointmentBuilder:
+  //           (BuildContext context, CalendarAppointmentDetails details) {
+  //         switch (_controller.view) {
+  //           case CalendarView.week:
+  //             return _buildWeekAppointment(details, textColor, context);
+  //           case CalendarView.timelineDay:
+  //             return _buildTimelineDayAppointment(details, textColor, context);
+  //           case CalendarView.timelineWeek:
+  //             return _buildTimelineWeekAppointment(details, textColor, context);
+  //           case CalendarView.timelineMonth:
+  //             return _buildTimelineMonthAppointment(
+  //                 details, textColor, context);
+  //           default:
+  //             return _defaultBuildAppointment(details, textColor, context);
+  //         }
+  //       },
+  //       dataSource: dataSource,
+  //     ),
+  //   );
+  // }
 
   Widget _buildMonthCell(MonthCellDetails details) {
     if (details.date.weekday == DateTime.saturday ||
@@ -528,7 +541,7 @@ class _GroupCalendarState extends State<GroupCalendar> {
       Event event, BuildContext context, Color textColor, appointment) {
     return GestureDetector(
       onTap: () {
-        if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+        if (_userRole == 'Administrator' || _userRole == 'Co-Administrator') {
           _editEvent(event, context);
         }
       },
@@ -542,7 +555,7 @@ class _GroupCalendarState extends State<GroupCalendar> {
           child: Icon(Icons.delete, color: Colors.white),
         ),
         confirmDismiss: (direction) async {
-          if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+          if (_userRole == 'Administrator' || _userRole == 'Co-Administrator') {
             final bool confirm =
                 await _showRemoveConfirmationDialog(event, context);
             return confirm;
@@ -633,7 +646,7 @@ class _GroupCalendarState extends State<GroupCalendar> {
       Event event, BuildContext context, Color textColor, appointment) {
     return GestureDetector(
       onTap: () {
-        if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+        if (_userRole == 'Administrator' || _userRole == 'Co-Administrator') {
           _editEvent(event, context);
         }
       },
@@ -647,7 +660,7 @@ class _GroupCalendarState extends State<GroupCalendar> {
           child: Icon(Icons.delete, color: Colors.white),
         ),
         confirmDismiss: (direction) async {
-          if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
+          if (_userRole == 'Administrator' || _userRole == 'Co-Administrator') {
             final bool confirm =
                 await _showRemoveConfirmationDialog(event, context);
             return confirm;
@@ -889,8 +902,7 @@ class _GroupCalendarState extends State<GroupCalendar> {
                       updatedGroup; // Update the parent widget's state with the new group
                 });
 
-                //TODO: try to update here the UI using reload 
-
+                //TODO: try to update here the UI using reload
               }
             },
           ),

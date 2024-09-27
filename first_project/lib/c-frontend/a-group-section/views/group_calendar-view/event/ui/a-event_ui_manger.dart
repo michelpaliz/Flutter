@@ -7,7 +7,6 @@ import 'package:first_project/utilities/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-
 class EventUIManager {
   final ColorManager colorManager;
   final EventContentBuilder contentBuilder;
@@ -22,32 +21,37 @@ class EventUIManager {
   });
 
   // Delegates the responsibility to sub-managers or builders
-  Widget buildEventDetails(Event event, BuildContext context, Color textColor, dynamic appointment, String userRole) {
+  Widget buildEventDetails(Event event, BuildContext context, Color textColor,
+      dynamic appointment, String userRole) {
     // Delegates to EventDisplayManager
-    return displayManager.buildEventDetails(event, context, textColor, appointment, userRole);
+    return displayManager.buildEventDetails(
+        event, context, textColor, appointment, userRole);
   }
 
   // Builds future event content, delegating to the EventDisplayManager
   Widget buildFutureEventContent(
-    String eventId, 
-    Color textColor, 
-    BuildContext context, 
-    dynamic appointment,
-    Future<Event?> Function(String) fetchEvent
-  ) {
+      String eventId,
+      Color textColor,
+      BuildContext context,
+      dynamic appointment,
+      Future<Event?> Function(String) fetchEvent) {
     // Delegates to EventDisplayManager, no need to pass fetchEvent because it is handled internally
-    return displayManager.buildFutureEventContent(eventId, textColor, context, appointment);
+    return displayManager.buildFutureEventContent(
+        eventId, textColor, context, appointment);
   }
 
   // Builds the add event button, delegating to EventActionManager
-  Widget buildAddEventButton(BuildContext context, Group group, Function(Group) updateGroup) {
+  Widget buildAddEventButton(
+      BuildContext context, Group group, Function(Group) updateGroup) {
     // Delegates to EventActionManager
-    return actionManager.buildAddEventButton(context, group, updateGroup);
+    return actionManager.buildAddEventButton(context, group);
   }
 
   // Builds non-month-view events, delegating to the EventDisplayManager
-  Widget buildNonMonthViewEvent(Event event, CalendarAppointmentDetails details, Color textColor, BuildContext context) {
+  Widget buildNonMonthViewEvent(Event event, CalendarAppointmentDetails details,
+      Color textColor, BuildContext context) {
     // Delegates to EventDisplayManager
-    return displayManager.buildNonMonthViewEvent(event, details, textColor, context);
+    return displayManager.buildNonMonthViewEvent(
+        event, details, textColor, context);
   }
 }

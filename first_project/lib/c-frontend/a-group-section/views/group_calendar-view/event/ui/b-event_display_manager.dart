@@ -183,6 +183,8 @@ class EventDisplayManager {
     );
   }
 
+  
+
   // Show permission denied dialog
   void _showPermissionDeniedDialog(BuildContext context) {
     showDialog(

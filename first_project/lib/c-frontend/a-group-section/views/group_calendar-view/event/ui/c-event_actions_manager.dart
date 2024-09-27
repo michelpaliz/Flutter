@@ -1,10 +1,13 @@
+import 'package:first_project/a-models/userInvitationStatus.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/event/backend/d-event_data_manager.dart';
+import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/d-stateManagement/notification_management.dart';
+import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 import 'package:first_project/a-models/event.dart';
 import 'package:first_project/a-models/group.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
-
 
 // The EventActionManager class is primarily focused on handling UI-related actions for events, with direct delegation to EventDataManager for data-related operations. It provides methods for managing event-related actions, like adding, editing, and removing events. Here's a breakdown of its role compared to the other classes:
 // 1. Primary Purpose
@@ -59,15 +62,19 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 //         It ensures that the right screens are displayed when a user wants to modify events (e.g., adding or editing an event).
 //         It ensures that any changes made on those screens (like adding a new event) are reflected in the app by updating the group or event data via EventDataManager.
 
-
 class EventActionManager {
   final EventDataManager eventDataManager;
+  final GroupManagement groupManagement;
+  final UserManagement userManagement;
+  final NotificationManagement notificationManagement;
+  Map<String, UserInviteStatus>? invitedUsers;
 
-  EventActionManager({required this.eventDataManager});
+  EventActionManager(
+      this.groupManagement, this.userManagement, this.notificationManagement,
+      {required this.eventDataManager});
 
   // Build the add event button
-  Widget buildAddEventButton(
-      BuildContext context, Group group, Function(Group) updateGroup) {
+  Widget buildAddEventButton(BuildContext context, Group group) {
     return Expanded(
       child: Align(
         alignment: Alignment.bottomCenter,
@@ -88,7 +95,8 @@ class EventActionManager {
               );
 
               if (updatedGroup != null && updatedGroup is Group) {
-                updateGroup(updatedGroup);
+                groupManagement.updateGroup(updatedGroup, userManagement,
+                    notificationManagement, invitedUsers);
               }
             },
           ),
