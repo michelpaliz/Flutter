@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/mettingDataSource.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
-import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/a-calendar/a-main_calendar_view.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/1-calendar/1.1-main_calendar_view.dart';
 import 'package:first_project/c-frontend/b-event-section/event_detail.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
@@ -264,27 +264,40 @@ class _GroupCalendarState extends State<GroupCalendar> {
     );
   }
 
-Widget _buildBody(BuildContext context) {
-  return Column(
-    children: [
-      _buildCalendar(context),  // Will use the embedded MainCalendarView here
-      if (_userRole == 'Administrator' || _userRole == 'Co-Administrator')
-        _buildAddEventButton(context),
-      SizedBox(height: 15),
-    ],
-  );
-}
+// Widget _buildBody(BuildContext context) {
+//   return Column(
 
-Widget _buildCalendar(BuildContext context) {
-  return MainCalendarView(
-    group: _group,  // Provide the group object here
-    eventService: _eventService,  // Pass EventService instance
-    colorManager:  new ColorManager(),  // Pass ColorManager instance
-    groupManagement: _groupManagement,  // Pass GroupManagement instance
-    userManagement: _userManagement,  // Pass UserManagement instance
-    notificationManagement: _notificationManagement, userRole: _userRole,  // Pass NotificationManagement instance
-  );
-}
+//     children: [
+//       _buildCalendar(context),  // Will use the embedded MainCalendarView here
+//       if (_userRole == 'Administrator' || _userRole == 'Co-Administrator')
+//         _buildAddEventButton(context),
+//       SizedBox(height: 15),
+//     ],
+//   );
+// }
+
+  Widget _buildBody(BuildContext context) {
+    return Column(
+      children: [
+        // Wrap MainCalendarView with Expanded to let it take up the available space
+        Expanded(
+          child: _buildCalendar(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendar(BuildContext context) {
+    return MainCalendarView(
+      group: _group, // Provide the group object here
+      eventService: _eventService, // Pass EventService instance
+      colorManager: new ColorManager(), // Pass ColorManager instance
+      groupManagement: _groupManagement, // Pass GroupManagement instance
+      userManagement: _userManagement, // Pass UserManagement instance
+      notificationManagement: _notificationManagement,
+      userRole: _userRole, // Pass NotificationManagement instance
+    );
+  }
 
   // Widget _buildCalendar(BuildContext context) {
   //   Color textColor = ThemeColors.getTextColor(context);

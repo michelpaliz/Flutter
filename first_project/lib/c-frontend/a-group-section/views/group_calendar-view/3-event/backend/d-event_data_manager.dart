@@ -65,12 +65,10 @@ class EventDataManager {
   // Method to reload group data and update events
   Future<void> reloadData() async {
     Group? group = await _groupManagement.groupService.getGroupById(_group.id);
-    if (group != null) {
-      _group = group;
-      _events = group.calendar.events;
-      _updateCalendarDataSource();
+    _group = group;
+    _events = group.calendar.events;
+    _updateCalendarDataSource();
     }
-  }
 
   // Get events for a specific date
   List<Event> getEventsForDate(DateTime date) {

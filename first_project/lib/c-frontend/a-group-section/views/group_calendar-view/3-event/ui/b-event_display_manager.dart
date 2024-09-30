@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/event.dart';
-import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/event/ui/c-event_actions_manager.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/ui/c-event_actions_manager.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';

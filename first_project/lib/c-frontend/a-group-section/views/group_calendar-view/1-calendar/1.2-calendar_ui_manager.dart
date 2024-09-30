@@ -1,9 +1,9 @@
 import 'package:first_project/a-models/event.dart';
 import 'package:first_project/a-models/event_data_source.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
-import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/appointment/appointment_builder.dart';
-import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/event/backend/d-event_data_manager.dart';
-import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/event/ui/b-event_display_manager.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/2-appointment/2.1-appointment_builder.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/backend/d-event_data_manager.dart';
+import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/ui/b-event_display_manager.dart';
 import 'package:first_project/styles/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -36,6 +36,12 @@ class CalendarUIManager {
   Widget buildCalendar(BuildContext context, double height, double width) {
     Color textColor = ThemeColors.getTextColor(context);
 
+    // Dynamic dimensions
+    double appointmentItemHeight = height * 0.15; // 15% of the calendar height
+    double monthHeaderHeight = height * 0.1; // 10% of the calendar height
+    double agendaItemHeight = height * 0.1; // 10% of the calendar height
+    double fontSize = width * 0.04; // Font size 4% of the screen width
+
     return Container(
       height: height,
       width: width,
@@ -62,6 +68,10 @@ class CalendarUIManager {
         showDatePickerButton: true,
         headerStyle: CalendarHeaderStyle(
           textAlign: TextAlign.center,
+          textStyle: TextStyle(
+            fontSize: fontSize, // Dynamic font size
+            fontWeight: FontWeight.bold,
+          ),
         ),
         onSelectionChanged: (CalendarSelectionDetails details) {
           if (details.date != null) {
@@ -72,15 +82,15 @@ class CalendarUIManager {
           }
         },
         scheduleViewSettings: ScheduleViewSettings(
-          appointmentItemHeight: 150,
+          appointmentItemHeight: appointmentItemHeight, // Dynamic height
           monthHeaderSettings: MonthHeaderSettings(
             monthFormat: 'MMMM, yyyy',
-            height: 100,
+            height: monthHeaderHeight, // Dynamic height
             textAlign: TextAlign.left,
             backgroundColor: Color.fromARGB(255, 3, 87, 102),
             monthTextStyle: TextStyle(
               fontFamily: 'lato',
-              fontSize: 22,
+              fontSize: fontSize, // Dynamic font size
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -92,6 +102,7 @@ class CalendarUIManager {
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontFamily: 'lato',
+            fontSize: fontSize, // Dynamic font size
           ),
         ),
         monthCellBuilder: (context, details) {
@@ -99,7 +110,7 @@ class CalendarUIManager {
         },
         monthViewSettings: MonthViewSettings(
           showAgenda: true,
-          agendaItemHeight: 85,
+          agendaItemHeight: agendaItemHeight, // Dynamic agenda item height
           dayFormat: 'EEE',
           appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
           appointmentDisplayCount: 4,
