@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +17,7 @@ class AdminInfoCard extends StatelessWidget {
           title: Text('Admin: ${currentUser!.userName}'),
           subtitle: Text('Role: Administrator'),
           leading: CircleAvatar(
-            backgroundImage: Utilities.buildProfileImage(currentUser!.photoUrl),
+            backgroundImage: Utilities.buildProfileImage(currentUser!.photoUrl ?? ""),
           ),
         ),
       ),

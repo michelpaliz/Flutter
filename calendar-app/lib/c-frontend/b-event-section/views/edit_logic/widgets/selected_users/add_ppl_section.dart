@@ -1,5 +1,5 @@
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/c-frontend/a-group-section/views/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 

@@ -23,9 +23,9 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../a-models/event.dart';
-import '../../../../a-models/group.dart';
-import '../../../../a-models/user.dart';
+import '../../../../a-models/model/group_data/event.dart';
+import '../../../../a-models/model/group_data/group.dart';
+import '../../../../a-models/model/user_data/user.dart';
 
 class AddEvent extends StatefulWidget {
   final Group group;
@@ -112,7 +112,7 @@ class _AddEventState extends State<AddEvent> {
     _notificationManagement = Provider.of<NotificationManagement>(context);
     _userManagement = Provider.of<UserManagement>(context);
     _groupManagement = Provider.of<GroupManagement>(context);
-    _user = _userManagement.currentUser!;
+    _user = _userManagement.user!;
   }
 
   @override

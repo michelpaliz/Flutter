@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../a-models/user.dart';
+import '../../a-models/model/user_data/user.dart';
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
 
@@ -44,7 +44,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     // Initialize the _storeService using the providerManagement.
     // devtools.log("Error fetching groups: ${_userManagement.currentUser}");
 
-    User? user = _userManagement.currentUser;
+    User? user = _userManagement.user;
     if (user != null) {
       _currentUser = user;
     }

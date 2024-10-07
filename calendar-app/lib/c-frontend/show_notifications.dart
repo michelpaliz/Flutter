@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/enums/broad_category.dart';
-import 'package:first_project/a-models/group.dart';
 import 'package:first_project/a-models/userInvitationStatus.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
@@ -12,9 +14,6 @@ import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
-import '../a-models/notification_user.dart';
-import '../a-models/user.dart';
 
 class ShowNotifications extends StatefulWidget {
   final User user;
@@ -59,8 +58,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         Provider.of<NotificationManagement>(context, listen: false);
 
     // Check if _userManagement.currentUser is not null
-    if (_userManagement.currentUser != null) {
-      _currentUser = _userManagement.currentUser!;
+    if (_userManagement.user != null) {
+      _currentUser = _userManagement.user!;
       _notificationsStream = _notificationManagement.notificationStream;
       setState(() {
         _currentUser;
@@ -70,7 +69,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         await _fetchAndUpdateNotifications();
       });
     } else {
-      // Handle the case where currentUser is null, e.g., by showing a loading indicator
+      // Handle the case where user is null, e.g., by showing a loading indicator
       devtools.log("Current User is null");
     }
   }
@@ -212,7 +211,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
       // Remove the original notification by its ID
       bool notificationRemoved = await _notificationManagement
-          .removeNotificationById(notification, _userManagement);
+          .removeNotificationById(notification.id, _userManagement);
 
       if (notificationRemoved) {
         _showSnackBar('Notification accepted.');
@@ -289,7 +288,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
       // Remove the original invitation notification
       bool notificationRemoved = await _notificationManagement
-          .removeNotificationById(notification, _userManagement);
+          .removeNotificationById(notification.id, _userManagement);
 
       if (notificationAdded && notificationRemoved) {
         // Send a notification to the admin and show a success message
@@ -332,8 +331,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     final admin =
         await _userManagement.userService.getUserById(notification.senderId);
     admin.notifications.add(ntOwner);
-    admin.hasNewNotifications = true;
-    await _userManagement.userService.updateUser(admin);
+    // admin.hasNewNotifications = true;
+    await _userManagement.userService.updateUser(admin.toDTO());
   }
 
   Future<void> _removeAllNotifications() async {
@@ -366,7 +365,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       // Proceed with removing all notifications
       _notificationManagement.clearNotifications();
       _currentUser.notifications.clear();
-      await _userManagement.userService.updateUser(_currentUser);
+      await _userManagement.userService.updateUser(_currentUser.toDTO());
       if (mounted) {
         setState(() {});
       }

@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/l10n/l10n.dart';
-import 'package:first_project/a-models/routes.dart';
+import 'package:first_project/enums/routes.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_provider.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
@@ -17,7 +17,7 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'a-models/user.dart';
+import 'a-models/model/user_data/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +43,7 @@ class MyMaterialApp extends StatelessWidget {
         ChangeNotifierProvider<UserManagement>(
           create: (context) => UserManagement(
             notificationManagement: NotificationManagement(),
-            user: authService.costumeUser,
+            userDTO: authService.costumeUser?.toDTO(),
           ),
         ),
         ChangeNotifierProvider<GroupManagement>(
@@ -121,9 +121,9 @@ class _UserInitializerState extends State<UserInitializer> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final userManagement =
             Provider.of<UserManagement>(context, listen: false);
-        userManagement.setCurrentUser(user);
+        userManagement.setCurrentUser(user?.toDTO());
 
-        devtools.log('Fetched user ${userManagement.currentUser}');
+        devtools.log('Fetched user ${userManagement.user}');
 
         final groupManagement =
             Provider.of<GroupManagement>(context, listen: false);
@@ -146,8 +146,7 @@ class _UserInitializerState extends State<UserInitializer> {
       return Scaffold(
         body: Center(child: Text(errorMessage!)),
       );
-    } else if (Provider.of<UserManagement>(context, listen: false)
-            .currentUser !=
+    } else if (Provider.of<UserManagement>(context, listen: false).user !=
         null) {
       return HomePage(); // User is available
     } else {

@@ -1,7 +1,7 @@
-import '../../../../a-models/event.dart';
-import '../../../../a-models/group.dart';
-import '../../../../a-models/notification_user.dart';
-import '../../../../a-models/user.dart';
+import '../../../../a-models/model/group_data/event.dart';
+import '../../../../a-models/model/group_data/group.dart';
+import '../../../../a-models/model/user_data/notification_user.dart';
+import '../../../../a-models/model/user_data/user.dart';
 
 abstract class FirestoreRepository {
   Future<void> addGroup(Group group);

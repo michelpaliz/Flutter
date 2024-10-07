@@ -1,5 +1,5 @@
 import 'package:first_project/utilities/color_manager.dart';
-import 'package:first_project/a-models/event.dart';
+import 'package:first_project/a-models/model/group_data/event.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 

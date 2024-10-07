@@ -15,8 +15,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import '../../../../a-models/event.dart';
-import '../../../../a-models/group.dart';
+import '../../../../a-models/model/group_data/event.dart';
+import '../../../../a-models/model/group_data/group.dart';
 import '../../../../enums/routes/appRoutes.dart';
 import '../../../../styles/drawer-style-menu/my_drawer.dart';
 
@@ -71,8 +71,8 @@ class _GroupCalendarState extends State<GroupCalendar> {
     _notificationManagement = Provider.of<NotificationManagement>(context);
     _groupManagement = Provider.of<GroupManagement>(context);
     devtools.log(
-        "This is currentUser from details : ${_userManagement.currentUser}");
-    _userRole = _getRoleByName(_userManagement.currentUser!.userName)!;
+        "This is currentUser from details : ${_userManagement.user}");
+    _userRole = _getRoleByName(_userManagement.user!.userName)!;
     if (_groupManagement.currentGroup != _group) {
       _group = _groupManagement.currentGroup!;
       _events = _group.calendar.events;

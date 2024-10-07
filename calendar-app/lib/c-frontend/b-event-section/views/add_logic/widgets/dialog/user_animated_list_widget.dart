@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:flutter/material.dart';
 
 class AnimatedUsersList extends StatelessWidget {
@@ -37,15 +37,19 @@ class AnimatedUsersList extends StatelessWidget {
   Widget _buildUserItem(User user) {
     return Container(
       width: 50, // Set a fixed width for each user card
-      margin: EdgeInsets.symmetric(horizontal: 8.0), // Add space between each user card
+      margin: EdgeInsets.symmetric(
+          horizontal: 8.0), // Add space between each user card
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center, // Center items vertically
         children: [
           CircleAvatar(
             radius: 30, // Size of the avatar (profile picture)
-            backgroundImage: user.photoUrl.isNotEmpty
-                ? NetworkImage(user.photoUrl)
-                : AssetImage('assets/images/default_profile.png') as ImageProvider, // Default profile picture
+            backgroundImage:
+                (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+                    ? NetworkImage(user.photoUrl!)
+                    : AssetImage('assets/images/default_profile.png')
+                        as ImageProvider,
+            // Default profile picture
             backgroundColor: Colors.grey[300],
           ),
           SizedBox(height: 8.0), // Space between the image and the name

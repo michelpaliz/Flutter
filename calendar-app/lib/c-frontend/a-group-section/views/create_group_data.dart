@@ -2,9 +2,9 @@ import 'dart:developer' as devtools show log;
 import 'dart:io';
 
 import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/a-models/calendar.dart';
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/group_data/calendar.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/a-models/userInvitationStatus.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
@@ -462,7 +462,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                 leading: CircleAvatar(
                                   radius: 30, // Adjust the size as needed
                                   backgroundImage: Utilities.buildProfileImage(
-                                      user?.photoUrl),
+                                      user!.photoUrl ?? ""),
                                 ),
                                 onTap: () {
                                   // Add any action you want when the role is tapped
@@ -492,7 +492,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                                 leading: CircleAvatar(
                                   radius: 30, // Adjust the size as needed
                                   backgroundImage: Utilities.buildProfileImage(
-                                      user?.photoUrl),
+                                      user!.photoUrl ?? ""),
                                 ),
                                 trailing: GestureDetector(
                                   onTap: () {

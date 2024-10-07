@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:first_project/a-models/notification_user.dart';
+import 'package:first_project/a-models/model/DTO/notificationDTO.dart';
 import 'package:first_project/b-backend/custom_errors.dart';
 import 'package:http/http.dart' as http;
 
@@ -8,18 +8,18 @@ class NotificationService {
   final String baseUrl =
       'http://192.168.1.16:3000/api/notifications'; // Replace with your API base URL
 
-  Future<List<NotificationUser>> getAllNotifications() async {
+  Future<List<NotificationUserDTO>> getAllNotifications() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = jsonDecode(response.body);
-      return jsonData.map((json) => NotificationUser.fromJson(json)).toList();
+      return jsonData.map((json) => NotificationUserDTO.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load notifications');
     }
   }
 
-  Future<NotificationUser> createNotification(
-      NotificationUser notification) async {
+  Future<NotificationUserDTO> createNotification(
+      NotificationUserDTO notification) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/'),
@@ -30,7 +30,7 @@ class NotificationService {
       );
 
       if (response.statusCode == 201) {
-        return NotificationUser.fromJson(jsonDecode(response.body));
+        return NotificationUserDTO.fromJson(jsonDecode(response.body));
       } else {
         throw CustomException(
           'Failed to create notification',
@@ -54,17 +54,17 @@ class NotificationService {
     }
   }
 
-  Future<NotificationUser> getNotificationById(String id) async {
+  Future<NotificationUserDTO> getNotificationById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
     if (response.statusCode == 200) {
-      return NotificationUser.fromJson(jsonDecode(response.body));
+      return NotificationUserDTO.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to get notification');
     }
   }
 
-  Future<NotificationUser> updateNotification(
-      NotificationUser notification) async {
+  Future<NotificationUserDTO> updateNotification(
+      NotificationUserDTO notification) async {
     final response = await http.put(
       Uri.parse('$baseUrl/${notification.id}'),
       headers: <String, String>{
@@ -73,7 +73,7 @@ class NotificationService {
       body: jsonEncode(notification.toJson()),
     );
     if (response.statusCode == 200) {
-      return NotificationUser.fromJson(jsonDecode(response.body));
+      return NotificationUserDTO.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to update notification');
     }

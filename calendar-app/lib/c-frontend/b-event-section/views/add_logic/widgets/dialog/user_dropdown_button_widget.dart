@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:flutter/material.dart';
 
 import 'dialog_button_widget.dart'; // Make sure to import DialogButtonWidget

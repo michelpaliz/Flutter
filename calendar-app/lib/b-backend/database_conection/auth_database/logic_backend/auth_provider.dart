@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:first_project/a-models/model/DTO/userDTO.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/exceptions/password_exceptions.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_user.dart';
@@ -13,7 +14,7 @@ import 'package:first_project/b-backend/database_conection/node_services/user_se
 import 'package:flutter/material.dart';
 
 import '../../../../firebase_options.dart';
-import '../../../../a-models/user.dart';
+import '../../../../a-models/model/user_data/user.dart';
 import 'auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier implements AuthRepository {
@@ -22,7 +23,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   final StreamController<User?> _authStateController =
       StreamController<User?>();
 
-  User? _currentUser;
+  User? _user;
 
   AuthProvider() {
     _initializeAuthStateListener();
@@ -30,10 +31,10 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
   void _initializeAuthStateListener() {
     _firebaseAuth.authStateChanges().listen((user) async {
-      _currentUser = user != null
+      _user = user != null
           ? await _userService.getUserByEmail(user.email.toString())
           : null;
-      _authStateController.add(_currentUser);
+      _authStateController.add(_user);
       notifyListeners();
     });
   }
@@ -47,11 +48,11 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }
 
   @override
-  User? get costumeUser => _currentUser;
+  User? get costumeUser => _user;
 
   set costumeUser(User? userUpdated) {
     if (userUpdated != null) {
-      _currentUser = userUpdated;
+      _user = userUpdated;
       notifyListeners();
     }
   }
@@ -68,18 +69,23 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       final user = _firebaseAuth.currentUser;
       if (user != null) {
         await user.updateProfile(displayName: user.uid);
-        User person = User(
+
+        // Create UserDTO instead of User
+        UserDTO userDTO = UserDTO(
           id: user.uid,
           authID: user.uid,
           name: name,
-          userName: userName,
           email: user.email!,
+          userName: userName,
           photoUrl: '',
           groupIds: [],
           events: [],
           notifications: [],
         );
-        _currentUser = await _userService.createUser(person);
+
+        // Use DTO to create the user in Firestore
+        _user = await _userService.createUser(userDTO);
+
         return 'User created successfully';
       } else {
         throw UserNotLoggedInAuthException();
@@ -94,14 +100,14 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }
 
   Future<String> uploadPersonToFirestore({
-    required User person,
+    required User person, // Change this to UserDTO
     required String documentId,
   }) async {
     try {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(documentId)
-          .set(person.toJson());
+          .set(person.toJson()); // Use DTO's toJson method
       return 'User with ID $documentId has been added';
     } catch (error) {
       throw 'There was an error adding the person to Firestore: $error';
@@ -164,8 +170,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     final userFetched = _firebaseAuth.currentUser;
     if (userFetched != null) {
       try {
-        _currentUser = await _userService.getUserByAuthID(userFetched.uid);
-        return _currentUser;
+        return await _userService.getUserByAuthID(userFetched.uid);
       } catch (error) {
         throw Exception('Error retrieving user data from Firestore: $error');
       }

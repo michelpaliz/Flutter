@@ -1,7 +1,7 @@
 // ----THIS IS NEW -----
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
@@ -104,7 +104,7 @@ class _LoginViewState extends State<LoginView> {
                   // Update the user in the provider
                   final userManagement =
                       Provider.of<UserManagement>(context, listen: false);
-                  userManagement.setCurrentUser(userFetched);
+                  userManagement.setCurrentUser(userFetched!.toDTO());
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
                   // Handle user not found exception

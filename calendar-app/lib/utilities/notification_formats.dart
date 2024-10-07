@@ -1,7 +1,9 @@
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/notification_user.dart';
-import 'package:first_project/a-models/user.dart';
+
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/notification_user.dart';
 import 'package:first_project/utilities/utilities.dart';
+
+import '../a-models/model/user_data/user.dart';
 
 class NotificationFormats {
   late NotificationUser _notificationUser;
@@ -70,7 +72,6 @@ class NotificationFormats {
     );
 
     member.notifications.add(userNotification);
-    member.hasNewNotifications = true;
 
     return userNotification;
   }
@@ -96,7 +97,6 @@ class NotificationFormats {
     );
 
     member.notifications.add(userNotification);
-    member.hasNewNotifications = true;
 
     return userNotification;
   }
@@ -124,7 +124,6 @@ class NotificationFormats {
     );
 
     member.notifications.add(userNotification);
-    member.hasNewNotifications = true;
 
     return userNotification;
   }
@@ -150,7 +149,6 @@ class NotificationFormats {
     );
 
     admin.notifications.add(adminNotification);
-    admin.hasNewNotifications = true;
 
     return adminNotification;
   }
@@ -176,7 +174,6 @@ class NotificationFormats {
   );
 
   member.notifications.add(recipientNotification);
-  member.hasNewNotifications = true;
 
   return recipientNotification;
 }
@@ -203,7 +200,6 @@ class NotificationFormats {
     );
 
     user.notifications.add(userNotification);
-    user.hasNewNotifications = true;
 
     return userNotification;
   }

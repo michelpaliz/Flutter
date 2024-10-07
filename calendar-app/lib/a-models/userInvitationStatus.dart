@@ -98,6 +98,43 @@ class UserInviteStatus {
         status == other.status;
   }
 
+  // New method to convert a string into a UserInviteStatus object
+  static UserInviteStatus fromString(String statusString) {
+    switch (statusString) {
+      case 'Pending':
+        return UserInviteStatus(
+          id: 'default_id', // Default values
+          role: 'default_role',
+          sendingDate: DateTime.now(),
+          invitationAnswer: null,
+        );
+      case 'Accepted':
+        return UserInviteStatus(
+          id: 'default_id',
+          role: 'default_role',
+          sendingDate: DateTime.now(),
+          invitationAnswer: true,
+        );
+      case 'Not Accepted':
+        return UserInviteStatus(
+          id: 'default_id',
+          role: 'default_role',
+          sendingDate: DateTime.now(),
+          invitationAnswer: false,
+        );
+      case 'Expired':
+        return UserInviteStatus(
+          id: 'default_id',
+          role: 'default_role',
+          sendingDate: DateTime.now()
+              .subtract(Duration(days: 10)), // Simulate expired date
+          invitationAnswer: null,
+        );
+      default:
+        throw ArgumentError('Unknown status: $statusString');
+    }
+  }
+
   @override
   String toString() {
     return 'UserInviteStatus{id: $id, invitationAnswer: $invitationAnswer, role: $role, sendingDate: $sendingDate, informationStatus: $informationStatus, attempts: $attempts, status: $status}';

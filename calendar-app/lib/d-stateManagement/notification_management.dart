@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/notification_user.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/DTO/notificationDTO.dart';
+import 'package:first_project/a-models/model/user_data/notification_user.dart';
 import 'package:first_project/b-backend/database_conection/node_services/notification_services.dart';
-
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 
 class NotificationManagement extends ChangeNotifier {
   List<NotificationUser> _notifications = [];
+  List<String> _notificationIds = []; // Store IDs only
   final NotificationService notificationService = NotificationService();
   final _notificationController =
       StreamController<List<NotificationUser>>.broadcast();
@@ -17,15 +17,34 @@ class NotificationManagement extends ChangeNotifier {
       _notificationController.stream;
 
   List<NotificationUser> get notifications => _notifications;
+  List<String> get notificationsIds => _notificationIds;
 
-  void initNotifications(List<NotificationUser> initialNotifications) {
-    _notifications = _sortNotificationsByDate(initialNotifications);
+  // Initialize notifications with IDs, resolve them to full NotificationUser objects if needed
+  Future<void> initNotifications(List<String> notifications) async {
+    _notificationIds = notifications;
+    _notifications = await _fetchNotificationsByIds(notifications);
+    _notifications = _sortNotificationsByDate(_notifications);
     _notificationController.add(_notifications);
     notifyListeners();
   }
 
-  void updateNotificationStream(List<NotificationUser> notifications) {
-    _notifications = _sortNotificationsByDate(notifications);
+  // Fetch full NotificationUser objects based on IDs and convert from DTO
+  Future<List<NotificationUser>> _fetchNotificationsByIds(
+      List<String> ids) async {
+    List<NotificationUser> notifications = [];
+    for (String id in ids) {
+      NotificationUserDTO? notificationDTO =
+          await notificationService.getNotificationById(id);
+      notifications.add(NotificationUser.fromDTO(notificationDTO));
+    }
+    return notifications;
+  }
+
+  // Update notification stream (used when notifications change)
+  Future<void> updateNotificationStream(List<NotificationUser> notifications) async {
+    // _notificationIds = notifications;
+    // _notifications = await _fetchNotificationsByIds(notifications);
+    _notifications = _sortNotificationsByDate(_notifications);
     _notificationController.add(_notifications);
     notifyListeners();
   }
@@ -36,20 +55,24 @@ class NotificationManagement extends ChangeNotifier {
     return notifications;
   }
 
-  Future<void> markNotificationsAsRead() async {
+  // Mark notifications as read, update both on user and service level
+  Future<void> markNotificationsAsRead(UserManagement userManagement) async {
     try {
-      List<NotificationUser> updatedNotifications = [];
+      List<String> updatedNotificationIds = [];
       for (NotificationUser notification in _notifications) {
         if (!notification.isRead) {
-          notification.isRead = true;
-          devtools.log("This is notification: " + notification.toString());
-          await notificationService.updateNotification(notification);
+          final updatedNotificationDTO =
+              NotificationUserDTO.fromNotification(notification);
+          await notificationService.updateNotification(updatedNotificationDTO);
+          updatedNotificationIds.add(updatedNotificationDTO.id);
         }
-        var notificationUpdated =
-            await notificationService.getNotificationById(notification.id);
-        updatedNotifications.add(notificationUpdated);
       }
-      _notifications = _sortNotificationsByDate(updatedNotifications);
+      _notificationIds = updatedNotificationIds;
+      _notifications = await _fetchNotificationsByIds(updatedNotificationIds);
+      userManagement.user?.notifications =
+          _notificationIds; // Store IDs in user object
+      await userManagement.updateUser(userManagement.user!);
+
       _notificationController.add(_notifications);
       notifyListeners();
     } catch (e) {
@@ -57,101 +80,71 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
+  // Remove notification by index (use ID-based approach)
   Future<bool> removeNotificationByIndex(
       int index, UserManagement userManagement) async {
-    devtools.log('Attempting to remove notification at index: $index');
-    devtools.log('Current notifications length: ${_notifications.length}');
-
     if (index < 0 || index >= _notifications.length) {
-      devtools.log('Index out of range');
       return false;
     }
 
     try {
       NotificationUser notification = _notifications[index];
-      devtools.log('Notification to remove: ${notification.id}');
-
       _notifications.removeAt(index);
-      devtools.log('Notification removed from _notifications list');
+      _notificationIds.remove(notification.id); // Remove the ID
 
-      userManagement.currentUser?.notifications = _notifications;
-      // userManagement.currentUser!.notifications.removeWhere((n) => n.id == notification.id);
-      devtools.log(
-          'Notification removed from userManagement.currentUser!.notifications');
-
-      await userManagement.updateUser(userManagement.currentUser!);
-      devtools.log(
-          'User updated successfully ${userManagement.currentUser?.notifications}');
+      userManagement.user?.notifications = _notificationIds;
+      await userManagement.updateUser(userManagement.user!);
 
       _notificationController.add(_notifications);
       notifyListeners();
 
-      devtools.log('Notification removed successfully');
       return true;
     } catch (e) {
-      devtools.log('Failed to remove notification: $e');
+      print('Failed to remove notification: $e');
       return false;
     }
   }
 
+  // Remove notification by ID
   Future<bool> removeNotificationById(
-      NotificationUser notification, UserManagement userManagement) async {
-    devtools.log('Attempting to remove notification with ID: $notification');
-
+      String notificationId, UserManagement userManagement) async {
     try {
-      // Remove the notification
-      _notifications.remove(notification);
-      devtools.log('Notification removed from _notifications list');
+      _notificationIds.remove(notificationId);
+      _notifications
+          .removeWhere((notification) => notification.id == notificationId);
 
-      // Update the user's notifications
-      userManagement.currentUser?.notifications = _notifications;
-      devtools.log(
-          'Notification removed from userManagement.currentUser!.notifications');
+      userManagement.user?.notifications = _notificationIds;
+      await userManagement.updateUser(userManagement.user!);
 
-      // Persist the user update
-      await userManagement.updateUser(userManagement.currentUser!);
-      devtools.log(
-          'User updated successfully ${userManagement.currentUser?.notifications}');
-
-      // Update the notification stream
       _notificationController.add(_notifications);
       notifyListeners();
 
-      devtools.log('Notification removed successfully');
       return true;
     } catch (e) {
-      devtools.log('Failed to remove notification: $e');
+      print('Failed to remove notification: $e');
       return false;
     }
   }
 
+  // Add notification to the DB
   Future<bool> addNotificationToDB(
       NotificationUser notification, UserManagement userManagement) async {
     try {
-      User admin =
-          await userManagement.userService.getUserById(notification.senderId);
-      User invitedUser = await userManagement.userService
-          .getUserById(notification.recipientId);
-
+      // Convert NotificationUser to NotificationUserDTO for saving
+      final notificationDTO =
+          NotificationUserDTO.fromNotification(notification);
       // Create the notification in the service
-      await notificationService.createNotification(notification);
+      await notificationService.createNotification(notificationDTO);
 
-      User? targetUser;
-      if (admin.id == notification.recipientId) {
-        targetUser = admin;
-      } else {
-        targetUser = invitedUser;
-        targetUser.notifications.add(notification);
-      }
-
-      if (targetUser.id == userManagement.currentUser!.id) {
+      _notificationIds.add(notification.id);
+      if (userManagement.user?.id == notification.recipientId) {
         _notifications.add(notification);
         _notifications = _sortNotificationsByDate(_notifications);
         notifyListeners();
       }
 
-      // Update the user with the new notification
-      await userManagement.updateUser(targetUser);
+      userManagement.user?.notifications = _notificationIds;
+      await userManagement.updateUser(userManagement.user!);
 
       return true;
     } catch (e) {
@@ -160,8 +153,38 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
+  // Method to update user notification IDs
+  Future<void> updateUserNotificationIds(
+      List<String> newNotificationIds, UserManagement userManagement) async {
+    try {
+      // Update the internal list of notification IDs
+      _notificationIds = newNotificationIds;
+
+      // Fetch the updated notifications from the service
+      _notifications = await _fetchNotificationsByIds(newNotificationIds);
+
+      // Sort the notifications by date
+      _notifications = _sortNotificationsByDate(_notifications);
+
+      // Update the current user's notification IDs
+      userManagement.user?.notifications = newNotificationIds;
+
+      // Update the user object in the database or state management
+      await userManagement.updateUser(userManagement.user!);
+
+      // Update the notification stream with the new notifications
+      _notificationController.add(_notifications);
+
+      // Notify listeners to refresh the UI
+      notifyListeners();
+    } catch (e) {
+      devtools.log('Failed to update user notification IDs: $e');
+    }
+  }
+
   void clearNotifications() {
     _notifications.clear();
+    _notificationIds.clear();
     _notificationController.add(_notifications);
     notifyListeners();
   }

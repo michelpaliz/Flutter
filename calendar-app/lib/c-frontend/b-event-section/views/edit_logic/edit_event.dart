@@ -1,7 +1,8 @@
-import 'package:first_project/a-models/group.dart';
+
+import 'package:first_project/a-models/model/group_data/event.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/group_data/updateInfo.dart';
 import 'package:first_project/a-models/recurrence_rule.dart';
-import 'package:first_project/a-models/updateInfo.dart';
-import 'package:first_project/a-models/user.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
@@ -14,8 +15,7 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
-import '../../../../a-models/event.dart';
+import '../../../../a-models/model/user_data/user.dart';
 
 //*
 class EditNoteScreen extends StatefulWidget {
@@ -94,8 +94,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _recurrenceRule = _event.recurrenceRule;
     _isRepetitive = _event.recurrenceRule != null;
     _group = _groupManagement.currentGroup!;
-    _eventList = _userManagement.currentUser!.events;
-    _currentUserName = _userManagement.currentUser?.name;
+    _eventList = _userManagement.user!.events;
+    _currentUserName = _userManagement.user?.name;
     _fetchUsers();
   }
 

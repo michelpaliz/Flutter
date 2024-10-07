@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/group.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/1-calendar/1.2-calendar_ui_manager.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/backend/d-event_data_manager.dart';

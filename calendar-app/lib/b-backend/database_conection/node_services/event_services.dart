@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:first_project/a-models/event.dart';
+import 'package:first_project/a-models/model/group_data/event.dart';
 import 'package:http/http.dart' as http;
 
 class EventService {

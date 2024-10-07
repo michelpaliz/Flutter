@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/styles/widgets/view-item-styles/selected_user_widget.dart';
 import 'package:flutter/material.dart';
 

@@ -10,8 +10,8 @@ import 'package:first_project/a-models/meeting_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../a-models/event.dart';
-import '../a-models/user.dart';
+import '../a-models/model/group_data/event.dart';
+import '../a-models/model/user_data/user.dart';
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
 
@@ -76,7 +76,7 @@ class NotesViewState extends State<NotesView> {
 
     if (_user != null) {
       setState(() {
-        _events = _user!.events;
+        _events = [];
         userOrGroupObject = _user!;
       });
     }
@@ -128,7 +128,7 @@ class NotesViewState extends State<NotesView> {
     await _storeService.removeEvent(event.id);
 
     // Update the events for the user in Firestore
-    _user!.events.removeWhere((e) => e.id == event.id);
+    // _user!.events.removeWhere((e) => e.id == event.id);
     await _storeService.updateEvent(event);
 
     // Update the UI by removing the event from the list

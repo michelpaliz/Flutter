@@ -1,5 +1,5 @@
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/a-models/userInvitationStatus.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -45,7 +45,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _userManagement = Provider.of<UserManagement>(context, listen: false);
-    _currentUser = _userManagement.currentUser;
+    _currentUser = _userManagement.user;
 
     if (_currentUser != null) {
       _setCurrentUserRole();

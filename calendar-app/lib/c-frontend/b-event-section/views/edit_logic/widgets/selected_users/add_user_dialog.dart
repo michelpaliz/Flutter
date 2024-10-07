@@ -1,5 +1,5 @@
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:flutter/material.dart';
 
 class AddUserDialog extends StatefulWidget {

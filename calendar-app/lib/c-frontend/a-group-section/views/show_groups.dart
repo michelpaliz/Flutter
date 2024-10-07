@@ -1,6 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/notification_user.dart';
+import 'package:first_project/a-models/model/user_data/notification_user.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -13,8 +13,8 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../a-models/group.dart';
-import '../../../a-models/user.dart';
+import '../../../a-models/model/group_data/group.dart';
+import '../../../a-models/model/user_data/user.dart';
 import '../../../enums/routes/appRoutes.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
@@ -50,7 +50,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     _groupManagement = Provider.of<GroupManagement>(context, listen: false);
 
     //Initialize the currentUser locally for this view
-    _currentUser = _userManagement!.currentUser;
+    _currentUser = _userManagement!.user;
 
     initGroupList();
 
@@ -136,7 +136,7 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   void _leaveGroup(BuildContext context, Group group) async {
     // Check if the current user is the admin of the group
-    bool isGroupAdmin = _userManagement!.currentUser!.id == group.ownerId;
+    bool isGroupAdmin = _userManagement!.user!.id == group.ownerId;
 
     // Display confirmation dialog with custom message for admin
     bool confirm = await _showConfirmationDialog(
@@ -294,7 +294,7 @@ class _ShowGroupsState extends State<ShowGroups> {
     return Consumer2<UserManagement, NotificationManagement>(
       builder: (context, userManagement, notificationManagement, child) {
         // Check if currentUser is null and handle it appropriately
-        final currentUser = userManagement.currentUser;
+        final currentUser = userManagement.user;
         if (currentUser == null) {
           // Handle the case where the currentUser is null
           return IconButton(
@@ -349,7 +349,7 @@ class _ShowGroupsState extends State<ShowGroups> {
               onPressed: () {
                 _navigateToShowNotifications(context, currentUser);
                 notificationManagement
-                    .markNotificationsAsRead(); // Optionally mark as read
+                    .markNotificationsAsRead(_userManagement!); // Optionally mark as read
               },
             );
           },

@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/notification_user.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
+
 import 'package:first_project/a-models/userInvitationStatus.dart';
 import 'package:first_project/b-backend/database_conection/node_services/group_services.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
@@ -11,6 +12,7 @@ import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
+
 
 class GroupManagement extends ChangeNotifier {
   final GroupService groupService = GroupService();
@@ -76,34 +78,6 @@ class GroupManagement extends ChangeNotifier {
   Future<void> _initializeGroups(User user) async {
     await fetchAndInitializeGroups(user.groupIds);
   }
-
-  // Future<void> fetchAndInitializeGroups(List<String> groupIds) async {
-  //   try {
-  //     // Immediately emit an empty list to indicate the stream is empty
-  //     groupController.add([]);
-
-  //     if (groupIds.isNotEmpty) {
-  //       List<Future<Group>> groupFutures =
-  //           groupIds.map((id) => groupService.getGroupById(id)).toList();
-  //       List<Group> groups = await Future.wait(groupFutures);
-
-  //       // Once data is fetched, emit the fetched list to the stream
-  //       groupController.add(groups);
-  //       devtools
-  //           .log('Fetched and populated groups: ${groups.length} groups added');
-  //     } else {
-  //       // If no groupIds, emit an empty list (already done above but keeping it for clarity)
-  //       groupController.add([]);
-  //       devtools
-  //           .log('No groupIds provided, emitting an empty list to the stream');
-  //     }
-  //   } catch (e, stackTrace) {
-  //     devtools.log('Failed to fetch and populate groups: $e',
-  //         error: e, stackTrace: stackTrace);
-  //     // Optionally emit an error state or empty list in case of failure
-  //     groupController.add([]); // To clear previous data on error
-  //   }
-  // }
 
   Future<void> fetchAndInitializeGroups(List<String> groupIds) async {
     try {
@@ -178,8 +152,10 @@ class GroupManagement extends ChangeNotifier {
       NotificationUser adminNotification =
           notificationFormat.whenCreatingGroup(group, user);
 
-      user.notifications.add(adminNotification);
-      user.hasNewNotifications = true;
+      // Add notification to user's notifications and IDs
+      user.notifications?.add(adminNotification.id); // Use notification ID
+
+      // user.hasNewNotifications = true;
 
       await notificationManagement.addNotificationToDB(
           adminNotification, userManagement);
@@ -253,14 +229,16 @@ class GroupManagement extends ChangeNotifier {
       groupService.updateGroup(updatedGroup);
       final notificationFormat = NotificationFormats();
       NotificationUser editingNotification = notificationFormat
-          .whenEditingGroup(updatedGroup, userManagement.currentUser!);
+          .whenEditingGroup(updatedGroup, userManagement.user!);
 
       String? userRole =
-          updatedGroup.userRoles[userManagement.currentUser!.userName];
+          updatedGroup.userRoles[userManagement.user!.userName];
 
       if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
-        userManagement.currentUser!.notifications.add(editingNotification);
-        await userService.updateUser(userManagement.currentUser!);
+        userManagement.user!.notifications?.add(editingNotification.id); // Use notification ID
+        devtools.log("This is the user i want to update ${userManagement.user}");
+
+        await userService.updateUser(userManagement.user!.toDTO());
       }
 
       bool result = await _notifyUserInvitation(
@@ -289,7 +267,7 @@ class GroupManagement extends ChangeNotifier {
       updatedUser.groupIds.remove(group.id);
 
       // Update the UserManagement state
-      userManagement.setCurrentUser(updatedUser);
+      userManagement.setCurrentUser(updatedUser.toDTO());
 
       // Re-fetch groups to ensure the local state is updated
       await fetchAndInitializeGroups(updatedUser.groupIds);

@@ -1,8 +1,8 @@
 // routes.dart
 
-import 'package:first_project/a-models/event.dart';
-import 'package:first_project/a-models/group.dart';
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/group_data/event.dart';
+import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/c-frontend/a-group-section/views/create_group_data.dart';
 import 'package:first_project/c-frontend/a-group-section/views/edit_group_data.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/group_calendar.dart';

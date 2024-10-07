@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:first_project/a-models/event.dart';
-import 'package:first_project/a-models/notification_user.dart';
+import 'package:first_project/a-models/model/DTO/userDTO.dart';
+import 'package:first_project/a-models/model/group_data/event.dart';
+import 'package:first_project/a-models/model/user_data/notification_user.dart';
 
 class User {
   String _id;
@@ -13,7 +14,6 @@ class User {
   List<Event> _events;
   List<String> _groupIds;
   List<NotificationUser>? _notifications;
-  bool hasNewNotifications;
 
   User({
     required String id,
@@ -25,7 +25,6 @@ class User {
     required List<String> groupIds,
     String? photoUrl,
     List<NotificationUser>? notifications,
-    this.hasNewNotifications = false,
   })  : _id = id,
         _name = name,
         _authID = authID,
@@ -83,8 +82,7 @@ class User {
       'events': _events.map((event) => event.toMap()).toList(),
       'groupIds': _groupIds,
       'notifications':
-          _notifications?.map((notification) => notification.toJson()).toList(),
-      'hasNewNotifications': hasNewNotifications, // Include the field
+          _notifications?.map((notification) => notification.toJson()).toList
     };
   }
 
@@ -129,12 +127,6 @@ class User {
           ?.map(
               (notificationUser) => NotificationUser.fromJson(notificationUser))
           .toList(),
-      // notifications: (json['notifications'] as List<dynamic>?)
-      //     ?.map((notificationUser) =>
-      //         NotificationUser.fromJson(jsonDecode(notificationUser)))
-      //     .toList(),
-      hasNewNotifications:
-          json['hasNewNotifications'] as bool, // Include this line
     );
   }
 
@@ -160,9 +152,6 @@ class User {
               (notificationJson) => NotificationUser.fromJson(notificationJson))
           .toList();
 
-      final hasNewNotifications =
-          userData['hasNewNotifications'] as bool; // Add this line
-
       return User(
         id: userDocument.id,
         name: userData['name'],
@@ -174,7 +163,6 @@ class User {
             .toList(),
         groupIds: groupIds,
         notifications: notifications,
-        hasNewNotifications: hasNewNotifications, // Add this line
       );
     } else {
       return User(
@@ -186,13 +174,45 @@ class User {
         events: [],
         groupIds: [],
         notifications: [],
-        hasNewNotifications: false, // Set default value
       );
     }
   }
 
   static Future<User> fromFirebaseUser(firebase_auth.User firebaseUser) {
     return getUserByEmail(firebaseUser.email!);
+  }
+
+  static User fromDTO(UserDTO dto) {
+    return User(
+        id: dto.id,
+        authID: dto.authID,
+        name: dto.name,
+        email: dto.email,
+        userName: dto.userName,
+        events: (dto.events ?? [])
+            .map((eventMap) => Event.fromJson(eventMap))
+            .toList(),
+        groupIds: dto.groupIds,
+        photoUrl: dto.photoUrl,
+        notifications: (dto.notifications ?? [])
+            .map(
+                (notificationMap) => NotificationUser.fromJson(notificationMap))
+            .toList());
+  }
+
+  UserDTO toDTO() {
+    return UserDTO(
+      id: _id,
+      authID: _authID,
+      name: _name,
+      email: _email,
+      userName: _userName,
+      events: _events.map((event) => event.toMap()).toList(),
+      groupIds: _groupIds,
+      photoUrl: _photoUrl,
+      notifications:
+          _notifications?.map((notification) => notification.toJson()).toList(),
+    );
   }
 
   static createDefaultUser() {
@@ -206,7 +226,6 @@ class User {
       groupIds: [], // Empty list for group IDs
       photoUrl: 'default_photo_url', // Default photo URL or null
       notifications: [], // Empty list for notifications
-      hasNewNotifications: false, // Default value for new notifications
     );
   }
 
@@ -221,8 +240,6 @@ class User {
         'photoUrl: $_photoUrl, '
         'events: $_events, '
         'groupIds: $_groupIds, '
-        'notifications: $_notifications, '
-        'hasNewNotifications: $hasNewNotifications'
-        ')';
+        'notifications: $_notifications, ';
   }
 }

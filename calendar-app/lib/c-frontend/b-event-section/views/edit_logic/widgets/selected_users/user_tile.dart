@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/user.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/c-frontend/b-event-section/views/edit_logic/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -32,7 +32,8 @@ class UserTile extends StatelessWidget {
               userName: userName,
               isNewUser: false, // Update this based on your logic
               onCancel: () {
-                Navigator.of(dialogContext).pop(false); // Do not confirm dismissal
+                Navigator.of(dialogContext)
+                    .pop(false); // Do not confirm dismissal
               },
               onConfirm: () {
                 // Confirm dismissal but don't remove from state/UI
@@ -45,7 +46,7 @@ class UserTile extends StatelessWidget {
         // If dismissal is confirmed, we don't want the Dismissible widget to disappear.
         if (confirmDismissal == true) {
           // Call the logical removal (e.g., sending a request to the server)
-          onDismissed(userName); 
+          onDismissed(userName);
         }
 
         // Returning false prevents the widget from being dismissed in the UI
@@ -62,10 +63,11 @@ class UserTile extends StatelessWidget {
         subtitle: Text(roleValue),
         leading: CircleAvatar(
           radius: 30,
-          backgroundImage: user.photoUrl.isNotEmpty
-              ? NetworkImage(user.photoUrl)
+          backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+              ? NetworkImage(user.photoUrl!)
               : AssetImage('assets/images/default_profile.png')
-                  as ImageProvider, // Default profile picture
+                  as ImageProvider,
+// Default profile picture
         ),
         trailing: roleValue.trim() != 'Administrator'
             ? GestureDetector(

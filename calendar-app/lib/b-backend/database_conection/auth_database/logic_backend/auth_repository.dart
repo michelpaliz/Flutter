@@ -2,7 +2,7 @@
 
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_user.dart';
 
-import '../../../../a-models/user.dart';
+import '../../../../a-models/model/user_data/user.dart';
 
 abstract class AuthRepository {
   Future<void> initialize();

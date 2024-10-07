@@ -1,6 +1,6 @@
 
 import 'package:first_project/a-models/recurrence_rule.dart';
-import 'package:first_project/a-models/updateInfo.dart';
+import 'package:first_project/a-models/model/group_data/updateInfo.dart';
 
 class Event {
   final String id;
