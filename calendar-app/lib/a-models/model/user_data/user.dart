@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_project/a-models/model/DTO/userDTO.dart';
-import 'package:first_project/a-models/model/group_data/event.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 
 class User {
   String _id;
@@ -85,25 +85,6 @@ class User {
           _notifications?.map((notification) => notification.toJson()).toList
     };
   }
-
-  //   Map<String, dynamic> toJson() {
-  //   return {
-  //     'id': _id,
-  //     'name': _name,
-  //     'authID': _authID,
-  //     'userName': _userName,
-  //     'email': _email,
-  //     'photoUrl': _photoUrl,
-  //     'events': _events.map((event) => event.toMap()).toList(),
-  //     'groupIds': _groupIds,
-  //     'notifications': _notifications
-  //         ?.map((notification) => notification.toJson())
-  //         .toList()
-  //       ?..sort((a, b) =>
-  //           b['_timestamp'].compareTo(a['_timestamp'])), // Sort by timestamp
-  //     'hasNewNotifications': hasNewNotifications,
-  //   };
-  // }
 
   // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {

@@ -1,6 +1,6 @@
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 
-import 'calendar.dart';
+import '../calendar/calendar.dart';
 
 class Group {
   final String id;

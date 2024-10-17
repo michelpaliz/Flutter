@@ -1,6 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/recurrence_rule.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/c-frontend/b-event-section/views/add_logic/widgets/dialog/user_expandable_card.dart';
@@ -23,8 +23,8 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../a-models/model/group_data/event.dart';
-import '../../../../a-models/model/group_data/group.dart';
+import '../../../../a-models/model/group_data/event-appointment/event/event.dart';
+import '../../../../a-models/model/group_data/group/group.dart';
 import '../../../../a-models/model/user_data/user.dart';
 
 class AddEvent extends StatefulWidget {

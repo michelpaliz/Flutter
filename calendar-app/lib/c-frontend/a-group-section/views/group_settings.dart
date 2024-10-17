@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/b-backend/database_conection/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';

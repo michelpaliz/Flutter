@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/model/group_data/event.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/backend/d-event_data_manager.dart';
 
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/ui/b-event_display_manager.dart';

@@ -5,12 +5,12 @@ import 'package:first_project/b-backend/database_conection/auth_database/logic_b
 import 'package:first_project/b-backend/database_conection/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
-import 'package:first_project/a-models/custom_day_week.dart';
-import 'package:first_project/a-models/meeting_data_source.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/custom_day_week.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/meeting_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../a-models/model/group_data/event.dart';
+import '../a-models/model/group_data/event-appointment/event/event.dart';
 import '../a-models/model/user_data/user.dart';
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);

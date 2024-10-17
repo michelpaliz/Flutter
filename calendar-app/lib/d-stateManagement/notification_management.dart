@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/model/DTO/notificationDTO.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/b-backend/database_conection/node_services/notification_services.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';

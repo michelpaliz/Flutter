@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 import 'role_change_logic.dart';
 
 class RoleChangeDialogActions {

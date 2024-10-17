@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 
 class NotificationUserDTO {
   final String id;

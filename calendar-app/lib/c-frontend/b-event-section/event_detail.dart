@@ -1,5 +1,5 @@
 import 'package:first_project/styles/widgets/view-item-styles/custom_text_field.dart';
-import 'package:first_project/a-models/model/group_data/event.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

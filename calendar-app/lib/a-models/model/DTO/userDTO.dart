@@ -1,5 +1,5 @@
-import 'package:first_project/a-models/model/group_data/event.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 
 class UserDTO {

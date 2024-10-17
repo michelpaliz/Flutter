@@ -1,12 +1,12 @@
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 import 'package:first_project/c-frontend/a-group-section/views/group_calendar-view/3-event/backend/d-event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
-import 'package:first_project/a-models/model/group_data/event.dart';
-import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 // The EventActionManager class is primarily focused on handling UI-related actions for events, with direct delegation to EventDataManager for data-related operations. It provides methods for managing event-related actions, like adding, editing, and removing events. Here's a breakdown of its role compared to the other classes:

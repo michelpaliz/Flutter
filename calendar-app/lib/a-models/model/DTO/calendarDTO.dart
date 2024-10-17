@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/model/group_data/calendar.dart';
+import 'package:first_project/a-models/model/group_data/calendar/calendar.dart';
 
 class CalendarDTO {
   final String id;

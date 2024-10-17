@@ -2,10 +2,10 @@ import 'dart:developer' as devtools show log;
 import 'dart:io';
 
 import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/a-models/model/group_data/calendar.dart';
-import 'package:first_project/a-models/model/group_data/group.dart';
+import 'package:first_project/a-models/model/group_data/calendar/calendar.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';

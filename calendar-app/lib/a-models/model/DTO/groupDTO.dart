@@ -1,6 +1,6 @@
-import 'package:first_project/a-models/model/group_data/calendar.dart';
-import 'package:first_project/a-models/model/group_data/group.dart';
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/group_data/calendar/calendar.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 
 class GroupDTO {
   final String id;
