@@ -104,7 +104,7 @@ class _LoginViewState extends State<LoginView> {
                   // Update the user in the provider
                   final userManagement =
                       Provider.of<UserManagement>(context, listen: false);
-                  userManagement.setCurrentUser(userFetched!.toDTO());
+                  userManagement.setCurrentUser(userFetched!);
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
                   // Handle user not found exception

@@ -238,7 +238,7 @@ class GroupManagement extends ChangeNotifier {
         userManagement.user!.notifications?.add(editingNotification.id); // Use notification ID
         devtools.log("This is the user i want to update ${userManagement.user}");
 
-        await userService.updateUser(userManagement.user!.toDTO());
+        await userService.updateUser(userManagement.user);
       }
 
       bool result = await _notifyUserInvitation(
@@ -267,7 +267,7 @@ class GroupManagement extends ChangeNotifier {
       updatedUser.groupIds.remove(group.id);
 
       // Update the UserManagement state
-      userManagement.setCurrentUser(updatedUser.toDTO());
+      userManagement.setCurrentUser(updatedUser);
 
       // Re-fetch groups to ensure the local state is updated
       await fetchAndInitializeGroups(updatedUser.groupIds);

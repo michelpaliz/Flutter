@@ -92,7 +92,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     try {
       devtools.log("Fetching notifications for: $_currentUser");
 
-      if (_currentUser.notifications.isNotEmpty) {
+      if (_currentUser.notifications!.isNotEmpty) {
         await _fetchUserNotifications(_currentUser.userName);
       } else {
         _updateNotifications([]);
@@ -330,9 +330,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
     final admin =
         await _userManagement.userService.getUserById(notification.senderId);
-    admin.notifications.add(ntOwner);
+    admin.notifications!.add(ntOwner);
     // admin.hasNewNotifications = true;
-    await _userManagement.userService.updateUser(admin.toDTO());
+    await _userManagement.userService.updateUser(admin);
   }
 
   Future<void> _removeAllNotifications() async {
@@ -364,8 +364,8 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     if (confirm == true) {
       // Proceed with removing all notifications
       _notificationManagement.clearNotifications();
-      _currentUser.notifications.clear();
-      await _userManagement.userService.updateUser(_currentUser.toDTO());
+      _currentUser.notifications!.clear();
+      await _userManagement.userService.updateUser(_currentUser);
       if (mounted) {
         setState(() {});
       }

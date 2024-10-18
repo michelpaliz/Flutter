@@ -1,27 +1,23 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/model/DTO/groupDTO.dart';
 import 'package:first_project/a-models/model/group_data/calendar/calendar.dart';
 import 'package:first_project/a-models/model/group_data/group/group.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
-  final String baseUrl =
-      'http://192.168.1.16:3000/api/groups'; // Your server URL
+  final String baseUrl = 'http://192.168.1.16:3000/api/groups'; // Your server URL
 
+  // Create a group directly with Group model
   Future<bool> createGroup(Group group) async {
-    devtools.log('Create group: ${group}');
-
-    // Convert Group to GroupDTO before sending
-    final GroupDTO groupDTO = GroupDTO.fromGroup(group);
+    devtools.log('Create group: $group');
 
     final response = await http.post(
       Uri.parse('$baseUrl'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(groupDTO.toJson()), // Send GroupDTO as JSON
+      body: jsonEncode(group.toJson()), // Send Group as JSON
     );
 
     if (response.statusCode == 201) {
@@ -31,29 +27,27 @@ class GroupService {
     }
   }
 
+  // Get a group by its ID, and fetch the related calendar directly
   Future<Group> getGroupById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode == 200) {
-      // Parse the response body into a GroupDTO and then convert it to Group
-      final groupDTO = GroupDTO.fromJson(jsonDecode(response.body));
-      Calendar calendar = await getCalendarById(groupDTO.calendarId);
-      return groupDTO.toGroup(calendar);
+      final groupJson = jsonDecode(response.body);
+      // Calendar calendar = await getCalendarById(groupJson['calendarId']);
+      return Group.fromJson(groupJson); // Assuming Group.fromJson() can handle calendar
     } else {
       throw Exception('Failed to get group: ${response.reasonPhrase}');
     }
   }
 
+  // Update a group directly with Group model
   Future<bool> updateGroup(Group group) async {
-    // Convert Group to GroupDTO before sending
-    final GroupDTO groupDTO = GroupDTO.fromGroup(group);
-
     final response = await http.put(
       Uri.parse('$baseUrl/${group.id}'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(groupDTO.toJson()), // Send GroupDTO as JSON
+      body: jsonEncode(group.toJson()), // Send Group as JSON
     );
 
     if (response.statusCode == 200) {
@@ -63,6 +57,7 @@ class GroupService {
     }
   }
 
+  // Delete a group by ID
   Future<void> deleteGroup(String id) async {
     final response = await http.delete(Uri.parse('$baseUrl/$id'));
 
@@ -71,6 +66,7 @@ class GroupService {
     }
   }
 
+  // Get all groups for a user, including fetching calendars for each group
   Future<List<Group>> getGroupsByUser(String userName) async {
     final response = await http.get(Uri.parse('$baseUrl/user/$userName'));
 
@@ -78,21 +74,19 @@ class GroupService {
       List<dynamic> body = jsonDecode(response.body);
 
       // Create a list of futures to fetch calendars for each group
-      List<Future<Group>> groupFutures =
-          body.map<Future<Group>>((dynamic item) async {
-        final groupDTO = GroupDTO.fromJson(item);
-        // Fetch calendar for the current group
-        Calendar calendar = await getCalendarById(groupDTO.calendarId);
-        return groupDTO.toGroup(calendar);
+      List<Future<Group>> groupFutures = body.map<Future<Group>>((dynamic item) async {
+        final groupJson = item;
+        // Calendar calendar = await getCalendarById(groupJson['calendarId']);
+        return Group.fromJson(groupJson); // Group without DTO
       }).toList();
 
-      // Wait for all the futures to complete
-      return await Future.wait(groupFutures);
+      return await Future.wait(groupFutures); // Wait for all futures
     } else {
       throw Exception('Failed to load groups: ${response.reasonPhrase}');
     }
   }
 
+  // Remove a user from a group by user ID and group ID
   Future<bool> removeUserInGroup(String userId, String groupId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/$groupId/users/$userId'),
@@ -104,20 +98,18 @@ class GroupService {
     if (response.statusCode == 200) {
       return true;
     } else {
-      throw Exception(
-          'Failed to remove user from group: ${response.reasonPhrase}');
+      throw Exception('Failed to remove user from group: ${response.reasonPhrase}');
     }
   }
 
+  // Get a calendar by its ID
   Future<Calendar> getCalendarById(String calendarId) async {
-    final String calendarUrl =
-        'http://192.168.1.16:3000/api/calendars/$calendarId'; // URL for calendar API
+    final String calendarUrl = 'http://192.168.1.16:3000/api/calendars/$calendarId'; // URL for calendar API
 
     final response = await http.get(Uri.parse(calendarUrl));
 
     if (response.statusCode == 200) {
-      // Parse the response body into a Calendar
-      final calendar = Calendar.fromJson(jsonDecode(response.body));
+      final calendar = Calendar.fromJson(jsonDecode(response.body)); // Assuming Calendar has a fromJson() method
       devtools.log('Fetched calendar: $calendar');
       return calendar;
     } else {

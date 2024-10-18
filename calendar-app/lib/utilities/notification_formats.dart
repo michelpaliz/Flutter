@@ -71,7 +71,7 @@ class NotificationFormats {
       category: Category.groupInvitation, // Set category
     );
 
-    member.notifications.add(userNotification);
+    member.notifications!.add(userNotification.id);
 
     return userNotification;
   }
@@ -96,7 +96,7 @@ class NotificationFormats {
       category: Category.groupUpdate, // Set category
     );
 
-    member.notifications.add(userNotification);
+    member.notifications!.add(userNotification.id);
 
     return userNotification;
   }
@@ -123,7 +123,7 @@ class NotificationFormats {
       category: Category.groupUpdate, // Set category
     );
 
-    member.notifications.add(userNotification);
+    member.notifications!.add(userNotification.id);
 
     return userNotification;
   }
@@ -148,7 +148,7 @@ class NotificationFormats {
       category: Category.userRemoval, // Set category
     );
 
-    admin.notifications.add(adminNotification);
+    admin.notifications!.add(adminNotification.id);
 
     return adminNotification;
   }
@@ -173,7 +173,7 @@ class NotificationFormats {
     category: Category.userRemoval, // Set category
   );
 
-  member.notifications.add(recipientNotification);
+  member.notifications!.add(recipientNotification.id);
 
   return recipientNotification;
 }
@@ -199,7 +199,7 @@ class NotificationFormats {
       category: Category.eventReminder,
     );
 
-    user.notifications.add(userNotification);
+    user.notifications!.add(userNotification.id);
 
     return userNotification;
   }
@@ -222,7 +222,7 @@ class NotificationFormats {
   //     category: Category.taskUpdate,
   //   );
 
-  //   user.notifications.add(userNotification);
+  //   user.notifications.add(userNotification.id);
   //   user.hasNewNotifications = true;
 
   //   return userNotification;
