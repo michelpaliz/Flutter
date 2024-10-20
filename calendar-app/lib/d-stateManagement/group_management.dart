@@ -94,7 +94,7 @@ class GroupManagement extends ChangeNotifier {
       } else {
         groupController.add([]); // Emit empty list if no groups
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       groupController.add([]); // Emit empty list on error
     }
   }

@@ -23,6 +23,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
     } catch (error) {
       print('Error sending email verification: $error');
     }
+    
   }
 
   @override
