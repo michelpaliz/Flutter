@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/model/DTO/notificationDTO.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/b-backend/database_conection/node_services/notification_services.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
@@ -11,66 +10,61 @@ class NotificationManagement extends ChangeNotifier {
   List<NotificationUser> _notifications = [];
   List<String> _notificationIds = []; // Store IDs only
   final NotificationService notificationService = NotificationService();
-  final _notificationController =
-      StreamController<List<NotificationUser>>.broadcast();
-  Stream<List<NotificationUser>> get notificationStream =>
-      _notificationController.stream;
+  final _notificationController = StreamController<List<NotificationUser>>.broadcast();
+  
+  Stream<List<NotificationUser>> get notificationStream => _notificationController.stream;
 
   List<NotificationUser> get notifications => _notifications;
-  List<String> get notificationsIds => _notificationIds;
+  List<String> get notificationIds => _notificationIds;
 
-  // Initialize notifications with IDs, resolve them to full NotificationUser objects if needed
-  Future<void> initNotifications(List<String> notifications) async {
-    _notificationIds = notifications;
-    _notifications = await _fetchNotificationsByIds(notifications);
+  // Initialize notifications with IDs, fetch full NotificationUser objects
+  Future<void> initNotifications(List<String> notificationIds) async {
+    _notificationIds = notificationIds;
+    _notifications = await _fetchNotificationsByIds(notificationIds);
     _notifications = _sortNotificationsByDate(_notifications);
     _notificationController.add(_notifications);
     notifyListeners();
   }
 
-  // Fetch full NotificationUser objects based on IDs and convert from DTO
-  Future<List<NotificationUser>> _fetchNotificationsByIds(
-      List<String> ids) async {
+  // Fetch full NotificationUser objects based on IDs
+  Future<List<NotificationUser>> _fetchNotificationsByIds(List<String> ids) async {
     List<NotificationUser> notifications = [];
     for (String id in ids) {
-      NotificationUserDTO? notificationDTO =
-          await notificationService.getNotificationById(id);
-      notifications.add(NotificationUser.fromDTO(notificationDTO));
+      NotificationUser? notification = await notificationService.getNotificationById(id);
+      if (notification != null) {
+        notifications.add(notification); // No need for DTO conversion
+      }
     }
     return notifications;
   }
 
-  // Update notification stream (used when notifications change)
+  // Update notification stream
   Future<void> updateNotificationStream(List<NotificationUser> notifications) async {
-    // _notificationIds = notifications;
-    // _notifications = await _fetchNotificationsByIds(notifications);
-    _notifications = _sortNotificationsByDate(_notifications);
+    _notifications = _sortNotificationsByDate(notifications);
     _notificationController.add(_notifications);
     notifyListeners();
   }
 
-  List<NotificationUser> _sortNotificationsByDate(
-      List<NotificationUser> notifications) {
+  // Sort notifications by date
+  List<NotificationUser> _sortNotificationsByDate(List<NotificationUser> notifications) {
     notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return notifications;
   }
 
-  // Mark notifications as read, update both on user and service level
+  // Mark notifications as read, update both locally and on the service level
   Future<void> markNotificationsAsRead(UserManagement userManagement) async {
     try {
       List<String> updatedNotificationIds = [];
       for (NotificationUser notification in _notifications) {
         if (!notification.isRead) {
-          final updatedNotificationDTO =
-              NotificationUserDTO.fromNotification(notification);
-          await notificationService.updateNotification(updatedNotificationDTO);
-          updatedNotificationIds.add(updatedNotificationDTO.id);
+          notification.isRead = true; // Mark as read directly
+          await notificationService.updateNotification(notification);
+          updatedNotificationIds.add(notification.id);
         }
       }
       _notificationIds = updatedNotificationIds;
       _notifications = await _fetchNotificationsByIds(updatedNotificationIds);
-      userManagement.user?.notifications =
-          _notificationIds; // Store IDs in user object
+      userManagement.user?.notifications = _notificationIds; // Store IDs in user object
       await userManagement.updateUser(userManagement.user!);
 
       _notificationController.add(_notifications);
@@ -80,9 +74,8 @@ class NotificationManagement extends ChangeNotifier {
     }
   }
 
-  // Remove notification by index (use ID-based approach)
-  Future<bool> removeNotificationByIndex(
-      int index, UserManagement userManagement) async {
+  // Remove notification by index
+  Future<bool> removeNotificationByIndex(int index, UserManagement userManagement) async {
     if (index < 0 || index >= _notifications.length) {
       return false;
     }
@@ -106,12 +99,10 @@ class NotificationManagement extends ChangeNotifier {
   }
 
   // Remove notification by ID
-  Future<bool> removeNotificationById(
-      String notificationId, UserManagement userManagement) async {
+  Future<bool> removeNotificationById(String notificationId, UserManagement userManagement) async {
     try {
       _notificationIds.remove(notificationId);
-      _notifications
-          .removeWhere((notification) => notification.id == notificationId);
+      _notifications.removeWhere((notification) => notification.id == notificationId);
 
       userManagement.user?.notifications = _notificationIds;
       await userManagement.updateUser(userManagement.user!);
@@ -127,14 +118,9 @@ class NotificationManagement extends ChangeNotifier {
   }
 
   // Add notification to the DB
-  Future<bool> addNotificationToDB(
-      NotificationUser notification, UserManagement userManagement) async {
+  Future<bool> addNotificationToDB(NotificationUser notification, UserManagement userManagement) async {
     try {
-      // Convert NotificationUser to NotificationUserDTO for saving
-      final notificationDTO =
-          NotificationUserDTO.fromNotification(notification);
-      // Create the notification in the service
-      await notificationService.createNotification(notificationDTO);
+      await notificationService.createNotification(notification); // Directly save the notification
 
       _notificationIds.add(notification.id);
       if (userManagement.user?.id == notification.recipientId) {
@@ -154,8 +140,7 @@ class NotificationManagement extends ChangeNotifier {
   }
 
   // Method to update user notification IDs
-  Future<void> updateUserNotificationIds(
-      List<String> newNotificationIds, UserManagement userManagement) async {
+  Future<void> updateUserNotificationIds(List<String> newNotificationIds, UserManagement userManagement) async {
     try {
       // Update the internal list of notification IDs
       _notificationIds = newNotificationIds;

@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/model/group_data/group.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 import 'package:first_project/b-backend/database_conection/node_services/group_services.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
@@ -81,7 +81,7 @@ class GroupManagement extends ChangeNotifier {
 
   Future<void> fetchAndInitializeGroups(List<String> groupIds) async {
     try {
-      // Ensure that listeners are attached before emitting an empty list
+        // Ensure that listeners are attached before emitting an empty list
       await Future.delayed(Duration(milliseconds: 100));
       groupController.add([]); // Emit empty list first
 
@@ -238,7 +238,7 @@ class GroupManagement extends ChangeNotifier {
         userManagement.user!.notifications?.add(editingNotification.id); // Use notification ID
         devtools.log("This is the user i want to update ${userManagement.user}");
 
-        await userService.updateUser(userManagement.user!.toDTO());
+        await userService.updateUser(userManagement.user);
       }
 
       bool result = await _notifyUserInvitation(
@@ -267,7 +267,7 @@ class GroupManagement extends ChangeNotifier {
       updatedUser.groupIds.remove(group.id);
 
       // Update the UserManagement state
-      userManagement.setCurrentUser(updatedUser.toDTO());
+      userManagement.setCurrentUser(updatedUser);
 
       // Re-fetch groups to ensure the local state is updated
       await fetchAndInitializeGroups(updatedUser.groupIds);

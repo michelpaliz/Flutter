@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 
 class UserFilterService {
   static Map<String, UserInviteStatus> filterUsers(

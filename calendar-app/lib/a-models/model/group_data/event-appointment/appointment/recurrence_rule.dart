@@ -1,5 +1,5 @@
 import 'dart:core';
-import 'package:first_project/a-models/custom_day_week.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/custom_day_week.dart';
 import 'package:uuid/uuid.dart'; // Add the UUID package
 
 enum RecurrenceType { Daily, Weekly, Monthly, Yearly }

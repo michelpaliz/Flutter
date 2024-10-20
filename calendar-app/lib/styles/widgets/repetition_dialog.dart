@@ -1,6 +1,6 @@
 import 'package:first_project/styles/widgets/number_selector.dart';
-import 'package:first_project/a-models/custom_day_week.dart';
-import 'package:first_project/a-models/recurrence_rule.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/custom_day_week.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/recurrence_rule.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";

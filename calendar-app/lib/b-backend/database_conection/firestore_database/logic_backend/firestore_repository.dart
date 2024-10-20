@@ -1,6 +1,6 @@
-import '../../../../a-models/model/group_data/event.dart';
-import '../../../../a-models/model/group_data/group.dart';
-import '../../../../a-models/model/user_data/notification_user.dart';
+import '../../../../a-models/model/group_data/event-appointment/event/event.dart';
+import '../../../../a-models/model/group_data/group/group.dart';
+import '../../../../a-models/model/notification/notification_user.dart';
 import '../../../../a-models/model/user_data/user.dart';
 
 abstract class FirestoreRepository {

@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 

@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 
 class RoleChangeLogic {
   static bool shouldUpdateInvitation(UserInviteStatus? userInviteStatus) {

@@ -1,6 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -13,7 +13,7 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../a-models/model/group_data/group.dart';
+import '../../../a-models/model/group_data/group/group.dart';
 import '../../../a-models/model/user_data/user.dart';
 import '../../../enums/routes/appRoutes.dart';
 

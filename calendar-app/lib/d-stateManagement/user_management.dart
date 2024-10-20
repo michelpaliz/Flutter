@@ -1,66 +1,58 @@
 import 'dart:async';
-
-import 'package:first_project/a-models/model/DTO/userDTO.dart';
 import 'package:first_project/a-models/model/user_data/user.dart'; // Import your User model
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:flutter/material.dart';
 
 class UserManagement extends ChangeNotifier {
-  User? _user; // Change from UserDTO to User
+  User? _user;
   final UserService userService = UserService();
   final NotificationManagement _notificationManagement;
-  final _userController =
-      StreamController<User?>.broadcast(); // Change Stream type to User
+  final _userController = StreamController<User?>.broadcast();
+  
   Stream<User?> get userStream => _userController.stream;
 
   User? get user => _user;
 
   UserManagement({
-    required UserDTO? userDTO, // Accept UserDTO
+    required User? user, // Accept User directly
     required NotificationManagement notificationManagement,
   }) : _notificationManagement = notificationManagement {
-    if (userDTO != null) {
-      setCurrentUser(userDTO);
+    if (user != null) {
+      setCurrentUser(user);
     }
   }
 
-  void setCurrentUser(UserDTO? user) {
+  void setCurrentUser(User? user) {
     if (user != null) {
       updateCurrentUser(user);
     }
   }
 
-  void _initNotifications(UserDTO userDTO) {
-    // Convert UserDTO to User
-    User user = userDTO.toUser();
+void _initNotifications(User user) {
+  // Ensure the notifications are in the correct format (List<String> IDs)
+  List<String> notificationIds = user.notifications!
+      .map((notification) => notification) // Access the 'id' field directly from NotificationUser object
+      .toList();
 
-    // Ensure the notifications are in the correct format (List<String> IDs)
-    List<String> notificationIds = user.notifications
-        .map((notification) =>
-            notification['id']) // Assuming notification has an 'id' field
-        .toList();
+  // Initialize notifications using the notification IDs
+  _notificationManagement.initNotifications(notificationIds);
+}
 
-    // Initialize notifications using the notification IDs
-    _notificationManagement.initNotifications(notificationIds);
-  }
 
-  void updateCurrentUser(UserDTO? userDTO) {
-    if (userDTO != null) {
-      // Convert UserDTO to User
-      _userController.add(userDTO.toUser());
-      _initNotifications(userDTO); // Initialize notifications for the DTO
+  void updateCurrentUser(User? user) {
+    if (user != null) {
+      _userController.add(user);
+      _initNotifications(user);
       notifyListeners();
     }
   }
 
-  Future<void> updateUserFromDB(UserDTO? userUpdatedDTO) async {
-    if (userUpdatedDTO != null) {
+  Future<void> updateUserFromDB(User? updatedUser) async {
+    if (updatedUser != null) {
       try {
-        final userFromService =
-            await userService.getUserByEmail(userUpdatedDTO.email);
-        updateCurrentUser(
-            userFromService.toDTO()); // Update using the converted User object
+        final userFromService = await userService.getUserByEmail(updatedUser.email);
+        updateCurrentUser(userFromService); // Update directly with the User object
       } catch (e) {
         print('Failed to update user: $e');
       }
@@ -77,15 +69,11 @@ class UserManagement extends ChangeNotifier {
   }
 
   Future<bool> updateUser(User updatedUser) async {
-    // Accept User instead of UserDTO
     try {
-      // Convert User to UserDTO
-      await userService
-          .updateUser(updatedUser.toDTO()); // Update to use UserDTO
+      await userService.updateUser(updatedUser); // Directly use User for updating
       if (_user != null) {
         if (updatedUser.id == _user!.id) {
-          updateCurrentUser(
-              updatedUser.toDTO()); // Convert back to User and update
+          updateCurrentUser(updatedUser);
         }
       }
       notifyListeners();

@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/userInvitationStatus.dart';
+import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
 import 'package:first_project/c-frontend/b-event-section/views/edit_logic/widgets/selected_users/invitation_functions/role_change_dialog_actions.dart';
 import 'package:first_project/c-frontend/b-event-section/views/edit_logic/widgets/selected_users/invitation_functions/role_change_dialog_content.dart';
 import 'package:flutter/material.dart';

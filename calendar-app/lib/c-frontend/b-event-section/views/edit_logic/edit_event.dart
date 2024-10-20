@@ -1,8 +1,8 @@
 
-import 'package:first_project/a-models/model/group_data/event.dart';
-import 'package:first_project/a-models/model/group_data/group.dart';
-import 'package:first_project/a-models/model/group_data/updateInfo.dart';
-import 'package:first_project/a-models/recurrence_rule.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
+import 'package:first_project/a-models/model/notification/updateInfo.dart';
+import 'package:first_project/a-models/model/group_data/event-appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
@@ -435,7 +435,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   Widget _buildUserDropdown(BuildContext context) {
     return DropdownButtonFormField<User>(
       value: _selectedUser,
-      onChanged: (User? newValue) {
+        onChanged: (User? newValue) {
         setState(() {
           _selectedUser = newValue;
         });

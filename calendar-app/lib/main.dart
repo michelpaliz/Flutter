@@ -43,7 +43,7 @@ class MyMaterialApp extends StatelessWidget {
         ChangeNotifierProvider<UserManagement>(
           create: (context) => UserManagement(
             notificationManagement: NotificationManagement(),
-            userDTO: authService.costumeUser?.toDTO(),
+            user: authService.costumeUser,
           ),
         ),
         ChangeNotifierProvider<GroupManagement>(
@@ -121,7 +121,7 @@ class _UserInitializerState extends State<UserInitializer> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final userManagement =
             Provider.of<UserManagement>(context, listen: false);
-        userManagement.setCurrentUser(user?.toDTO());
+        userManagement.setCurrentUser(user);
 
         devtools.log('Fetched user ${userManagement.user}');
 

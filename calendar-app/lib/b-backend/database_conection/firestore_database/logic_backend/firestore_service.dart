@@ -1,8 +1,8 @@
-import 'package:first_project/a-models/model/group_data/group.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/group_data/group/group.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 
-import '../../../../a-models/model/group_data/event.dart';
+import '../../../../a-models/model/group_data/event-appointment/event/event.dart';
 import 'firestore_repository.dart';
 
 class FirestoreService extends FirestoreRepository {

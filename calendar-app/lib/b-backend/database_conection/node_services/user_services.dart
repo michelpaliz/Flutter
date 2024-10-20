@@ -3,7 +3,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:dio/dio.dart';
 import 'package:first_project/a-models/model/DTO/userDTO.dart';
-import 'package:first_project/a-models/model/user_data/notification_user.dart';
+import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:http/http.dart' as http;
 
