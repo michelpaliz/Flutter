@@ -1,29 +1,25 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
-
 import 'package:dio/dio.dart';
-import 'package:first_project/a-models/model/DTO/userDTO.dart';
 import 'package:first_project/a-models/model/notification/notification_user.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  final String baseUrl =
-      'http://192.168.1.16:3000/api/users'; // Your server URL
+  final String baseUrl = 'http://192.168.1.16:3000/api/users'; // Your server URL
 
-  // Modify createUser to accept UserDTO and return User
-  Future<User> createUser(UserDTO userDTO) async {
+  // Modify createUser to accept a User object and return User
+  Future<User> createUser(User user) async {
     final response = await http.post(
       Uri.parse('$baseUrl'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(userDTO.toJson()), // Use UserDTO's toJson()
+      body: jsonEncode(user.toJson()), // Use User's toJson method
     );
 
     if (response.statusCode == 201) {
-      final createdUserDTO = UserDTO.fromJson(jsonDecode(response.body));
-      return createdUserDTO.toUser(); // Convert to User
+      return User.fromJson(jsonDecode(response.body)); // Return User directly
     } else if (response.statusCode == 409) {
       throw Exception('User with this email or username already exists');
     } else {
@@ -55,9 +51,7 @@ class UserService {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode == 200) {
-      final userDTO =
-          UserDTO.fromJson(jsonDecode(response.body)); // Get UserDTO
-      return userDTO.toUser(); // Convert to User
+      return User.fromJson(jsonDecode(response.body)); // Directly use User's fromJson method
     } else if (response.statusCode == 404) {
       throw Exception('User not found');
     } else {
@@ -69,9 +63,7 @@ class UserService {
     final response = await http.get(Uri.parse('$baseUrl/email/$email'));
 
     if (response.statusCode == 200) {
-      final userDTO =
-          UserDTO.fromJson(jsonDecode(response.body)); // Get UserDTO
-      return userDTO.toUser(); // Convert to User
+      return User.fromJson(jsonDecode(response.body)); // Directly use User's fromJson method
     } else if (response.statusCode == 404) {
       throw Exception('User not found');
     } else {
@@ -85,9 +77,7 @@ class UserService {
     devtools.log("THIS IS AUTH VALUE $authID");
 
     if (response.statusCode == 200) {
-      final userDTO =
-          UserDTO.fromJson(jsonDecode(response.body)); // Get UserDTO
-      return userDTO.toUser(); // Convert to User
+      return User.fromJson(jsonDecode(response.body)); // Directly use User's fromJson method
     } else if (response.statusCode == 404) {
       throw Exception('User not found');
     } else {
@@ -95,12 +85,13 @@ class UserService {
     }
   }
 
-  Future<User> updateUser(UserDTO userDTO) async {
+  // Update updateUser to accept a User object
+  Future<User> updateUser(User user) async {
     var dio = Dio();
     try {
       var response = await dio.put(
-        '$baseUrl/${userDTO.id}',
-        data: userDTO.toJson(), // Use UserDTO's toJson()
+        '$baseUrl/${user.id}', // Use user's id
+        data: user.toJson(), // Use User's toJson method
         options: Options(
           headers: {
             'Content-Type': 'application/json; charset=UTF-8',
@@ -109,9 +100,7 @@ class UserService {
       );
 
       if (response.statusCode == 200) {
-        final updatedUserDTO =
-            UserDTO.fromJson(response.data); // Get updated UserDTO
-        return updatedUserDTO.toUser(); // Convert to User
+        return User.fromJson(response.data); // Directly use User's fromJson method
       } else {
         print('Failed to update user: ${response.data}');
         throw Exception('Failed to update user: ${response.statusMessage}');
@@ -122,8 +111,7 @@ class UserService {
         if (e.response != null) {
           print('Error Response: ${e.response?.data}');
           print('Error Status Code: ${e.response?.statusCode}');
-          throw Exception(
-              'Failed to update user: ${e.response?.statusMessage}');
+          throw Exception('Failed to update user: ${e.response?.statusMessage}');
         } else {
           throw Exception('Network or server issue: ${e.message}');
         }
@@ -134,19 +122,17 @@ class UserService {
     }
   }
 
-  Future<User> updateUserByUsername(String username, UserDTO userDTO) async {
+  Future<User> updateUserByUsername(String username, User user) async {
     final response = await http.put(
       Uri.parse('$baseUrl/username/$username'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(userDTO.toJson()), // Use UserDTO's toJson()
+      body: jsonEncode(user.toJson()), // Use User's toJson method
     );
 
     if (response.statusCode == 200) {
-      final updatedUserDTO =
-          UserDTO.fromJson(jsonDecode(response.body)); // Get updated UserDTO
-      return updatedUserDTO.toUser(); // Convert to User
+      return User.fromJson(jsonDecode(response.body)); // Directly use User's fromJson method
     } else if (response.statusCode == 404) {
       throw Exception('User not found');
     } else {
@@ -162,14 +148,12 @@ class UserService {
     }
   }
 
-  Future<List<UserDTO>> getAllUsers() async {
+  Future<List<User>> getAllUsers() async {
     final response = await http.get(Uri.parse('$baseUrl'));
 
     if (response.statusCode == 200) {
       Iterable list = json.decode(response.body);
-      return list
-          .map((model) => UserDTO.fromJson(model))
-          .toList(); // Returns List<UserDTO>
+      return list.map((model) => User.fromJson(model)).toList(); // Directly map to List<User>
     } else {
       throw Exception('Failed to get users: ${response.reasonPhrase}');
     }
@@ -180,9 +164,7 @@ class UserService {
     final response = await http.get(Uri.parse('$baseUrl/username/$username'));
 
     if (response.statusCode == 200) {
-      final userDTO =
-          UserDTO.fromJson(jsonDecode(response.body)); // Get UserDTO
-      return userDTO.toUser(); // Convert to User
+      return User.fromJson(jsonDecode(response.body)); // Directly use User's fromJson method
     } else if (response.statusCode == 404) {
       throw Exception('User not found');
     } else {
@@ -191,8 +173,7 @@ class UserService {
   }
 
   Future<List<NotificationUser>> getNotificationsByUser(String userName) async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/notifications/$userName'));
+    final response = await http.get(Uri.parse('$baseUrl/notifications/$userName'));
 
     if (response.statusCode == 200) {
       Iterable list = json.decode(response.body);

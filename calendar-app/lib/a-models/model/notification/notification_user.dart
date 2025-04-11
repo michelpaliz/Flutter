@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/model/DTO/notificationDTO.dart';
+
 
 enum NotificationType { alert, reminder, message, update }
 
@@ -129,23 +129,6 @@ class NotificationUser {
     };
   }
 
-// Create fromDTO method
-  static NotificationUser fromDTO(NotificationUserDTO dto) {
-    return NotificationUser(
-      id: dto.id,
-      senderId: dto.senderId,
-      recipientId: dto.recipientId,
-      title: dto.title,
-      message: dto.message,
-      timestamp: DateTime.parse(dto.timestamp), // Convert String to DateTime
-      questionsAndAnswers: dto.questionsAndAnswers,
-      groupId: dto.groupId,
-      isRead: dto.isRead,
-      type: dto.type,
-      priority: dto.priority,
-      category: dto.category,
-    );
-  }
 
   @override
   String toString() {

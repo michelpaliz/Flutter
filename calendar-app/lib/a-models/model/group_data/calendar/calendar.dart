@@ -18,7 +18,7 @@ class Calendar {
   List<Event> get events => _events;
   set events(List<Event> events) {
     _events = events;
-  }
+    }
 
   Map<String, dynamic> toJson() {
     return {
@@ -38,11 +38,11 @@ class Calendar {
     );
   }
 
-  static createDefaultCalendar() {
+  static Calendar defaultCalendar() {
     return Calendar(
-      'default_calendar_id', // Default ID
-      'Default Calendar Name', // Default Name
-      events: [], // Default empty list of events
+      'default_calendar_id',
+      'Default Calendar Name',
+      events: [],
     );
   }
 

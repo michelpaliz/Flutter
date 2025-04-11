@@ -238,7 +238,7 @@ class GroupManagement extends ChangeNotifier {
         userManagement.user!.notifications?.add(editingNotification.id); // Use notification ID
         devtools.log("This is the user i want to update ${userManagement.user}");
 
-        await userService.updateUser(userManagement.user);
+        await userService.updateUser(userManagement.user!);
       }
 
       bool result = await _notifyUserInvitation(

@@ -1,18 +1,13 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'
-    show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
+import 'package:firebase_auth/firebase_auth.dart' show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/a-models/model/DTO/userDTO.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/exceptions/password_exceptions.dart';
 import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_user.dart';
 import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
-
 import 'package:flutter/material.dart';
-
 import '../../../../firebase_options.dart';
 import '../../../../a-models/model/user_data/user.dart';
 import 'auth_repository.dart';
@@ -20,9 +15,7 @@ import 'auth_repository.dart';
 class AuthProvider extends ChangeNotifier implements AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final UserService _userService = UserService();
-  final StreamController<User?> _authStateController =
-      StreamController<User?>();
-
+  final StreamController<User?> _authStateController = StreamController<User?>();
   User? _user;
 
   AuthProvider() {
@@ -31,9 +24,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
   void _initializeAuthStateListener() {
     _firebaseAuth.authStateChanges().listen((user) async {
-      _user = user != null
-          ? await _userService.getUserByEmail(user.email.toString())
-          : null;
+      _user = user != null ? await _userService.getUserByEmail(user.email.toString()) : null;
       _authStateController.add(_user);
       notifyListeners();
     });
@@ -64,14 +55,14 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     required String password,
   }) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      // Create Firebase user
+      await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       final user = _firebaseAuth.currentUser;
       if (user != null) {
         await user.updateProfile(displayName: user.uid);
 
-        // Create UserDTO instead of User
-        UserDTO userDTO = UserDTO(
+        // Create User object directly
+        User newUser = User(
           id: user.uid,
           authID: user.uid,
           name: name,
@@ -83,8 +74,8 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
           notifications: [],
         );
 
-        // Use DTO to create the user in Firestore
-        _user = await _userService.createUser(userDTO);
+        // Store the User object in Firestore directly
+        await _userService.createUser(newUser); // Change this to accept User instead of Map
 
         return 'User created successfully';
       } else {
@@ -92,22 +83,19 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') throw WeakPasswordException();
-      if (e.code == 'email-already-in-use')
-        throw EmailAlreadyUseAuthException();
+      if (e.code == 'email-already-in-use') throw EmailAlreadyUseAuthException();
       if (e.code == 'invalid-email') throw InvalidEmailAuthException();
       throw GenericAuthException();
     }
   }
 
   Future<String> uploadPersonToFirestore({
-    required User person, // Change this to UserDTO
+    required User person,
     required String documentId,
   }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(documentId)
-          .set(person.toJson()); // Use DTO's toJson method
+      // Upload directly using the User model
+      await FirebaseFirestore.instance.collection('users').doc(documentId).set(person.toJson());
       return 'User with ID $documentId has been added';
     } catch (error) {
       throw 'There was an error adding the person to Firestore: $error';
@@ -117,8 +105,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   String generateCustomId() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = Random();
-    return String.fromCharCodes(Iterable.generate(
-        10, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+    return String.fromCharCodes(Iterable.generate(10, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
   @override
@@ -127,8 +114,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     required String password,
   }) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
+      await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       final user = currentUser;
       if (user != null) return user;
       throw UserNotLoggedInAuthException();
@@ -161,8 +147,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
   @override
   Future<void> initialize() async {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
 
   @override
@@ -170,6 +155,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     final userFetched = _firebaseAuth.currentUser;
     if (userFetched != null) {
       try {
+        // Fetch user directly using the User model
         return await _userService.getUserByAuthID(userFetched.uid);
       } catch (error) {
         throw Exception('Error retrieving user data from Firestore: $error');
@@ -179,14 +165,12 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }
 
   @override
-  Future<void> changePassword(String currentPassword, String newPassword,
-      String confirmPassword) async {
+  Future<void> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
     final currentUser = _firebaseAuth.currentUser;
     if (currentUser == null) throw UserNotSignedInException();
 
     try {
-      final credential = EmailAuthProvider.credential(
-          email: currentUser.email!, password: currentPassword);
+      final credential = EmailAuthProvider.credential(email: currentUser.email!, password: currentPassword);
       await currentUser.reauthenticateWithCredential(credential);
 
       if (newPassword != confirmPassword) throw PasswordMismatchException();

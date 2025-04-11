@@ -11,18 +11,6 @@ class FirestoreService extends FirestoreRepository {
   // Private constructor for the Singleton pattern
   FirestoreService._(this.repository);
 
-  // Static field to hold the single instance of StoreService
-  static FirestoreService? _instance;
-
-  // Factory method to get the single instance of StoreService
-  // factory FirestoreService.firebase(ProviderManagement? providerManagement) {
-  //   if (_instance == null) {
-  //     _instance = FirestoreService._(
-  //         FirestoreProvider(providerManagement: providerManagement));
-  //   }
-  //   return _instance!;
-  // }
-
   /**when you call removeEvent on an instance of StoreService, it will delegate the call to the underlying FireStoreProvider and execute its removeEvent method. */
   @override
   Future<List<Event>> removeEvent(String eventId) =>
