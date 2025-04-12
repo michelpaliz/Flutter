@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:first_project/a-models/model/user_data/user.dart'; // Import your User model
-import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
+import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:flutter/material.dart';
 

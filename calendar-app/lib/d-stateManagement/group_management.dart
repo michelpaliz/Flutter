@@ -6,8 +6,8 @@ import 'package:first_project/a-models/model/notification/notification_user.dart
 import 'package:first_project/a-models/model/user_data/user.dart';
 
 import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
-import 'package:first_project/b-backend/database_conection/node_services/group_services.dart';
-import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
+import 'package:first_project/b-backend/auth/node_services/group_services.dart';
+import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/utilities/notification_formats.dart';

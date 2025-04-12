@@ -1,7 +1,5 @@
-
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_provider.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
-import 'package:first_project/c-frontend/d-log-user-section/verify_email_view.dart';
 import 'package:first_project/c-frontend/a-home-section/notes_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,17 +35,18 @@ class HomePage extends StatelessWidget {
 
   Widget _buildUserDependentView(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    if (authProvider.currentUser == null) {
-      return Center(
+    final user = authProvider.currentUser;
+
+    if (user == null) {
+      return const Center(
         child: Text('No user is currently logged in'),
       );
     }
 
-    if (!authProvider.currentUser!.isEmailVerified) {
-      return const VerifyEmailView();
-    } else {
-      return const NotesView();
-    }
+    // ✅ You could add a custom check here if your backend supports email verification
+    // if (!user.emailVerified) { return VerifyEmailView(); }
+
+    return const NotesView();
   }
 
   Widget _buildLoadingIndicator() {

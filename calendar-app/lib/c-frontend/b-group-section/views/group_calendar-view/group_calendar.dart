@@ -1,7 +1,7 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/model/group_data/event-appointment/appointment/mettingDataSource.dart';
-import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
+import 'package:first_project/b-backend/auth/node_services/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/1-calendar/1.1-main_calendar_view.dart';
 import 'package:first_project/c-frontend/c-event-section/event_detail.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';

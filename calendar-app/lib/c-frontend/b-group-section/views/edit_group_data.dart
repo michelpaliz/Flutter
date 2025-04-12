@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:first_project/a-models/model/group_data/group/group.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -42,7 +42,7 @@ class _EditGroupDataState extends State<EditGroupData> {
   XFile? _selectedImage;
   TextEditingController _searchController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
-  User? _currentUser = AuthService.firebase().costumeUser;
+  User? _currentUser = AuthService.custom().currentUser;
 
   late List<User> _usersInGroup = [];
   late Map<String, String> _usersRoles = {};

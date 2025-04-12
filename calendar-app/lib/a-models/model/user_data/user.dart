@@ -1,114 +1,98 @@
 class User {
   String _id;
-  String _authID;
   String _name;
   final String _email;
-  String? _photoUrl; // Nullable
+  String? _photoUrl;
   String _userName;
   List<String> _eventsIds;
   List<String> _groupIds;
-  List<String>? _calendarsIds; // Nullable
-  List<String>? _notificationsIds; // Nullable
+  List<String>? _calendarsIds;
+  List<String>? _notificationsIds;
 
   User({
     required String id,
-    required String authID,
     required String name,
     required String email,
     required String userName,
     required List<String> events,
     required List<String> groupIds,
-    String? photoUrl, // Nullable in constructor
-    List<String>? sharedCalendars, // Nullable in constructor
-    List<String>? notifications, // Nullable in constructor
+    String? photoUrl,
+    List<String>? sharedCalendars,
+    List<String>? notifications,
   })  : _id = id,
         _name = name,
-        _authID = authID,
         _email = email,
         _userName = userName,
         _eventsIds = events,
         _groupIds = groupIds,
-        _photoUrl = photoUrl, // Initialize nullable field
-        _calendarsIds = sharedCalendars, // Initialize nullable field
-        _notificationsIds = notifications; // Initialize nullable field
+        _photoUrl = photoUrl,
+        _calendarsIds = sharedCalendars,
+        _notificationsIds = notifications;
 
-  // Getters and setters
+  // Getters & Setters
   String get id => _id;
-  String get authId => _authID;
   String get name => _name;
-  set name(String name) {
-    _name = name;
-  }
+  set name(String name) => _name = name;
 
   String get email => _email;
 
   List<String> get events => _eventsIds;
-  set events(List<String> events) {
-    _eventsIds = events;
-  }
+  set events(List<String> events) => _eventsIds = events;
 
   List<String> get groupIds => _groupIds;
-  set groupIds(List<String> groupIds) {
-    _groupIds = groupIds;
-  }
+  set groupIds(List<String> groupIds) => _groupIds = groupIds;
 
-  String? get photoUrl => _photoUrl; // Getter for nullable field
-  set photoUrl(String? photoUrl) {
-    _photoUrl = photoUrl;
-  }
+  String? get photoUrl => _photoUrl;
+  set photoUrl(String? photoUrl) => _photoUrl = photoUrl;
 
-  List<String>? get sharedCalendars => _calendarsIds; // Nullable getter
-  set sharedCalendars(List<String>? sharedCalendars) {
-    _calendarsIds = sharedCalendars;
-  }
+  List<String>? get sharedCalendars => _calendarsIds;
+  set sharedCalendars(List<String>? sharedCalendars) =>
+      _calendarsIds = sharedCalendars;
 
-  List<String>? get notifications => _notificationsIds; // Nullable getter
-  set notifications(List<String>? notifications) {
-    _notificationsIds = notifications;
-  }
+  List<String>? get notifications => _notificationsIds;
+  set notifications(List<String>? notifications) =>
+      _notificationsIds = notifications;
 
   String get userName => _userName;
-  set userName(String userName) {
-    _userName = userName;
-  }
+  set userName(String userName) => _userName = userName;
 
+  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': _id,
       'name': _name,
-      'authID': _authID,
       'userName': _userName,
       'email': _email,
-      'photoUrl': _photoUrl, // Nullable field
-      'events': _eventsIds, // List of event IDs (strings), no need for toMap()
+      'photoUrl': _photoUrl,
+      'events': _eventsIds,
       'groupIds': _groupIds,
-      'sharedCalendars': _calendarsIds, // Nullable field, List<String>
-      'notifications': _notificationsIds, // Nullable field, List<String>
+      'sharedCalendars': _calendarsIds,
+      'notifications': _notificationsIds,
     };
   }
 
+  // Create from JSON
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,
-      authID: json['authID'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
       userName: json['userName'] as String,
       events: (json['events'] as List<dynamic>?)
-              ?.map((eventId) => eventId.toString())
+              ?.map((e) => e.toString())
               .toList() ??
-          [], // Default to an empty list if null
+          [],
       groupIds: (json['groupIds'] as List<dynamic>?)
-              ?.map((groupId) => groupId.toString())
+              ?.map((g) => g.toString())
               .toList() ??
-          [], // Default to an empty list if null
-      photoUrl: json['photoUrl'] as String?, // Nullable field
+          [],
+      photoUrl: json['photoUrl'] as String?,
       sharedCalendars: (json['sharedCalendars'] as List<dynamic>?)
-          ?.map((calendarId) => calendarId.toString())
-          .toList(), // Nullable field
+          ?.map((c) => c.toString())
+          .toList(),
       notifications: (json['notifications'] as List<dynamic>?)
-          ?.map((notificationId) => notificationId.toString())
-          .toList(), // Nullable field
+          ?.map((n) => n.toString())
+          .toList(),
     );
   }
 }

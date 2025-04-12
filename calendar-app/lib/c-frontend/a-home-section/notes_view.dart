@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
-import 'package:first_project/enums/routes/appRoutes.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
-import 'package:first_project/b-backend/database_conection/firestore_database/logic_backend/firestore_service.dart';
-import 'package:first_project/utilities/color_manager.dart';
-import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
+
 import 'package:first_project/a-models/model/group_data/event-appointment/appointment/custom_day_week.dart';
 import 'package:first_project/a-models/model/group_data/event-appointment/appointment/meeting_data_source.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/b-backend/auth/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/enums/routes/appRoutes.dart';
+import 'package:first_project/styles/drawer-style-menu/my_drawer.dart';
+import 'package:first_project/utilities/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
 import '../../a-models/model/group_data/event-appointment/event/event.dart';
 import '../../a-models/model/user_data/user.dart';
+
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
 
@@ -39,7 +42,7 @@ class NotesViewState extends State<NotesView> {
   @override
   void initState() {
     super.initState();
-    _authService = AuthService.firebase();
+    _authService = AuthService.custom();
     _events = [];
     _getEventsListFromUser();
     _selectedDate = DateTime.now().toLocal();
@@ -72,11 +75,11 @@ class NotesViewState extends State<NotesView> {
   }
 
   Future<void> _getEventsListFromUser() async {
-    _user = _authService.costumeUser;
+    _user = _authService.currentUser;
 
     if (_user != null) {
       setState(() {
-        _events = [];
+        _events = []; // You might want to fetch events here too
         userOrGroupObject = _user!;
       });
     }

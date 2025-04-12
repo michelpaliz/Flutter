@@ -1,18 +1,18 @@
 import 'dart:developer' as devtools show log;
 import 'dart:io';
 
-import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/a-models/model/group_data/calendar/calendar.dart';
 import 'package:first_project/a-models/model/group_data/group/group.dart';
-import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
-import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
+import 'package:first_project/a-models/model/user_data/user.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/c-frontend/b-group-section/views/create_group_search_bar.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/c-frontend/b-group-section/views/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
@@ -30,7 +30,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   String _groupDescription = '';
   XFile? _selectedImage;
   // late FirestoreService _storeService;
-  User? _currentUser = AuthService.firebase().costumeUser;
+  User? _currentUser = AuthService.custom().currentUser;
   Map<String, String> _userRoles = {}; // Map to store user roles
   late List<User> _usersInGroup;
   UserService _userService = UserService();
@@ -47,7 +47,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     _userRoles[_currentUser!.userName] = 'Administrator';
     _usersInGroup = [];
   }
-      
+
   void _updateUserInGroup(List<User> updatedData) {
     setState(() {
       _usersInGroup = updatedData;
@@ -236,7 +236,9 @@ class _CreateGroupDataState extends State<CreateGroupData> {
       }
 
       // Step 5: Define the admin of the group as the current user
-      Map<String, String> adminUsersJson = {_currentUser!.userName: 'Administrator'};
+      Map<String, String> adminUsersJson = {
+        _currentUser!.userName: 'Administrator'
+      };
 
       // Step 6: Generate a unique ID for the calendar associated with the group
       String calendarId = Uuid().v4().substring(0, 10);

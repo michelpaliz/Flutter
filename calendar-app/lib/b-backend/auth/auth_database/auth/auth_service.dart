@@ -1,16 +1,15 @@
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_provider.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_repository.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_user.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_repository.dart';
 
 class AuthService implements AuthRepository {
   final AuthRepository repository;
 
   const AuthService._(this.repository);
 
-  static AuthService? _instance; // Singleton instance
+  static AuthService? _instance;
 
-  factory AuthService.firebase() {
+  factory AuthService.custom() {
     _instance ??= AuthService._(AuthProvider());
     return _instance!;
   }
@@ -30,10 +29,15 @@ class AuthService implements AuthRepository {
       );
 
   @override
-  AuthUser? get currentUser => repository.currentUser;
+  User? get currentUser => repository.currentUser;
 
   @override
-  Future<AuthUser> logIn({
+  set currentUser(User? user) {
+    repository.currentUser = user;
+  }
+
+  @override
+  Future<User?> logIn({
     required String email,
     required String password,
   }) =>
@@ -56,18 +60,7 @@ class AuthService implements AuthRepository {
       repository.generateUserCustomModel();
 
   @override
-  User? get costumeUser => repository.costumeUser;
-
-  @override
-  set costumeUser(User? user) {
-    if (user != null) {
-      repository.costumeUser = user;
-    }
-  }
-
-  @override
   Future<void> changePassword(
           String currentPassword, String newPassword, String confirmPassword) =>
       repository.changePassword(currentPassword, newPassword, confirmPassword);
-
 }

@@ -18,7 +18,7 @@ import 'package:first_project/c-frontend/d-log-user-section/verify_email_view.da
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/a-home-section/notes_view.dart';
 import 'package:first_project/c-frontend/f-settings-section/settings.dart';
-import 'package:first_project/c-frontend/e-notification-section/show_notifications.dart';
+import 'package:first_project/c-frontend/e-notification-section/widgets/show_notifications.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 

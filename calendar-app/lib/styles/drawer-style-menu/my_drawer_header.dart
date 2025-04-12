@@ -1,14 +1,15 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
-import 'package:first_project/b-backend/database_conection/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/b-backend/auth/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../a-models/model/user_data/user.dart';
+
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
 
@@ -31,7 +32,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   }
 
   void getCurrentUser() async {
-    _currentUser = _authService.costumeUser;
+    _currentUser = _authService.customUser;
   }
 
   @override

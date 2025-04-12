@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 
 class LoginInitializer {
   final AuthService authService;
@@ -18,8 +18,8 @@ class LoginInitializer {
 
     if (emailVerified) {
       User? customUser = await authService.generateUserCustomModel();
-      authService.costumeUser = customUser;
-      userFetched = authService.costumeUser;
+      authService.customUser = customUser;
+      userFetched = authService.customUser;
     }
   }
 

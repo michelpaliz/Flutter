@@ -1,17 +1,17 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:first_project/l10n/l10n.dart';
-import 'package:first_project/enums/routes.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_provider.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/c-frontend/a-home-section/home_page.dart';
+import 'package:first_project/c-frontend/d-log-user-section/register_view.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme_management.dart';
 import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/c-frontend/a-home-section/home_page.dart';
-import 'package:first_project/c-frontend/d-log-user-section/register_view.dart';
+import 'package:first_project/enums/routes.dart';
+import 'package:first_project/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -43,12 +43,12 @@ class MyMaterialApp extends StatelessWidget {
         ChangeNotifierProvider<UserManagement>(
           create: (context) => UserManagement(
             notificationManagement: NotificationManagement(),
-            user: authService.costumeUser,
+            user: authService.customUser,
           ),
         ),
         ChangeNotifierProvider<GroupManagement>(
           create: (context) => GroupManagement(
-            user: authService.costumeUser,
+            user: authService.customUser,
           ),
         ),
         ChangeNotifierProvider<NotificationManagement>(

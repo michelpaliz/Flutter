@@ -2,7 +2,7 @@
 import 'package:first_project/enums/color_properties.dart';
 import 'package:first_project/enums/routes/appRoutes.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/exceptions/auth_exceptions.dart';
+import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login_init.dart';
@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:provider/provider.dart';
 
-import '../../b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
+import '../../b-backend/auth/auth_database/auth/auth_service.dart';
 import '../../styles/widgets/view-item-styles/textfield_styles.dart';
 
 // ======= LOGIN =========

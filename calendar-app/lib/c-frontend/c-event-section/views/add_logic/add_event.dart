@@ -1,8 +1,8 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/model/group_data/event-appointment/appointment/recurrence_rule.dart';
-import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
-import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
+import 'package:first_project/b-backend/auth/node_services/event_services.dart';
+import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/c-frontend/c-event-section/views/add_logic/widgets/dialog/user_expandable_card.dart';
 import 'package:first_project/c-frontend/c-event-section/views/add_logic/widgets/form/add_event_button_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/views/add_logic/widgets/form/color_picker_widget.dart';

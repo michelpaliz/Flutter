@@ -1,7 +1,7 @@
 import 'package:first_project/a-models/model/group_data/group/group.dart';
 import 'package:first_project/a-models/model/user_data/user.dart';
 import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
-import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
+import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/view-item-styles/costume_search_bar.dart';
 import 'package:flutter/material.dart';

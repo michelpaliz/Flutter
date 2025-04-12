@@ -2,8 +2,8 @@ import 'package:first_project/a-models/model/group_data/event-appointment/appoin
 import 'package:first_project/a-models/model/group_data/event-appointment/event/event.dart';
 import 'package:first_project/a-models/model/group_data/group/group.dart';
 import 'package:first_project/a-models/model/notification/updateInfo.dart';
-import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
-import 'package:first_project/b-backend/database_conection/node_services/user_services.dart';
+import 'package:first_project/b-backend/auth/node_services/event_services.dart';
+import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/styles/widgets/repetition_dialog.dart';

@@ -1,8 +1,8 @@
 import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/exceptions/password_exceptions.dart';
-import 'package:first_project/b-backend/database_conection/auth_database/logic_backend/auth_service.dart';
-import 'package:first_project/b-backend/database_conection/firestore_database/exceptions/firestore_exceptions.dart';
-import 'package:first_project/b-backend/database_conection/firestore_database/logic_backend/firestore_service.dart';
+import 'package:first_project/b-backend/auth/auth_database/exceptions/password_exceptions.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/b-backend/auth/firestore_database/exceptions/firestore_exceptions.dart';
+import 'package:first_project/b-backend/auth/firestore_database/logic_backend/firestore_service.dart';
 import 'package:first_project/styles/themes/theme_data.dart';
 import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  late AuthService _authService = AuthService.firebase();
+  late AuthService _authService = AuthService.custom();
   late User? currentUser;
   late FirestoreService _storeService;
   TextEditingController _currentPassword = TextEditingController();
@@ -31,7 +31,7 @@ class _SettingsState extends State<Settings> {
   @override
   void initState() {
     super.initState();
-    currentUser = _authService.costumeUser;
+    currentUser = _authService.customUser;
     // Load user-specific settings, if available
     loadUserSettings();
   }

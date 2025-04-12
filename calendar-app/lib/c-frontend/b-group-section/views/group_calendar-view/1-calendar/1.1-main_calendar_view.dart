@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/model/group_data/group/group.dart';
-import 'package:first_project/b-backend/database_conection/node_services/event_services.dart';
+import 'package:first_project/b-backend/auth/node_services/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/1-calendar/1.2-calendar_ui_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/3-event/backend/event_data_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/3-event/ui/a-event_ui_manger.dart';

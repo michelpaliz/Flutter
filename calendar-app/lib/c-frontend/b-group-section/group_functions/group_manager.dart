@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/model/group_data/group/group.dart';
-import 'package:first_project/b-backend/database_conection/node_services/group_services.dart';
+import 'package:first_project/b-backend/auth/node_services/group_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
