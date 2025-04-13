@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class PasswordRecoveryScreen extends StatefulWidget {
   @override
@@ -11,33 +10,26 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
   String _message = '';
 
   Future<void> _resetPassword() async {
-    if (_emailController.text.isEmpty) {
+    if (_emailController.text.trim().isEmpty) {
       setState(() {
-        _message = 'Please enter your email.';
+        _message = 'Please enter your email or username.';
       });
       return;
     }
 
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text);
-      setState(() {
-        _message = 'Password reset email sent. Please check your email.';
-      });
-    } on FirebaseAuthException catch (e) {
-      print('Error sending password reset email: $e');
-      setState(() {
-        if (e.code == 'user-not-found') {
-          _message = 'No user found with that email. Please try again.';
-        } else {
-          _message = 'Error sending password reset email. Please try again later.';
-        }
-      });
-    } catch (e) {
-      print('Unexpected error: $e');
-      setState(() {
-        _message = 'Unexpected error occurred. Please try again later.';
-      });
-    }
+    // Simulated "reset" action
+    setState(() {
+      _message =
+          'A password reset request has been noted. Please contact support or check your account settings.';
+    });
+
+    // TODO: Connect this to your backend when ready
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
   }
 
   @override
@@ -52,14 +44,14 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Enter your email address to receive a password reset link:',
+              'Enter your account email or username to start password recovery:',
               style: TextStyle(fontSize: 16.0),
             ),
             SizedBox(height: 16.0),
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: 'Email or Username',
                 border: OutlineInputBorder(),
               ),
             ),

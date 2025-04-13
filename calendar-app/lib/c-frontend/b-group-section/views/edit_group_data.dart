@@ -1,26 +1,25 @@
 import 'dart:async';
 
-import 'package:first_project/a-models/model/group_data/group/group.dart';
-import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/a-models/model/notification/userInvitationStatus.dart';
+import 'package:first_project/a-models/group_model/group/group.dart';
+import 'package:first_project/a-models/notification_model/userInvitationStatus.dart';
+import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/functions/user_removal_service.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/bottom_nav.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/group_description_field.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/group_image_field.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/group_name_field.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/add_ppl_section.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/admin_info_card.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/filter_chips.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/filtered_users_list.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/role_change_dialog.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/user_filter_service.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/user_tile.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/utilities/utilities.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/functions/user_removal_service.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/form/bottom_nav.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/form/group_description_field.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/form/group_image_field.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/form/group_name_field.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/add_ppl_section.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/admin_info_card.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/filter_chips.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/filtered_users_list.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/invitation_functions/role_change_dialog.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/user_filter_service.dart';
-import 'package:first_project/c-frontend/c-event-section/views/edit_logic/widgets/selected_users/user_tile.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:image_picker/image_picker.dart';
@@ -159,7 +158,6 @@ class _EditGroupDataState extends State<EditGroupData> {
         _userRolesAtFirst = users;
       });
     });
-
   }
 
   //* Here we passed the updated data but be aware this data is not uploaded in our db
@@ -279,10 +277,11 @@ class _EditGroupDataState extends State<EditGroupData> {
     try {
       //** EDITING THE GROUP*/
       //Now we are going to create the link of the image selected for the group
-      if (_selectedImage != null) {
-        _imageURL =
-            await Utilities.pickAndUploadImageGroup(_group.id, _selectedImage);
-      }
+      //TODO SELECT IMAGE FROM API
+      // if (_selectedImage != null) {
+      //   _imageURL =
+      //       await Utilities.pickAndUploadImageGroup(_group.id, _selectedImage);
+      // }
 
       //We update the map in case the admin has edited any members data
       if (_usersInvitations != _usersInvitationAtFirst) {
@@ -346,7 +345,6 @@ class _EditGroupDataState extends State<EditGroupData> {
   }
 
   //** REMOVE USER */
-
 
   @override
   Widget build(BuildContext context) {
@@ -538,5 +536,4 @@ class _EditGroupDataState extends State<EditGroupData> {
       },
     );
   }
-
 }

@@ -1,9 +1,9 @@
 
-import 'package:first_project/a-models/model/group_data/group/group.dart';
-import 'package:first_project/a-models/model/notification/notification_user.dart';
+import 'package:first_project/a-models/group_model/group/group.dart';
+import 'package:first_project/a-models/notification_model/notification_user.dart';
 import 'package:first_project/utilities/utilities.dart';
 
-import '../a-models/model/user_data/user.dart';
+import '../a-models/user_model/user.dart';
 
 class NotificationFormats {
   late NotificationUser _notificationUser;

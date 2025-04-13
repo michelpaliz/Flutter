@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:first_project/b-backend/custom_errors.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../a-models/model/notification/notification_user.dart'; // Update this import based on your file structure
+import '../../../a-models/notification_model/notification_user.dart'; // Update this import based on your file structure
 
 class NotificationService {
   final String baseUrl = 'http://192.168.1.16:3000/api/notifications'; // Replace with your API base URL

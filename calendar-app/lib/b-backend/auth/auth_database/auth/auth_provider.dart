@@ -7,7 +7,7 @@ import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../../a-models/model/user_data/user.dart';
+import '../../../../a-models/user_model/user.dart';
 import 'auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier implements AuthRepository {
@@ -124,7 +124,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }
 
   @override
-  Future<User?> generateUserCustomModel() async {
+  Future<User?> getCurrentUserModel() async {
     return _user;
   }
 

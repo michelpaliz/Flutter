@@ -1,27 +1,29 @@
-import 'package:first_project/a-models/model/user_data/user.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/a-models/user_model/user.dart';
+
+import '../../b-backend/auth/auth_database/auth/auth_provider.dart';
 
 class LoginInitializer {
-  final AuthService authService;
-  // final FirestoreService storeService;
-  User? userFetched;
+  final AuthProvider authProvider;
+  User? _user;
 
-  LoginInitializer({
-    required this.authService,
-    // required this.storeService,
-  }) : userFetched = null;
+  LoginInitializer({required this.authProvider});
 
+  /// Attempts login and sets up user model (no email verification required)
   Future<void> initializeUserAndServices(String email, String password) async {
-    await authService.logIn(email: email, password: password);
-    final user = authService.currentUser;
-    bool emailVerified = user?.isEmailVerified ?? false;
+    // Attempt login
+    await authProvider.logIn(email: email, password: password);
 
-    if (emailVerified) {
-      User? customUser = await authService.generateUserCustomModel();
-      authService.customUser = customUser;
-      userFetched = authService.customUser;
+    // Generate and store user model
+    final user = await authProvider.getCurrentUserModel();
+
+    if (user != null) {
+      authProvider.currentUser = user;
+      _user = user;
+    } else {
+      throw Exception("Failed to load user data.");
     }
   }
 
-  get getUser => userFetched;
+  /// Getter for the fetched user
+  User? get user => _user;
 }

@@ -1,4 +1,4 @@
-import 'package:first_project/styles/themes/theme_data.dart';
+import 'package:first_project/f-themes/themes/theme_data.dart';
 import 'package:flutter/material.dart';
 
 class ThemeManagement extends ChangeNotifier {

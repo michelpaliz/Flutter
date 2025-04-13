@@ -1,6 +1,6 @@
 //Abstrac class should not contain logic
 
-import '../../../../a-models/model/user_data/user.dart';
+import '../../../../a-models/user_model/user.dart';
 
 abstract class AuthRepository {
   User? get currentUser;
@@ -16,7 +16,7 @@ abstract class AuthRepository {
   Future<void> logOut();
   Future<void> sendEmailVerification();
   Future<void> initialize();
-  Future<User?> generateUserCustomModel();
+  Future<User?> getCurrentUserModel();
   Future<void> changePassword(
     String currentPassword,
     String newPassword,

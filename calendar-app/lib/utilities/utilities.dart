@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -85,31 +84,31 @@ class Utilities {
     );
   }
 
-  /** Select and generate a URL image for the image returns the URL of the image */
-  static Future<String> pickAndUploadImageGroup(
-      String groupID, XFile? imageFile) async {
-    if (imageFile == null) {
-      throw 'No image file selected'; // Handle the case where no image is selected
-    }
+  // /** Select and generate a URL image for the image returns the URL of the image */
+  // static Future<String> pickAndUploadImageGroup(
+  //     String groupID, XFile? imageFile) async {
+  //   if (imageFile == null) {
+  //     throw 'No image file selected'; // Handle the case where no image is selected
+  //   }
 
-    try {
-      // Reference to the Firebase Storage bucket where you want to upload the image
-      final storageReference = firebase_storage.FirebaseStorage.instance
-          .ref()
-          .child('group_images/${groupID}.jpg');
+  //   try {
+  //     // Reference to the Firebase Storage bucket where you want to upload the image
+  //     final storageReference = firebase_storage.FirebaseStorage.instance
+  //         .ref()
+  //         .child('group_images/${groupID}.jpg');
 
-      // Upload the image to Firebase Storage using the provided XFile
-      await storageReference.putFile(File(imageFile.path));
+  //     // Upload the image to Firebase Storage using the provided XFile
+  //     await storageReference.putFile(File(imageFile.path));
 
-      // Get the download URL of the uploaded image
-      final imageUrl = await storageReference.getDownloadURL();
+  //     // Get the download URL of the uploaded image
+  //     final imageUrl = await storageReference.getDownloadURL();
 
-      return imageUrl; // Return the image URL
-    } catch (e) {
-      print('Error uploading image: $e');
-      throw 'Image upload failed'; // Throw an exception in case of an error
-    }
-  }
+  //     return imageUrl; // Return the image URL
+  //   } catch (e) {
+  //     print('Error uploading image: $e');
+  //     throw 'Image upload failed'; // Throw an exception in case of an error
+  //   }
+  // }
 
   static String capitalize(String input) {
     if (input.isEmpty) {

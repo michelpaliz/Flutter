@@ -1,16 +1,15 @@
-// ======= REGISTER =========
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:first_project/enums/color_properties.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/utilities/enums/color_properties.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
-import 'package:first_project/styles/widgets/view-item-styles/app_bar_styles.dart';
-import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
+import 'package:first_project/f-themes/widgets/view-item-styles/app_bar_styles.dart';
+import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
-import '../../enums/routes/appRoutes.dart';
-import '../../styles/widgets/show_error_dialog.dart';
-import '../../styles/widgets/view-item-styles/textfield_styles.dart';
+import 'package:provider/provider.dart';
+import '../../utilities/enums/routes/appRoutes.dart';
+import '../../f-themes/widgets/show_error_dialog.dart';
+import '../../f-themes/widgets/view-item-styles/textfield_styles.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -26,7 +25,7 @@ class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _confirmPassword;
   late final TextEditingController _nameController;
   late final TextEditingController _userNameController;
-  bool buttonHovered = false; // Added buttonHovered variable
+  bool buttonHovered = false;
 
   @override
   void initState() {
@@ -42,23 +41,16 @@ class _RegisterViewState extends State<RegisterView> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _confirmPassword.dispose();
+    _nameController.dispose();
+    _userNameController.dispose();
     super.dispose();
-  }
-
-  Future<bool> _isUserNameTaken(String userName) async {
-    final firestore = FirebaseFirestore.instance;
-    final userCollection = firestore.collection('users');
-
-    final querySnapshot = await userCollection
-        .where('userName', isEqualTo: userName)
-        .limit(1)
-        .get();
-
-    return querySnapshot.docs.isNotEmpty;
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     return Theme(
       data: AppBarStyles.themeData,
       child: Scaffold(
@@ -69,11 +61,11 @@ class _RegisterViewState extends State<RegisterView> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 5.0),
             child: Form(
-              key: _formKey, // Associate the key with the Form
+              key: _formKey,
               child: Column(
                 children: [
                   Image.asset(
-                    'assets/images/login_image.png', // Replace with your image path
+                    'assets/images/login_image.png',
                     width: 100,
                     height: 100,
                   ),
@@ -99,8 +91,7 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     keyboardType: TextInputType.text,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^[a-zA-Z0-9_]+$')),
+                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_]+$')),
                       LengthLimitingTextInputFormatter(10),
                     ],
                     validator: (val) => val!.isEmpty
@@ -116,11 +107,6 @@ class _RegisterViewState extends State<RegisterView> {
                       suffixIcon: Icons.person,
                     ),
                     keyboardType: TextInputType.text,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^[a-zA-Z0-9_]+$')),
-                      LengthLimitingTextInputFormatter(10),
-                    ],
                     validator: (val) => val!.isEmpty
                         ? AppLocalizations.of(context)!.nameRequired
                         : null,
@@ -173,12 +159,11 @@ class _RegisterViewState extends State<RegisterView> {
                     child: ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          final userName = _userNameController.text;
-                          final email = _email.text;
+                          final userName = _userNameController.text.trim();
+                          final email = _email.text.trim();
                           final password = _password.text;
-                          final name = _nameController.text;
                           final confirmPassword = _confirmPassword.text;
-                          String? registrationStatus;
+                          final name = _nameController.text.trim();
 
                           if (password != confirmPassword) {
                             await showErrorDialog(context,
@@ -186,23 +171,38 @@ class _RegisterViewState extends State<RegisterView> {
                             return;
                           }
 
-                          if (await _isUserNameTaken(userName)) {
-                            await showErrorDialog(context,
-                                AppLocalizations.of(context)!.userNameTaken);
-                            return;
-                          }
-
                           try {
-                            registrationStatus = await AuthService.firebase()
-                                .createUser(
-                                    userName: userName,
-                                    name: name,
-                                    email: email,
-                                    password: password);
-                            await AuthService.firebase()
-                                .logIn(email: email, password: password);
+                            final registrationStatus = await authProvider.createUser(
+                              userName: userName,
+                              name: name,
+                              email: email,
+                              password: password,
+                            );
+
+                            await authProvider.logIn(email: email, password: password);
+
                             Navigator.of(context).pushNamedAndRemoveUntil(
-                                AppRoutes.verifyEmailRoute, (route) => false);
+                              AppRoutes.homePage,
+                              (route) => false,
+                            );
+
+                            if (registrationStatus != null) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Registration Status'),
+                                    content: Text(registrationStatus),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: const Text('OK'),
+                                        onPressed: () => Navigator.of(context).pop(),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
                           } on WeakPasswordException {
                             await showErrorDialog(context,
                                 AppLocalizations.of(context)!.weakPassword);
@@ -217,27 +217,6 @@ class _RegisterViewState extends State<RegisterView> {
                                 context,
                                 AppLocalizations.of(context)!
                                     .registrationError);
-                          }
-
-                          if (registrationStatus != null) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Registration Status'),
-                                  content: registrationStatus != null
-                                      ? Text(registrationStatus)
-                                      : const Text('Registration failed'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: const Text('OK'),
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
                           }
                         }
                       },
@@ -281,8 +260,7 @@ class _RegisterViewState extends State<RegisterView> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: AppLocalizations.of(context)!
-                                  .alreadyRegistered,
+                              text: AppLocalizations.of(context)!.alreadyRegistered,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,

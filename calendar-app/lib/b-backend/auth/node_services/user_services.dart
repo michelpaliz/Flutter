@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 import 'package:dio/dio.dart';
-import 'package:first_project/a-models/model/notification/notification_user.dart';
-import 'package:first_project/a-models/model/user_data/user.dart';
+import 'package:first_project/a-models/notification_model/notification_user.dart';
+import 'package:first_project/a-models/user_model/user.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {

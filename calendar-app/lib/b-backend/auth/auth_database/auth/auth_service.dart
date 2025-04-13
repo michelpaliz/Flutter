@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/model/user_data/user.dart';
+import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_repository.dart';
 
@@ -56,8 +56,7 @@ class AuthService implements AuthRepository {
   Future<void> initialize() => repository.initialize();
 
   @override
-  Future<User?> generateUserCustomModel() =>
-      repository.generateUserCustomModel();
+  Future<User?> getCurrentUserModel() => repository.getCurrentUserModel();
 
   @override
   Future<void> changePassword(

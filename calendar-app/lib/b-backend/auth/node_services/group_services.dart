@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/model/group_data/calendar/calendar.dart';
-import 'package:first_project/a-models/model/group_data/group/group.dart';
+import 'package:first_project/a-models/group_model/calendar/calendar.dart';
+import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {

@@ -1,19 +1,16 @@
-// ----THIS IS NEW -----
-import 'package:first_project/enums/color_properties.dart';
-import 'package:first_project/enums/routes/appRoutes.dart';
-import 'package:first_project/a-models/model/user_data/user.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/utilities/enums/color_properties.dart';
+import 'package:first_project/utilities/enums/routes/appRoutes.dart';
+import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/styles/widgets/view-item-styles/text_field_widget.dart';
+import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login_init.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:provider/provider.dart';
+import '../../f-themes/widgets/view-item-styles/textfield_styles.dart';
 
-import '../../b-backend/auth/auth_database/auth/auth_service.dart';
-import '../../styles/widgets/view-item-styles/textfield_styles.dart';
-
-// ======= LOGIN =========
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
 
@@ -24,19 +21,21 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-  bool buttonHovered = false; // Added buttonHovered variable
+  bool buttonHovered = false;
   late ButtonStyle _myCustomButtonStyle;
-  late final AuthService _authService;
+  late final AuthProvider _authProvider;
   late LoginInitializer _loginInitializer;
 
   @override
   void initState() {
     super.initState();
-    _authService = AuthService.firebase();
     _email = TextEditingController();
     _password = TextEditingController();
     _myCustomButtonStyle = ColorProperties.defaultButton();
-    _loginInitializer = LoginInitializer(authService: _authService);
+
+    // Access the AuthProvider instance from context
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _loginInitializer = LoginInitializer(authProvider: _authProvider);
   }
 
   @override
@@ -58,7 +57,7 @@ class _LoginViewState extends State<LoginView> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/images/beach_image.png', // Replace with your image path
+              'assets/images/beach_image.png',
               width: 100,
               height: 100,
             ),
@@ -85,45 +84,42 @@ class _LoginViewState extends State<LoginView> {
             TextFieldWidget(
               controller: _password,
               decoration: TextFieldStyles.saucyInputDecoration(
-                  hintText: AppLocalizations.of(context)!.passwordHint,
-                  labelText: AppLocalizations.of(context)!.password,
-                  suffixIcon: Icons.lock),
+                hintText: AppLocalizations.of(context)!.passwordHint,
+                labelText: AppLocalizations.of(context)!.password,
+                suffixIcon: Icons.lock,
+              ),
               keyboardType: TextInputType.text,
               obscureText: true,
             ),
             SizedBox(height: 15),
             ElevatedButton(
               onPressed: () async {
-                final email = _email.text;
-                final password = _password.text;
+                final email = _email.text.trim();
+                final password = _password.text.trim();
                 try {
-                  await _loginInitializer.initializeUserAndServices(
-                      email, password);
+                  await _loginInitializer.initializeUserAndServices(email, password);
+                  User? userFetched = _loginInitializer.user;
 
-                  User? userFetched = _loginInitializer.getUser;
-                  // Update the user in the provider
                   final userManagement =
                       Provider.of<UserManagement>(context, listen: false);
                   userManagement.setCurrentUser(userFetched!);
+
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
-                  // Handle user not found exception
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(AppLocalizations.of(context)!.userNotFound),
                   ));
                 } on WrongPasswordAuthException {
-                  // Handle wrong password exception
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content:
-                        Text(AppLocalizations.of(context)!.wrongCredentials),
+                    content: Text(AppLocalizations.of(context)!.wrongCredentials),
                   ));
                 } on GenericAuthException {
-                  // Handle generic authentication exception
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(AppLocalizations.of(context)!.authError),
                   ));
                 }
               },
+              style: _myCustomButtonStyle,
               child: Text(AppLocalizations.of(context)!.login),
             ),
             TextButton(

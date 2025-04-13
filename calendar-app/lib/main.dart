@@ -1,8 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/d-log-user-section/register_view.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
@@ -10,63 +8,53 @@ import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme_management.dart';
 import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/enums/routes.dart';
 import 'package:first_project/l10n/l10n.dart';
+import 'package:first_project/utilities/enums/routes.dart';
 import 'package:flutter/material.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'a-models/model/user_data/user.dart';
+import 'a-models/user_model/user.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize Firebase
-
-  final authService = AuthService.firebase();
-
-  runApp(MyMaterialApp(authService: authService));
+  runApp(const MyMaterialApp());
 }
 
 class MyMaterialApp extends StatelessWidget {
-  final AuthService authService;
-
-  const MyMaterialApp({
-    Key? key,
-    required this.authService,
-  }) : super(key: key);
+  const MyMaterialApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider(),
+        ),
         ChangeNotifierProvider<UserManagement>(
-          create: (context) => UserManagement(
+          create: (_) => UserManagement(
+            user: null, // 👈 Set initially to null
             notificationManagement: NotificationManagement(),
-            user: authService.customUser,
           ),
         ),
         ChangeNotifierProvider<GroupManagement>(
-          create: (context) => GroupManagement(
-            user: authService.customUser,
+          create: (_) => GroupManagement(
+            user: null, // 👈 Set initially to null
           ),
         ),
         ChangeNotifierProvider<NotificationManagement>(
-          create: (context) => NotificationManagement(),
+          create: (_) => NotificationManagement(),
         ),
         ChangeNotifierProvider<ThemeManagement>(
-          create: (context) => ThemeManagement(),
+          create: (_) => ThemeManagement(),
         ),
         ChangeNotifierProvider<ThemePreferenceProvider>(
-          create: (context) => ThemePreferenceProvider(),
+          create: (_) => ThemePreferenceProvider(),
         ),
-        ChangeNotifierProvider<AuthProvider>(
-          create: (context) => AuthProvider(),
-        ),
-        // Add other providers as needed
       ],
       child: Consumer<ThemePreferenceProvider>(
-        builder: (context, themeProvider, child) {
+        builder: (context, themeProvider, _) {
           return MaterialApp(
             theme: themeProvider.themeData,
             localizationsDelegates: const [
@@ -77,8 +65,7 @@ class MyMaterialApp extends StatelessWidget {
             ],
             supportedLocales: L10n.all,
             routes: routes,
-            home: UserInitializer(
-                authService: authService), // Use UserInitializer here
+            home: const UserInitializer(),
           );
         },
       ),
@@ -87,10 +74,7 @@ class MyMaterialApp extends StatelessWidget {
 }
 
 class UserInitializer extends StatefulWidget {
-  final AuthService authService;
-
-  const UserInitializer({Key? key, required this.authService})
-      : super(key: key);
+  const UserInitializer({Key? key}) : super(key: key);
 
   @override
   _UserInitializerState createState() => _UserInitializerState();
@@ -109,21 +93,20 @@ class _UserInitializerState extends State<UserInitializer> {
 
   Future<void> _initializeUser() async {
     try {
-      final fetchedUser = await widget.authService.generateUserCustomModel();
-      devtools.log('Fetched user ${fetchedUser}');
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final fetchedUser = await authProvider.getCurrentUserModel();
+
+      devtools.log('Fetched user: $fetchedUser');
+
       setState(() {
         user = fetchedUser;
         isLoading = false;
       });
 
-      devtools.log('Fetched userr ${user}');
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final userManagement =
             Provider.of<UserManagement>(context, listen: false);
         userManagement.setCurrentUser(user);
-
-        devtools.log('Fetched user ${userManagement.user}');
 
         final groupManagement =
             Provider.of<GroupManagement>(context, listen: false);
@@ -141,16 +124,16 @@ class _UserInitializerState extends State<UserInitializer> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     } else if (errorMessage != null) {
       return Scaffold(
         body: Center(child: Text(errorMessage!)),
       );
     } else if (Provider.of<UserManagement>(context, listen: false).user !=
         null) {
-      return HomePage(); // User is available
+      return const HomePage();
     } else {
-      return RegisterView(); // User is not available
+      return const RegisterView();
     }
   }
 }
