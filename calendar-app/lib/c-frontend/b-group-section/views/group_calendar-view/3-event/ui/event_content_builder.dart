@@ -1,7 +1,7 @@
 import 'package:first_project/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:flutter/material.dart';
-import 'package:first_project/a-models/group_model/event-appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/utilities/color_manager.dart';
 
 class EventContentBuilder {

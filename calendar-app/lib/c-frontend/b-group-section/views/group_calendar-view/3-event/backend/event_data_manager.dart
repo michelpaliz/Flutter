@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/group_model/event-appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/b-backend/auth/node_services/event_services.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';

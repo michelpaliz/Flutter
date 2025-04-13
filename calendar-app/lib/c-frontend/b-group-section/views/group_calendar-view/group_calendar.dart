@@ -1,6 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/group_model/event-appointment/appointment/mettingDataSource.dart';
+import 'package:first_project/a-models/group_model/event_appointment/appointment/mettingDataSource.dart';
 import 'package:first_project/b-backend/auth/node_services/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/1-calendar/1.1-main_calendar_view.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
@@ -15,7 +15,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import '../../../../a-models/group_model/event-appointment/event/event.dart';
+import '../../../../a-models/group_model/event_appointment/event/event.dart';
 import '../../../../a-models/group_model/group/group.dart';
 import '../../../../utilities/enums/routes/appRoutes.dart';
 import '../../../../e-drawer-style-menu/my_drawer.dart';

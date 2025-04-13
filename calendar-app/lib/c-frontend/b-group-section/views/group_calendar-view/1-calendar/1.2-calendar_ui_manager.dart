@@ -1,5 +1,5 @@
-import 'package:first_project/a-models/group_model/event-appointment/event/event.dart';
-import 'package:first_project/a-models/group_model/event-appointment/event/event_data_source.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event_data_source.dart';
 import 'package:first_project/b-backend/auth/node_services/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/2-appointment/2.1-appointment_builder.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/3-event/backend/event_data_manager.dart';

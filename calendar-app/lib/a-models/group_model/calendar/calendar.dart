@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/group_model/event-appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 
 class Calendar {
   String _id;

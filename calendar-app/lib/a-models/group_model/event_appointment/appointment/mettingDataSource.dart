@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:first_project/a-models/group_model/event-appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/utilities/color_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';

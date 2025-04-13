@@ -1,7 +1,7 @@
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/invitation_message_helper.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/role_dropdown_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:first_project/a-models/notification_model/userInvitationStatus.dart';
+import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 
 class RoleChangeDialogContent extends StatelessWidget {
   final String userName;

@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/notification_model/userInvitationStatus.dart';
+import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/group_model/calendar/calendar.dart';
 
 class Group {

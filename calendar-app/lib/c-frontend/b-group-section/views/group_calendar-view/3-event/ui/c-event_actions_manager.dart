@@ -1,11 +1,11 @@
-import 'package:first_project/a-models/notification_model/userInvitationStatus.dart';
+import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/3-event/backend/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/utilities/enums/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
-import 'package:first_project/a-models/group_model/event-appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 // >>>>>>> 920ffaf214b3836fbba7661bd9bf19e4c7f3114b
 

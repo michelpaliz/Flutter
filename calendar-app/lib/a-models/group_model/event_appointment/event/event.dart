@@ -1,5 +1,5 @@
 
-import 'package:first_project/a-models/group_model/event-appointment/appointment/recurrence_rule.dart';
+import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/a-models/notification_model/updateInfo.dart';
 
 class Event {

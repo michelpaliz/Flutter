@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/a-models/notification_model/userInvitationStatus.dart';
+import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/functions/user_removal_service.dart';

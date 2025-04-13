@@ -1,6 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/group_model/event-appointment/appointment/recurrence_rule.dart';
+import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/b-backend/auth/node_services/event_services.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/add_screen/widgets/dialog/user_expandable_card.dart';
@@ -23,7 +23,7 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../a-models/group_model/event-appointment/event/event.dart';
+import '../../../../a-models/group_model/event_appointment/event/event.dart';
 import '../../../../a-models/group_model/group/group.dart';
 import '../../../../a-models/user_model/user.dart';
 
