@@ -3,7 +3,7 @@ import 'package:first_project/c-frontend/b-group-section/views/group_calendar-vi
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/utilities/enums/routes/appRoutes.dart';
+import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';

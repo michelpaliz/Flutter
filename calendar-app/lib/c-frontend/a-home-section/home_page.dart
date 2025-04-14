@@ -1,4 +1,5 @@
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/c-frontend/b-group-section/views/show_groups.dart';
 import 'package:first_project/e-drawer-style-menu/my_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +46,7 @@ class HomePage extends StatelessWidget {
     // ✅ You could add a custom check here if your backend supports email verification
     // if (!user.emailVerified) { return VerifyEmailView(); }
 
-    return const NotesView();
+    return const ShowGroups();
   }
 
   Widget _buildLoadingIndicator() {

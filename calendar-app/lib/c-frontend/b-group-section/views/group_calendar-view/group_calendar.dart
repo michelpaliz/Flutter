@@ -17,7 +17,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../../a-models/group_model/event_appointment/event/event.dart';
 import '../../../../a-models/group_model/group/group.dart';
-import '../../../../utilities/enums/routes/appRoutes.dart';
+import '../../../routes/appRoutes.dart';
 import '../../../../e-drawer-style-menu/my_drawer.dart';
 
 class GroupCalendar extends StatefulWidget {

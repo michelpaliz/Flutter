@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 
 import '../../../a-models/group_model/group/group.dart';
 import '../../../a-models/user_model/user.dart';
-import '../../../utilities/enums/routes/appRoutes.dart';
+import '../../routes/appRoutes.dart';
 
 //---------------------------------------------------------------- This view will show the user groups associated with the user, it also offers some functionalities for the groups logic like removing, editing and adding groups.
 

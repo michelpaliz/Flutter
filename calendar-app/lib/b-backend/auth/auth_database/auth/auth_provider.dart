@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-
+import 'package:first_project/b-backend/api/config/api_rotues.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/token_storage.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import '../../../../a-models/user_model/user.dart';
 import 'auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier implements AuthRepository {
   final UserService _userService = UserService();
-  final StreamController<User?> _authStateController =
-      StreamController<User?>.broadcast();
+  final StreamController<User?> _authStateController = StreamController<User?>.broadcast();
 
   User? _user;
   String? _authToken;
@@ -47,7 +46,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('http://your-backend-url/api/auth/register'),
+        Uri.parse('${ApiConstants.baseUrl}/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
@@ -76,7 +75,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('http://your-backend-url/api/auth/login'),
+        Uri.parse('${ApiConstants.baseUrl}/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -88,9 +87,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
       if (response.statusCode == 200) {
         _authToken = data['token'];
-        final userId = data['userId'];
+        await TokenStorage.saveToken(_authToken!);
 
-        // Optional: fetch full user from backend
+        final userId = data['userId'];
         _user = await _userService.getUserById(userId);
         _authStateController.add(_user);
         notifyListeners();
@@ -108,6 +107,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   Future<void> logOut() async {
     _user = null;
     _authToken = null;
+    await TokenStorage.clearToken();
     _authStateController.add(null);
     notifyListeners();
   }
@@ -119,8 +119,28 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
   @override
   Future<void> initialize() async {
-    // Optionally load auth token from local storage
-    // and restore user session
+    _authToken = await TokenStorage.loadToken();
+
+    if (_authToken != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('${ApiConstants.baseUrl}/profile'),
+          headers: {
+            'Authorization': 'Bearer $_authToken',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final json = jsonDecode(response.body);
+          _user = User.fromJson(json);
+          _authStateController.add(_user);
+        }
+      } catch (_) {
+        await logOut(); // If token is invalid
+      }
+
+      notifyListeners();
+    }
   }
 
   @override
@@ -144,7 +164,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
     try {
       final response = await http.post(
-        Uri.parse('http://your-backend-url/api/auth/change-password'),
+        Uri.parse('${ApiConstants.baseUrl}/auth/change-password'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_authToken',
@@ -168,7 +188,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     final random = Random();
     return String.fromCharCodes(
       Iterable.generate(
-          10, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+        10,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
     );
   }
 }

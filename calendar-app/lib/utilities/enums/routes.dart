@@ -17,7 +17,7 @@ import 'package:first_project/c-frontend/d-log-user-section/register_view.dart';
 import 'package:first_project/c-frontend/d-log-user-section/verify_email_view.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/e-notification-section/widgets/show_notifications.dart';
-import 'package:first_project/utilities/enums/routes/appRoutes.dart';
+import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 
 final Map<String, WidgetBuilder> routes = {

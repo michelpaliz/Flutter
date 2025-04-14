@@ -5,9 +5,8 @@
         "BYMONTH",
         "BYMONTHDAY",
         "Firestore",
-        "lato"
+        "lato",
+        "prefs"
     ],
-    "editor.codeActionsOnSave": {
-        
-    }
+    "editor.codeActionsOnSave": {}
 }

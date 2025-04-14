@@ -1,6 +1,6 @@
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/utilities/enums/color_properties.dart';
-import 'package:first_project/utilities/enums/routes/appRoutes.dart';
+import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:provider/provider.dart';
-import '../../utilities/enums/routes/appRoutes.dart';
+import '../routes/appRoutes.dart';
 import '../../f-themes/widgets/show_error_dialog.dart';
 import '../../f-themes/widgets/view-item-styles/textfield_styles.dart';
 
@@ -186,24 +186,22 @@ class _RegisterViewState extends State<RegisterView> {
                               (route) => false,
                             );
 
-                            if (registrationStatus != null) {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Registration Status'),
-                                    content: Text(registrationStatus),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        child: const Text('OK'),
-                                        onPressed: () => Navigator.of(context).pop(),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-                          } on WeakPasswordException {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Registration Status'),
+                                  content: Text(registrationStatus),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text('OK'),
+                                      onPressed: () => Navigator.of(context).pop(),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                                                    } on WeakPasswordException {
                             await showErrorDialog(context,
                                 AppLocalizations.of(context)!.weakPassword);
                           } on EmailAlreadyUseAuthException {
