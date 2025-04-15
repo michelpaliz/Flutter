@@ -6,8 +6,8 @@ class User {
   String _userName;
   List<String> _eventsIds;
   List<String> _groupIds;
-  List<String>? _calendarsIds;
-  List<String>? _notificationsIds;
+  List<String> _calendarsIds;
+  List<String> _notificationsIds;
 
   User({
     required String id,
@@ -26,8 +26,8 @@ class User {
         _eventsIds = events,
         _groupIds = groupIds,
         _photoUrl = photoUrl,
-        _calendarsIds = sharedCalendars,
-        _notificationsIds = notifications;
+        _calendarsIds = sharedCalendars ?? [],
+        _notificationsIds = notifications ?? [];
 
   // Getters & Setters
   String get id => _id;
@@ -45,13 +45,13 @@ class User {
   String? get photoUrl => _photoUrl;
   set photoUrl(String? photoUrl) => _photoUrl = photoUrl;
 
-  List<String>? get sharedCalendars => _calendarsIds;
+  List<String> get sharedCalendars => _calendarsIds;
   set sharedCalendars(List<String>? sharedCalendars) =>
-      _calendarsIds = sharedCalendars;
+      _calendarsIds = sharedCalendars ?? [];
 
-  List<String>? get notifications => _notificationsIds;
+  List<String> get notifications => _notificationsIds;
   set notifications(List<String>? notifications) =>
-      _notificationsIds = notifications;
+      _notificationsIds = notifications ?? [];
 
   String get userName => _userName;
   set userName(String userName) => _userName = userName;
@@ -88,11 +88,13 @@ class User {
           [],
       photoUrl: json['photoUrl'] as String?,
       sharedCalendars: (json['sharedCalendars'] as List<dynamic>?)
-          ?.map((c) => c.toString())
-          .toList(),
+              ?.map((c) => c.toString())
+              .toList() ??
+          [],
       notifications: (json['notifications'] as List<dynamic>?)
-          ?.map((n) => n.toString())
-          .toList(),
+              ?.map((n) => n.toString())
+              .toList() ??
+          [],
     );
   }
 

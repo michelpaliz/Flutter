@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
-import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/3-event/backend/event_data_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/backend/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';

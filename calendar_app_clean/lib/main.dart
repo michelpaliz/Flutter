@@ -9,7 +9,7 @@ import 'package:first_project/d-stateManagement/theme_management.dart';
 import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/l10n/l10n.dart';
-import 'package:first_project/utilities/enums/routes.dart';
+import 'package:first_project/c-frontend/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -90,6 +90,12 @@ class _UserInitializerState extends State<UserInitializer> {
     super.initState();
     _initializeUser();
   }
+
+/// Initializes the user by fetching the current user model from the
+/// AuthProvider and updating the UserManagement and GroupManagement
+/// with the fetched user. It logs the fetched user and updates the state
+/// to reflect loading completion. In case of an error, it logs the error
+/// and updates the state with an error message.
 
   Future<void> _initializeUser() async {
     try {

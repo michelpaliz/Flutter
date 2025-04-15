@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/group_model/event_appointment/appointment/mettingDataSource.dart';
 import 'package:first_project/b-backend/auth/node_services/event_services.dart';
-import 'package:first_project/c-frontend/b-group-section/views/group_calendar-view/1-calendar/1.1-main_calendar_view.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/1.1-main_calendar_view.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';

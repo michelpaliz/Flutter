@@ -7,7 +7,7 @@ import 'package:first_project/a-models/notification_model/userInvitation_status.
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
-import 'package:first_project/c-frontend/b-group-section/views/create_group_search_bar.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/create_group_search_bar.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
