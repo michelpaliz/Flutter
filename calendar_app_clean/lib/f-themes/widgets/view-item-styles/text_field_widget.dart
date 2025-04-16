@@ -7,7 +7,8 @@ class TextFieldWidget extends StatefulWidget {
   final TextInputType keyboardType;
   final bool obscureText;
   final List<TextInputFormatter>? inputFormatters;
-  final String? Function(String?)? validator; // Custom validator function
+  final String? Function(String?)? validator;
+  final String? hintText;
 
   const TextFieldWidget({
     required this.controller,
@@ -15,8 +16,10 @@ class TextFieldWidget extends StatefulWidget {
     required this.keyboardType,
     this.obscureText = false,
     this.inputFormatters,
-    this.validator, // Include a custom validator
-  });
+    this.validator,
+    this.hintText,
+    Key? key,
+  }) : super(key: key);
 
   @override
   _TextFieldWidgetState createState() => _TextFieldWidgetState();
@@ -27,15 +30,20 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final baseDecoration = widget.decoration.copyWith(
+      hintText: widget.hintText ?? widget.decoration.hintText,
+      errorText: showError
+          ? (widget.validator != null
+              ? widget.validator!(widget.controller.text)
+              : null)
+          : null,
+    );
+
     return Column(
       children: [
         TextField(
           controller: widget.controller,
-          decoration: widget.decoration.copyWith(
-            errorText: showError
-                ? '${widget.decoration.labelText} cannot be empty'
-                : null,
-          ),
+          decoration: baseDecoration,
           enableSuggestions: false,
           autocorrect: false,
           keyboardType: widget.keyboardType,
@@ -43,7 +51,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
           inputFormatters: widget.inputFormatters,
           onChanged: (value) {
             setState(() {
-              showError = widget.validator != null && widget.validator!(value) != null;
+              showError =
+                  widget.validator != null && widget.validator!(value) != null;
             });
           },
         ),

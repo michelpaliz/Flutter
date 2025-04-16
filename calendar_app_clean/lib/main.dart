@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
-import 'package:first_project/c-frontend/d-log-user-section/register_view.dart';
+import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme_management.dart';

@@ -1,15 +1,15 @@
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
-import 'package:first_project/utilities/enums/color_properties.dart';
-import 'package:first_project/c-frontend/routes/appRoutes.dart';
-import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
+import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
+import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
-import 'package:first_project/c-frontend/d-log-user-section/login_init.dart';
+import 'package:first_project/utilities/enums/color_properties.dart';
 import 'package:flutter/material.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import '../../f-themes/widgets/view-item-styles/textfield_styles.dart';
+
+import '../../../f-themes/widgets/view-item-styles/textfield_styles.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -21,10 +21,12 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  late final AuthProvider _authProvider;
+  late final UserManagement _userManagement;
+  late LoginInitializer _loginInitializer;
+
   bool buttonHovered = false;
   late ButtonStyle _myCustomButtonStyle;
-  late final AuthProvider _authProvider;
-  late LoginInitializer _loginInitializer;
 
   @override
   void initState() {
@@ -32,10 +34,17 @@ class _LoginViewState extends State<LoginView> {
     _email = TextEditingController();
     _password = TextEditingController();
     _myCustomButtonStyle = ColorProperties.defaultButton();
+  }
 
-    // Access the AuthProvider instance from context
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _loginInitializer = LoginInitializer(authProvider: _authProvider);
+    _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _loginInitializer = LoginInitializer(
+      authProvider: _authProvider,
+      userManagement: _userManagement,
+    );
   }
 
   @override
@@ -63,14 +72,14 @@ class _LoginViewState extends State<LoginView> {
             ),
             Text(
               AppLocalizations.of(context)!.login,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 37,
                 fontWeight: FontWeight.bold,
                 color: Color.fromARGB(202, 34, 108, 192),
                 fontFamily: 'rigtheous',
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             TextFieldWidget(
               controller: _email,
               decoration: TextFieldStyles.saucyInputDecoration(
@@ -91,32 +100,25 @@ class _LoginViewState extends State<LoginView> {
               keyboardType: TextInputType.text,
               obscureText: true,
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
             ElevatedButton(
               onPressed: () async {
                 final email = _email.text.trim();
                 final password = _password.text.trim();
                 try {
-                  await _loginInitializer.initializeUserAndServices(email, password);
-                  User? userFetched = _loginInitializer.user;
+                  await _loginInitializer.initializeUserAndServices(
+                      email, password);
 
-                  final userManagement =
-                      Provider.of<UserManagement>(context, listen: false);
-                  userManagement.setCurrentUser(userFetched!);
-
+                  // ✅ No need to manually set userManagement anymore
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(AppLocalizations.of(context)!.userNotFound),
-                  ));
+                  _showSnackBar(AppLocalizations.of(context)!.userNotFound);
                 } on WrongPasswordAuthException {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(AppLocalizations.of(context)!.wrongCredentials),
-                  ));
+                  _showSnackBar(AppLocalizations.of(context)!.wrongCredentials);
                 } on GenericAuthException {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(AppLocalizations.of(context)!.authError),
-                  ));
+                  _showSnackBar(AppLocalizations.of(context)!.authError);
+                } catch (e) {
+                  _showSnackBar('Login failed: $e');
                 }
               },
               style: _myCustomButtonStyle,
@@ -137,6 +139,12 @@ class _LoginViewState extends State<LoginView> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }

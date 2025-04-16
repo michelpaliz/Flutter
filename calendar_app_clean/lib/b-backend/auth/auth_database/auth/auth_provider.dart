@@ -1,18 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:first_project/b-backend/api/config/api_rotues.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/token_storage.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import '../../../../a-models/user_model/user.dart';
 import 'auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier implements AuthRepository {
   final UserService _userService = UserService();
-  final StreamController<User?> _authStateController = StreamController<User?>.broadcast();
+  final StreamController<User?> _authStateController =
+      StreamController<User?>.broadcast();
 
   User? _user;
   String? _authToken;
@@ -57,14 +60,37 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       );
 
       final data = jsonDecode(response.body);
+      debugPrint("👀 Registration response body: $data"); // ✅ ADD THIS LINE
+      debugPrint("📤 Sending registration request: ${jsonEncode({
+            'name': name,
+            'email': email,
+            'userName': userName,
+            'password': password,
+          })}");
 
       if (response.statusCode == 201) {
         return 'User created successfully';
       } else {
-        throw Exception(data['message'] ?? 'Registration failed');
+        final errorMessage = data['message']?.toString().toLowerCase() ?? '';
+
+        if (errorMessage.contains('email') &&
+            errorMessage.contains('already')) {
+          throw EmailAlreadyUseAuthException();
+        } else if (errorMessage.contains('weak') ||
+            errorMessage.contains('password')) {
+          throw WeakPasswordException();
+        } else if (errorMessage.contains('invalid') &&
+            errorMessage.contains('email')) {
+          throw InvalidEmailAuthException();
+        } else {
+          debugPrint('⚠️ Unmatched error message: $errorMessage');
+          throw GenericAuthException();
+        }
       }
-    } catch (e) {
-      throw Exception('Error registering: $e');
+    } catch (e, stackTrace) {
+      debugPrint("❌ Registration error: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      throw GenericAuthException();
     }
   }
 

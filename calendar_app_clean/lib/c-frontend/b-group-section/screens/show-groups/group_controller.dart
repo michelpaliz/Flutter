@@ -7,7 +7,8 @@ import 'package:first_project/d-stateManagement/user_management.dart';
 // Checking permissions
 // Leaving or deleting groups
 class GroupController {
-  static Future<void> fetchGroups(User? user, GroupManagement groupManager) async {
+  static Future<void> fetchGroups(
+      User? user, GroupManagement groupManager) async {
     if (user != null) {
       await groupManager.fetchAndInitializeGroups(user.groupIds);
     }
