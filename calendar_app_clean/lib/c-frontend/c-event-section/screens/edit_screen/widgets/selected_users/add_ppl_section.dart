@@ -1,17 +1,18 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/create-group/create_group_search_bar.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/controllers/create_group_controller.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/create_group_search_bar.dart';
 import 'package:flutter/material.dart';
 
 class AddPeopleSection extends StatelessWidget {
   final User? currentUser;
   final Group? group;
-  final Function onDataChanged;
+  final GroupController controller; // ✅ pass this from parent
 
   const AddPeopleSection({
     required this.currentUser,
     required this.group,
-    required this.onDataChanged,
+    required this.controller,
   });
 
   @override
@@ -46,7 +47,9 @@ class AddPeopleSection extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: CreateGroupSearchBar(
-                          group: group, onDataChanged: (List<User> usersInGroup, Map<String, String> userRoles) {  }, user: currentUser,
+                          group: group,
+                          user: currentUser,
+                          controller: controller, // ✅ pass controller
                         ),
                       ),
                       TextButton(

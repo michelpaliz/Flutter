@@ -27,7 +27,7 @@ class NotificationController {
     if (notification.questionsAndAnswers.isNotEmpty) {
       try {
         final groupFetched = await groupManagement.groupService
-            .getGroupById(notification.groupId!);
+            .getGroupById(notification.groupId!.first);
         final invitedUsers = groupFetched.invitedUsers;
 
         if (invitedUsers == null) {
@@ -70,20 +70,27 @@ class NotificationController {
   ) async {
     await userManagement.updateUser(userInvited);
     await groupManagement.updateGroup(
-        group, userManagement, notificationManagement, invitedUsers);
+      group,
+      userManagement,
+      notificationManagement,
+      invitedUsers,
+    );
 
     final notificationFormat = NotificationFormats();
     NotificationUser joinedNotification =
         notificationFormat.welcomeNewUserGroup(group, userInvited);
 
-    bool notificationAdded = await notificationManagement.addNotificationToDB(
-        joinedNotification, userManagement);
+    final savedNotification = await notificationManagement.addNotificationToDB(
+      joinedNotification,
+      userManagement,
+    );
 
-    if (notificationAdded) {
+    if (savedNotification != null) {
       await _sendNotificationToAdmin(notification, userInvited, true);
-
       await notificationManagement.removeNotificationById(
-          notification.id, userManagement);
+        notification.id,
+        userManagement,
+      );
     }
   }
 
@@ -91,29 +98,26 @@ class NotificationController {
     if (notification.groupId != null &&
         notification.questionsAndAnswers.isNotEmpty) {
       final group = await groupManagement.groupService
-          .getGroupById(notification.groupId!);
+          .getGroupById(notification.groupId!.first);
       final invitedUsers = group.invitedUsers;
 
       User userInvited =
           await userService.getUserById(notification.recipientId);
 
-      if (userInvited.notifications != null) {
-        for (String notificationId in userInvited.notifications!) {
-          NotificationUser? ntf = await notificationManagement
-              .notificationService
-              .getNotificationById(notificationId);
+      for (String notificationId in userInvited.notifications) {
+        NotificationUser? ntf = await notificationManagement.notificationService
+            .getNotificationById(notificationId);
 
-          if (ntf.groupId == group.id && ntf.questionsAndAnswers.isNotEmpty) {
-            String questionKey = ntf.questionsAndAnswers.keys.first;
+        if (ntf.groupId == group.id && ntf.questionsAndAnswers.isNotEmpty) {
+          String questionKey = ntf.questionsAndAnswers.keys.first;
 
-            ntf.questionsAndAnswers.update(
-              questionKey,
-              (value) => 'Has denied the invitation',
-            );
+          ntf.questionsAndAnswers.update(
+            questionKey,
+            (value) => 'Has denied the invitation',
+          );
 
-            await notificationManagement.notificationService
-                .updateNotification(ntf);
-          }
+          await notificationManagement.notificationService
+              .updateNotification(ntf);
         }
       }
 
@@ -142,13 +146,16 @@ class NotificationController {
       NotificationUser denyNotification =
           notificationFormat.notificationUserDenyGroup(group, userInvited);
 
-      bool notificationAdded = await notificationManagement.addNotificationToDB(
-          denyNotification, userManagement);
+      final savedNotification =
+          await notificationManagement.addNotificationToDB(
+        denyNotification,
+        userManagement,
+      );
 
       bool notificationRemoved = await notificationManagement
           .removeNotificationById(notification.id, userManagement);
 
-      if (notificationAdded && notificationRemoved) {
+      if (savedNotification != null && notificationRemoved) {
         await _sendNotificationToAdmin(notification, userInvited, false);
       }
     }
@@ -161,7 +168,7 @@ class NotificationController {
 
   Future<void> removeAllNotifications(User user) async {
     notificationManagement.clearNotifications();
-    user.notifications?.clear();
+    user.notifications.clear();
     await userManagement.userService.updateUser(user);
   }
 
@@ -187,7 +194,7 @@ class NotificationController {
     final admin = await userManagement.userService
         .getUserById(originalNotification.senderId);
 
-    admin.notifications?.add(ntfCreated.id);
+    admin.notifications.add(ntfCreated.id);
     await userManagement.userService.updateUser(admin);
   }
 }

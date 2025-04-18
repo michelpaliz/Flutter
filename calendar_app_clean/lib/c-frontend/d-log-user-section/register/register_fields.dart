@@ -1,5 +1,7 @@
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
+import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
+import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/f-themes/widgets/show_error_dialog.dart';
 import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
@@ -117,14 +119,16 @@ Widget buildRegisterButton(
             password: password,
           );
 
-          final user =
-              await authProvider.logIn(email: email, password: password);
+          final loginInit = LoginInitializer(
+            authProvider: authProvider,
+            userManagement: Provider.of<UserManagement>(context, listen: false),
+            groupManagement: Provider.of<GroupManagement>(context,
+                listen: false), // ✅ Add this
+          );
 
-// ✅ Update the app state so other screens can use this user
-          Provider.of<UserManagement>(context, listen: false)
-              .setCurrentUser(user);
+          await loginInit.initializeUserAndServices(email, password);
 
-// Now go to the home screen
+          // Now go to the home screen
           Navigator.of(context).pushNamedAndRemoveUntil(
             AppRoutes.homePage,
             (route) => false,

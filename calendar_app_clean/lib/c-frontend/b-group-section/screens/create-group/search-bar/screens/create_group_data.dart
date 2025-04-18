@@ -1,16 +1,16 @@
-import 'package:first_project/c-frontend/b-group-section/screens/create-group/group_add_user_button.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/add_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../d-stateManagement/group_management.dart';
-import '../../../../d-stateManagement/notification_management.dart';
-import '../../../../d-stateManagement/user_management.dart';
-import 'group_controller.dart';
-import 'group_image_picker.dart';
-import 'group_role_list.dart';
-import 'group_text_fields.dart';
+import '../../../../../../d-stateManagement/group_management.dart';
+import '../../../../../../d-stateManagement/notification_management.dart';
+import '../../../../../../d-stateManagement/user_management.dart';
+import '../controllers/create_group_controller.dart';
+import '../widgets/group_image_picker.dart';
+import '../widgets/group_role_list.dart';
+import '../widgets/group_text_fields.dart';
 
 class CreateGroupData extends StatefulWidget {
   const CreateGroupData({super.key});
@@ -62,14 +62,15 @@ class _CreateGroupDataState extends State<CreateGroupData> {
               const SizedBox(height: 10),
               GroupAddUserButton(controller: _controller),
               const SizedBox(height: 10),
-              GroupRoleList(controller: _controller),
+              // GroupRoleList(controller: _controller),
+              const GroupRoleList(),
             ],
           ),
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(16.0),
           child: TextButton(
-            onPressed: _controller.saveGroup,
+            onPressed: _controller.submitGroupFromUI,
             style: Theme.of(context).textButtonTheme.style,
             child: Row(
               mainAxisSize: MainAxisSize.min,

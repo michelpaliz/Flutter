@@ -88,8 +88,8 @@ class UserRemovalService {
 
       if (result) {
         // Fetch admin user for notification purposes
-        User admin =
-            await userManagement.userService.getUserById(fetchedUser.id);
+        User admin = await userManagement.userService.getUserById(group.ownerId);
+
 
         // Prepare and send notifications to admin and member
         NotificationFormats notificationFormats = NotificationFormats();

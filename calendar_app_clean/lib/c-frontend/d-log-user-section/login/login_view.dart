@@ -2,6 +2,7 @@ import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.da
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
+import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
 import 'package:first_project/utilities/enums/color_properties.dart';
@@ -23,6 +24,7 @@ class _LoginViewState extends State<LoginView> {
   late final TextEditingController _password;
   late final AuthProvider _authProvider;
   late final UserManagement _userManagement;
+  late final GroupManagement _groupManagement;
   late LoginInitializer _loginInitializer;
 
   bool buttonHovered = false;
@@ -41,9 +43,12 @@ class _LoginViewState extends State<LoginView> {
     super.didChangeDependencies();
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
     _userManagement = Provider.of<UserManagement>(context, listen: false);
+    _groupManagement =
+        Provider.of<GroupManagement>(context, listen: false); // 👈
     _loginInitializer = LoginInitializer(
       authProvider: _authProvider,
       userManagement: _userManagement,
+      groupManagement: _groupManagement,
     );
   }
 

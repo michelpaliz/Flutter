@@ -1,5 +1,5 @@
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/edit_group_data.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/show-groups/group_controller.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/show-groups/list_group_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

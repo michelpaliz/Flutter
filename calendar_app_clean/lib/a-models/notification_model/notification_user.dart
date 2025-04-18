@@ -1,5 +1,3 @@
-
-
 enum NotificationType { alert, reminder, message, update }
 
 enum PriorityLevel { low, medium, high }
@@ -24,15 +22,13 @@ enum Category {
 
 class NotificationUser {
   final String id;
-  final String
-      senderId; // Represents the user responsible for this notification
-  final String
-      recipientId; // Represents the user who receives this notification
+  final String senderId;
+  final String recipientId;
   final String title;
   final String message;
   final DateTime _timestamp;
   final Map<String, String> questionsAndAnswers;
-  final String? groupId;
+  final List<String>? groupId; // ✅ Changed to List<String>?
   bool _isRead;
   final NotificationType type;
   final PriorityLevel priority;
@@ -75,23 +71,22 @@ class NotificationUser {
         questionsAndAnswers: json['questionsAndAnswers'] != null
             ? Map<String, String>.from(json['questionsAndAnswers'])
             : {},
-        groupId: json['groupId'],
+        groupId: (json['groupId'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList(),
         isRead: json['isRead'] ?? false,
-        type: json['type'] != null &&
-                json['type'] is int &&
-                json['type'] < NotificationType.values.length
-            ? NotificationType.values[json['type']]
-            : NotificationType.message,
-        priority: json['priority'] != null &&
-                json['priority'] is int &&
+        type:
+            json['type'] is int && json['type'] < NotificationType.values.length
+                ? NotificationType.values[json['type']]
+                : NotificationType.message,
+        priority: json['priority'] is int &&
                 json['priority'] < PriorityLevel.values.length
             ? PriorityLevel.values[json['priority']]
             : PriorityLevel.medium,
-        category: json['category'] != null &&
-                json['category'] is int &&
-                json['category'] < Category.values.length
-            ? Category.values[json['category']]
-            : Category.message,
+        category:
+            json['category'] is int && json['category'] < Category.values.length
+                ? Category.values[json['category']]
+                : Category.message,
       );
     } catch (e) {
       print('Error parsing NotificationUser from JSON: $e');
@@ -103,7 +98,7 @@ class NotificationUser {
         message: 'Error in notification',
         timestamp: DateTime.now(),
         questionsAndAnswers: {},
-        groupId: null,
+        groupId: [],
         isRead: false,
         type: NotificationType.message,
         priority: PriorityLevel.medium,
@@ -128,7 +123,6 @@ class NotificationUser {
       'category': category.index,
     };
   }
-
 
   @override
   String toString() {

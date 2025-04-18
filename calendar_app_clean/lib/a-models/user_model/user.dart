@@ -59,7 +59,7 @@ class User {
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': _id,
+      '_id': _id, // ✅ Use Mongo's _id field
       'name': _name,
       'userName': _userName,
       'email': _email,

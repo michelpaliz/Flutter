@@ -18,11 +18,11 @@ class Calendar {
   List<Event> get events => _events;
   set events(List<Event> events) {
     _events = events;
-    }
+  }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': _id,
+      '_id': _id, // Use Mongo's preferred field if needed
       'name': _name,
       'events': _events.map((event) => event.toMap()).toList(),
     };
@@ -30,7 +30,7 @@ class Calendar {
 
   factory Calendar.fromJson(Map<String, dynamic> json) {
     return Calendar(
-      json['id'],
+      json['_id'] ?? json['id'] ?? '', // ✅ supports both cases
       json['name'],
       events: (json['events'] as List<dynamic>?)
           ?.map((eventJson) => Event.fromJson(eventJson))

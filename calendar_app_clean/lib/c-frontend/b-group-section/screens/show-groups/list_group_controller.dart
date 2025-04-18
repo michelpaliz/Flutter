@@ -9,8 +9,20 @@ import 'package:first_project/d-stateManagement/user_management.dart';
 class GroupController {
   static Future<void> fetchGroups(
       User? user, GroupManagement groupManager) async {
-    if (user != null) {
+    if (user == null) {
+      print('⚠️ GroupController.fetchGroups: user is null, aborting.');
+      return;
+    }
+
+    print(
+        '📥 GroupController.fetchGroups: Fetching groups for user: ${user.userName} (${user.id})');
+    print('📦 User group IDs: ${user.groupIds}');
+
+    try {
       await groupManager.fetchAndInitializeGroups(user.groupIds);
+      print('✅ GroupController.fetchGroups: Group fetch complete.');
+    } catch (e) {
+      print('❌ GroupController.fetchGroups: Failed to fetch groups: $e');
     }
   }
 

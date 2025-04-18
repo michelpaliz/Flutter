@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../../../a-models/user_model/user.dart';
-import '../../../../c-frontend/b-group-section/screens/create-group/create_group_search_bar.dart';
-import 'group_controller.dart';
+import '../../../../../../a-models/user_model/user.dart';
+import '../controllers/create_group_controller.dart';
+import 'create_group_search_bar.dart';
 
 class GroupAddUserButton extends StatelessWidget {
   final GroupController controller;
@@ -11,6 +11,7 @@ class GroupAddUserButton extends StatelessWidget {
   const GroupAddUserButton({super.key, required this.controller});
 
   void _openAddUserDialog(BuildContext context, User? currentUser) {
+    // Open dialog to add user, passing controller
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -34,11 +35,12 @@ class GroupAddUserButton extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: CreateGroupSearchBar(
-                  onDataChanged: controller.onDataChanged,
                   user: currentUser,
                   group: null,
+                  controller: controller, // Pass controller to manage state
                 ),
               ),
+              // Close dialog button
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();

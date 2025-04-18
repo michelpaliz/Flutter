@@ -3,16 +3,14 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/notification_user.dart';
-import 'package:first_project/a-models/user_model/user.dart';
-
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
+import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/node_services/group_services.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
-
 
 class GroupManagement extends ChangeNotifier {
   final GroupService groupService = GroupService();
@@ -81,21 +79,29 @@ class GroupManagement extends ChangeNotifier {
 
   Future<void> fetchAndInitializeGroups(List<String> groupIds) async {
     try {
-        // Ensure that listeners are attached before emitting an empty list
-      await Future.delayed(Duration(milliseconds: 100));
-      groupController.add([]); // Emit empty list first
+      List<Group> groups = [];
+      List<String> validGroupIds = [];
 
-      if (groupIds.isNotEmpty) {
-        List<Future<Group>> groupFutures =
-            groupIds.map((id) => groupService.getGroupById(id)).toList();
-        List<Group> groups = await Future.wait(groupFutures);
-
-        groupController.add(groups); // Emit fetched groups
-      } else {
-        groupController.add([]); // Emit empty list if no groups
+      for (var id in groupIds) {
+        try {
+          final group = await groupService.getGroupById(id);
+          groups.add(group);
+          validGroupIds.add(id); // only add if group is valid
+        } catch (e) {
+          devtools.log('⚠️ Failed to fetch group by ID $id: $e');
+        }
       }
+
+      // ✅ Update the currentUser's group list in memory
+      currentUser.groupIds = validGroupIds;
+
+      // ✅ Update the user in the database to reflect valid groupIds only
+      await userService.updateUser(currentUser); // <- THIS LINE
+
+      groupController.add(groups);
     } catch (e) {
-      groupController.add([]); // Emit empty list on error
+      devtools.log('❌ fetchAndInitializeGroups failed: $e');
+      groupController.add([]);
     }
   }
 
@@ -132,48 +138,70 @@ class GroupManagement extends ChangeNotifier {
     return groupFetched.invitedUsers;
   }
 
-  Future<bool> addGroup(
-      Group group,
-      NotificationManagement notificationManagement,
-      UserManagement userManagement,
-      Map<String, UserInviteStatus>? invitedUsers) async {
+  Future<bool> createGroup(
+    Group group,
+    NotificationManagement notificationManagement,
+    UserManagement userManagement,
+    Map<String, UserInviteStatus>? invitedUsers,
+  ) async {
     try {
-      bool groupCreated = await groupService.createGroup(group);
+      // 1. Create group (returns full group with Mongo _id)
+      Group createdGroup = await groupService.createGroup(group);
+      devtools.log('✅ Group created: ${createdGroup.id}');
 
-      if (!groupCreated) {
-        devtools.log('Failed to create group in group service');
-        return false;
+      // 2. Get the current user
+      User user = await userService.getUserByUsername(currentUser.userName);
+
+      if (createdGroup.id.isNotEmpty) {
+        user.groupIds.add(createdGroup.id);
       }
 
-      User user = await userService.getUserByUsername(currentUser.userName);
-      user.groupIds.add(group.id);
-
-      NotificationFormats notificationFormat = NotificationFormats();
+      // 3. Create notification WITHOUT setting the ID manually
+      final notificationFormat = NotificationFormats();
       NotificationUser adminNotification =
-          notificationFormat.whenCreatingGroup(group, user);
+          notificationFormat.whenCreatingGroup(createdGroup, user);
 
-      // Add notification to user's notifications and IDs
-      user.notifications?.add(adminNotification.id); // Use notification ID
+      // 4. Save notification and get it back with generated Mongo _id
+      final savedNotification =
+          await notificationManagement.addNotificationToDB(
+        adminNotification,
+        userManagement,
+      );
 
-      // user.hasNewNotifications = true;
-
-      await notificationManagement.addNotificationToDB(
-          adminNotification, userManagement);
-
-      bool result = await _notifyUserInvitation(
-          group, notificationManagement, userManagement, invitedUsers);
-
-      if (result) {
-        userManagement.updateUser(user);
-        fetchAndInitializeGroups(
-            user.groupIds); // Re-fetch groups instead of updating locally
+      // 5. Safely add the notification ID to the user if it was returned correctly
+      if (savedNotification != null && savedNotification.id.isNotEmpty) {
+        user.notifications.add(savedNotification.id);
       } else {
-        devtools.log("Group couldn't be added = ${user.toString()}");
+        devtools.log('⚠️ Failed to save notification for group creation');
+      }
+
+      // 6. Clean up any empty or invalid IDs to avoid backend issues
+      user.notifications.removeWhere((id) => id.isEmpty);
+      user.groupIds.removeWhere((id) => id.isEmpty);
+
+      // 7. Save updated user to DB
+      await userManagement.updateUser(user);
+
+      // 8. Notify invited users
+      bool result = await _notifyUserInvitation(
+        createdGroup,
+        notificationManagement,
+        userManagement,
+        invitedUsers,
+      );
+
+      // 9. If success, re-fetch groups
+      if (result) {
+        await fetchAndInitializeGroups(user.groupIds);
+      } else {
+        devtools.log(
+            "❌ Group created, but failed to notify some users. User: ${user.userName}");
       }
 
       return true;
     } catch (e, stackTrace) {
-      devtools.log('Failed to add group: $e', error: e, stackTrace: stackTrace);
+      devtools.log('❌ Failed to add group: $e',
+          error: e, stackTrace: stackTrace);
       return false;
     }
   }
@@ -231,12 +259,13 @@ class GroupManagement extends ChangeNotifier {
       NotificationUser editingNotification = notificationFormat
           .whenEditingGroup(updatedGroup, userManagement.user!);
 
-      String? userRole =
-          updatedGroup.userRoles[userManagement.user!.userName];
+      String? userRole = updatedGroup.userRoles[userManagement.user!.userName];
 
       if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
-        userManagement.user!.notifications?.add(editingNotification.id); // Use notification ID
-        devtools.log("This is the user i want to update ${userManagement.user}");
+        userManagement.user!.notifications
+            ?.add(editingNotification.id); // Use notification ID
+        devtools
+            .log("This is the user i want to update ${userManagement.user}");
 
         await userService.updateUser(userManagement.user!);
       }

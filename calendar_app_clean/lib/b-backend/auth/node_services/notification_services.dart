@@ -60,11 +60,23 @@ class NotificationService {
 
   Future<NotificationUser> getNotificationById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
+
+    // 🐞 Debug log with icon
+    print('🐛 [GET Notification] Status: ${response.statusCode}');
+    print('📦 [GET Notification] Body: ${response.body}');
+
     if (response.statusCode == 200) {
-      return NotificationUser.fromJson(
-          jsonDecode(response.body)); // Convert to NotificationUser
+      final decoded = jsonDecode(response.body);
+
+      if (decoded == null || decoded is! Map<String, dynamic>) {
+        throw Exception('Invalid response format: expected JSON object');
+      }
+
+      return NotificationUser.fromJson(decoded);
+    } else if (response.statusCode == 404) {
+      throw Exception('Notification not found');
     } else {
-      throw Exception('Failed to get notification');
+      throw Exception('Failed to get notification: ${response.statusCode}');
     }
   }
 

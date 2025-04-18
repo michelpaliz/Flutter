@@ -5,14 +5,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../a-models/group_model/calendar/calendar.dart';
-import '../../../../a-models/group_model/group/group.dart';
-import '../../../../a-models/notification_model/userInvitation_status.dart';
-import '../../../../a-models/user_model/user.dart';
-import '../../../../b-backend/auth/node_services/user_services.dart';
-import '../../../../d-stateManagement/group_management.dart';
-import '../../../../d-stateManagement/notification_management.dart';
-import '../../../../d-stateManagement/user_management.dart';
+import '../../../../../../a-models/group_model/calendar/calendar.dart';
+import '../../../../../../a-models/group_model/group/group.dart';
+import '../../../../../../a-models/notification_model/userInvitation_status.dart';
+import '../../../../../../a-models/user_model/user.dart';
+import '../../../../../../b-backend/auth/node_services/user_services.dart';
+import '../../../../../../d-stateManagement/group_management.dart';
+import '../../../../../../d-stateManagement/notification_management.dart';
+import '../../../../../../d-stateManagement/user_management.dart';
 
 class GroupController extends ChangeNotifier {
   BuildContext? context;
@@ -29,8 +29,8 @@ class GroupController extends ChangeNotifier {
   XFile? selectedImage;
 
   User? currentUser;
-  List<User> usersInGroup = [];
-  Map<String, String> userRoles = {};
+  List<User> usersInGroup = []; // List of users in the group
+  Map<String, String> userRoles = {}; // Mapping for user roles
 
   GroupController() {
     usersInGroup = [];
@@ -49,18 +49,31 @@ class GroupController extends ChangeNotifier {
     this.notificationManagement = notificationManagement;
     this.currentUser = user;
 
-    usersInGroup = [user];
-    userRoles = {user.userName: 'Administrator'};
+    usersInGroup = [user]; // Set the current user as the initial member
+    userRoles = {
+      user.userName: 'Administrator'
+    }; // Set the current user as admin
+
+    // ✅ FIX: Ensure groupManagement gets the user too
+    groupManagement.setCurrentUser(user);
   }
 
-  void updateUserInGroup(List<User> updatedData) {
-    usersInGroup = updatedData;
+  // This method adds a new user to the group without replacing the existing list
+  void addUser(User newUser) {
+    if (!usersInGroup.any((user) => user.userName == newUser.userName)) {
+      usersInGroup.add(newUser); // Add the new user
+      userRoles[newUser.userName] = 'Member'; // Default role for new users
+      notifyListeners(); // Notify listeners to update the UI
+    }
   }
 
+  // Update the user roles when they are changed
   void onRolesUpdated(Map<String, String> updatedUserRoles) {
     userRoles = updatedUserRoles;
+    notifyListeners(); // Notify listeners to update the UI
   }
 
+  // Remove a user from the group
   void removeUser(String username) {
     if (username == currentUser?.userName) {
       _showSnackBar(AppLocalizations.of(context!)!.cannotRemoveYourself);
@@ -69,13 +82,16 @@ class GroupController extends ChangeNotifier {
 
     usersInGroup.removeWhere((u) => u.userName == username);
     userRoles.remove(username);
+    notifyListeners(); // Notify listeners to update the UI
   }
 
+  // Pick an image for the group
   Future<void> pickImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image != null) selectedImage = image;
   }
 
+  // Display a snackbar message
   void _showSnackBar(String message) {
     if (context != null) {
       ScaffoldMessenger.of(context!).showSnackBar(
@@ -84,7 +100,8 @@ class GroupController extends ChangeNotifier {
     }
   }
 
-  Future<void> saveGroup() async {
+  // Save the group data
+  Future<void> submitGroupFromUI() async {
     if (groupName.trim().isEmpty || groupDescription.trim().isEmpty) {
       _showErrorDialog(AppLocalizations.of(context!)!.requiredTextFields);
       return;
@@ -99,16 +116,17 @@ class GroupController extends ChangeNotifier {
     bool result = await _createGroup();
 
     if (context!.mounted) {
-      Navigator.of(context!).pop(); // remove loading dialog
+      Navigator.of(context!).pop(); // Remove the loading dialog
       if (result) {
         _showSnackBar(AppLocalizations.of(context!)!.groupCreated);
-        Navigator.of(context!).pop(); // go back
+        Navigator.of(context!).pop(); // Go back
       } else {
         _showSnackBar(AppLocalizations.of(context!)!.failedToCreateGroup);
       }
     }
   }
 
+  // Creating the group and saving it to the database
   Future<bool> _createGroup() async {
     try {
       String groupId = const Uuid().v4().substring(0, 10);
@@ -117,13 +135,9 @@ class GroupController extends ChangeNotifier {
       User serverUser =
           await _userService.getUserByUsername(currentUser!.userName);
       List<User> allUsers = [serverUser];
-      String imageURL = "";
+      String imageURL = ""; // Add image URL if necessary
 
-      // If you're uploading image via a service, use this:
-      // if (selectedImage != null) {
-      //   imageURL = await Utilities.pickAndUploadImageGroup(groupId, selectedImage);
-      // }
-
+      // Prepare admin roles
       Map<String, String> adminRoles = {currentUser!.userName: 'Administrator'};
 
       Group newGroup = Group(
@@ -155,7 +169,7 @@ class GroupController extends ChangeNotifier {
 
       newGroup.invitedUsers = invites;
 
-      bool result = await groupManagement.addGroup(
+      bool result = await groupManagement.createGroup(
         newGroup,
         notificationManagement,
         userManagement,
@@ -171,6 +185,7 @@ class GroupController extends ChangeNotifier {
     }
   }
 
+  // Show an error dialog if something goes wrong
   void _showErrorDialog(String message) {
     showDialog(
       context: context!,
@@ -189,9 +204,18 @@ class GroupController extends ChangeNotifier {
     );
   }
 
-  void onDataChanged(List<User> users, Map<String, String> roles) {
-    usersInGroup = users;
-    userRoles = roles;
-    notifyListeners(); // ✅ This triggers UI updates like the role list
+  // Update the data when users or roles change
+  void onDataChanged(List<User> newUsers, Map<String, String> newRoles) {
+    for (final user in newUsers) {
+      if (!usersInGroup.any((u) => u.userName == user.userName)) {
+        usersInGroup.add(user);
+      }
+    }
+
+    newRoles.forEach((username, role) {
+      userRoles[username] = role; // Updates role if exists, adds if new
+    });
+
+    notifyListeners();
   }
 }

@@ -4,7 +4,7 @@ import 'package:first_project/a-models/group_model/event_appointment/event/event
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/create-group/create_group_data.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/screens/create_group_data.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/edit_group_data.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group-settings/group_settings.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/group_calendar.dart';

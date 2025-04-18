@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../controllers/notification_conroller.dart';
+import '../controllers/notification_controller.dart';
 
 class ShowNotifications extends StatefulWidget {
   final User user;

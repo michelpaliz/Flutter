@@ -1,5 +1,5 @@
-import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/group_model/calendar/calendar.dart';
+import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 
 class Group {
   final String id;
@@ -35,8 +35,8 @@ class Group {
     );
 
     return Group(
-      id: json['id'] ?? '',
-      name: json['groupName'] ?? '',
+      id: json['_id'] ?? '', // ✅ FIXED HERE
+      name: json['name'] ?? '',
       ownerId: json['ownerId'] ?? '',
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
       userIds: userIds,
@@ -50,18 +50,11 @@ class Group {
     );
   }
 
+// 🔁 For reading/updating (includes ID)
   Map<String, dynamic> toJson() {
-    Map<String, dynamic>? invitedUsersJson;
-    if (invitedUsers != null) {
-      invitedUsersJson = {};
-      invitedUsers!.forEach((key, value) {
-        invitedUsersJson![key] = value.toJson();
-      });
-    }
-
     return {
-      'id': id,
-      'groupName': name,
+      '_id': id, // include _id here
+      'name': name,
       'ownerId': ownerId,
       'userRoles': userRoles,
       'userIds': userIds,
@@ -69,7 +62,24 @@ class Group {
       'description': description,
       'photo': photo,
       'calendar': calendar.toJson(),
-      'invitedUsers': invitedUsersJson,
+      'invitedUsers':
+          invitedUsers?.map((key, value) => MapEntry(key, value.toJson())),
+    };
+  }
+
+// 🆕 For creating new groups (without ID)
+  Map<String, dynamic> toJsonForCreation() {
+    return {
+      'name': name,
+      'ownerId': ownerId,
+      'userRoles': userRoles,
+      'userIds': userIds,
+      'createdTime': createdTime.toIso8601String(),
+      'description': description,
+      'photo': photo,
+      'calendar': calendar.toJson(),
+      'invitedUsers':
+          invitedUsers?.map((key, value) => MapEntry(key, value.toJson())),
     };
   }
 
@@ -94,7 +104,8 @@ class Group {
     if (map1 == null || map2 == null) return false;
     if (map1.length != map2.length) return false;
     for (var key in map1.keys) {
-      if (!map2.containsKey(key) || !map1[key]!.isEqual(map2[key]!)) return false;
+      if (!map2.containsKey(key) || !map1[key]!.isEqual(map2[key]!))
+        return false;
     }
     return true;
   }
@@ -116,6 +127,6 @@ class Group {
 
   @override
   String toString() {
-    return 'Group{id: $id, groupName: $name, ownerId: $ownerId, userRoles: $userRoles, userIds: $userIds, createdTime: $createdTime, description: $description, photo: $photo, calendar: $calendar, invitedUsers: $invitedUsers}';
+    return 'Group{id: $id, name: $name, ownerId: $ownerId, userRoles: $userRoles, userIds: $userIds, createdTime: $createdTime, description: $description, photo: $photo, calendar: $calendar, invitedUsers: $invitedUsers}';
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:first_project/a-models/user_model/user.dart';
@@ -11,9 +10,9 @@ class UserManagement extends ChangeNotifier {
   final UserService userService = UserService();
   final NotificationManagement _notificationManagement;
 
-  final _userController = StreamController<User?>.broadcast();
+  // ✅ Switched from StreamController to ValueNotifier
+  final ValueNotifier<User?> currentUserNotifier = ValueNotifier(null);
 
-  Stream<User?> get userStream => _userController.stream;
   User? get user => _user;
 
   UserManagement({
@@ -26,30 +25,28 @@ class UserManagement extends ChangeNotifier {
   }
 
   void setCurrentUser(User? user) {
-    _user = user;
+    debugPrint('👤 setCurrentUser called with: $user');
 
     if (user != null) {
-      updateCurrentUser(user);
+      updateCurrentUser(user); // Use consistent update flow
     } else {
-      _userController.add(null);
+      _user = null;
+      currentUserNotifier.value = null;
       notifyListeners();
     }
   }
 
-  void _initNotifications(User user) {
-    final notificationIds = user.notifications;
-
-    // Log for debugging
-    debugPrint("Initializing notifications: $notificationIds");
-
-    _notificationManagement.initNotifications(notificationIds);
-  }
-
   void updateCurrentUser(User user) {
     _user = user;
-    _userController.add(user);
+    currentUserNotifier.value = user;
     _initNotifications(user);
     notifyListeners();
+  }
+
+  void _initNotifications(User user) {
+    final notificationIds = user.notifications;
+    debugPrint("Initializing notifications: $notificationIds");
+    _notificationManagement.initNotifications(notificationIds);
   }
 
   Future<void> updateUserFromDB(User? updatedUser) async {
@@ -93,7 +90,7 @@ class UserManagement extends ChangeNotifier {
 
   @override
   void dispose() {
-    _userController.close();
+    currentUserNotifier.dispose(); // Clean up
     super.dispose();
   }
 }
