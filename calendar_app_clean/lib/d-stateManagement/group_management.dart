@@ -263,7 +263,7 @@ class GroupManagement extends ChangeNotifier {
 
       if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
         userManagement.user!.notifications
-            ?.add(editingNotification.id); // Use notification ID
+            .add(editingNotification.id); // Use notification ID
         devtools
             .log("This is the user i want to update ${userManagement.user}");
 

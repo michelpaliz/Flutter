@@ -109,6 +109,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         }),
       );
 
+      debugPrint("📥 Login response status: ${response.statusCode}");
+      debugPrint("📥 Login response body: ${response.body}");
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -116,7 +119,8 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         await TokenStorage.saveToken(_authToken!);
 
         final userId = data['userId'];
-        _user = await _userService.getUserById(userId);
+        // _user = await _userService.getUserById(userId);
+        currentUser = await _userService.getUserById(userId);
         _authStateController.add(_user);
         notifyListeners();
 

@@ -108,6 +108,7 @@ class _LoginViewState extends State<LoginView> {
             const SizedBox(height: 15),
             ElevatedButton(
               onPressed: () async {
+                debugPrint("🔘 Login button pressed");
                 final email = _email.text.trim();
                 final password = _password.text.trim();
                 try {

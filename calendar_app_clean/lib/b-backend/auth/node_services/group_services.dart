@@ -14,7 +14,7 @@ class GroupService {
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json; charset=UTF-8'},
-      body: jsonEncode(group.toJson()),
+      body: jsonEncode(group.toJsonForCreation()),
     );
 
     if (response.statusCode == 201) {

@@ -4,7 +4,6 @@ import 'package:first_project/a-models/notification_model/notification_user.dart
 import '../a-models/user_model/user.dart';
 
 class NotificationFormats {
-  List<String>? wrapIfNotEmpty(String id) => id.isNotEmpty ? [id] : null;
 
   NotificationUser whenCreatingGroup(Group group, User admin) {
     return NotificationUser(
@@ -15,7 +14,7 @@ class NotificationFormats {
       message: 'You created the group: ${group.name}',
       timestamp: DateTime.now(),
       questionsAndAnswers: {},
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType.update,
       priority: PriorityLevel.medium,
@@ -34,7 +33,7 @@ class NotificationFormats {
       message: description,
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType.update, // Set type
       priority: PriorityLevel.medium, // Default priority
@@ -59,7 +58,7 @@ class NotificationFormats {
       questionsAndAnswers: {
         userNotificationQuestion: ''
       }, // Initialize map with a question
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType.alert, // Set type to alert
       priority: PriorityLevel.high, // Set priority to high
@@ -81,7 +80,7 @@ class NotificationFormats {
       message: userNotificationMessage,
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType.message, // Set type to message
       priority: PriorityLevel.low, // Set priority to low
@@ -104,7 +103,7 @@ class NotificationFormats {
       message: userNotificationMessage,
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType
           .alert, // Set type to warning (or choose another type if more appropriate)
@@ -129,7 +128,7 @@ class NotificationFormats {
       message: userNotificationMessage,
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType.alert, // Set type to alert
       priority: PriorityLevel.high, // Set priority to high
@@ -152,7 +151,7 @@ class NotificationFormats {
       message: userNotificationMessage,
       timestamp: DateTime.now(),
       questionsAndAnswers: {}, // Initialize as an empty map
-      groupId: wrapIfNotEmpty(group.id),
+      groupId: group.id,
       isRead: false,
       type: NotificationType.alert, // Set type to alert
       priority: PriorityLevel.high, // Set priority to high
@@ -162,7 +161,8 @@ class NotificationFormats {
     return recipientNotification;
   }
 
-  NotificationUser eventReminder(DateTime eventDate, User user) {
+  NotificationUser eventReminder(DateTime eventDate, User user,
+      {Group? group}) {
     final userNotificationTitle = 'Upcoming Event Reminder';
     final userNotificationMessage =
         'Don\'t forget about your event on ${eventDate.toLocal()}';
@@ -175,7 +175,7 @@ class NotificationFormats {
       message: userNotificationMessage,
       timestamp: DateTime.now(),
       questionsAndAnswers: {},
-      groupId: null,
+      groupId: group?.id ?? 'none', // 👈 fallback if group is null
       isRead: false,
       type: NotificationType.reminder,
       priority: PriorityLevel.high,

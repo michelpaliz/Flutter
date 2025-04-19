@@ -28,7 +28,7 @@ class NotificationUser {
   final String message;
   final DateTime _timestamp;
   final Map<String, String> questionsAndAnswers;
-  final List<String>? groupId; // ✅ Changed to List<String>?
+  final String groupId; // ✅ CHANGED
   bool _isRead;
   final NotificationType type;
   final PriorityLevel priority;
@@ -42,7 +42,7 @@ class NotificationUser {
     required this.message,
     required DateTime timestamp,
     this.questionsAndAnswers = const {},
-    this.groupId,
+    required this.groupId, // ✅ CHANGED
     bool isRead = false,
     this.type = NotificationType.message,
     this.priority = PriorityLevel.medium,
@@ -51,8 +51,7 @@ class NotificationUser {
         _isRead = isRead;
 
   DateTime get timestamp => _timestamp;
-  bool get isRead => _isRead;
-
+  bool get isRead => _isRead; // ✅ ADD THIS LINE
   set isRead(bool value) {
     _isRead = value;
   }
@@ -60,7 +59,7 @@ class NotificationUser {
   factory NotificationUser.fromJson(Map<String, dynamic> json) {
     try {
       return NotificationUser(
-        id: json['id'] ?? '',
+        id: json['id'] ?? json['_id'] ?? '',
         senderId: json['senderId'] ?? '',
         recipientId: json['recipientId'] ?? '',
         title: json['title'] ?? '',
@@ -71,9 +70,7 @@ class NotificationUser {
         questionsAndAnswers: json['questionsAndAnswers'] != null
             ? Map<String, String>.from(json['questionsAndAnswers'])
             : {},
-        groupId: (json['groupId'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList(),
+        groupId: json['groupId']?.toString() ?? '', // ✅ CHANGED
         isRead: json['isRead'] ?? false,
         type:
             json['type'] is int && json['type'] < NotificationType.values.length
@@ -98,7 +95,7 @@ class NotificationUser {
         message: 'Error in notification',
         timestamp: DateTime.now(),
         questionsAndAnswers: {},
-        groupId: [],
+        groupId: '', // ✅ CHANGED
         isRead: false,
         type: NotificationType.message,
         priority: PriorityLevel.medium,
@@ -107,9 +104,9 @@ class NotificationUser {
     }
   }
 
+  // Updating an existing notification (PUT or PATCH)
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final map = {
       'senderId': senderId,
       'recipientId': recipientId,
       'title': title,
@@ -122,22 +119,19 @@ class NotificationUser {
       'priority': priority.index,
       'category': category.index,
     };
+
+    // Only include `_id` if it's non-empty (for updates, not creation)
+    if (id.isNotEmpty) {
+      map['_id'] = id;
+    }
+
+    return map;
   }
 
-  @override
-  String toString() {
-    return 'NotificationUser('
-        'id: $id, '
-        'senderId: $senderId, '
-        'recipientId: $recipientId, '
-        'title: $title, '
-        'message: $message, '
-        'timestamp: $_timestamp, '
-        'questionsAndAnswers: $questionsAndAnswers, '
-        'groupId: $groupId, '
-        'isRead: $_isRead, '
-        'type: $type, '
-        'priority: $priority, '
-        'category: $category)';
+  // Anytime you're adding something new to MongoDB
+  Map<String, dynamic> toJsonForCreation() {
+    final map = toJson();
+    map.remove('_id'); // 🔥 guarantee `_id` is removed
+    return map;
   }
 }

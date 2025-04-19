@@ -27,7 +27,7 @@ class NotificationController {
     if (notification.questionsAndAnswers.isNotEmpty) {
       try {
         final groupFetched = await groupManagement.groupService
-            .getGroupById(notification.groupId!.first);
+            .getGroupById(notification.groupId);
         final invitedUsers = groupFetched.invitedUsers;
 
         if (invitedUsers == null) {
@@ -95,10 +95,9 @@ class NotificationController {
   }
 
   Future<void> handleNegation(NotificationUser notification) async {
-    if (notification.groupId != null &&
-        notification.questionsAndAnswers.isNotEmpty) {
-      final group = await groupManagement.groupService
-          .getGroupById(notification.groupId!.first);
+    if (notification.questionsAndAnswers.isNotEmpty) {
+      final group =
+          await groupManagement.groupService.getGroupById(notification.groupId);
       final invitedUsers = group.invitedUsers;
 
       User userInvited =
@@ -175,7 +174,7 @@ class NotificationController {
   Future<void> _sendNotificationToAdmin(NotificationUser originalNotification,
       User fromUser, bool accepted) async {
     final ntOwner = NotificationUser(
-      id: '', // leave it blank; DB should assign this
+      id: '',
       senderId: originalNotification.senderId,
       recipientId: originalNotification.senderId,
       title:
@@ -183,6 +182,7 @@ class NotificationController {
       message:
           '${fromUser.userName} has ${accepted ? 'accepted' : 'denied'} your invitation to join the group',
       timestamp: DateTime.now(),
+      groupId: originalNotification.groupId, // ✅ <-- This is the fix
       category: Category.groupUpdate,
     );
 

@@ -29,8 +29,8 @@ class NotificationService {
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: jsonEncode(
-            notification.toJson()), // Use NotificationUser's toJson method
+        body: jsonEncode(notification
+            .toJsonForCreation()), // Use NotificationUser's toJson method
       );
 
       if (response.statusCode == 201) {

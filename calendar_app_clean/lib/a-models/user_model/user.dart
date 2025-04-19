@@ -74,7 +74,7 @@ class User {
   // Create from JSON
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as String,
+      id: json['id'] ?? json['_id'] ?? '', // ✅ fallback for legacy `_id`
       name: json['name'] as String,
       email: json['email'] as String,
       userName: json['userName'] as String,

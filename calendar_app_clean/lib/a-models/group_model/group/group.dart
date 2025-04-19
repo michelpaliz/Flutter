@@ -35,7 +35,7 @@ class Group {
     );
 
     return Group(
-      id: json['_id'] ?? '', // ✅ FIXED HERE
+      id: json['id'] ?? json['_id'] ?? '', // ✅ fallback for legacy `_id`
       name: json['name'] ?? '',
       ownerId: json['ownerId'] ?? '',
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
