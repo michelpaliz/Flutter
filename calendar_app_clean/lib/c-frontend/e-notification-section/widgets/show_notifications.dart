@@ -3,11 +3,12 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/notification_model/notification_user.dart';
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/b-backend/auth/node_services/notification_services.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/c-frontend/e-notification-section/enum/broad_category.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/utilities/enums/broad_category.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +25,7 @@ class ShowNotifications extends StatefulWidget {
 
 class _ShowNotificationsState extends State<ShowNotifications> {
   final BroadCategoryManager _categoryManager = BroadCategoryManager();
-  late BroadCategory _selectedCategory = BroadCategory.group;
+  BroadCategory? _selectedCategory;
 
   late Stream<List<NotificationUser>> _notificationsStream;
   late User _currentUser = widget.user;
@@ -34,13 +35,13 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   late GroupManagement _groupManagement;
 
   final UserService _userService = UserService();
+  final NotificationService _notificationService = NotificationService();
   late NotificationController _notificationController;
 
   @override
   void initState() {
     super.initState();
     _initializeStream();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _fetchAndUpdateNotifications();
     });
@@ -60,12 +61,12 @@ class _ShowNotificationsState extends State<ShowNotifications> {
       groupManagement: _groupManagement,
       notificationManagement: _notificationManagement,
       userService: _userService,
+      notificationService: _notificationService,
     );
 
     if (_userManagement.user != null) {
       _currentUser = _userManagement.user!;
       _notificationsStream = _notificationManagement.notificationStream;
-
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _fetchAndUpdateNotifications();
       });
@@ -76,28 +77,24 @@ class _ShowNotificationsState extends State<ShowNotifications> {
 
   void _initializeStream() {
     _notificationsStream = Stream.empty();
+    _selectedCategory = null; // no filter at start
   }
 
   Future<void> _fetchAndUpdateNotifications() async {
     try {
-      if (_currentUser.notifications!.isNotEmpty) {
-        final fetchedNotifications =
-            await _userService.getNotificationsByUser(_currentUser.userName);
-
-        fetchedNotifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        _notificationManagement.updateNotificationStream(fetchedNotifications);
-      } else {
-        _notificationManagement.updateNotificationStream([]);
-      }
+      final fetched = await _notificationService
+          .getNotificationsForUser(_currentUser.userName);
+      fetched.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      _notificationManagement.updateNotificationStream(fetched);
     } catch (error) {
-      devtools.log('Error: $error');
+      devtools.log('Error fetching notifications: $error');
     }
   }
 
   Future<void> _removeAllNotifications() async {
-    bool? confirm = await showDialog(
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: Text("Confirm Removal"),
         content: Text("Are you sure you want to remove all notifications?"),
         actions: [
@@ -110,10 +107,9 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         ],
       ),
     );
-
     if (confirm == true) {
       await _notificationController.removeAllNotifications(_currentUser);
-      if (mounted) setState(() {});
+      setState(() {});
     }
   }
 
@@ -121,40 +117,37 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     await _notificationController.removeNotificationByIndex(index);
   }
 
-  String _formatTimeDifference(DateTime dateTime) {
+  String _formatTimeDifference(DateTime dt) {
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inSeconds < 60) return 'Just now';
-    if (difference.inMinutes < 60) return '${difference.inMinutes} minutes ago';
-    if (difference.inHours < 24) return '${difference.inHours} hours ago';
-    if (difference.inDays < 7) return '${difference.inDays} days ago';
-    if (difference.inDays < 30) return 'Last 30 days';
-    return DateFormat('MMM d, yyyy').format(dateTime);
+    final diff = now.difference(dt);
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} minutes ago';
+    if (diff.inHours < 24) return '${diff.inHours} hours ago';
+    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    if (diff.inDays < 30) return 'Last 30 days';
+    return DateFormat('MMM d, yyyy').format(dt);
   }
 
   Map<String, List<NotificationUser>> _groupNotifications(
-      List<NotificationUser> notifications) {
+      List<NotificationUser> list) {
     final now = DateTime.now();
-    final Map<String, List<NotificationUser>> grouped = {
-      'Recent': [],
-      'Last 7 days': [],
-      'Last 30 days': [],
-      'Older': [],
+    final grouped = {
+      'Recent': <NotificationUser>[],
+      'Last 7 days': <NotificationUser>[],
+      'Last 30 days': <NotificationUser>[],
+      'Older': <NotificationUser>[],
     };
-
-    for (var notification in notifications) {
-      final diff = now.difference(notification.timestamp);
-      if (diff.inDays < 1)
-        grouped['Recent']!.add(notification);
-      else if (diff.inDays < 7)
-        grouped['Last 7 days']!.add(notification);
-      else if (diff.inDays < 30)
-        grouped['Last 30 days']!.add(notification);
+    for (var ntf in list) {
+      final d = now.difference(ntf.timestamp);
+      if (d.inDays < 1)
+        grouped['Recent']!.add(ntf);
+      else if (d.inDays < 7)
+        grouped['Last 7 days']!.add(ntf);
+      else if (d.inDays < 30)
+        grouped['Last 30 days']!.add(ntf);
       else
-        grouped['Older']!.add(notification);
+        grouped['Older']!.add(ntf);
     }
-
     return grouped;
   }
 
@@ -165,40 +158,53 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         title: Text('Notifications'),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete_forever),
-            onPressed: _removeAllNotifications,
-          )
+              icon: Icon(Icons.delete_forever),
+              onPressed: _removeAllNotifications)
         ],
       ),
       body: Column(
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: BroadCategory.values.map((category) {
-                final isSelected = _selectedCategory == category;
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isSelected ? Colors.teal : Colors.blue,
-                      foregroundColor:
-                          Colors.white, // Optional, ensures text is white
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _selectedCategory = category;
-                        _categoryManager.filterNotifications(category);
-                      });
-                    },
-                    child: Text(
-                      category.toString().split('.').last.toUpperCase(),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+          // —— CATEGORY FILTER BAR ——
+          StreamBuilder<List<NotificationUser>>(
+            stream: _notificationsStream,
+            builder: (context, snap) {
+              final notifications = snap.data ?? [];
+              // derive only used broad categories (int → Category → BroadCategory)
+              final usedCats = notifications
+                  .map((ntf) => _categoryManager.categoryMapping[
+                      ntf.category]) // ntf.category is already Category
+                  .whereType<BroadCategory>() // drop any null mappings
+                  .toSet();
+
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: usedCats.map((cat) {
+                    final selected = _selectedCategory == cat;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 12),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: selected ? Colors.teal : Colors.blue,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _selectedCategory = cat;
+                            _categoryManager.filterNotifications(cat);
+                          });
+                        },
+                        child:
+                            Text(cat.toString().split('.').last.toUpperCase()),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           ),
+
+          // —— NOTIFICATION LIST ——
           Expanded(
             child: StreamBuilder<List<NotificationUser>>(
               stream: _notificationsStream,
@@ -207,14 +213,21 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                   return Center(child: CircularProgressIndicator());
                 if (snapshot.hasError)
                   return Center(child: Text('Error: ${snapshot.error}'));
-                if (!snapshot.hasData || snapshot.data!.isEmpty)
+                final data = snapshot.data ?? [];
+                if (data.isEmpty)
                   return Center(child: Text('No notifications available.'));
 
-                final notifications = snapshot.data!;
-                final filtered = notifications.where((ntf) {
-                  return _categoryManager.selectedCategory == null ||
-                      _categoryManager.categoryMapping[ntf.category] ==
-                          _categoryManager.selectedCategory;
+                // filter by selected broad category
+                final filtered = data.where((ntf) {
+                  // if no filter is selected, include everything
+                  if (_selectedCategory == null) return true;
+
+                  // rawCat is already a Category enum
+                  final rawCat = ntf.category;
+
+                  // map it to a BroadCategory and compare
+                  return _categoryManager.categoryMapping[rawCat] ==
+                      _selectedCategory;
                 }).toList();
 
                 final grouped = _groupNotifications(filtered);
@@ -230,20 +243,19 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      ...entry.value.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final notification = entry.value;
-                        final isActionable =
-                            notification.questionsAndAnswers.isNotEmpty &&
-                                !notification.isRead;
+                      ...entry.value.asMap().entries.map((e) {
+                        final idx = e.key;
+                        final ntf = e.value;
+                        final actionable =
+                            ntf.questionsAndAnswers.isNotEmpty && !ntf.isRead;
 
                         return Dismissible(
-                          key: Key(notification.id),
+                          key: Key(ntf.id),
                           background: _swipeActionLeft(),
                           secondaryBackground: _swipeActionRight(),
-                          confirmDismiss: (direction) async {
-                            if (direction == DismissDirection.endToStart) {
-                              return await showDialog(
+                          confirmDismiss: (dir) async {
+                            if (dir == DismissDirection.endToStart) {
+                              return await showDialog<bool>(
                                 context: context,
                                 builder: (_) => AlertDialog(
                                   title: Text("Confirm"),
@@ -263,61 +275,47 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                             }
                             return false;
                           },
-                          onDismissed: (direction) {
-                            if (direction == DismissDirection.endToStart) {
-                              _removeNotificationByIndex(index);
-                            }
-                          },
+                          onDismissed: (_) => _removeNotificationByIndex(idx),
                           child: Card(
                             margin: EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 20),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.5),
-                              child: ListTile(
-                                title: Text(notification.title,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18)),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 8),
-                                    Text(notification.message),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      _formatTimeDifference(
-                                          notification.timestamp),
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
-                                ),
-                                trailing: isActionable
-                                    ? Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                _notificationController
-                                                    .handleConfirmation(
-                                                        notification),
-                                            child: Text("Confirm"),
-                                          ),
-                                          SizedBox(width: 8),
-                                          TextButton(
-                                            onPressed: () =>
-                                                _notificationController
-                                                    .handleNegation(
-                                                        notification),
-                                            child: Text("Negate"),
-                                          ),
-                                        ],
-                                      )
-                                    : null,
+                                vertical: 6, horizontal: 12),
+                            child: ListTile(
+                              title: Text(ntf.title,
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 4),
+                                  Text(ntf.message),
+                                  SizedBox(height: 4),
+                                  Text(_formatTimeDifference(ntf.timestamp),
+                                      style: TextStyle(color: Colors.grey)),
+                                ],
                               ),
+                              trailing: actionable
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              _notificationController
+                                                  .handleConfirmation(ntf),
+                                          child: Text("Confirm"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              _notificationController
+                                                  .handleNegation(ntf),
+                                          child: Text("Negate"),
+                                        ),
+                                      ],
+                                    )
+                                  : null,
                             ),
                           ),
                         );
-                      }),
+                      }).toList(),
                     ];
                   }).toList(),
                 );

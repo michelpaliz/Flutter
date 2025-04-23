@@ -56,7 +56,7 @@ class NotificationManagement extends ChangeNotifier {
   }
 
   // Mark notifications as read, update both locally and on the service level
-  Future<void> markNotificationsAsRead(UserManagement userManagement) async {
+  Future<void> markAllNotificationsAsRead(UserManagement userManagement) async {
     try {
       List<String> updatedNotificationIds = [];
       for (NotificationUser notification in _notifications) {
@@ -122,33 +122,6 @@ class NotificationManagement extends ChangeNotifier {
     } catch (e) {
       print('Failed to remove notification: $e');
       return false;
-    }
-  }
-
-  // Add notification to the DB
-  Future<NotificationUser?> addNotificationToDB(
-    NotificationUser notification,
-    UserManagement userManagement,
-  ) async {
-    try {
-      // 🛠 Save to DB and get the actual notification with generated ID
-      final savedNotification =
-          await notificationService.createNotification(notification);
-
-      _notificationIds.add(savedNotification.id);
-      if (userManagement.user?.id == savedNotification.recipientId) {
-        _notifications.add(savedNotification);
-        _notifications = _sortNotificationsByDate(_notifications);
-        notifyListeners();
-      }
-
-      userManagement.user?.notifications = _notificationIds;
-      await userManagement.updateUser(userManagement.user!);
-
-      return savedNotification;
-    } catch (e) {
-      print('❌ Failed to add notification: $e');
-      return null;
     }
   }
 

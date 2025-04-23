@@ -21,6 +21,18 @@ class NotificationService {
     }
   }
 
+  Future<List<NotificationUser>> getNotificationsForUser(
+      String username) async {
+    final response = await http.get(Uri.parse('$baseUrl/user/$username'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = jsonDecode(response.body);
+      return jsonData.map((data) => NotificationUser.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to fetch user notifications');
+    }
+  }
+
   Future<NotificationUser> createNotification(
       NotificationUser notification) async {
     try {

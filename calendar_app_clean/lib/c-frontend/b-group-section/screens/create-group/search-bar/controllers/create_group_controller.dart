@@ -169,12 +169,7 @@ class GroupController extends ChangeNotifier {
 
       newGroup.invitedUsers = invites;
 
-      bool result = await groupManagement.createGroup(
-        newGroup,
-        notificationManagement,
-        userManagement,
-        {},
-      );
+      bool result = await groupManagement.createGroup(newGroup, userManagement);
 
       devtools.log("Group creation result: $result");
 

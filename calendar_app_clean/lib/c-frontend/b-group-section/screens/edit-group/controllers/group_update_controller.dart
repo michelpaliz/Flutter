@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
+import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class GroupUpdateController {
   final BuildContext context;
@@ -83,12 +82,7 @@ class GroupUpdateController {
         });
       }
 
-      await groupManagement.updateGroup(
-        updatedGroup,
-        userManagement,
-        notificationManagement,
-        newInvitations,
-      );
+      await groupManagement.updateGroup(updatedGroup, userManagement);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.groupEdited)),
@@ -109,7 +103,9 @@ class GroupUpdateController {
       builder: (ctx) => AlertDialog(
         title: Text('Error'),
         content: Text(message),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('OK'))],
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('OK'))
+        ],
       ),
     );
   }

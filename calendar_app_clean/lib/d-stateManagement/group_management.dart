@@ -2,14 +2,11 @@ import 'dart:async';
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/a-models/notification_model/notification_user.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/node_services/group_services.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/utilities/notification_formats.dart';
 import 'package:flutter/material.dart';
 
 class GroupManagement extends ChangeNotifier {
@@ -77,6 +74,47 @@ class GroupManagement extends ChangeNotifier {
     await fetchAndInitializeGroups(user.groupIds);
   }
 
+  Future<void> fetchAndPopulateUsersAndRoles(String groupId) async {
+    await fetchAndPopulateData(groupId, fetchRoles, usersRolesStreamController);
+  }
+
+  Future<void> fetchAndPopulateUsersInvitationStatus(String groupId) async {
+    await fetchAndPopulateData(
+        groupId, fetchStatus, usersInvitationStatusStreamController);
+  }
+
+  Future<Map<String, String>> fetchRoles(String groupId) async {
+    Group groupFetched = await groupService.getGroupById(groupId);
+    return groupFetched.userRoles;
+  }
+
+  Future<Map<String, UserInviteStatus>?> fetchStatus(String groupId) async {
+    Group groupFetched = await groupService.getGroupById(groupId);
+    return groupFetched.invitedUsers;
+  }
+
+  Future<void> _refreshUserAndGroups(UserManagement userManagement) async {
+    final freshUser = await userManagement.getUser();
+    if (freshUser != null) {
+      userManagement.setCurrentUser(freshUser);
+      await fetchAndInitializeGroups(freshUser.groupIds);
+    }
+  }
+
+  Future<void> fetchAndPopulateData<T>(
+    String groupId,
+    Future<T> Function(String) fetchData,
+    StreamController<T> controller,
+  ) async {
+    try {
+      T data = await fetchData(groupId);
+      controller.add(data);
+    } catch (e, stackTrace) {
+      devtools.log('Failed to fetch and populate data: $e',
+          error: e, stackTrace: stackTrace);
+    }
+  }
+
   Future<void> fetchAndInitializeGroups(List<String> groupIds) async {
     try {
       List<Group> groups = [];
@@ -105,98 +143,20 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchAndPopulateData<T>(
-    String groupId,
-    Future<T> Function(String) fetchData,
-    StreamController<T> controller,
-  ) async {
-    try {
-      T data = await fetchData(groupId);
-      controller.add(data);
-    } catch (e, stackTrace) {
-      devtools.log('Failed to fetch and populate data: $e',
-          error: e, stackTrace: stackTrace);
-    }
-  }
-
-  Future<void> fetchAndPopulateUsersAndRoles(String groupId) async {
-    await fetchAndPopulateData(groupId, fetchRoles, usersRolesStreamController);
-  }
-
-  Future<void> fetchAndPopulateUsersInvitationStatus(String groupId) async {
-    await fetchAndPopulateData(
-        groupId, fetchStatus, usersInvitationStatusStreamController);
-  }
-
-  Future<Map<String, String>> fetchRoles(String groupId) async {
-    Group groupFetched = await groupService.getGroupById(groupId);
-    return groupFetched.userRoles;
-  }
-
-  Future<Map<String, UserInviteStatus>?> fetchStatus(String groupId) async {
-    Group groupFetched = await groupService.getGroupById(groupId);
-    return groupFetched.invitedUsers;
-  }
-
   Future<bool> createGroup(
     Group group,
-    NotificationManagement notificationManagement,
     UserManagement userManagement,
-    Map<String, UserInviteStatus>? invitedUsers,
   ) async {
     try {
       // 1. Create group (returns full group with Mongo _id)
       Group createdGroup = await groupService.createGroup(group);
       devtools.log('✅ Group created: ${createdGroup.id}');
 
-      // 2. Get the current user
-      User user = await userService.getUserByUsername(currentUser.userName);
+      // 2. Refresh current user to get updated notifications and group IDs
+      await _refreshUserAndGroups(userManagement);
 
-      if (createdGroup.id.isNotEmpty) {
-        user.groupIds.add(createdGroup.id);
-      }
-
-      // 3. Create notification WITHOUT setting the ID manually
-      final notificationFormat = NotificationFormats();
-      NotificationUser adminNotification =
-          notificationFormat.whenCreatingGroup(createdGroup, user);
-
-      // 4. Save notification and get it back with generated Mongo _id
-      final savedNotification =
-          await notificationManagement.addNotificationToDB(
-        adminNotification,
-        userManagement,
-      );
-
-      // 5. Safely add the notification ID to the user if it was returned correctly
-      if (savedNotification != null && savedNotification.id.isNotEmpty) {
-        user.notifications.add(savedNotification.id);
-      } else {
-        devtools.log('⚠️ Failed to save notification for group creation');
-      }
-
-      // 6. Clean up any empty or invalid IDs to avoid backend issues
-      user.notifications.removeWhere((id) => id.isEmpty);
-      user.groupIds.removeWhere((id) => id.isEmpty);
-
-      // 7. Save updated user to DB
-      await userManagement.updateUser(user);
-
-      // 8. Notify invited users
-      bool result = await _notifyUserInvitation(
-        createdGroup,
-        notificationManagement,
-        userManagement,
-        invitedUsers,
-      );
-
-      // 9. If success, re-fetch groups
-      if (result) {
-        await fetchAndInitializeGroups(user.groupIds);
-      } else {
-        devtools.log(
-            "❌ Group created, but failed to notify some users. User: ${user.userName}");
-      }
+      // 3. Re-fetch groups
+      await fetchAndInitializeGroups(currentUser.groupIds);
 
       return true;
     } catch (e, stackTrace) {
@@ -206,104 +166,42 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
-  Future<bool> _notifyUserInvitation(
-      Group group,
-      NotificationManagement notificationManagement,
-      UserManagement userManagement,
-      Map<String, UserInviteStatus>? invitedUsers) async {
-    final notificationFormat = NotificationFormats();
-
-    final currentInvitedUserNames = group.invitedUsers?.keys.toSet() ?? {};
-    final newInviteeUserNames = invitedUsers?.keys.toSet() ?? {};
-
-    final usersToNotify =
-        currentInvitedUserNames.difference(newInviteeUserNames);
-
+  Future<bool> updateGroup(
+    Group updatedGroup,
+    UserManagement userManagement,
+  ) async {
     try {
-      if (usersToNotify.isNotEmpty) {
-        final notificationResults =
-            await Future.wait(usersToNotify.map((userName) async {
-          final invitedUser = await userService.getUserByUsername(userName);
-          NotificationUser invitationNotification =
-              notificationFormat.createGroupInvitation(group, invitedUser);
+      // 1. Call backend to update the group
+      await groupService.updateGroup(updatedGroup);
 
-          return notificationManagement.addNotificationToDB(
-              invitationNotification, userManagement);
-        }));
+      // 2. Refresh current user to get updated notifications and group info
+      await _refreshUserAndGroups(userManagement);
 
-        if (notificationResults.contains(false)) {
-          devtools.log('Failed to add some notifications');
-          return false;
-        }
-      }
-
-      await groupService.updateGroup(group);
-      fetchAndInitializeGroups(currentUser.groupIds); // Refresh group data
+      // 3. Re-fetch groups to update local state
+      await fetchAndInitializeGroups(currentUser.groupIds);
 
       return true;
     } catch (e, stackTrace) {
-      devtools.log('Failed to notify users for invitation: $e',
+      devtools.log('❌ Failed to update group: $e',
           error: e, stackTrace: stackTrace);
       return false;
     }
   }
 
-  Future<bool> updateGroup(
-      Group updatedGroup,
-      UserManagement userManagement,
-      NotificationManagement notificationManagement,
-      Map<String, UserInviteStatus>? invitedUsers) async {
-    try {
-      groupService.updateGroup(updatedGroup);
-      final notificationFormat = NotificationFormats();
-      NotificationUser editingNotification = notificationFormat
-          .whenEditingGroup(updatedGroup, userManagement.user!);
-
-      String? userRole = updatedGroup.userRoles[userManagement.user!.userName];
-
-      if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
-        userManagement.user!.notifications
-            .add(editingNotification.id); // Use notification ID
-        devtools
-            .log("This is the user i want to update ${userManagement.user}");
-
-        await userService.updateUser(userManagement.user!);
-      }
-
-      bool result = await _notifyUserInvitation(
-          updatedGroup, notificationManagement, userManagement, invitedUsers);
-      if (result) {
-        fetchAndInitializeGroups(currentUser.groupIds); // Re-fetch groups
-        return true; // Indicate success
-      } else {
-        devtools.log("Group couldn't be updated = ${updatedGroup.toString()}");
-        return false; // Indicate failure
-      }
-    } catch (e, stackTrace) {
-      devtools.log('Failed to update group: $e',
-          error: e, stackTrace: stackTrace);
-      return false; // Indicate failure due to exception
-    }
-  }
-
   Future<bool> removeGroup(Group group, UserManagement userManagement) async {
     try {
+      // 1. Delete group from backend
       await groupService.deleteGroup(group.id);
 
-      // Update the user's group list
-      User updatedUser =
-          await userService.getUserByUsername(currentUser.userName);
-      updatedUser.groupIds.remove(group.id);
+      // 2. Refresh current user
+      await _refreshUserAndGroups(userManagement);
 
-      // Update the UserManagement state
-      userManagement.setCurrentUser(updatedUser);
-
-      // Re-fetch groups to ensure the local state is updated
-      await fetchAndInitializeGroups(updatedUser.groupIds);
+      // 3. Re-fetch groups
+      await fetchAndInitializeGroups(currentUser.groupIds);
 
       return true;
     } catch (e, stackTrace) {
-      devtools.log('Failed to remove group: $e',
+      devtools.log('❌ Failed to remove group: $e',
           error: e, stackTrace: stackTrace);
       return false;
     }

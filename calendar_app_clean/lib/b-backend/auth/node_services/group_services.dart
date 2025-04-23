@@ -29,8 +29,14 @@ class GroupService {
   Future<Group> getGroupById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
 
+    // ✅ Log the response content for debugging
+    devtools.log(
+        '📥 [GroupService] GET /groups/$id → Status: ${response.statusCode}');
+    devtools.log('📦 [GroupService] Response body: ${response.body}');
+
     if (response.statusCode == 200 && response.body != 'null') {
       final groupJson = jsonDecode(response.body);
+      devtools.log('✅ [GroupService] Parsed group JSON: $groupJson');
       return Group.fromJson(groupJson);
     } else if (response.statusCode == 404) {
       throw Exception('Group not found');
@@ -117,6 +123,33 @@ class GroupService {
       return calendar;
     } else {
       throw Exception('Failed to get calendar: ${response.reasonPhrase}');
+    }
+  }
+
+  Future<void> respondToInvite({
+    required String groupId,
+    required String username,
+    required bool accepted,
+  }) async {
+    final url = Uri.parse('$baseUrl/respond-invite');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: jsonEncode({
+        'groupId': groupId,
+        'username': username,
+        'accepted': accepted,
+      }),
+    );
+
+    devtools.log(
+        '📤 [GroupService] POST /respond-invite → Status: ${response.statusCode}');
+    devtools.log('📦 [GroupService] Payload: $groupId | $username | $accepted');
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          '❌ Failed to respond to invite: ${response.reasonPhrase}');
     }
   }
 }

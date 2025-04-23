@@ -1,200 +1,114 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/notification_user.dart';
-import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/b-backend/auth/node_services/notification_services.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/utilities/notification_formats.dart';
 
 class NotificationController {
   final UserManagement userManagement;
   final GroupManagement groupManagement;
   final NotificationManagement notificationManagement;
   final UserService userService;
+  final NotificationService notificationService; // 👈 New dependency
 
   NotificationController({
     required this.userManagement,
     required this.groupManagement,
     required this.notificationManagement,
     required this.userService,
+    required this.notificationService, // 👈 Inject the service
   });
 
+  /// ✅ Handle "Accept" response to a group invite
   Future<void> handleConfirmation(NotificationUser notification) async {
-    if (notification.questionsAndAnswers.isNotEmpty) {
-      try {
-        final groupFetched = await groupManagement.groupService
-            .getGroupById(notification.groupId);
-        final invitedUsers = groupFetched.invitedUsers;
+    try {
+      final group =
+          await groupManagement.groupService.getGroupById(notification.groupId);
+      final user = await userService.getUserById(notification.recipientId);
 
-        if (invitedUsers == null) {
-          devtools.log('Invited users not found.');
-          return;
-        }
+      // Notify backend (accept)
+      await groupManagement.groupService.respondToInvite(
+        groupId: group.id,
+        username: user.userName,
+        accepted: true,
+      );
 
-        await _processInvitationConfirmation(
-            notification, invitedUsers, groupFetched);
-      } catch (e) {
-        devtools.log('Error fetching group: $e');
+      // Refresh state
+      final freshUser = await userManagement.getUser();
+      if (freshUser != null) {
+        userManagement.setCurrentUser(freshUser);
+        await groupManagement.fetchAndInitializeGroups(freshUser.groupIds);
       }
-    }
-  }
 
-  Future<void> _processInvitationConfirmation(
-    NotificationUser notification,
-    Map<String, UserInviteStatus> invitedUsers,
-    Group group,
-  ) async {
-    User userInvited = await userService.getUserById(notification.recipientId);
-
-    final inviteStatus = invitedUsers[userInvited.userName];
-    inviteStatus!.invitationAnswer = true;
-    invitedUsers[userInvited.userName] = inviteStatus;
-
-    group.userIds.add(userInvited.id);
-    group.userRoles[userInvited.userName] = inviteStatus.role;
-    userInvited.groupIds.add(group.id);
-
-    await _updateGroupAndSendNotifications(
-        notification, userInvited, group, invitedUsers);
-  }
-
-  Future<void> _updateGroupAndSendNotifications(
-    NotificationUser notification,
-    User userInvited,
-    Group group,
-    Map<String, UserInviteStatus> invitedUsers,
-  ) async {
-    await userManagement.updateUser(userInvited);
-    await groupManagement.updateGroup(
-      group,
-      userManagement,
-      notificationManagement,
-      invitedUsers,
-    );
-
-    final notificationFormat = NotificationFormats();
-    NotificationUser joinedNotification =
-        notificationFormat.welcomeNewUserGroup(group, userInvited);
-
-    final savedNotification = await notificationManagement.addNotificationToDB(
-      joinedNotification,
-      userManagement,
-    );
-
-    if (savedNotification != null) {
-      await _sendNotificationToAdmin(notification, userInvited, true);
+      // Remove notification from backend
+      await notificationService
+          .deleteNotification(notification.id); // 👈 Backend cleanup
       await notificationManagement.removeNotificationById(
         notification.id,
         userManagement,
       );
+    } catch (e) {
+      devtools.log('❌ Error confirming invitation: $e');
     }
   }
 
+  /// ✅ Handle "Decline" response to a group invite
   Future<void> handleNegation(NotificationUser notification) async {
-    if (notification.questionsAndAnswers.isNotEmpty) {
+    try {
       final group =
           await groupManagement.groupService.getGroupById(notification.groupId);
-      final invitedUsers = group.invitedUsers;
+      final user = await userService.getUserById(notification.recipientId);
 
-      User userInvited =
-          await userService.getUserById(notification.recipientId);
-
-      for (String notificationId in userInvited.notifications) {
-        NotificationUser? ntf = await notificationManagement.notificationService
-            .getNotificationById(notificationId);
-
-        if (ntf.groupId == group.id && ntf.questionsAndAnswers.isNotEmpty) {
-          String questionKey = ntf.questionsAndAnswers.keys.first;
-
-          ntf.questionsAndAnswers.update(
-            questionKey,
-            (value) => 'Has denied the invitation',
-          );
-
-          await notificationManagement.notificationService
-              .updateNotification(ntf);
-        }
-      }
-
-      await userManagement.updateUser(userInvited);
-      await _processInvitationNegation(notification, invitedUsers!, group);
-    }
-  }
-
-  Future<void> _processInvitationNegation(
-    NotificationUser notification,
-    Map<String, UserInviteStatus> invitedUsers,
-    Group group,
-  ) async {
-    User userInvited = await userService.getUserById(notification.recipientId);
-    final currentUserName = userInvited.userName;
-    final inviteStatus = invitedUsers[currentUserName];
-
-    if (inviteStatus != null) {
-      inviteStatus.invitationAnswer = false;
-      invitedUsers[currentUserName] = inviteStatus;
-      group.invitedUsers = invitedUsers;
-
-      await groupManagement.groupService.updateGroup(group);
-
-      final notificationFormat = NotificationFormats();
-      NotificationUser denyNotification =
-          notificationFormat.notificationUserDenyGroup(group, userInvited);
-
-      final savedNotification =
-          await notificationManagement.addNotificationToDB(
-        denyNotification,
-        userManagement,
+      // Notify backend (decline)
+      await groupManagement.groupService.respondToInvite(
+        groupId: group.id,
+        username: user.userName,
+        accepted: false,
       );
 
-      bool notificationRemoved = await notificationManagement
-          .removeNotificationById(notification.id, userManagement);
-
-      if (savedNotification != null && notificationRemoved) {
-        await _sendNotificationToAdmin(notification, userInvited, false);
+      // Refresh state
+      final freshUser = await userManagement.getUser();
+      if (freshUser != null) {
+        userManagement.setCurrentUser(freshUser);
+        await groupManagement.fetchAndInitializeGroups(freshUser.groupIds);
       }
+
+      // Remove notification from backend
+      await notificationService
+          .deleteNotification(notification.id); // 👈 Backend cleanup
+      await notificationManagement.removeNotificationById(
+        notification.id,
+        userManagement,
+      );
+    } catch (e) {
+      devtools.log('❌ Error declining invitation: $e');
     }
   }
 
+  /// ✅ Remove a notification by its index in the local list
   Future<void> removeNotificationByIndex(int index) async {
+    final notification = notificationManagement.notifications[index];
+
+    // Remove from backend
+    await notificationService
+        .deleteNotification(notification.id); // 👈 Optional
     await notificationManagement.removeNotificationByIndex(
         index, userManagement);
   }
 
+  /// ✅ Remove all notifications from the current user (local + DB)
   Future<void> removeAllNotifications(User user) async {
-    notificationManagement.clearNotifications();
-    user.notifications.clear();
-    await userManagement.userService.updateUser(user);
-  }
+    // ⚠️ Optional: loop through and delete each notification from backend
+    for (final notif in notificationManagement.notifications) {
+      await notificationService.deleteNotification(notif.id);
+    }
 
-  Future<void> _sendNotificationToAdmin(NotificationUser originalNotification,
-      User fromUser, bool accepted) async {
-    final ntOwner = NotificationUser(
-      id: '',
-      senderId: originalNotification.senderId,
-      recipientId: originalNotification.senderId,
-      title:
-          "Invitation Status ${originalNotification.title.toUpperCase()} Group",
-      message:
-          '${fromUser.userName} has ${accepted ? 'accepted' : 'denied'} your invitation to join the group',
-      timestamp: DateTime.now(),
-      groupId: originalNotification.groupId, // ✅ <-- This is the fix
-      category: Category.groupUpdate,
-    );
-
-    // Save the new notification
-    final ntfCreated = await notificationManagement.notificationService
-        .createNotification(ntOwner); // returns ID
-
-    // Add the ID to the admin's list
-    final admin = await userManagement.userService
-        .getUserById(originalNotification.senderId);
-
-    admin.notifications.add(ntfCreated.id);
-    await userManagement.userService.updateUser(admin);
+    notificationManagement.clearNotifications(); // Local cleanup
+    user.notifications.clear(); // Clean user object
+    await userManagement.userService.updateUser(user); // Update DB
   }
 }

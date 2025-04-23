@@ -269,8 +269,10 @@ class _AddEventState extends State<AddEvent> {
 
         // Update the group's event list and sync with group management
         _group.calendar.events.add(fetchedEvent);
-        await _groupManagement.updateGroup(_group, _userManagement,
-            _notificationManagement, _group.invitedUsers);
+        await _groupManagement.updateGroup(
+          _group,
+          _userManagement,
+        );
 
         // Fetch the updated group
         fetchedUpdatedGroup =
