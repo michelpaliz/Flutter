@@ -6,6 +6,7 @@ import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/screens/create_group_data.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/edit_group_data.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group-settings/group_settings.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/group_calendar.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/show-groups/show_groups.dart';
@@ -17,6 +18,7 @@ import 'package:first_project/c-frontend/d-log-user-section/recover_password.dar
 import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
 import 'package:first_project/c-frontend/d-log-user-section/verify_email_view.dart';
 import 'package:first_project/c-frontend/e-notification-section/widgets/show_notifications.dart';
+import 'package:first_project/c-frontend/f-settings-section/settings.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 
@@ -36,10 +38,6 @@ final Map<String, WidgetBuilder> routes = {
     final user = ModalRoute.of(context)?.settings.arguments as User?;
     return user != null ? ShowNotifications(user: user) : SizedBox.shrink();
   },
-  // AppRoutes.groupSettings: (context) {
-  //   final group = ModalRoute.of(context)?.settings.arguments as Group?;
-  //   return group != null ? GroupSettings(group: group) : SizedBox.shrink();
-  // },
   AppRoutes.groupCalendar: (context) {
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
     return group != null ? GroupCalendar(group: group) : SizedBox.shrink();
@@ -63,8 +61,17 @@ final Map<String, WidgetBuilder> routes = {
     return event != null ? EventDetail(event: event) : SizedBox.shrink();
   },
   AppRoutes.editGroupData: (context) {
-    final args = ModalRoute.of(context)?.settings.arguments as EditGroupData;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as EditGroupArguments;
     return EditGroupData(group: args.group, users: args.users);
   },
   AppRoutes.homePage: (context) => HomePage(),
+  AppRoutes.groupSettings: (context) {
+    final group = ModalRoute.of(context)?.settings.arguments as Group?;
+    return group != null
+        ? GroupSettings(
+            group: group,
+          )
+        : SizedBox.shrink();
+  },
 };

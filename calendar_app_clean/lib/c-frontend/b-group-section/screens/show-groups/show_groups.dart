@@ -1,3 +1,4 @@
+import 'package:first_project/e-drawer-style-menu/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -7,10 +8,9 @@ import '../../../../d-stateManagement/group_management.dart';
 import '../../../../d-stateManagement/notification_management.dart';
 import '../../../../d-stateManagement/user_management.dart';
 import '../../../routes/appRoutes.dart';
-import 'group_body_builder.dart';
-// 👉 NEW FILES WE'LL CREATE:
-import 'list_group_controller.dart';
-import 'notification_icon.dart';
+import 'group_body_builder/group_body_builder.dart';
+import 'controller/list_group_controller.dart';
+import 'utils/notification_icon.dart';
 
 class ShowGroups extends StatefulWidget {
   const ShowGroups({super.key});
@@ -20,15 +20,13 @@ class ShowGroups extends StatefulWidget {
 }
 
 class _ShowGroupsState extends State<ShowGroups> {
-  User? _currentUser;
   Axis _scrollDirection = Axis.vertical;
   String? _currentRole;
+  bool _hasFetchedGroups = false;
+  bool _initialized = false;
 
   late UserManagement? _userManagement;
   late GroupManagement _groupManagement;
-  bool _hasFetchedGroups = false;
-
-  bool _initialized = false;
 
   @override
   void didChangeDependencies() {
@@ -56,28 +54,32 @@ class _ShowGroupsState extends State<ShowGroups> {
     final currentUserNotifier =
         Provider.of<UserManagement>(context).currentUserNotifier;
 
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: ValueListenableBuilder<User?>(
-        valueListenable: currentUserNotifier,
-        builder: (context, user, _) {
-          debugPrint('📡 ValueListenableBuilder user: $user');
+    return ValueListenableBuilder<User?>(
+      valueListenable: currentUserNotifier,
+      builder: (context, user, _) {
+        if (user == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (user == null) {
-            debugPrint('⏳ Waiting for user...');
-            return const Center(child: CircularProgressIndicator());
-          }
+        // ✅ Only fetch once
+        if (!_hasFetchedGroups) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            GroupController.fetchGroups(user, _groupManagement);
+          });
+          _hasFetchedGroups = true;
+        }
 
-          // ✅ Only run once
-          if (!_hasFetchedGroups) {
-            debugPrint("🚀 Fetching groups for user ID: ${user.id}");
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              GroupController.fetchGroups(user, _groupManagement);
-            });
-            _hasFetchedGroups = true;
-          }
-
-          return buildBody(
+        return MainScaffold(
+          title: AppLocalizations.of(context)!.groups,
+          actions: [
+            buildNotificationIcon(
+              context: context,
+              userManagement: _userManagement!,
+              notificationManagement:
+                  Provider.of<NotificationManagement>(context, listen: false),
+            ),
+          ],
+          body: buildBody(
             context,
             _scrollDirection,
             _toggleScrollDirection,
@@ -85,27 +87,13 @@ class _ShowGroupsState extends State<ShowGroups> {
             _userManagement!,
             _groupManagement,
             (String? role) => _currentRole = role,
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createGroup,
-        child: const Icon(Icons.group_add_rounded),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      title: Text(AppLocalizations.of(context)!.groups),
-      actions: [
-        buildNotificationIcon(
-          context: context,
-          userManagement: _userManagement!,
-          notificationManagement:
-              Provider.of<NotificationManagement>(context, listen: false),
-        ),
-      ],
+          ),
+          fab: FloatingActionButton(
+            onPressed: _createGroup,
+            child: const Icon(Icons.group_add_rounded),
+          ),
+        );
+      },
     );
   }
 }

@@ -41,78 +41,101 @@ class UserListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: filteredUsers.entries.map((entry) {
-        final userName = entry.key;
-        final user = entry.value;
-        final selectedRole = usersRoles[userName];
-        final userInviteStatus = usersInvitations[userName];
+      children: [
+        // 1. Real users (filteredUsers)
+        ...filteredUsers.entries.map((entry) {
+          final userName = entry.key;
+          final user = entry.value;
+          final selectedRole = usersRoles[userName];
+          final userInviteStatus = usersInvitations[userName];
 
-        return UserTile(
-          userName: userName,
-          user: user,
-          roleValue: selectedRole ?? 'Member',
-          onChangeRole: (name) {
-            RoleChangeDialog.show(
-              context,
-              userName,
-              selectedRole ?? 'Member', // ✅ Null-safe default role
-              userInviteStatus,
-              (newRole) => onChangeRole(userName, newRole!),
-              usersRoles,
-              usersInvitations,
-              usersInvitationAtFirst,
-            );
-          },
-          onDismissed: (userName) {
-            showDialog(
-              context: context,
-              builder: (ctx) => DismissUserDialog(
-                userName: userName,
-                isNewUser: !usersInvitationAtFirst.containsKey(userName),
-                onCancel: () => Navigator.of(ctx).pop(),
-                onConfirm: () async {
-                  final removalService = UserRemovalService(
-                    context: context,
-                    usersInGroup: usersInGroup,
-                    usersInvitations: usersInvitations,
-                    usersRoles: usersRoles,
-                    groupManagement: groupManagement,
-                    userManagement: userManagement,
-                    group: group,
-                    notificationManagement: notificationManagement,
-                  );
+          return UserTile(
+            userName: userName,
+            user: user,
+            roleValue: selectedRole ?? 'Member',
+            onChangeRole: (name) {
+              RoleChangeDialog.show(
+                context,
+                userName,
+                selectedRole ?? 'Member',
+                userInviteStatus,
+                (newRole) => onChangeRole(userName, newRole!),
+                usersRoles,
+                usersInvitations,
+                usersInvitationAtFirst,
+              );
+            },
+            onDismissed: (userName) {
+              _showDismissDialog(context, userName);
+            },
+          );
+        }).toList(),
 
-                  final status = usersInvitations[userName]?.invitationAnswer;
-                  final invitationStatus = status == 'accepted'
-                      ? true
-                      : status == 'declined'
-                          ? false
-                          : null;
+        // 2. Invited users not in filteredUsers
+        ...usersInvitations.entries
+            .where((entry) => !filteredUsers.containsKey(entry.key))
+            .map((entry) {
+          final userName = entry.key;
+          final inviteStatus = entry.value;
 
-                  final success = await removalService.performUserRemoval(
-                    userName,
-                    invitationStatus,
-                    usersInvitationAtFirst.containsKey(userName),
-                  );
+          return ListTile(
+            leading: Icon(Icons.person_outline),
+            title: Text(userName),
+            subtitle:
+                Text('Invitation Status: ${inviteStatus.informationStatus}'),
+            trailing: Icon(Icons.mail_outline),
+          );
+        }).toList(),
+      ],
+    );
+  }
 
-                  Navigator.of(ctx).pop();
+  void _showDismissDialog(BuildContext context, String userName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => DismissUserDialog(
+        userName: userName,
+        isNewUser: !usersInvitationAtFirst.containsKey(userName),
+        onCancel: () => Navigator.of(ctx).pop(),
+        onConfirm: () async {
+          final removalService = UserRemovalService(
+            context: context,
+            usersInGroup: usersInGroup,
+            usersInvitations: usersInvitations,
+            usersRoles: usersRoles,
+            groupManagement: groupManagement,
+            userManagement: userManagement,
+            group: group,
+            notificationManagement: notificationManagement,
+          );
 
-                  final snackBar = SnackBar(
-                    content: Text(success
-                        ? 'User $userName removed successfully.'
-                        : 'Failed to remove user $userName.'),
-                    duration: Duration(seconds: 5),
-                  );
+          final status = usersInvitations[userName]?.invitationAnswer;
+          final invitationStatus = status == 'accepted'
+              ? true
+              : status == 'declined'
+                  ? false
+                  : null;
 
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          final success = await removalService.performUserRemoval(
+            userName,
+            invitationStatus,
+            usersInvitationAtFirst.containsKey(userName),
+          );
 
-                  if (success) onUserRemoved(userName);
-                },
-              ),
-            );
-          },
-        );
-      }).toList(),
+          Navigator.of(ctx).pop();
+
+          final snackBar = SnackBar(
+            content: Text(success
+                ? 'User $userName removed successfully.'
+                : 'Failed to remove user $userName.'),
+            duration: const Duration(seconds: 5),
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+          if (success) onUserRemoved(userName);
+        },
+      ),
     );
   }
 }

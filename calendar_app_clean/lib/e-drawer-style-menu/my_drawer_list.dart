@@ -1,23 +1,18 @@
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
+import 'package:provider/provider.dart';
+
 import '../c-frontend/routes/appRoutes.dart';
 
 //* GLOBAL VARIABLES */
 
-enum DrawerSections { dashboard, notes_view, settings, log_out }
+enum DrawerSections { calendar, settings, log_out }
 
 List<Map<String, dynamic>> menuItems = [
   {
-    'section': DrawerSections.dashboard,
-    'title': 'Groups',
-    'icon': Icons.group,
-    'isSelected': true,
-  },
-  {
-    'section': DrawerSections.notes_view,
+    'section': DrawerSections.calendar,
     'title': 'Calendar',
     'icon': Icons.calendar_month,
     'isSelected': false,
@@ -64,11 +59,8 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
     child: InkWell(
       onTap: () {
         switch (section) {
-          case DrawerSections.dashboard:
+          case DrawerSections.calendar:
             Navigator.pushNamed(context, AppRoutes.showGroups);
-            break;
-          case DrawerSections.notes_view:
-            Navigator.pushNamed(context, AppRoutes.userCalendar);
             break;
           case DrawerSections.settings:
             Navigator.pushNamed(context, AppRoutes.settings);

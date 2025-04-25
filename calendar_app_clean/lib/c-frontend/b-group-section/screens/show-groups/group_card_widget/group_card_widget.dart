@@ -1,11 +1,11 @@
-import 'package:first_project/c-frontend/b-group-section/screens/show-groups/group_profile_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/show-groups/group_profile/profile_alert_dialog.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 // Shows group info (name, date, image)
 // Offers Edit, Remove, and Leave actions
@@ -23,7 +23,8 @@ Widget buildGroupCard(
 
   return InkWell(
     onTap: () async {
-      User groupOwner = await userManagement.userService.getUserById(group.ownerId);
+      User groupOwner =
+          await userManagement.userService.getUserById(group.ownerId);
       showProfileAlertDialog(
         context,
         group,

@@ -1,12 +1,12 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/c-frontend/b-group-section/screens/show-groups/group_card_widget.dart';
-import 'package:flutter/material.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/show-groups/group_card_widget/group_card_widget.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Widget buildBody(
@@ -69,6 +69,34 @@ Widget _buildErrorWidget(String errorMessage) {
   );
 }
 
+// Widget _buildGroupListBody(
+//   BuildContext context,
+//   List<Group> groups,
+//   Axis scrollDirection,
+//   VoidCallback toggleScrollDirection,
+//   User? currentUser,
+//   UserManagement userManagement,
+//   GroupManagement groupManagement,
+//   void Function(String?) updateRole,
+// ) {
+//   return Column(
+//     crossAxisAlignment: CrossAxisAlignment.start,
+//     children: [
+//       _buildWelcomeContainer(context, currentUser),
+//       _buildChangeViewRow(toggleScrollDirection, context),
+//       SizedBox(height: 20),
+//       _buildGroupListView(
+//         context,
+//         groups,
+//         scrollDirection,
+//         currentUser,
+//         userManagement,
+//         groupManagement,
+//         updateRole,
+//       ),
+//     ],
+//   );
+// }
 Widget _buildGroupListBody(
   BuildContext context,
   List<Group> groups,
@@ -79,22 +107,25 @@ Widget _buildGroupListBody(
   GroupManagement groupManagement,
   void Function(String?) updateRole,
 ) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _buildWelcomeContainer(context, currentUser),
-      _buildChangeViewRow(toggleScrollDirection, context),
-      SizedBox(height: 20),
-      _buildGroupListView(
-        context,
-        groups,
-        scrollDirection,
-        currentUser,
-        userManagement,
-        groupManagement,
-        updateRole,
-      ),
-    ],
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildWelcomeContainer(context, currentUser),
+        _buildChangeViewRow(toggleScrollDirection, context),
+        const SizedBox(height: 20),
+        _buildGroupListView(
+          context,
+          groups,
+          scrollDirection,
+          currentUser,
+          userManagement,
+          groupManagement,
+          updateRole,
+        ),
+      ],
+    ),
   );
 }
 
@@ -114,7 +145,8 @@ Widget _buildWelcomeContainer(BuildContext context, User? currentUser) {
       child: Text(
         AppLocalizations.of(context)!.welcomeGroupView(
           currentUser != null
-              ? currentUser.name[0].toUpperCase() + currentUser.name.substring(1)
+              ? currentUser.name[0].toUpperCase() +
+                  currentUser.name.substring(1)
               : 'User',
         ),
         style: TextStyle(
@@ -127,7 +159,8 @@ Widget _buildWelcomeContainer(BuildContext context, User? currentUser) {
   );
 }
 
-Widget _buildChangeViewRow(VoidCallback toggleScrollDirection, BuildContext context) {
+Widget _buildChangeViewRow(
+    VoidCallback toggleScrollDirection, BuildContext context) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
@@ -144,6 +177,35 @@ Widget _buildChangeViewRow(VoidCallback toggleScrollDirection, BuildContext cont
   );
 }
 
+// Widget _buildGroupListView(
+//   BuildContext context,
+//   List<Group> groups,
+//   Axis scrollDirection,
+//   User? currentUser,
+//   UserManagement userManagement,
+//   GroupManagement groupManagement,
+//   void Function(String?) updateRole,
+// ) {
+//   return SizedBox(
+//     height: scrollDirection == Axis.vertical ? 500 : 130,
+//     child: ListView.separated(
+//       separatorBuilder: (context, index) => SizedBox(height: 10),
+//       scrollDirection: scrollDirection,
+//       itemCount: groups.length,
+//       itemBuilder: (context, index) {
+//         return buildGroupCard(
+//           context,
+//           groups[index],
+//           currentUser,
+//           userManagement,
+//           groupManagement,
+//           updateRole,
+//         );
+//       },
+//     ),
+//   );
+// }
+
 Widget _buildGroupListView(
   BuildContext context,
   List<Group> groups,
@@ -153,22 +215,21 @@ Widget _buildGroupListView(
   GroupManagement groupManagement,
   void Function(String?) updateRole,
 ) {
-  return SizedBox(
-    height: scrollDirection == Axis.vertical ? 500 : 130,
-    child: ListView.separated(
-      separatorBuilder: (context, index) => SizedBox(height: 10),
-      scrollDirection: scrollDirection,
-      itemCount: groups.length,
-      itemBuilder: (context, index) {
-        return buildGroupCard(
-          context,
-          groups[index],
-          currentUser,
-          userManagement,
-          groupManagement,
-          updateRole,
-        );
-      },
-    ),
+  return ListView.separated(
+    physics: NeverScrollableScrollPhysics(), // disable scroll in nested list
+    shrinkWrap: true, // 🔥 lets it fit in Column
+    separatorBuilder: (context, index) => const SizedBox(height: 10),
+    scrollDirection: scrollDirection,
+    itemCount: groups.length,
+    itemBuilder: (context, index) {
+      return buildGroupCard(
+        context,
+        groups[index],
+        currentUser,
+        userManagement,
+        groupManagement,
+        updateRole,
+      );
+    },
   );
 }

@@ -10,3 +10,4 @@
 | `group_profile_dialog.dart` | Pop-up dialog with Edit/Leave/Remove actions                        |
 | `notification_icon.dart` | AppBar icon with unread badge, click-to-read, and navigation        |
 
+

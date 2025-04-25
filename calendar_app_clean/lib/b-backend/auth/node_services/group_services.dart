@@ -45,6 +45,16 @@ class GroupService {
     }
   }
 
+  Future<void> leaveGroup(String userId, String groupId) async {
+    final url = Uri.parse('$baseUrl/$groupId/users/$userId');
+
+    final response = await http.delete(url);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to leave group: ${response.reasonPhrase}');
+    }
+  }
+
   // Update a group directly with Group model
   Future<bool> updateGroup(Group group) async {
     final response = await http.put(
