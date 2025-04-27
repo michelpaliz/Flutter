@@ -1,3 +1,4 @@
+import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomSearchBar extends StatelessWidget {
@@ -16,10 +17,10 @@ class CustomSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 15),
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: ThemeColors.getSearchBarBackgroundColor(context),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -27,21 +28,29 @@ class CustomSearchBar extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
+              style: TextStyle(
+                color: ThemeColors.getTextColor(context),
+              ),
               decoration: InputDecoration(
                 hintText: 'Search user...',
+                hintStyle: TextStyle(
+                  color: ThemeColors.getSearchBarHintTextColor(context),
+                ),
                 border: InputBorder.none,
               ),
               onChanged: onChanged,
             ),
           ),
           IconButton(
-            icon: Icon(Icons.clear),
+            icon: Icon(Icons.clear,
+                color: ThemeColors.getSearchBarIconColor(context)),
             onPressed: () {
               onClear();
             },
           ),
           IconButton(
-            icon: Icon(Icons.search),
+            icon: Icon(Icons.search,
+                color: ThemeColors.getSearchBarIconColor(context)),
             onPressed: () {
               onSearch();
             },

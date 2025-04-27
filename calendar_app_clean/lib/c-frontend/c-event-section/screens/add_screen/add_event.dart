@@ -15,8 +15,8 @@ import 'package:first_project/c-frontend/c-event-section/screens/add_screen/widg
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/c-frontend/b-group-section/utils/event/repetition_dialog.dart';
-import 'package:first_project/c-frontend/b-group-section/utils/event/color_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/event/repetition_dialog.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';
 import 'package:first_project/f-themes/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";

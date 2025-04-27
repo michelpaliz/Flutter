@@ -1,4 +1,7 @@
-import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/add_button.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/group_list.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/shared/add_user_button.dart';
+import 'package:first_project/f-themes/themes/theme_colors.dart';
+import 'package:first_project/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,7 +12,6 @@ import '../../../../../../d-stateManagement/notification_management.dart';
 import '../../../../../../d-stateManagement/user_management.dart';
 import '../controllers/create_group_controller.dart';
 import '../widgets/group_image_picker.dart';
-import '../widgets/group_role_list.dart';
 import '../widgets/group_text_fields.dart';
 
 class CreateGroupData extends StatefulWidget {
@@ -60,27 +62,38 @@ class _CreateGroupDataState extends State<CreateGroupData> {
               GroupImagePicker(controller: _controller),
               GroupTextFields(controller: _controller),
               const SizedBox(height: 10),
-              GroupAddUserButton(controller: _controller),
+              // GroupAddUserButton(controller: _controller),
+              AddUserButtonDialog(
+                currentUser: _controller.currentUser,
+                group: null, // Because you're creating a new group
+                controller: _controller,
+              ),
               const SizedBox(height: 10),
               // GroupRoleList(controller: _controller),
-              const GroupRoleList(),
+              GroupRoleList(
+                externalController: _controller,
+              ),
             ],
           ),
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: TextButton(
-            onPressed: _controller.submitGroupFromUI,
-            style: Theme.of(context).textButtonTheme.style,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.group_add_rounded),
-                const SizedBox(width: 8),
-                Text(AppLocalizations.of(context)!.saveGroup,
-                    style: const TextStyle(color: Colors.white)),
-              ],
+          child: ButtonStyles.buttonWithIcon(
+            iconData: Icons.group_add_rounded,
+            label: AppLocalizations.of(context)!.saveGroup,
+            style: ButtonStyles.saucyButtonStyle(
+              defaultBackgroundColor:
+                  ThemeColors.getButtonBackgroundColor(context),
+              pressedBackgroundColor:
+                  ThemeColors.getContainerBackgroundColor(context),
+              textColor: ThemeColors.getButtonTextColor(context),
+              borderColor: ThemeColors.getTextColor(context),
+              borderRadius: 12.0,
+              padding: 14.0, // slightly bigger padding for bottom button
+              fontSize: 17.0,
+              fontWeight: FontWeight.bold,
             ),
+            onPressed: _controller.submitGroupFromUI,
           ),
         ),
       ),

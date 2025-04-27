@@ -1,3 +1,4 @@
+import 'package:first_project/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -9,12 +10,12 @@ class DescriptionInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return CustomEditableTextField(
       controller: controller,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.description(100),
-      ),
+      labelText: AppLocalizations.of(context)!.description(100),
       maxLength: 100,
+      isMultiline: true,
+      prefixIcon: Icons.description, // optional if you want a description icon
     );
   }
 }

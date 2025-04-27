@@ -6,12 +6,12 @@ import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/f-themes/palette/color_properties.dart';
 import 'package:first_project/f-themes/utilities/logo/logo_widget.dart';
-import 'package:first_project/f-themes/utilities/view-item-styles/text_field/text_field_widget.dart';
+import 'package:first_project/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../../../f-themes/utilities/view-item-styles/text_field/textfield_styles.dart';
+import '../../../f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);

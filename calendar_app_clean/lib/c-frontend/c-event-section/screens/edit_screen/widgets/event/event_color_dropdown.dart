@@ -1,4 +1,4 @@
-import 'package:first_project/c-frontend/b-group-section/utils/event/color_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 

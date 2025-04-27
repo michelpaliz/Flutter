@@ -1,10 +1,9 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/selected_users/invitation_functions/dismiss_user_dialog.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/shared/group_user_card.dart'; // 👈 New card widget
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/functions/user_removal_service.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/role_change_dialog.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/user_tile.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -49,25 +48,12 @@ class UserListSection extends StatelessWidget {
           final selectedRole = usersRoles[userName];
           final userInviteStatus = usersInvitations[userName];
 
-          return UserTile(
+          return GroupUserCard(
             userName: userName,
-            user: user,
-            roleValue: selectedRole ?? 'Member',
-            onChangeRole: (name) {
-              RoleChangeDialog.show(
-                context,
-                userName,
-                selectedRole ?? 'Member',
-                userInviteStatus,
-                (newRole) => onChangeRole(userName, newRole!),
-                usersRoles,
-                usersInvitations,
-                usersInvitationAtFirst,
-              );
-            },
-            onDismissed: (userName) {
-              _showDismissDialog(context, userName);
-            },
+            role: selectedRole ?? 'Member',
+            photoUrl: user.photoUrl,
+            isAdmin: selectedRole == 'Administrator',
+            onRemove: () => _showDismissDialog(context, userName),
           );
         }).toList(),
 
@@ -78,12 +64,12 @@ class UserListSection extends StatelessWidget {
           final userName = entry.key;
           final inviteStatus = entry.value;
 
-          return ListTile(
-            leading: Icon(Icons.person_outline),
-            title: Text(userName),
-            subtitle:
-                Text('Invitation Status: ${inviteStatus.informationStatus}'),
-            trailing: Icon(Icons.mail_outline),
+          return GroupUserCard(
+            userName: userName,
+            role: 'Invitation: ${inviteStatus.informationStatus}',
+            photoUrl: null, // No image for pending invites
+            isAdmin: false,
+            onRemove: null, // No remove button for invites
           );
         }).toList(),
       ],

@@ -33,12 +33,11 @@ class EditGroupHeader extends StatelessWidget {
           selectedImage: selectedImage,
           onPickImage: onPickImage,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 15),
         GroupNameField(
           groupName: groupName,
           onNameChange: onNameChange,
         ),
-        const SizedBox(height: 12),
         GroupDescriptionField(
           descriptionController: descriptionController,
         ),

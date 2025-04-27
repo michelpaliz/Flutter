@@ -1,4 +1,5 @@
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class AnimatedUsersList extends StatefulWidget {
@@ -55,49 +56,53 @@ class _AnimatedUsersListState extends State<AnimatedUsersList>
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 80, // Adjust height as needed
+      height: 80,
       child: PageView.builder(
         controller: _pageController,
-        // PageController(viewportFraction: 0.8), // Adjust viewportFraction
         scrollDirection: Axis.horizontal,
         itemCount: widget.users.length,
         itemBuilder: (context, index) {
           User user = widget.users[index];
           return Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 4.0, vertical: 4), // Adjust padding
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Background color
-                borderRadius: BorderRadius.circular(6.0), // Rounded corners
+                color: ThemeColors.getCardBackgroundColor(
+                    context), // ✅ Use card background color
+                borderRadius: BorderRadius.circular(6.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26,
+                    color:
+                        ThemeColors.getCardShadowColor(context), // ✅ Cleaner!
                     blurRadius: 3.0,
-                    offset: Offset(1, 1), // Shadow offset
+                    offset: const Offset(1, 1),
                   ),
                 ],
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Adjust size to fit content
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: 6.0),
+                  const SizedBox(height: 6.0),
                   CircleAvatar(
-                    radius: 20, // Adjust size as needed
-                    backgroundImage:
-                        user.photoUrl != null && user.photoUrl!.isNotEmpty
-                            ? NetworkImage(user.photoUrl!)
-                            : AssetImage('assets/images/default_profile.png')
-                                as ImageProvider,
+                    radius: 20,
+                    backgroundImage: (user.photoUrl != null &&
+                            user.photoUrl!.isNotEmpty)
+                        ? NetworkImage(user.photoUrl!)
+                        : const AssetImage('assets/images/default_profile.png')
+                            as ImageProvider,
                   ),
-                  SizedBox(height: 4.0), // Space between photo and name
-                  Text(user.userName,
-                      style: TextStyle(
-                          fontSize: 12.0)), // Display userName below the photo
+                  const SizedBox(height: 4.0),
+                  Text(
+                    user.userName,
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: ThemeColors.getTextColor(
+                          context), // ✅ Text color based on theme
+                    ),
+                  ),
                 ],
               ),
             ),

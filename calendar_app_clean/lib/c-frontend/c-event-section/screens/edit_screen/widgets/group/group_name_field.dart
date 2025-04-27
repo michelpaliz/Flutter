@@ -1,5 +1,5 @@
+import 'package:first_project/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class GroupNameField extends StatelessWidget {
   final String groupName;
@@ -12,20 +12,16 @@ class GroupNameField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _controller =
+        TextEditingController(text: groupName);
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: TextEditingController(text: groupName),
-        onChanged: (value) {
-          if (value.length <= 25) {
-            onNameChange(value);
-          }
-        },
-        inputFormatters: [LengthLimitingTextInputFormatter(25)],
-        decoration: InputDecoration(
-          labelText: 'Group Name',
-          border: OutlineInputBorder(),
-        ),
+      child: CustomEditableTextField(
+        controller: _controller,
+        labelText: 'Group Name',// TODO: IMPLEMENT TRANSLATION
+        maxLength: 25,
+        prefixIcon: Icons.group, // Nice little group icon
       ),
     );
   }

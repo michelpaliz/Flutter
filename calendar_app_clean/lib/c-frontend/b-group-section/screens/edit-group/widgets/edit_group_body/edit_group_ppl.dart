@@ -2,7 +2,7 @@ import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/controllers/create_group_controller.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/add_ppl_section.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/shared/add_user_button.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -70,9 +70,9 @@ class _EditGroupPeopleState extends State<EditGroupPeople> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        AddPeopleSection(
+        AddUserButtonDialog(
           currentUser: widget.userManagement.user,
-          group: widget.group,
+          group: widget.group, // 👈 here you pass the group! because it's edit
           controller: controller,
         ),
         const SizedBox(height: 12),

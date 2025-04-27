@@ -31,4 +31,39 @@ class ThemeColors {
         ? AppColors.green
         : AppColors.blue.withOpacity(0.8);
   }
+
+  static Color getSearchBarBackgroundColor(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    return theme.brightness == Brightness.dark
+        ? AppColors.brownDark.withOpacity(0.8)
+        : AppColors.yellowLight.withOpacity(0.8);
+  }
+
+  static Color getSearchBarIconColor(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    return theme.brightness == Brightness.dark
+        ? AppColors.yellow
+        : AppColors.brown;
+  }
+
+  static Color getSearchBarHintTextColor(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    return theme.brightness == Brightness.dark
+        ? AppColors.yellow
+        : AppColors.brownDark;
+  }
+
+  static Color getCardShadowColor(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    return theme.brightness == Brightness.dark
+        ? Colors.black54
+        : Colors.black26;
+  }
+
+  static Color getListTileBackgroundColor(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    return theme.brightness == Brightness.dark
+        ? Colors.grey[850]!
+        : Colors.white;
+  }
 }

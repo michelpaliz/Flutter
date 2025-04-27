@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/admin_info_card.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/selected_users/admin_info_card.dart';
 
 class AdminInfoSection extends StatelessWidget {
   final User currentUser;

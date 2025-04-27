@@ -6,36 +6,51 @@ class ButtonStyles {
     required Color pressedBackgroundColor,
     required Color textColor,
     required Color borderColor,
-    IconData? iconData,
+    double borderRadius = 10.0,
+    double padding = 10.0,
+    double fontSize = 16.0,
+    FontWeight fontWeight = FontWeight.bold,
+    FontStyle fontStyle = FontStyle.italic,
   }) {
     return ButtonStyle(
       textStyle: WidgetStateProperty.all<TextStyle>(
-        const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          fontStyle: FontStyle.italic,
+        TextStyle(
+          fontWeight: fontWeight,
+          fontSize: fontSize,
+          fontStyle: fontStyle,
         ),
       ),
-      foregroundColor: WidgetStateProperty.all<Color>(textColor), // 👈 ADD THIS
+      foregroundColor: WidgetStateProperty.all<Color>(textColor),
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.pressed)) {
-            return pressedBackgroundColor; // Apply pressed background color
+            return pressedBackgroundColor;
           } else if (states.contains(WidgetState.hovered)) {
-            return defaultBackgroundColor; // Apply hovered background color
+            return defaultBackgroundColor
+                .withOpacity(0.9); // Slight effect on hover
           }
-          return defaultBackgroundColor; // Default background color
+          return defaultBackgroundColor;
         },
       ),
-      overlayColor: WidgetStateProperty.all<Color>(Colors.transparent),
+      overlayColor: WidgetStateProperty.all<Color>(
+        textColor.withOpacity(0.1), // Light ripple color
+      ),
       padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
-        const EdgeInsets.all(10),
+        EdgeInsets.all(padding),
       ),
       shape: WidgetStateProperty.all<OutlinedBorder>(
         RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(borderRadius),
           side: BorderSide(color: borderColor),
         ),
+      ),
+      elevation: WidgetStateProperty.resolveWith<double>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return 2.0; // Lower elevation when pressed
+          }
+          return 6.0; // Normal elevated button
+        },
       ),
     );
   }
@@ -45,18 +60,13 @@ class ButtonStyles {
     required String label,
     required ButtonStyle style,
     required VoidCallback onPressed,
+    double iconSize = 20.0,
   }) {
-    return ElevatedButton(
+    return ElevatedButton.icon(
       style: style,
       onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(iconData),
-          SizedBox(width: 8), // Add some spacing between icon and text
-          Text(label),
-        ],
-      ),
+      icon: Icon(iconData, size: iconSize),
+      label: Text(label),
     );
   }
 }

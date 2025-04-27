@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/dismiss_user_dialog.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:flutter/material.dart';
 
 class UserTile extends StatelessWidget {

@@ -1,6 +1,7 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class GroupSearchController extends ChangeNotifier {
@@ -111,8 +112,20 @@ class GroupSearchController extends ChangeNotifier {
 
   // Helper method to show SnackBar messages
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: ThemeColors.getContainerBackgroundColor(
+            context), // ✅ Dynamic background
+        content: Text(
+          message,
+          style: TextStyle(
+            color: ThemeColors.getTextColor(context), // ✅ Dynamic text color
+            fontWeight:
+                FontWeight.bold, // (optional) make snackbar text more visible
+          ),
+        ),
+      ),
+    );
   }
 
   // Other methods for removing and changing roles remain the same

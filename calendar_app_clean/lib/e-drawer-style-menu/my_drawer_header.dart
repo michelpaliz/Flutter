@@ -1,5 +1,7 @@
 import 'dart:io';
+
 import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/f-themes/palette/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +54,8 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
 
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
-    final pickedImage = await imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedImage =
+        await imagePicker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
       setState(() {
@@ -65,8 +68,18 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    Brightness brightness = Theme.of(context).brightness;
+    bool isDarkMode = brightness == Brightness.dark;
+
+    // Decide colors based on theme
+    Color headerBackgroundColor =
+        isDarkMode ? AppColors.brown : AppColors.yellow;
+    Color nameTextColor = isDarkMode ? AppColors.yellowLight : AppColors.brown;
+    Color emailTextColor =
+        isDarkMode ? AppColors.yellowDark : AppColors.brownDark;
+
     return Container(
-      color: Colors.blue,
+      color: headerBackgroundColor,
       width: double.infinity,
       height: 200,
       padding: const EdgeInsets.only(top: 10.0),
@@ -86,13 +99,19 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
           const SizedBox(height: 5),
           Text(
             _currentUser?.name ?? 'Guest',
-            style: const TextStyle(color: Colors.white, fontSize: 20),
+            style: TextStyle(
+              color: nameTextColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 5),
           Text(
             _currentUser?.email ?? '',
-            style: const TextStyle(
-                color: Color.fromARGB(255, 2, 31, 72), fontSize: 14),
+            style: TextStyle(
+              color: emailTextColor,
+              fontSize: 14,
+            ),
           ),
         ],
       ),

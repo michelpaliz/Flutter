@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/role_change_dialog_actions.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/selected_users/invitation_functions/role_change_dialog_content.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/selected_users/invitation_functions/role_change_dialog_actions.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/selected_users/invitation_functions/role_change_dialog_content.dart';
 import 'package:flutter/material.dart';
 
 
