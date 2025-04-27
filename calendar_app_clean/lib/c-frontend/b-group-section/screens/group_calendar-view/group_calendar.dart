@@ -8,7 +8,7 @@ import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
-import 'package:first_project/utilities/color_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/event/color_manager.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';

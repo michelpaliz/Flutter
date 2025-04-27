@@ -2,7 +2,7 @@ import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/controllers/create_group_controller.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/group_selected_user_list.dart';
-import 'package:first_project/f-themes/widgets/custome_search_bar.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/search_bar/custome_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

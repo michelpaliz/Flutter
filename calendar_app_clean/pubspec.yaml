@@ -60,6 +60,7 @@ flutter:
     - assets/images/october.png
     - assets/images/november.png
     - assets/images/december.png
+    - assets/images/logo.jpeg
   fonts:
     - family: bagel
       fonts:

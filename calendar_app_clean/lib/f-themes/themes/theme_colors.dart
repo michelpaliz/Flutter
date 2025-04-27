@@ -1,36 +1,34 @@
+import 'package:first_project/f-themes/palette/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class ThemeColors {
-  // Existing functions
   static Color getTextColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
-    return theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+    return theme.brightness == Brightness.dark ? Colors.white : AppColors.brown;
   }
 
   static Color getCardBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? const Color.fromARGB(255, 104, 140, 171)
-        : const Color.fromARGB(196, 178, 219, 228);
+        ? AppColors.green.withOpacity(0.8)
+        : AppColors.yellow.withOpacity(0.8);
   }
 
   static Color getContainerBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? const Color.fromARGB(255, 31, 65, 95)
-        : const Color.fromARGB(196, 178, 219, 228);
+        ? AppColors.brown.withOpacity(0.8)
+        : AppColors.yellow.withOpacity(0.6);
   }
 
-  // 🚀 NEW: Button Text Color
   static Color getButtonTextColor(BuildContext context) {
-    return getTextColor(context); // same as normal text
+    return getTextColor(context);
   }
 
-  // 🚀 NEW: Button Background Color
   static Color getButtonBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? const Color.fromARGB(255, 70, 90, 120) // dark mode button color
-        : const Color.fromARGB(255, 200, 230, 255); // light mode button color
+        ? AppColors.green
+        : AppColors.blue.withOpacity(0.8);
   }
 }

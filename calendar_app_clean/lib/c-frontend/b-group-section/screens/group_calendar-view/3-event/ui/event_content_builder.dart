@@ -2,7 +2,7 @@ import 'package:first_project/c-frontend/c-event-section/screens/event_screen/ev
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:flutter/material.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/utilities/color_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/event/color_manager.dart';
 
 class EventContentBuilder {
   final ColorManager colorManager;

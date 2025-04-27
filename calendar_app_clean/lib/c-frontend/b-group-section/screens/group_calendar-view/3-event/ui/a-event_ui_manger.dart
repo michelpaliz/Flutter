@@ -3,7 +3,7 @@ import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/c-event_actions_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_content_builder.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
-import 'package:first_project/utilities/color_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/event/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 

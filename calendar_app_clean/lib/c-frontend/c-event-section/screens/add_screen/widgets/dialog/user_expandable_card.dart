@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/f-themes/widgets/view-item-styles/selected_user_widget.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/search_bar/selected_user_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'dialog_button_widget.dart'; // Import the DialogButtonWidget here

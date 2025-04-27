@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../../../a-models/user_model/user.dart';
 import '../../../../../../b-backend/auth/node_services/user_services.dart';
-import '../../../../../../utilities/utilities.dart';
+import '../../../../../../f-themes/utilities/utilities.dart';
 import '../controllers/create_group_controller.dart';
 
 class GroupRoleList extends StatelessWidget {

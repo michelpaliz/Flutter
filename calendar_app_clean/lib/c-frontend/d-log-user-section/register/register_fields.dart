@@ -3,11 +3,11 @@ import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dar
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/f-themes/widgets/show_error_dialog.dart';
-import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
-import 'package:first_project/f-themes/widgets/view-item-styles/textfield_styles.dart'
+import 'package:first_project/c-frontend/b-group-section/utils/event/show_error_dialog.dart';
+import 'package:first_project/f-themes/utilities/view-item-styles/text_field/text_field_widget.dart';
+import 'package:first_project/f-themes/utilities/view-item-styles/text_field/textfield_styles.dart'
     show TextFieldStyles;
-import 'package:first_project/utilities/enums/color_properties.dart';
+import 'package:first_project/f-themes/palette/color_properties.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';

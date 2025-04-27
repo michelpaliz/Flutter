@@ -16,6 +16,7 @@ class ButtonStyles {
           fontStyle: FontStyle.italic,
         ),
       ),
+      foregroundColor: WidgetStateProperty.all<Color>(textColor), // 👈 ADD THIS
       backgroundColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.pressed)) {
@@ -59,6 +60,3 @@ class ButtonStyles {
     );
   }
 }
-
-
-

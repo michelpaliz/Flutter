@@ -11,7 +11,7 @@ import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/utilities/color_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/event/color_manager.dart';
 import 'package:flutter/material.dart';
 
 class MainCalendarView extends StatefulWidget {

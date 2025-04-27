@@ -4,13 +4,14 @@ import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dar
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/f-themes/widgets/view-item-styles/text_field_widget.dart';
-import 'package:first_project/utilities/enums/color_properties.dart';
+import 'package:first_project/f-themes/palette/color_properties.dart';
+import 'package:first_project/f-themes/utilities/logo/logo_widget.dart';
+import 'package:first_project/f-themes/utilities/view-item-styles/text_field/text_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../../../f-themes/widgets/view-item-styles/textfield_styles.dart';
+import '../../../f-themes/utilities/view-item-styles/text_field/textfield_styles.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -63,27 +64,14 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("SCHEDULE"),
+        title: Text(AppLocalizations.of(context)!.login),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 5.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/beach_image.png',
-              width: 100,
-              height: 100,
-            ),
-            Text(
-              AppLocalizations.of(context)!.login,
-              style: const TextStyle(
-                fontSize: 37,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(202, 34, 108, 192),
-                fontFamily: 'rigtheous',
-              ),
-            ),
+            LogoWidget.buildLogoAvatar(size: LogoSize.large),
             const SizedBox(height: 30),
             TextFieldWidget(
               controller: _email,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
-import 'package:first_project/f-themes/widgets/repetition_dialog.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/event/repetition_dialog.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RepetitionToggle extends StatelessWidget {
