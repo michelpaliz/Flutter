@@ -1,7 +1,7 @@
-// lib/c-frontend/b-group-section/screens/edit-group/edit_group_header.dart
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/group_description_field.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/group_image_field.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/group/group_name_field.dart';
+import 'package:first_project/f-themes/shape/solid/solid_header.dart'; // <-- Import your SolidHeader
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -25,21 +25,29 @@ class EditGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
       children: [
-        GroupImageSection(
-          imageURL: imageURL,
-          selectedImage: selectedImage,
-          onPickImage: onPickImage,
-        ),
-        const SizedBox(height: 15),
-        GroupNameField(
-          groupName: groupName,
-          onNameChange: onNameChange,
-        ),
-        GroupDescriptionField(
-          descriptionController: descriptionController,
+        const SolidHeader(height: 320), // background color behind everything
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GroupImageSection(
+                imageURL: imageURL,
+                selectedImage: selectedImage,
+                onPickImage: onPickImage,
+              ),
+              const SizedBox(height: 15),
+              GroupNameField(
+                groupName: groupName,
+                onNameChange: onNameChange,
+              ),
+              GroupDescriptionField(
+                descriptionController: descriptionController,
+              ),
+            ],
+          ),
         ),
       ],
     );

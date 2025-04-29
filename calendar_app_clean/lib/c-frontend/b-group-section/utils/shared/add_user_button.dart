@@ -12,12 +12,14 @@ class AddUserButtonDialog extends StatelessWidget {
   final User? currentUser;
   final Group? group;
   final GroupController controller;
+  final Function(User)? onUserAdded;
 
   const AddUserButtonDialog({
     Key? key,
     required this.currentUser,
     required this.group,
     required this.controller,
+    this.onUserAdded, // 👈 optional
   }) : super(key: key);
 
   void _openDialog(BuildContext context) {
@@ -63,24 +65,12 @@ class AddUserButtonDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context)!;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end, // 👈 align button to the right
       children: [
-        Text(
-          appLocalizations.addPplGroup,
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? ThemeColors.getTextColor(context).withOpacity(0.7)
-                : Colors.grey,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 15),
         ButtonStyles.buttonWithIcon(
           iconData: Icons.person_add_alt_1,
-          label: appLocalizations.addUser,
+          label: AppLocalizations.of(context)!.addUser,
           style: ButtonStyles.saucyButtonStyle(
             defaultBackgroundColor:
                 ThemeColors.getButtonBackgroundColor(context),

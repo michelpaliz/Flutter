@@ -158,12 +158,13 @@ class GroupController extends ChangeNotifier {
       userRoles.forEach((username, role) {
         if (username != currentUser!.userName) {
           invites[username] = UserInviteStatus(
-            id: groupId,
-            role: role,
-            invitationAnswer: null,
-            sendingDate: DateTime.now(),
-            attempts: 1,
-          );
+              id: groupId,
+              role: role,
+              invitationAnswer: null,
+              sendingDate: DateTime.now(),
+              attempts: 1,
+              informationStatus: 'Pending',
+              status: 'Unresolved');
         }
       });
 

@@ -14,10 +14,16 @@ class AdminInfoCard extends StatelessWidget {
       child: Card(
         elevation: 5,
         child: ListTile(
-          title: Text('Admin: ${currentUser!.userName}'),
-          subtitle: Text('Role: Administrator'),
+          title: Text(
+            '${currentUser!.userName}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: const Text('Administrator'),
           leading: CircleAvatar(
-            backgroundImage: Utilities.buildProfileImage(currentUser!.photoUrl ?? ""),
+            backgroundImage:
+                Utilities.buildProfileImage(currentUser!.photoUrl ?? ""),
           ),
         ),
       ),

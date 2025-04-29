@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 class ThemeColors {
   static Color getTextColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
+    return theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+  }
+
+  static Color getTextColorWHite(BuildContext context) {
+    ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark ? Colors.white : AppColors.brown;
   }
 
@@ -28,8 +33,8 @@ class ThemeColors {
   static Color getButtonBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.green
-        : AppColors.blue.withOpacity(0.8);
+        ? AppColors.greenDark
+        : AppColors.brown;
   }
 
   static Color getSearchBarBackgroundColor(BuildContext context) {
@@ -65,5 +70,25 @@ class ThemeColors {
     return theme.brightness == Brightness.dark
         ? Colors.grey[850]!
         : Colors.white;
+  }
+
+  static Color getFilterChipGlowColor(BuildContext context, Color baseColor) {
+    ThemeData theme = Theme.of(context);
+
+    if (theme.brightness == Brightness.dark) {
+      // Dark mode → keep the strong colorful glow
+      return baseColor.withOpacity(0.4);
+    } else {
+      // Light mode → darken the base color to create a serious glow
+      return _darkenColor(baseColor, 0.6); // darken by 60%
+    }
+  }
+
+  static Color _darkenColor(Color color, double amount) {
+    assert(amount >= 0 && amount <= 1);
+
+    final hsl = HSLColor.fromColor(color);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor().withOpacity(0.3); // control glow opacity
   }
 }

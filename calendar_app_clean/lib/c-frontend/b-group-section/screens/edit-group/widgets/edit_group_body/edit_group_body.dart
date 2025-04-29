@@ -1,14 +1,11 @@
-// lib/c-frontend/b-group-section/screens/edit-group/edit_group_body.dart
-
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/edit-group/controllers/group_update_controller.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/edit-group/controllers/image_picker_controller.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/services/group_init_service.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_admin_info.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_bottom_nav.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_header.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_ppl.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/edit-group/controllers/image_picker_controller.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/edit-group/controllers/group_update_controller.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -40,7 +37,6 @@ class _EditGroupBodyState extends State<EditGroupBody> {
   late TextEditingController _descriptionController;
   late String _imageURL;
   late User? _currentUser;
-  late String _currentUserRoleValue;
   XFile? _selectedImage;
 
   @override
@@ -57,10 +53,6 @@ class _EditGroupBodyState extends State<EditGroupBody> {
     _groupName = initService.groupName;
     _descriptionController = initService.descriptionController;
     _imageURL = initService.imageURL;
-
-    _currentUserRoleValue = _currentUser!.id == widget.group.ownerId
-        ? 'Administrator'
-        : widget.group.userRoles[_currentUser!.userName] ?? 'Member';
   }
 
   void _onNameChanged(String name) {
@@ -102,7 +94,6 @@ class _EditGroupBodyState extends State<EditGroupBody> {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Group')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             EditGroupHeader(
@@ -113,9 +104,6 @@ class _EditGroupBodyState extends State<EditGroupBody> {
               onNameChange: _onNameChanged,
               descriptionController: _descriptionController,
             ),
-            const SizedBox(height: 16),
-            if (_currentUserRoleValue == 'Administrator')
-              EditGroupAdminInfo(currentUser: _currentUser!),
             const SizedBox(height: 16),
             EditGroupPeople(
               group: widget.group,

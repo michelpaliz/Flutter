@@ -3,7 +3,6 @@ import 'package:first_project/c-frontend/b-group-section/utils/selected_users/in
 import 'package:first_project/c-frontend/b-group-section/utils/selected_users/invitation_functions/role_change_dialog_content.dart';
 import 'package:flutter/material.dart';
 
-
 class RoleChangeDialog {
   static void show(
     BuildContext context,
@@ -13,7 +12,6 @@ class RoleChangeDialog {
     Function(String?) onRoleSelected,
     Map<String, String> usersRoles, // map to store user roles
     Map<String, UserInviteStatus> usersInvitations, // map for user invitations
-    Map<String, UserInviteStatus> usersInvitationAtFirst, // secondary map for invitation updates
   ) {
     showDialog(
       context: context,
@@ -32,7 +30,6 @@ class RoleChangeDialog {
             selectedRole,
             usersRoles,
             usersInvitations,
-            usersInvitationAtFirst,
           ),
         );
       },

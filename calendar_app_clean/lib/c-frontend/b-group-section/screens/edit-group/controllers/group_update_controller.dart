@@ -73,11 +73,13 @@ class GroupUpdateController {
         userRoles.forEach((userName, role) {
           if (role != 'Administrator') {
             newInvitations[userName] = UserInviteStatus(
-              id: originalGroup.id,
-              role: role,
-              invitationAnswer: null,
-              sendingDate: DateTime.now(),
-            );
+                id: originalGroup.id,
+                role: role,
+                invitationAnswer: null,
+                sendingDate: DateTime.now(),
+                attempts: 1,
+                informationStatus: 'Pending',
+                status: 'Unresolved');
           }
         });
       }

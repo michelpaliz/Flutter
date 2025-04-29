@@ -6,10 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-// Import the http package
 
 class Utilities {
-  /** Load the costume fonts */
+  /** Load custom fonts */
   static Future<void> loadCustomFonts() async {
     final fontLoader = FontLoader('bagel')
       ..addFont(rootBundle.load('assets/fonts/bagel_fat_one.ttf'));
@@ -25,7 +24,7 @@ class Utilities {
     await fontLoader3.load();
   }
 
-  /** Get the address suggestions for the search bar*/
+  /** Get address suggestions for the search bar */
   static Future<List<String>> getAddressSuggestions(String pattern) async {
     final baseUrl = Uri.parse('https://nominatim.openstreetmap.org/search');
     final queryParameters = {
@@ -46,7 +45,7 @@ class Utilities {
     }
   }
 
-  /*** This function shows the image URL from my FirebaseStorage returns a Widget */
+  /** Build a profile image widget */
   static Widget widgetbuildProfileImage(String imageUrl) {
     return CachedNetworkImage(
       imageUrl:
@@ -67,7 +66,7 @@ class Utilities {
     );
   }
 
-  /** Show the image using the URL from firebase storage */
+  /** Build profile image for CircleAvatar */
   static ImageProvider buildProfileImage(String imageUrl) {
     if (imageUrl.isNotEmpty) {
       return NetworkImage(imageUrl);
@@ -76,38 +75,12 @@ class Utilities {
     }
   }
 
-   static Widget buildProfileImageWidget(String url) {
+  static Widget buildProfileImageWidget(String url) {
     return CircleAvatar(
       backgroundImage: NetworkImage(url),
       radius: 20,
     );
   }
-
-  // /** Select and generate a URL image for the image returns the URL of the image */
-  // static Future<String> pickAndUploadImageGroup(
-  //     String groupID, XFile? imageFile) async {
-  //   if (imageFile == null) {
-  //     throw 'No image file selected'; // Handle the case where no image is selected
-  //   }
-
-  //   try {
-  //     // Reference to the Firebase Storage bucket where you want to upload the image
-  //     final storageReference = firebase_storage.FirebaseStorage.instance
-  //         .ref()
-  //         .child('group_images/${groupID}.jpg');
-
-  //     // Upload the image to Firebase Storage using the provided XFile
-  //     await storageReference.putFile(File(imageFile.path));
-
-  //     // Get the download URL of the uploaded image
-  //     final imageUrl = await storageReference.getDownloadURL();
-
-  //     return imageUrl; // Return the image URL
-  //   } catch (e) {
-  //     print('Error uploading image: $e');
-  //     throw 'Image upload failed'; // Throw an exception in case of an error
-  //   }
-  // }
 
   static String capitalize(String input) {
     if (input.isEmpty) {
@@ -128,22 +101,19 @@ class Utilities {
         // User is in South America
         return Locale('es');
       } else {
-        // User is not in South America
         return Locale('en');
       }
     } catch (e) {
-      // Handle exceptions, e.g., if location services are not available
       print("Error getting user location: $e");
-      return Locale('en'); // Default to English in case of error
+      return Locale('en');
     }
   }
 
-// Function to generate a random alphanumeric string of a given length
+  /** Generate random ID */
   static String generateRandomId(int length) {
     const chars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     Random random = Random();
-
     return List.generate(length, (index) => chars[random.nextInt(chars.length)])
         .join('');
   }
@@ -174,6 +144,44 @@ class Utilities {
         return 'November';
       case 12:
         return 'December';
+      default:
+        return '';
+    }
+  }
+
+  /** 
+   * 📅 Format a DateTime into a string like "Apr 29, 2025" 
+   */
+  static String formatDate(DateTime date) {
+    return "${getMonthAbbreviation(date.month)} ${date.day}, ${date.year}";
+  }
+
+  static String getMonthAbbreviation(int month) {
+    switch (month) {
+      case 1:
+        return 'Jan';
+      case 2:
+        return 'Feb';
+      case 3:
+        return 'Mar';
+      case 4:
+        return 'Apr';
+      case 5:
+        return 'May';
+      case 6:
+        return 'Jun';
+      case 7:
+        return 'Jul';
+      case 8:
+        return 'Aug';
+      case 9:
+        return 'Sep';
+      case 10:
+        return 'Oct';
+      case 11:
+        return 'Nov';
+      case 12:
+        return 'Dec';
       default:
         return '';
     }
