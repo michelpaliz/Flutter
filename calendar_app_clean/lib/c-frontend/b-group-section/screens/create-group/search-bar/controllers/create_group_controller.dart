@@ -32,6 +32,9 @@ class GroupController extends ChangeNotifier {
   List<User> usersInGroup = []; // List of users in the group
   Map<String, String> userRoles = {}; // Mapping for user roles
 
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+
   GroupController() {
     usersInGroup = [];
   }
@@ -102,7 +105,10 @@ class GroupController extends ChangeNotifier {
 
   // Save the group data
   Future<void> submitGroupFromUI() async {
-    if (groupName.trim().isEmpty || groupDescription.trim().isEmpty) {
+    groupName = nameController.text.trim();
+    groupDescription = descriptionController.text.trim();
+
+    if (groupName.isEmpty || groupDescription.isEmpty) {
       _showErrorDialog(AppLocalizations.of(context!)!.requiredTextFields);
       return;
     }

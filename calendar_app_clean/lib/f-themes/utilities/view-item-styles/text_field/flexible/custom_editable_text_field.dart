@@ -7,6 +7,11 @@ class CustomEditableTextField extends StatelessWidget {
   final int? maxLength;
   final bool isMultiline;
   final IconData? prefixIcon;
+  final TextStyle? labelStyle;
+  final TextStyle? textStyle;
+  final Color? iconColor; // Optional override for icon
+  final Color? backgroundColor; // Optional override for fill color
+  final TextStyle? counterStyle; // ✅ External counter style override
 
   const CustomEditableTextField({
     Key? key,
@@ -15,34 +20,48 @@ class CustomEditableTextField extends StatelessWidget {
     this.maxLength,
     this.isMultiline = false,
     this.prefixIcon,
+    this.labelStyle,
+    this.textStyle,
+    this.iconColor,
+    this.backgroundColor,
+    this.counterStyle, // ✅ Added to constructor
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final Color borderColor =
-        ThemeColors.getTextColor(context).withOpacity(0.7);
-    final Color fillColor = ThemeColors.getContainerBackgroundColor(context);
+    final Color resolvedFillColor =
+        backgroundColor ?? ThemeColors.getLighterInputFillColor(context);
+    final Color contrastTextColor =
+        ThemeColors.getContrastTextColorForBackground(resolvedFillColor);
+    final Color borderColor = contrastTextColor.withOpacity(0.5);
 
     return TextFormField(
       controller: controller,
       maxLength: maxLength,
       maxLines: isMultiline ? null : 1,
-      style: TextStyle(
-        color: ThemeColors.getTextColor(context),
-        fontWeight: FontWeight.bold,
-      ),
+      style: textStyle ??
+          TextStyle(
+            color: contrastTextColor,
+            fontWeight: FontWeight.bold,
+          ),
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: TextStyle(
-          color: ThemeColors.getTextColor(context),
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        labelStyle: labelStyle ??
+            TextStyle(
+              color: contrastTextColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
         filled: true,
-        fillColor: fillColor,
+        fillColor: resolvedFillColor,
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: ThemeColors.getTextColor(context))
+            ? Icon(
+                prefixIcon,
+                color: iconColor ?? contrastTextColor,
+              )
             : null,
+        counterStyle: counterStyle ?? // ✅ use passed style or fallback
+            TextStyle(color: contrastTextColor.withOpacity(0.8)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
           borderSide: BorderSide(color: borderColor),

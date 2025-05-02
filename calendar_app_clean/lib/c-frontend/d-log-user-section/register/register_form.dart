@@ -1,7 +1,6 @@
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart'; // ✅ Updated import
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:provider/provider.dart';
 
 import 'register_controller.dart';
 import 'register_fields.dart';
@@ -31,7 +30,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authService = AuthService.custom(); // ✅ Replaces AuthProvider
 
     return Form(
       key: _formKey,
@@ -53,7 +52,8 @@ class _RegisterFormState extends State<RegisterForm> {
           const SizedBox(height: 25),
           buildUserFields(controller, context),
           const SizedBox(height: 10),
-          buildRegisterButton(controller, context, _formKey, authProvider),
+          buildRegisterButton(
+              controller, context, _formKey, authService), // ✅ Updated
           buildLoginButton(context),
         ],
       ),

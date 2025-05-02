@@ -1,7 +1,7 @@
 import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/group_list.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/widgets/save_group_button.dart';
 import 'package:first_project/c-frontend/b-group-section/utils/shared/add_user_button.dart';
-import 'package:first_project/f-themes/themes/theme_colors.dart';
-import 'package:first_project/f-themes/utilities/view-item-styles/button/button_styles.dart';
+import 'package:first_project/f-themes/shape/solid/solid_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
@@ -55,47 +55,34 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.groupData),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            children: [
-              GroupImagePicker(controller: _controller),
-              GroupTextFields(controller: _controller),
-              const SizedBox(height: 10),
-              // GroupAddUserButton(controller: _controller),
-              AddUserButtonDialog(
-                currentUser: _controller.currentUser,
-                group: null, // Because you're creating a new group
-                controller: _controller,
+        body: Stack(
+          children: [
+            const SolidHeader(height: 180), // ⬅️ background curved header
+
+            SingleChildScrollView(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 15.0, vertical: 30.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20), // space below header curve
+                  GroupImagePicker(controller: _controller),
+                  GroupTextFields(controller: _controller),
+                  const SizedBox(height: 10),
+                  AddUserButtonDialog(
+                    currentUser: _controller.currentUser,
+                    group: null,
+                    controller: _controller,
+                  ),
+                  const SizedBox(height: 10),
+                  GroupRoleList(
+                    externalController: _controller,
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              // GroupRoleList(controller: _controller),
-              GroupRoleList(
-                externalController: _controller,
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ButtonStyles.buttonWithIcon(
-            iconData: Icons.group_add_rounded,
-            label: AppLocalizations.of(context)!.saveGroup,
-            style: ButtonStyles.saucyButtonStyle(
-              defaultBackgroundColor:
-                  ThemeColors.getButtonBackgroundColor(context),
-              pressedBackgroundColor:
-                  ThemeColors.getContainerBackgroundColor(context),
-              textColor: ThemeColors.getButtonTextColor(context),
-              borderColor: ThemeColors.getTextColor(context),
-              borderRadius: 12.0,
-              padding: 14.0, // slightly bigger padding for bottom button
-              fontSize: 17.0,
-              fontWeight: FontWeight.bold,
             ),
-            onPressed: _controller.submitGroupFromUI,
-          ),
+          ],
         ),
+        bottomNavigationBar: SaveGroupButton(controller: _controller),
       ),
     );
   }

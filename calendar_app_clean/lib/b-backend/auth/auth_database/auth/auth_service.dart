@@ -37,17 +37,18 @@ class AuthService implements AuthRepository {
   }
 
   @override
+  @override
   Future<User?> logIn({
     required String email,
     required String password,
-  }) =>
-      repository.logIn(
-        email: email,
-        password: password,
-      );
+  }) async {
+    return await repository.logIn(email: email, password: password);
+  }
 
   @override
-  Future<void> logOut() => repository.logOut();
+  Future<void> logOut() async {
+    await repository.logOut();
+  }
 
   @override
   Future<void> sendEmailVerification() => repository.sendEmailVerification();
@@ -60,6 +61,9 @@ class AuthService implements AuthRepository {
 
   @override
   Future<void> changePassword(
-          String currentPassword, String newPassword, String confirmPassword) =>
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  ) =>
       repository.changePassword(currentPassword, newPassword, confirmPassword);
 }

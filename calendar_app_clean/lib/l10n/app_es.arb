@@ -161,6 +161,15 @@
     "eventEditFailed": "Error al editar el evento, intentalo mas tarde.",
     "noEventsFoundForDate": "Evento no encontrado para esta fecha, intentalo mas tarde.",
     "confirmDelete": "Estas seguro de eliminar este evento ?",
-    "confirmDeleteDescription": "Eliminar evento"
+    "confirmDeleteDescription": "Eliminar evento",
+    "groupNameLabel": "Nombre del grupo",
+    "descriptionLabel": "Descripcion",
+    "refresh": "Actualizando ...",
+    "accepted": "Acceptado",
+    "pending": "Pendiente",
+    "notAccepted": "No Acceptado",
+    "newUsers":"Nuevo",
+    "expired":"Expirado"
+
 
 }

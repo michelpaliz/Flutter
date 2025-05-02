@@ -130,12 +130,16 @@ class GroupManagement extends ChangeNotifier {
         }
       }
 
+      // ✅ Clear previous group data — add this line
+      groupController.add([]); // <--- This clears old group data
+
       // ✅ Update the currentUser's group list in memory
       currentUser.groupIds = validGroupIds;
 
       // ✅ Update the user in the database to reflect valid groupIds only
-      await userService.updateUser(currentUser); // <- THIS LINE
+      await userService.updateUser(currentUser);
 
+      // ✅ Now add fresh data
       groupController.add(groups);
     } catch (e) {
       devtools.log('❌ fetchAndInitializeGroups failed: $e');

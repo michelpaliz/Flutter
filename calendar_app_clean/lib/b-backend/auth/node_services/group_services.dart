@@ -3,23 +3,33 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/group_model/calendar/calendar.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/token_storage.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
   final String baseUrl =
       'http://192.168.1.16:3000/api/groups'; // Your server URL
 
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await TokenStorage.loadToken();
+    if (token == null) throw Exception("Authentication token not found");
+    return {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
+  }
+
   // Create a group directly with Group model
   Future<Group> createGroup(Group group) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      headers: await _authHeaders(), // 🔐 Adds Authorization + Content-Type
       body: jsonEncode(group.toJsonForCreation()),
     );
 
     if (response.statusCode == 201) {
       final groupJson = jsonDecode(response.body);
-      return Group.fromJson(groupJson); // return the full group
+      return Group.fromJson(groupJson);
     } else {
       throw Exception('Failed to create group: ${response.reasonPhrase}');
     }
@@ -27,7 +37,10 @@ class GroupService {
 
   // Get a group by its ID, and fetch the related calendar directly
   Future<Group> getGroupById(String id) async {
-    final response = await http.get(Uri.parse('$baseUrl/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/$id'),
+      headers: await _authHeaders(), // ✅ This sends the token
+    );
 
     // ✅ Log the response content for debugging
     devtools.log(
@@ -48,7 +61,10 @@ class GroupService {
   Future<void> leaveGroup(String userId, String groupId) async {
     final url = Uri.parse('$baseUrl/$groupId/users/$userId');
 
-    final response = await http.delete(url);
+    final response = await http.delete(
+      url,
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode != 200) {
       throw Exception('Failed to leave group: ${response.reasonPhrase}');
@@ -59,9 +75,7 @@ class GroupService {
   Future<bool> updateGroup(Group group) async {
     final response = await http.put(
       Uri.parse('$baseUrl/${group.id}'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
+      headers: await _authHeaders(),
       body: jsonEncode(group.toJson()), // Send Group as JSON
     );
 
@@ -74,7 +88,10 @@ class GroupService {
 
   // Delete a group by ID
   Future<void> deleteGroup(String id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/$id'));
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$id'),
+      headers: await _authHeaders(), // ✅ Use the helper here
+    );
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete group: ${response.reasonPhrase}');
@@ -83,7 +100,10 @@ class GroupService {
 
   // Get all groups for a user, including fetching calendars for each group
   Future<List<Group>> getGroupsByUser(String userName) async {
-    final response = await http.get(Uri.parse('$baseUrl/user/$userName'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/$userName'),
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -106,9 +126,7 @@ class GroupService {
   Future<bool> removeUserInGroup(String userId, String groupId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/$groupId/users/$userId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
+      headers: await _authHeaders(),
     );
 
     if (response.statusCode == 200) {
@@ -145,7 +163,7 @@ class GroupService {
 
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      headers: await _authHeaders(),
       body: jsonEncode({
         'groupId': groupId,
         'username': username,

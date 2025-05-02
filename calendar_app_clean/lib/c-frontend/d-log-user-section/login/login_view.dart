@@ -1,4 +1,5 @@
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
@@ -26,6 +27,7 @@ class _LoginViewState extends State<LoginView> {
   late final AuthProvider _authProvider;
   late final UserManagement _userManagement;
   late final GroupManagement _groupManagement;
+  late final AuthService _authService;
   late LoginInitializer _loginInitializer;
 
   bool buttonHovered = false;
@@ -42,12 +44,13 @@ class _LoginViewState extends State<LoginView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    _authService = AuthService.custom(); // ✅ Instantiate your service singleton
     _userManagement = Provider.of<UserManagement>(context, listen: false);
-    _groupManagement =
-        Provider.of<GroupManagement>(context, listen: false); // 👈
+    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+
     _loginInitializer = LoginInitializer(
-      authProvider: _authProvider,
+      authService: _authService,
       userManagement: _userManagement,
       groupManagement: _groupManagement,
     );

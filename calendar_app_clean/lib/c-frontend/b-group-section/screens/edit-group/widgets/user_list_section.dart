@@ -7,6 +7,7 @@ import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/fun
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/f-themes/shape/rounded/rounded_section_card.dart';
 import 'package:flutter/material.dart';
 
 class UserListSection extends StatelessWidget {
@@ -66,61 +67,77 @@ class UserListSection extends StatelessWidget {
     print('👥 usersInGroup: ${usersInGroup.map((u) => u.name).toList()}');
     print('📩 invitedUsers: ${usersInvitations.keys.toList()}');
 
-    return Column(
-      children: [
-        // 1. Newly added users (only if showNewUsers)
-        if (showNewUsers)
-          ...newUsers.entries.map((entry) {
-            final userName = entry.key;
-            final user = entry.value;
-            final selectedRole = usersRoles[userName];
+    // 2. Filtered list of invited users based on toggle states
+    final filteredInvitedUsers = usersInvitations.entries.where((entry) {
+      final status = entry.value.informationStatus;
+      final userName = entry.key;
 
-            return GroupUserCard(
-              userName: userName,
-              role: selectedRole ?? 'Member',
-              photoUrl: user.photoUrl,
-              isAdmin: selectedRole == 'Administrator',
-              onRemove: () => _showDismissDialog(context, userName),
-            );
-          }).toList(),
+      print('🔎 Checking invited user $userName with raw status: "$status"');
 
-        // 2. Invited users (filtered by status dynamically)
-        ...usersInvitations.entries.where((entry) {
-          final status = entry.value.informationStatus;
-          final userName = entry.key;
+      if (_isDuplicate(userName)) return false;
 
-          print(
-              '🔎 Checking invited user $userName with raw status: "$status"');
+      final normalizedStatus = status.trim().toLowerCase();
 
-          if (_isDuplicate(userName)) return false; // avoid duplicates
+      if (normalizedStatus == 'pending' && showPending) return true;
+      if (normalizedStatus == 'accepted' && showAccepted) return true;
+      if (normalizedStatus == 'notaccepted' && showNotWantedToJoin) return true;
+      if (normalizedStatus == 'expired' && showExpired) return true;
 
-          final normalizedStatus = status.trim().toLowerCase();
+      return false;
+    }).toList();
 
-          if (normalizedStatus == 'pending' && showPending) return true;
-          if (normalizedStatus == 'accepted' && showAccepted) return true;
-          if (normalizedStatus == 'notaccepted' && showNotWantedToJoin)
-            return true;
-          if (normalizedStatus == 'expired' && showExpired)
-            return true; // (optional if you add expired chip)
-          return false;
-        }).map((entry) {
-          final userName = entry.key;
-          final inviteStatus = entry.value;
+    return RoundedSectionCard(
+      title: 'Group Members',
+      child: Column(
+        children: [
+          // 1. Newly added users (only if showNewUsers)
+          if (showNewUsers)
+            ...newUsers.entries.map((entry) {
+              final userName = entry.key;
+              final user = entry.value;
+              final selectedRole = usersRoles[userName];
 
-          print(
-              '📦 Rendering GroupUserCard for invited user: $userName → ${inviteStatus.informationStatus}');
+              return GroupUserCard(
+                userName: userName,
+                role: selectedRole ?? 'Member',
+                photoUrl: user.photoUrl,
+                isAdmin: selectedRole == 'Administrator',
+                onRemove: () => _showDismissDialog(context, userName),
+              );
+            }).toList(),
 
-          return GroupUserCard(
-            userName: userName,
-            role: inviteStatus.role, // ✅ Use real role (ex: Member)
-            photoUrl: null, // No photo for invited user (yet)
-            isAdmin: false, // Invited users can't be admin yet
-            status: inviteStatus.informationStatus, // ✅ Pass invitation status
-            sendingDate: inviteStatus.sendingDate, // ✅ Pass sending date
-            onRemove: null, // ❌ No remove button for now
-          );
-        }).toList(),
-      ],
+          // 2. Invited users (filtered by status dynamically)
+          if (filteredInvitedUsers.isEmpty) ...[
+            // Custom message when there are no invited users matching the filters
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'No invited users to display.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
+          ] else ...[
+            // Render filtered invited users
+            ...filteredInvitedUsers.map((entry) {
+              final userName = entry.key;
+              final inviteStatus = entry.value;
+
+              print('📦 Rendering GroupUserCard for invited user: '
+                  '$userName → ${inviteStatus.informationStatus}');
+
+              return GroupUserCard(
+                userName: userName,
+                role: inviteStatus.role,
+                photoUrl: null,
+                isAdmin: false,
+                status: inviteStatus.informationStatus,
+                sendingDate: inviteStatus.sendingDate,
+                onRemove: null,
+              );
+            }).toList(),
+          ],
+        ],
+      ),
     );
   }
 

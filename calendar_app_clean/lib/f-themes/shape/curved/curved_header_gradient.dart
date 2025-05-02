@@ -9,13 +9,23 @@ class SolidHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color baseColor = ThemeColors.getButtonBackgroundColor(context);
+    final Color backgroundColor = Theme.of(context).scaffoldBackgroundColor;
 
     return ClipPath(
       clipper: BottomCurvedClipper(),
       child: Container(
         height: height,
         width: double.infinity,
-        color: baseColor, // ✅ Solid color only
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              baseColor,
+              backgroundColor.withOpacity(0.70), // smooth transition
+            ],
+          ),
+        ),
       ),
     );
   }

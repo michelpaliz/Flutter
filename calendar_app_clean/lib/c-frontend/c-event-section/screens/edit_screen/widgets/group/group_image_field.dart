@@ -17,19 +17,21 @@ class GroupImageSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPickImage,
-      child: CircleAvatar(
-        radius: 50,
-        backgroundColor: selectedImage != null ? Colors.transparent : null,
-        backgroundImage: imageURL.isNotEmpty
-            ? CachedNetworkImageProvider(imageURL) as ImageProvider<Object>?
-            : selectedImage != null
-                ? FileImage(File(selectedImage!.path))
-                : null,
-        child: imageURL.isEmpty && selectedImage == null
-            ? Icon(Icons.add_a_photo, size: 50, color: Colors.white)
-            : null,
+    return Center(
+      child: GestureDetector(
+        onTap: onPickImage,
+        child: CircleAvatar(
+          radius: 50,
+          backgroundColor: selectedImage != null ? Colors.transparent : null,
+          backgroundImage: imageURL.isNotEmpty
+              ? CachedNetworkImageProvider(imageURL) as ImageProvider<Object>?
+              : selectedImage != null
+                  ? FileImage(File(selectedImage!.path))
+                  : null,
+          child: imageURL.isEmpty && selectedImage == null
+              ? const Icon(Icons.add_a_photo, size: 50, color: Colors.white)
+              : null,
+        ),
       ),
     );
   }

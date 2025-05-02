@@ -40,6 +40,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     notifyListeners();
   }
 
+  // Add this getter at the bottom of your AuthProvider class
+  String? get lastToken => _authToken;
+
   @override
   Future<String> createUser({
     required String userName,

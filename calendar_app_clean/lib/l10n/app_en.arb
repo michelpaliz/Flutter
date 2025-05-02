@@ -319,5 +319,15 @@
     "eventEditFailed": "Error occurred while editing the event, try again later" ,   
     "noEventsFoundForDate": "Events not found for this date, try again later.",
     "confirmDelete": "Are you sure you want to remove this event ?",
-    "confirmDeleteDescription": "Remove event."
+    "confirmDeleteDescription": "Remove event.",
+    "groupNameLabel": "Group Name",
+    "descriptionLabel": "Description",
+    "refresh": "Refreshing screen ...",
+    "accepted": "Accepted",
+    "pending": "Pending",
+    "notAccepted": "NotAccepted",
+    "newUsers":"New",
+    "expired":"Expired"
+
+    
 }

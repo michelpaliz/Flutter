@@ -8,8 +8,8 @@ class GroupUserCard extends StatelessWidget {
   final String? photoUrl;
   final VoidCallback? onRemove;
   final bool isAdmin;
-  final String? status; // 👈 Status like 'Pending', 'Accepted', etc.
-  final DateTime? sendingDate; // 👈 Invite sending date
+  final String? status;
+  final DateTime? sendingDate;
 
   const GroupUserCard({
     Key? key,
@@ -56,18 +56,22 @@ class GroupUserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      margin: const EdgeInsets.symmetric(
+          vertical: 8, horizontal: 20), // More left/right space
       color: ThemeColors.getListTileBackgroundColor(context),
-      elevation: 4,
-      shadowColor: ThemeColors.getCardShadowColor(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: ThemeColors.getCardShadowColor(context).withOpacity(0.15),
+          width: 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
         leading: CircleAvatar(
-          radius: 26,
+          radius: 22,
           backgroundImage: Utilities.buildProfileImage(photoUrl ?? ''),
         ),
         title: Row(
@@ -76,8 +80,8 @@ class GroupUserCard extends StatelessWidget {
               child: Text(
                 userName,
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                   color: ThemeColors.getTextColor(context),
                 ),
               ),
@@ -86,36 +90,37 @@ class GroupUserCard extends StatelessWidget {
               Icon(
                 _getStatusIcon(),
                 color: _getStatusIconColor(context),
-                size: 20,
+                size: 18,
               ),
           ],
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        subtitle: Row(
           children: [
             Text(
               role,
               style: TextStyle(
                 color: ThemeColors.getTextColor(context).withOpacity(0.7),
-                fontSize: 13,
+                fontSize: 12,
               ),
             ),
-            if (sendingDate != null)
+            if (sendingDate != null) ...[
+              const SizedBox(width: 10),
               Text(
-                'Invited: ${Utilities.formatDate(sendingDate!)}',
+                '• ${Utilities.formatDate(sendingDate!)}',
                 style: TextStyle(
                   color: ThemeColors.getTextColor(context).withOpacity(0.5),
                   fontSize: 11,
                 ),
               ),
+            ],
           ],
         ),
         trailing: isAdmin
-            ? const Icon(Icons.verified_user, color: Colors.green)
+            ? const Icon(Icons.verified_user, color: Colors.green, size: 18)
             : (onRemove != null
                 ? IconButton(
                     icon: const Icon(Icons.delete_outline,
-                        color: Colors.redAccent),
+                        color: Colors.redAccent, size: 20),
                     onPressed: onRemove,
                   )
                 : null),

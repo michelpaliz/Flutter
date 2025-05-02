@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "calendar_app_clean (phone)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "jnj7lb85rsrwxg6x" // <-- This is your phone's device ID
+        },
+        {
+            "name": "calendar_app_clean",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "calendar_app_clean (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "calendar_app_clean (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

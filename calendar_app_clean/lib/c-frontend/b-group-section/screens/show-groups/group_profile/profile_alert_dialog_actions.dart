@@ -93,8 +93,22 @@ List<Widget> buildProfileDialogActions(
           );
 
           if (confirm) {
-            await groupManagement.groupService.deleteGroup(group.id);
-            if (context.mounted) Navigator.pop(context);
+            if (group.ownerId == user.id) {
+              try {
+                await groupManagement.groupService.deleteGroup(group.id);
+                if (context.mounted) Navigator.pop(context);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Error: ${e.toString()}")),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content:
+                        Text("Only the group owner can delete this group.")),
+              );
+            }
           }
         },
         child: Text(

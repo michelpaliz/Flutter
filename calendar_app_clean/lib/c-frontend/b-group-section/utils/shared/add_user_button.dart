@@ -65,19 +65,22 @@ class AddUserButtonDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color backgroundColor = ThemeColors.getButtonBackgroundColor(context);
+    final Color contrastTextColor =
+        ThemeColors.getContrastTextColorForBackground(backgroundColor);
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end, // 👈 align button to the right
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         ButtonStyles.buttonWithIcon(
           iconData: Icons.person_add_alt_1,
           label: AppLocalizations.of(context)!.addUser,
           style: ButtonStyles.saucyButtonStyle(
-            defaultBackgroundColor:
-                ThemeColors.getButtonBackgroundColor(context),
+            defaultBackgroundColor: backgroundColor,
             pressedBackgroundColor:
                 ThemeColors.getContainerBackgroundColor(context),
-            textColor: ThemeColors.getButtonTextColor(context),
-            borderColor: ThemeColors.getTextColor(context),
+            textColor: contrastTextColor, // ✅ text color with contrast
+            borderColor: contrastTextColor, // ✅ border with same contrast
           ),
           onPressed: () => _openDialog(context),
         ),

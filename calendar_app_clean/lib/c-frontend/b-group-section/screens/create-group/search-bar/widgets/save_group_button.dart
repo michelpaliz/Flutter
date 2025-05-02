@@ -1,34 +1,38 @@
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class BottomNavigationSection extends StatelessWidget {
-  final VoidCallback onGroupUpdate;
+import '../controllers/create_group_controller.dart';
 
-  const BottomNavigationSection({
-    required this.onGroupUpdate,
-    Key? key,
-  }) : super(key: key);
+class SaveGroupButton extends StatelessWidget {
+  final GroupController controller;
+
+  const SaveGroupButton({Key? key, required this.controller}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final Color backgroundColor = ThemeColors.getButtonBackgroundColor(context);
-    final Color contrastTextColor =
+    final backgroundColor = ThemeColors.getButtonBackgroundColor(context);
+    final contrastTextColor =
         ThemeColors.getContrastTextColorForBackground(backgroundColor);
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: ElevatedButton.icon(
-        onPressed: onGroupUpdate,
-        icon: Icon(Icons.group_add_rounded, color: contrastTextColor),
-        label: Text('Edit', style: TextStyle(color: contrastTextColor)),
+      child: ButtonStyles.buttonWithIcon(
+        iconData: Icons.group_add,
+        label: AppLocalizations.of(context)!.saveGroup,
         style: ButtonStyles.saucyButtonStyle(
           defaultBackgroundColor: backgroundColor,
           pressedBackgroundColor:
               ThemeColors.getContainerBackgroundColor(context),
           textColor: contrastTextColor,
           borderColor: contrastTextColor,
+          borderRadius: 12.0,
+          padding: 14.0,
+          fontSize: 17.0,
+          fontWeight: FontWeight.bold,
         ),
+        onPressed: controller.submitGroupFromUI,
       ),
     );
   }

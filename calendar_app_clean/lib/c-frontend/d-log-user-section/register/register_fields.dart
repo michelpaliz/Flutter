@@ -1,13 +1,14 @@
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart'; // ✅ New import
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/event/show_error_dialog.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/event/show_error_dialog.dart';
+import 'package:first_project/f-themes/palette/color_properties.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
     show TextFieldStyles;
-import 'package:first_project/f-themes/palette/color_properties.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -64,7 +65,7 @@ Widget buildUserFields(RegisterController controller, BuildContext context) {
           loc.passwordHint,
           Icons.lock,
         ),
-        keyboardType: TextInputType.visiblePassword, // ✅ Added
+        keyboardType: TextInputType.visiblePassword,
         obscureText: true,
         validator: (val) => val!.length < 6 ? loc.passwordLength : null,
       ),
@@ -76,7 +77,7 @@ Widget buildUserFields(RegisterController controller, BuildContext context) {
           loc.confirmPassword,
           Icons.lock,
         ),
-        keyboardType: TextInputType.visiblePassword, // ✅ Added
+        keyboardType: TextInputType.visiblePassword,
         obscureText: true,
         validator: (val) =>
             val != controller.password.text ? loc.passwordNotMatch : null,
@@ -89,7 +90,7 @@ Widget buildRegisterButton(
   RegisterController controller,
   BuildContext context,
   GlobalKey<FormState> formKey,
-  dynamic authProvider,
+  AuthService authService, // ✅ Updated
 ) {
   return Container(
     width: double.infinity,
@@ -112,7 +113,7 @@ Widget buildRegisterButton(
         }
 
         try {
-          final registrationStatus = await authProvider.createUser(
+          final registrationStatus = await authService.createUser(
             userName: userName,
             name: name,
             email: email,
@@ -120,15 +121,14 @@ Widget buildRegisterButton(
           );
 
           final loginInit = LoginInitializer(
-            authProvider: authProvider,
+            authService: authService, // ✅ Changed
             userManagement: Provider.of<UserManagement>(context, listen: false),
-            groupManagement: Provider.of<GroupManagement>(context,
-                listen: false), // ✅ Add this
+            groupManagement:
+                Provider.of<GroupManagement>(context, listen: false),
           );
 
           await loginInit.initializeUserAndServices(email, password);
 
-          // Now go to the home screen
           Navigator.of(context).pushNamedAndRemoveUntil(
             AppRoutes.homePage,
             (route) => false,

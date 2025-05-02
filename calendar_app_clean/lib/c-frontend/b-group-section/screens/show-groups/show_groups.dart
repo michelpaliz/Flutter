@@ -8,8 +8,8 @@ import '../../../../d-stateManagement/group_management.dart';
 import '../../../../d-stateManagement/notification_management.dart';
 import '../../../../d-stateManagement/user_management.dart';
 import '../../../routes/appRoutes.dart';
-import 'group_body_builder/group_body_builder.dart';
 import 'controller/list_group_controller.dart';
+import 'group_body_builder/group_body_builder.dart';
 import 'utils/notification_icon.dart';
 
 class ShowGroups extends StatefulWidget {
@@ -61,7 +61,7 @@ class _ShowGroupsState extends State<ShowGroups> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // ✅ Only fetch once
+        // ✅ Only fetch once on first build
         if (!_hasFetchedGroups) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             GroupController.fetchGroups(user, _groupManagement);
@@ -72,6 +72,15 @@ class _ShowGroupsState extends State<ShowGroups> {
         return MainScaffold(
           title: AppLocalizations.of(context)!.groups,
           actions: [
+            // 🔄 Reload button to refetch groups
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: AppLocalizations.of(context)!.refresh,
+              onPressed: () {
+                GroupController.fetchGroups(user, _groupManagement);
+                setState(() {}); // optional: to trigger rebuild if needed
+              },
+            ),
             buildNotificationIcon(
               context: context,
               userManagement: _userManagement!,

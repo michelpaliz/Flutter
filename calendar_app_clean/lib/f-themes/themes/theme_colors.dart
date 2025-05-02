@@ -4,26 +4,53 @@ import 'package:flutter/material.dart';
 class ThemeColors {
   static Color getTextColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
-    return theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+    return theme.brightness == Brightness.dark
+        ? AppDarkColors.textPrimary
+        : AppColors.black;
   }
 
-  static Color getTextColorWHite(BuildContext context) {
+  static Color getContrastTextColorForBackground(Color backgroundColor) {
+    // Automatically decides between white or black text based on brightness
+    return ThemeData.estimateBrightnessForColor(backgroundColor) ==
+            Brightness.dark
+        ? Colors.white
+        : Colors.black;
+  }
+
+  static Color getContrastTextColor(BuildContext context, Color background) {
+    final brightness = ThemeData.estimateBrightnessForColor(background);
+    return brightness == Brightness.dark ? Colors.white : Colors.black;
+  }
+
+  static Color getLighterInputFillColor(BuildContext context) {
+    final base = getContainerBackgroundColor(context);
+    final brightness = ThemeData.estimateBrightnessForColor(base);
+
+    // Lighten or darken depending on theme
+    return brightness == Brightness.dark
+        ? base.withOpacity(0.4)
+        : base.withOpacity(0.9);
+  }
+
+  static Color getTextColorWhite(BuildContext context) {
     ThemeData theme = Theme.of(context);
-    return theme.brightness == Brightness.dark ? Colors.white : AppColors.brown;
+    return theme.brightness == Brightness.dark
+        ? AppDarkColors.textPrimary
+        : AppColors.brown;
   }
 
   static Color getCardBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.green.withOpacity(0.8)
+        ? AppDarkColors.surface
         : AppColors.yellow.withOpacity(0.8);
   }
 
   static Color getContainerBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.brown.withOpacity(0.8)
-        : AppColors.yellow.withOpacity(0.6);
+        ? AppDarkColors.brown
+        : AppColors.brown;
   }
 
   static Color getButtonTextColor(BuildContext context) {
@@ -33,28 +60,28 @@ class ThemeColors {
   static Color getButtonBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.greenDark
+        ? AppDarkColors.green
         : AppColors.brown;
   }
 
   static Color getSearchBarBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.brownDark.withOpacity(0.8)
+        ? AppDarkColors.surface
         : AppColors.yellowLight.withOpacity(0.8);
   }
 
   static Color getSearchBarIconColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.yellow
+        ? AppDarkColors.yellow
         : AppColors.brown;
   }
 
   static Color getSearchBarHintTextColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppColors.yellow
+        ? AppDarkColors.textSecondary
         : AppColors.brownDark;
   }
 
@@ -68,27 +95,20 @@ class ThemeColors {
   static Color getListTileBackgroundColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? Colors.grey[850]!
+        ? AppDarkColors.surface
         : Colors.white;
   }
 
   static Color getFilterChipGlowColor(BuildContext context, Color baseColor) {
     ThemeData theme = Theme.of(context);
-
-    if (theme.brightness == Brightness.dark) {
-      // Dark mode → keep the strong colorful glow
-      return baseColor.withOpacity(0.4);
-    } else {
-      // Light mode → darken the base color to create a serious glow
-      return _darkenColor(baseColor, 0.6); // darken by 60%
-    }
+    return theme.brightness == Brightness.dark
+        ? baseColor.withOpacity(0.4)
+        : _darkenColor(baseColor, 0.6);
   }
 
   static Color _darkenColor(Color color, double amount) {
-    assert(amount >= 0 && amount <= 1);
-
     final hsl = HSLColor.fromColor(color);
     final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
-    return hslDark.toColor().withOpacity(0.3); // control glow opacity
+    return hslDark.toColor().withOpacity(0.3);
   }
 }
