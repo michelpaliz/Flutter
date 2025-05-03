@@ -1,14 +1,15 @@
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/password_exceptions.dart';
-import 'package:first_project/f-themes/themes/theme_data.dart';
+import 'package:first_project/d-stateManagement/LocaleProvider.dart';
 import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
+import 'package:first_project/f-themes/themes/theme_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import "package:flutter_gen/gen_l10n/app_localizations.dart";
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key});
+  const Settings({Key? key}) : super(key: key);
 
   @override
   State<Settings> createState() => _SettingsState();
@@ -20,7 +21,6 @@ class _SettingsState extends State<Settings> {
   late TextEditingController _newPasswordController;
   late TextEditingController _confirmPasswordController;
   late TextEditingController _userNameController;
-
   String userName = "";
 
   @override
@@ -38,108 +38,94 @@ class _SettingsState extends State<Settings> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     currentUser = authProvider.currentUser;
     if (currentUser != null) {
-      setState(() {
-        userName = currentUser!.userName;
-      });
+      userName = currentUser!.userName;
     }
   }
 
-  Future<bool> _changePassword(
-      String currentPassword, String newPassword, String confirmPassword) async {
+  Future<bool> _changePassword(String currentPassword, String newPassword,
+      String confirmPassword) async {
+    final loc = AppLocalizations.of(context)!;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     try {
       if (newPassword.length < 6 || newPassword.length > 10) {
-        _showSnackBar('Password must be between 6 and 10 characters.');
+        _showSnackBar(loc.errorUsernameLength);
         return false;
       }
 
-      final RegExp unwantedCharacters = RegExp(r'[!@#\$%^&*(),.?":{}|<>]');
-      if (unwantedCharacters.hasMatch(newPassword)) {
-        _showSnackBar('Password contains unwanted characters.');
+      final unwanted = RegExp(r'[!@#\\$%^&*(),.?":{}|<>]');
+      if (unwanted.hasMatch(newPassword)) {
+        _showSnackBar(loc.errorUnwantedCharactersUsername);
         return false;
       }
 
-      await authProvider.changePassword(currentPassword, newPassword, confirmPassword);
+      await authProvider.changePassword(
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      );
 
-      _showSnackBar(AppLocalizations.of(context)!.passwordChangedSuccessfully);
+      _showSnackBar(loc.passwordChangedSuccessfully);
       return true;
     } on CurrentPasswordMismatchException {
-      _showSnackBar(AppLocalizations.of(context)!.currentPasswordIncorrect);
+      _showSnackBar(loc.currentPasswordIncorrect);
     } on PasswordMismatchException {
-      _showSnackBar(AppLocalizations.of(context)!.passwordNotMatch);
+      _showSnackBar(loc.passwordNotMatch);
     } on UserNotSignedInException {
-      _showSnackBar('User is not signed in.');
-    } catch (e) {
-      print("Error changing password: $e");
-      _showSnackBar(AppLocalizations.of(context)!.errorChangingPassword);
+      _showSnackBar(loc.userNotSignedIn);
+    } catch (_) {
+      _showSnackBar(loc.errorChangingPassword);
     }
     return false;
   }
 
   Future<String?> _changeUsername(String newUsername) async {
+    final loc = AppLocalizations.of(context)!;
     try {
       if (!_isValidUsername(newUsername)) {
-        return AppLocalizations.of(context)!.errorUnwantedCharactersUsername;
+        return loc.errorUnwantedCharactersUsername;
       }
       if (newUsername.length < 6 || newUsername.length > 10) {
-        return AppLocalizations.of(context)!.errorUsernameLength;
+        return loc.errorUsernameLength;
       }
-
-      // Simulate or integrate with your backend here
-      // await authProvider.changeUsername(newUsername);
-      // Update UI
       setState(() => userName = newUsername);
       return null;
-    } catch (error) {
-      print("Error changing username: $error");
-      return AppLocalizations.of(context)!.errorChangingUsername;
+    } catch (_) {
+      return loc.errorChangingUsername;
     }
   }
 
-  bool _isValidUsername(String username) {
-    final RegExp regex = RegExp(r'^[a-zA-Z0-9_]+$');
-    return regex.hasMatch(username);
-  }
+  bool _isValidUsername(String username) =>
+      RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username);
 
   void _onUsernameChangePressed() async {
-    final errorMessage = await _changeUsername(_userNameController.text);
-    if (errorMessage != null) {
-      _showSnackBar(errorMessage);
-    } else {
-      _showSnackBar(AppLocalizations.of(context)!.successChangingUsername);
-    }
+    final error = await _changeUsername(_userNameController.text);
+    _showSnackBar(
+        error ?? AppLocalizations.of(context)!.successChangingUsername);
   }
 
   void _showChangePasswordDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          AppLocalizations.of(context)!.changePassword,
-          style: TextStyle(fontFamily: 'lato', fontSize: 16),
-        ),
+      builder: (_) => AlertDialog(
+        title: Text(loc.changePassword),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _currentPassword,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.currentPassword,
-              ),
+              decoration: InputDecoration(labelText: loc.currentPassword),
               obscureText: true,
             ),
             TextField(
               controller: _newPasswordController,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.newPassword,
-              ),
+              decoration: InputDecoration(labelText: loc.newPassword),
               obscureText: true,
             ),
             TextField(
               controller: _confirmPasswordController,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.confirmPassword,
-              ),
+              decoration: InputDecoration(labelText: loc.confirmPassword),
               obscureText: true,
             ),
           ],
@@ -147,7 +133,7 @@ class _SettingsState extends State<Settings> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(loc.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -158,7 +144,7 @@ class _SettingsState extends State<Settings> {
               );
               Navigator.pop(context);
             },
-            child: Text(AppLocalizations.of(context)!.save),
+            child: Text(loc.save),
           ),
         ],
       ),
@@ -166,31 +152,26 @@ class _SettingsState extends State<Settings> {
   }
 
   void _showChangeUsernameDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          AppLocalizations.of(context)!.changeUsername,
-          style: TextStyle(fontFamily: 'lato', fontSize: 16),
-        ),
+      builder: (_) => AlertDialog(
+        title: Text(loc.changeUsername),
         content: TextField(
           controller: _userNameController,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.userName,
-            hintStyle: TextStyle(fontSize: 12, fontFamily: 'lato'),
-          ),
+          decoration: InputDecoration(labelText: loc.userName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(loc.cancel),
           ),
           TextButton(
             onPressed: () {
               _onUsernameChangePressed();
               Navigator.pop(context);
             },
-            child: Text(AppLocalizations.of(context)!.save),
+            child: Text(loc.save),
           ),
         ],
       ),
@@ -203,37 +184,52 @@ class _SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final localeProv = Provider.of<LocaleProvider>(context, listen: false);
+
     return Consumer<ThemePreferenceProvider>(
-      builder: (context, themeProvider, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(AppLocalizations.of(context)!.settings),
-          ),
-          body: ListView(
-            children: [
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.userName),
-                subtitle: Text(userName),
-                onTap: _showChangeUsernameDialog,
+      builder: (_, themeProv, __) => Scaffold(
+        appBar: AppBar(title: Text(loc.settings)),
+        body: ListView(
+          children: [
+            ListTile(
+              title: Text(loc.userName),
+              subtitle: Text(userName),
+              onTap: _showChangeUsernameDialog,
+            ),
+            ListTile(
+              title: Text(loc.newPassword),
+              onTap: _showChangePasswordDialog,
+            ),
+            ListTile(
+              title: Text(loc.darkMode),
+              trailing: Switch(
+                value: themeProv.themeData == darkTheme,
+                onChanged: (_) => themeProv.toggleTheme(),
               ),
-              ListTile(
-                title: Text(
-                  AppLocalizations.of(context)!.newPassword,
-                  style: TextStyle(fontFamily: 'lato', fontSize: 16),
-                ),
-                onTap: _showChangePasswordDialog,
+            ),
+            // Language selector
+            ListTile(
+              title: Text(loc.language),
+              trailing: DropdownButton<Locale>(
+                value: localeProv.locale,
+                icon: const Icon(Icons.language),
+                items: AppLocalizations.supportedLocales.map((locale) {
+                  final name =
+                      locale.languageCode == 'es' ? 'Español' : 'English';
+                  return DropdownMenuItem(
+                    value: locale,
+                    child: Text(name),
+                  );
+                }).toList(),
+                onChanged: (newLoc) {
+                  if (newLoc != null) localeProv.setLocale(newLoc);
+                },
               ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.darkMode),
-                trailing: Switch(
-                  value: themeProvider.themeData == darkTheme,
-                  onChanged: (_) => themeProvider.toggleTheme(),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

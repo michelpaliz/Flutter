@@ -327,7 +327,13 @@
     "pending": "Pending",
     "notAccepted": "NotAccepted",
     "newUsers":"New",
-    "expired":"Expired"
+    "expired":"Expired",
+    "userNotSignedIn": "User is not signed in.",
+    "@userNotSignedIn": {
+        "description": "Error shown when a user action requires being signed in"
+    },
+    "createdOn": "Created On",
+    "userCount": "User Count"
 
     
 }

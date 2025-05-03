@@ -1,4 +1,3 @@
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
@@ -24,10 +23,6 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-  late final AuthProvider _authProvider;
-  late final UserManagement _userManagement;
-  late final GroupManagement _groupManagement;
-  late final AuthService _authService;
   late LoginInitializer _loginInitializer;
 
   bool buttonHovered = false;
@@ -45,14 +40,16 @@ class _LoginViewState extends State<LoginView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _authService = AuthService.custom(); // ✅ Instantiate your service singleton
-    _userManagement = Provider.of<UserManagement>(context, listen: false);
-    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
+    // ✅ Use injected AuthService instead of singleton
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userManagement = Provider.of<UserManagement>(context, listen: false);
+    final groupManagement =
+        Provider.of<GroupManagement>(context, listen: false);
 
     _loginInitializer = LoginInitializer(
-      authService: _authService,
-      userManagement: _userManagement,
-      groupManagement: _groupManagement,
+      authService: authService,
+      userManagement: userManagement,
+      groupManagement: groupManagement,
     );
   }
 
@@ -105,8 +102,6 @@ class _LoginViewState extends State<LoginView> {
                 try {
                   await _loginInitializer.initializeUserAndServices(
                       email, password);
-
-                  // ✅ No need to manually set userManagement anymore
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
                   _showSnackBar(AppLocalizations.of(context)!.userNotFound);

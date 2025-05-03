@@ -1,18 +1,10 @@
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_repository.dart';
 
 class AuthService implements AuthRepository {
   final AuthRepository repository;
 
-  const AuthService._(this.repository);
-
-  static AuthService? _instance;
-
-  factory AuthService.custom() {
-    _instance ??= AuthService._(AuthProvider());
-    return _instance!;
-  }
+  AuthService(this.repository); // 👈 No singleton, no factory
 
   @override
   Future<String> createUser({
@@ -36,7 +28,6 @@ class AuthService implements AuthRepository {
     repository.currentUser = user;
   }
 
-  @override
   @override
   Future<User?> logIn({
     required String email,

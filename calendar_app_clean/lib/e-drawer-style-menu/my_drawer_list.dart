@@ -8,24 +8,22 @@ import '../c-frontend/routes/appRoutes.dart';
 
 //* GLOBAL VARIABLES */
 
-enum DrawerSections { calendar, settings, log_out }
+enum DrawerSections { calendar, settings, logOut }
 
-List<Map<String, dynamic>> menuItems = [
+/// We only need section & icon now; title comes from localizations.
+final List<Map<String, dynamic>> menuItems = [
   {
     'section': DrawerSections.calendar,
-    'title': 'Calendar',
     'icon': Icons.calendar_month,
     'isSelected': false,
   },
   {
     'section': DrawerSections.settings,
-    'title': 'Settings',
     'icon': Icons.settings,
     'isSelected': false,
   },
   {
-    'section': DrawerSections.log_out,
-    'title': 'Log out',
+    'section': DrawerSections.logOut,
     'icon': Icons.logout,
     'isSelected': false,
   },
@@ -37,22 +35,26 @@ Widget MyDrawerList(BuildContext context) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      if (menuItems.isNotEmpty) ...[
-        const SizedBox(height: 15.0),
-        menuItem(context, menuItems[0]['section'], menuItems[0]['title'],
-            menuItems[0]['icon'], menuItems[0]['isSelected']),
-        for (int i = 1; i < menuItems.length; i++)
-          menuItem(context, menuItems[i]['section'], menuItems[i]['title'],
-              menuItems[i]['icon'], menuItems[i]['isSelected']),
-      ],
+      const SizedBox(height: 15.0),
+      for (var item in menuItems)
+        menuItem(
+          context,
+          item['section'] as DrawerSections,
+          item['icon'] as IconData,
+          item['isSelected'] as bool,
+        ),
     ],
   );
 }
 
-Widget menuItem(BuildContext context, DrawerSections section, String name,
-    IconData iconData, bool selected) {
-  Color textColor = ThemeColors.getTextColor(context);
-  String translatedName = _getTranslatedTitle(context, name);
+Widget menuItem(
+  BuildContext context,
+  DrawerSections section,
+  IconData iconData,
+  bool selected,
+) {
+  final textColor = ThemeColors.getTextColor(context);
+  final title = _getTranslatedTitle(context, section);
 
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -65,7 +67,7 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
           case DrawerSections.settings:
             Navigator.pushNamed(context, AppRoutes.settings);
             break;
-          case DrawerSections.log_out:
+          case DrawerSections.logOut:
             _handleLogout(context);
             break;
         }
@@ -74,18 +76,15 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
         padding: const EdgeInsets.all(5.0),
         child: Row(
           children: [
-            SizedBox(
-              width: 20,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8.0, left: 15),
-                child: Icon(iconData, size: 20, color: textColor),
-              ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, left: 15),
+              child: Icon(iconData, size: 20, color: textColor),
             ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(left: 35.0),
                 child: Text(
-                  translatedName,
+                  title,
                   style: TextStyle(color: textColor, fontSize: 16),
                 ),
               ),
@@ -97,20 +96,15 @@ Widget menuItem(BuildContext context, DrawerSections section, String name,
   );
 }
 
-String _getTranslatedTitle(BuildContext context, String key) {
-  final AppLocalizations appLocalizations = AppLocalizations.of(context)!;
-
-  switch (key) {
-    case 'Groups':
-      return appLocalizations.groups;
-    case 'Calendar':
-      return appLocalizations.calendar;
-    case 'Settings':
-      return appLocalizations.settings;
-    case 'Log out':
-      return appLocalizations.logout;
-    default:
-      return key;
+String _getTranslatedTitle(BuildContext context, DrawerSections section) {
+  final loc = AppLocalizations.of(context)!;
+  switch (section) {
+    case DrawerSections.calendar:
+      return loc.calendar;
+    case DrawerSections.settings:
+      return loc.settings;
+    case DrawerSections.logOut:
+      return loc.logout;
   }
 }
 
@@ -118,42 +112,40 @@ String _getTranslatedTitle(BuildContext context, String key) {
 bool _loggingOut = false;
 
 Future<void> _handleLogout(BuildContext context) async {
-  if (!_loggingOut) {
-    _loggingOut = true;
-
-    try {
-      final shouldLogout = await showLogOutDialog(context);
-      if (shouldLogout) {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        await authProvider.logOut();
-
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
-      }
-    } finally {
-      _loggingOut = false;
+  if (_loggingOut) return;
+  _loggingOut = true;
+  try {
+    final shouldLogout = await showLogOutDialog(context);
+    if (shouldLogout) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.logOut();
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(AppRoutes.loginRoute, (_) => false);
     }
+  } finally {
+    _loggingOut = false;
   }
 }
 
 Future<bool> showLogOutDialog(BuildContext context) {
+  final loc = AppLocalizations.of(context)!;
   return showDialog<bool>(
     context: context,
-    builder: (context) {
+    builder: (ctx) {
       return AlertDialog(
-        title: const Text('Sign out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: Text(loc.logout),
+        content: Text(loc.logoutMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(loc.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Log out'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(loc.logout),
           ),
         ],
       );
     },
-  ).then((value) => value ?? false);
+  ).then((v) => v ?? false);
 }

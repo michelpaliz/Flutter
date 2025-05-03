@@ -159,9 +159,10 @@ class GroupService {
     required String username,
     required bool accepted,
   }) async {
-    final url = Uri.parse('$baseUrl/respond-invite');
+    final url = Uri.parse('$baseUrl/invite/response'); // ✅ Correct path
 
-    final response = await http.post(
+    final response = await http.put(
+      // ✅ Correct HTTP method
       url,
       headers: await _authHeaders(),
       body: jsonEncode({
@@ -172,7 +173,7 @@ class GroupService {
     );
 
     devtools.log(
-        '📤 [GroupService] POST /respond-invite → Status: ${response.statusCode}');
+        '📤 [GroupService] PUT /invite/response → Status: ${response.statusCode}');
     devtools.log('📦 [GroupService] Payload: $groupId | $username | $accepted');
 
     if (response.statusCode != 200) {

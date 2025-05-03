@@ -1,47 +1,44 @@
 import 'dart:developer' as devtools show log;
 
+import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
+import 'package:first_project/c-frontend/routes/routes.dart';
+import 'package:first_project/d-stateManagement/LocaleProvider.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme_management.dart';
 import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/l10n/l10n.dart';
-import 'package:first_project/c-frontend/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'a-models/user_model/user.dart';
-
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyMaterialApp());
-}
-
-class MyMaterialApp extends StatelessWidget {
-  const MyMaterialApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
+  runApp(
+    MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider(),
         ),
+        Provider<AuthService>(
+          create: (context) => AuthService(
+            Provider.of<AuthProvider>(context, listen: false),
+          ),
+        ),
         ChangeNotifierProvider<UserManagement>(
           create: (_) => UserManagement(
-            user: null, // 👈 Set initially to null
+            user: null,
             notificationManagement: NotificationManagement(),
           ),
         ),
         ChangeNotifierProvider<GroupManagement>(
-          create: (_) => GroupManagement(
-            user: null, // 👈 Set initially to null
-          ),
+          create: (_) => GroupManagement(user: null),
         ),
         ChangeNotifierProvider<NotificationManagement>(
           create: (_) => NotificationManagement(),
@@ -52,23 +49,36 @@ class MyMaterialApp extends StatelessWidget {
         ChangeNotifierProvider<ThemePreferenceProvider>(
           create: (_) => ThemePreferenceProvider(),
         ),
+        ChangeNotifierProvider<LocaleProvider>(
+          create: (_) => LocaleProvider(),
+        ),
       ],
-      child: Consumer<ThemePreferenceProvider>(
-        builder: (context, themeProvider, _) {
-          return MaterialApp(
-            theme: themeProvider.themeData,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
-            supportedLocales: L10n.all,
-            routes: routes,
-            home: const UserInitializer(),
-          );
-        },
-      ),
+      child: const MyMaterialApp(),
+    ),
+  );
+}
+
+class MyMaterialApp extends StatelessWidget {
+  const MyMaterialApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<ThemePreferenceProvider, LocaleProvider>(
+      builder: (context, themeProvider, localeProvider, _) {
+        return MaterialApp(
+          locale: localeProvider.locale,
+          theme: themeProvider.themeData,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: L10n.all,
+          routes: routes,
+          home: const UserInitializer(),
+        );
+      },
     );
   }
 }
@@ -91,16 +101,10 @@ class _UserInitializerState extends State<UserInitializer> {
     _initializeUser();
   }
 
-/// Initializes the user by fetching the current user model from the
-/// AuthProvider and updating the UserManagement and GroupManagement
-/// with the fetched user. It logs the fetched user and updates the state
-/// to reflect loading completion. In case of an error, it logs the error
-/// and updates the state with an error message.
-
   Future<void> _initializeUser() async {
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final fetchedUser = await authProvider.getCurrentUserModel();
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final fetchedUser = await authService.getCurrentUserModel();
 
       devtools.log('Fetched user: $fetchedUser');
 
@@ -110,13 +114,10 @@ class _UserInitializerState extends State<UserInitializer> {
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final userManagement =
-            Provider.of<UserManagement>(context, listen: false);
-        userManagement.setCurrentUser(user);
-
-        final groupManagement =
-            Provider.of<GroupManagement>(context, listen: false);
-        groupManagement.setCurrentUser(user);
+        Provider.of<UserManagement>(context, listen: false)
+            .setCurrentUser(user);
+        Provider.of<GroupManagement>(context, listen: false)
+            .setCurrentUser(user);
       });
     } catch (e) {
       devtools.log('Failed to initialize user: $e');
