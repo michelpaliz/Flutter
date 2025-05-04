@@ -23,6 +23,18 @@ class NotificationController {
     required this.notificationService, // 👈 Inject the service
   });
 
+  /// ✅ Fetch notifications for a user and update stream
+  Future<void> fetchAndUpdateNotifications(User user) async {
+    try {
+      final fetched =
+          await notificationService.getNotificationsForUser(user.userName);
+      fetched.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      notificationManagement.updateNotificationStream(fetched);
+    } catch (e) {
+      devtools.log('❌ Error fetching notifications: $e');
+    }
+  }
+
   /// ✅ Handle "Accept" response to a group invite
   Future<void> handleConfirmation(NotificationUser notification) async {
     try {

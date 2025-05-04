@@ -333,6 +333,53 @@
         "description": "Erro el usuario necesita estar logeado."
     },
     "createdOn": "Creado en",
-    "userCount": "Contador"
+    "userCount": "Contador",
+    
+    "timeJustNow": "Justo ahora",
+    "timeMinutesAgo": "hace {minutes} minutos",
+    "timeHoursAgo": "hace {hours} horas",
+    "timeDaysAgo": "hace {days} días",
+    "timeLast30Days": "Últimos 30 días",
+
+    "groupRecent": "Reciente",
+    "groupLast7Days": "Últimos 7 días",
+    "groupLast30Days": "Últimos 30 días",
+    "groupOlder": "Antiguos",
+
+    "notificationGroupCreationTitle": "¡Felicidades!",
+    "notificationGroupCreationMessage": "Has creado el grupo: {groupName}",
+  
+    "notificationJoinedGroupTitle": "Bienvenido al grupo",
+    "notificationJoinedGroupMessage": "Te has unido al grupo: {groupName}",
+  
+    "notificationInvitationTitle": "Invitación al grupo",
+    "notificationInvitationMessage": "Has sido invitado a unirte al grupo: {groupName}",
+  
+    "notificationInvitationDeniedTitle": "Invitación rechazada",
+    "notificationInvitationDeniedMessage": "{userName} rechazó la invitación para unirse a {groupName}",
+  
+    "notificationUserAcceptedTitle": "Usuario se ha unido",
+    "notificationUserAcceptedMessage": "{userName} ha aceptado la invitación para unirse a {groupName}",
+  
+    "notificationGroupEditedTitle": "Grupo actualizado",
+    "notificationGroupEditedMessage": "Has actualizado el grupo: {groupName}",
+  
+    "notificationGroupDeletedTitle": "Grupo eliminado",
+    "notificationGroupDeletedMessage": "Has eliminado el grupo: {groupName}",
+  
+    "notificationUserRemovedTitle": "Usuario eliminado",
+    "notificationUserRemovedMessage": "Has sido eliminado del grupo {groupName} por {adminName}",
+  
+    "notificationAdminUserRemovedTitle": "Usuario eliminado",
+    "notificationAdminUserRemovedMessage": "{userName} fue eliminado del grupo {groupName}",
+  
+    "notificationUserLeftTitle": "Usuario salió del grupo",
+    "notificationUserLeftMessage": "{userName} ha salido del grupo: {groupName}",
+  
+    "notificationGroupUpdateTitle": "Grupo actualizado",
+    "notificationGroupUpdateMessage": "{editorName} actualizó el grupo: {groupName}",
+  
+    "notificationGroupDeletedAllTitle": "Grupo eliminado",
+    "notificationGroupDeletedAllMessage": "El grupo \"{groupName}\" ha sido eliminado por el propietario."
   }
   

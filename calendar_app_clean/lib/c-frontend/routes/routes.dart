@@ -17,7 +17,7 @@ import 'package:first_project/c-frontend/d-log-user-section/login/login_view.dar
 import 'package:first_project/c-frontend/d-log-user-section/recover_password.dart';
 import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
 import 'package:first_project/c-frontend/d-log-user-section/verify_email_view.dart';
-import 'package:first_project/c-frontend/e-notification-section/widgets/show_notifications.dart';
+import 'package:first_project/c-frontend/e-notification-section/show-notifications/show_notifications.dart';
 import 'package:first_project/c-frontend/f-settings-section/settings.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';

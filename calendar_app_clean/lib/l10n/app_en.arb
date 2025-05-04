@@ -333,7 +333,55 @@
         "description": "Error shown when a user action requires being signed in"
     },
     "createdOn": "Created On",
-    "userCount": "User Count"
+    "userCount": "User Count",
 
+    "timeJustNow": "Just now",
+    "timeMinutesAgo": "{minutes} minutes ago",
+    "timeHoursAgo": "{hours} hours ago",
+    "timeDaysAgo": "{days} days ago",
+    "timeLast30Days": "Last 30 days",
+
+    "groupRecent": "Recent",
+    "groupLast7Days": "Last 7 days",
+    "groupLast30Days": "Last 30 days",
+    "groupOlder": "Older",
+
+
+
+    "notificationGroupCreationTitle": "Congratulations!",
+    "notificationGroupCreationMessage": "You created the group: {groupName}",
+  
+    "notificationJoinedGroupTitle": "Welcome to the Group",
+    "notificationJoinedGroupMessage": "You have joined the group: {groupName}",
+  
+    "notificationInvitationTitle": "Group Invitation",
+    "notificationInvitationMessage": "You have been invited to join the group: {groupName}",
+  
+    "notificationInvitationDeniedTitle": "Invitation Declined",
+    "notificationInvitationDeniedMessage": "{userName} declined the invitation to join {groupName}",
+  
+    "notificationUserAcceptedTitle": "User Joined",
+    "notificationUserAcceptedMessage": "{userName} has accepted the invitation to join {groupName}",
+  
+    "notificationGroupEditedTitle": "Group Updated",
+    "notificationGroupEditedMessage": "You updated the group: {groupName}",
+  
+    "notificationGroupDeletedTitle": "Group Deleted",
+    "notificationGroupDeletedMessage": "You have deleted the group: {groupName}",
+  
+    "notificationUserRemovedTitle": "User Removed",
+    "notificationUserRemovedMessage": "You have been removed from {groupName} by {adminName}",
+  
+    "notificationAdminUserRemovedTitle": "User Removed",
+    "notificationAdminUserRemovedMessage": "{userName} was removed from {groupName}",
+  
+    "notificationUserLeftTitle": "User Left",
+    "notificationUserLeftMessage": "{userName} has left the group: {groupName}",
+  
+    "notificationGroupUpdateTitle": "Group Updated",
+    "notificationGroupUpdateMessage": "{editorName} updated the group: {groupName}",
+  
+    "notificationGroupDeletedAllTitle": "Group Deleted",
+    "notificationGroupDeletedAllMessage": "The group \"{groupName}\" has been deleted by the owner."
     
 }
