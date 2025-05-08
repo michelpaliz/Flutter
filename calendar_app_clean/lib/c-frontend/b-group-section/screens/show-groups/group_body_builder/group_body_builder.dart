@@ -69,34 +69,6 @@ Widget _buildErrorWidget(String errorMessage) {
   );
 }
 
-// Widget _buildGroupListBody(
-//   BuildContext context,
-//   List<Group> groups,
-//   Axis scrollDirection,
-//   VoidCallback toggleScrollDirection,
-//   User? currentUser,
-//   UserManagement userManagement,
-//   GroupManagement groupManagement,
-//   void Function(String?) updateRole,
-// ) {
-//   return Column(
-//     crossAxisAlignment: CrossAxisAlignment.start,
-//     children: [
-//       _buildWelcomeContainer(context, currentUser),
-//       _buildChangeViewRow(toggleScrollDirection, context),
-//       SizedBox(height: 20),
-//       _buildGroupListView(
-//         context,
-//         groups,
-//         scrollDirection,
-//         currentUser,
-//         userManagement,
-//         groupManagement,
-//         updateRole,
-//       ),
-//     ],
-//   );
-// }
 Widget _buildGroupListBody(
   BuildContext context,
   List<Group> groups,
@@ -176,35 +148,6 @@ Widget _buildChangeViewRow(
     ],
   );
 }
-
-// Widget _buildGroupListView(
-//   BuildContext context,
-//   List<Group> groups,
-//   Axis scrollDirection,
-//   User? currentUser,
-//   UserManagement userManagement,
-//   GroupManagement groupManagement,
-//   void Function(String?) updateRole,
-// ) {
-//   return SizedBox(
-//     height: scrollDirection == Axis.vertical ? 500 : 130,
-//     child: ListView.separated(
-//       separatorBuilder: (context, index) => SizedBox(height: 10),
-//       scrollDirection: scrollDirection,
-//       itemCount: groups.length,
-//       itemBuilder: (context, index) {
-//         return buildGroupCard(
-//           context,
-//           groups[index],
-//           currentUser,
-//           userManagement,
-//           groupManagement,
-//           updateRole,
-//         );
-//       },
-//     ),
-//   );
-// }
 
 Widget _buildGroupListView(
   BuildContext context,

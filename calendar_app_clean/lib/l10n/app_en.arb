@@ -254,7 +254,7 @@
             }
         }
     },
-    "edit": "Edit",
+    "editGroup": "Edit Group",
     "remove": "Remove",
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -262,6 +262,8 @@
     "removeConfirmation": "Confirm to remove",
     "permissionDenied": "Permission Denied",
     "permissionDeniedInf": "You are not an administrator to remove this item.",
+    "leaveGroup": "Leave group",
+    "permissionDeniedRole": "You are currently a {role} of this group.",
     "putGroupImage": "Put an image for the group",
     "close": "close",
     "addNewUser": "Add a new user to your group",
@@ -270,6 +272,7 @@
     "groupNameRequired": "Group name cannot be empty",
     "groupEdited": "Group edited successfully!",
     "failedToEditGroup": "Failed to edit the group. Please try again",
+
     "searchPerson": "Search by user name",
     "delete": "Delete",
     "confirmRemovalMessage": "Are you sure you want to delete this group?",
@@ -283,7 +286,7 @@
     "friday": "friday",
     "saturday": "Saturday",
     "sunday": "sunday",
-    "save": "Save",
+    "save": "Save changes",
     "groupNameText": "Group name",
     "groupOwner": "Group owner",
     "enableRepetitiveEvents": "Enable repetitive events",
@@ -383,5 +386,10 @@
   
     "notificationGroupDeletedAllTitle": "Group Deleted",
     "notificationGroupDeletedAllMessage": "The group \"{groupName}\" has been deleted by the owner."
+
+ 
+
+
+
     
 }

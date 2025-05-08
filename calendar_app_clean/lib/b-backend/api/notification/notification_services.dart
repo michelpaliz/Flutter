@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:first_project/b-backend/auth/auth_database/exceptions/exception.dart';
+import 'package:first_project/b-backend/api/auth/exceptions/exception.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../a-models/notification_model/notification_user.dart'; // Update this import based on your file structure

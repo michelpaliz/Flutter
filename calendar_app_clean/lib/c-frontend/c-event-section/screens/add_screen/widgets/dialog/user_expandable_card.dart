@@ -6,10 +6,12 @@ import 'dialog_button_widget.dart'; // Import the DialogButtonWidget here
 
 class UserExpandableCard extends StatefulWidget {
   final List<User> usersAvailable;
+  final ValueChanged<List<User>> onSelectedUsersChanged; // <-- ADD THIS
 
   const UserExpandableCard({
     Key? key,
     required this.usersAvailable,
+    required this.onSelectedUsersChanged, // <-- AND THIS
   }) : super(key: key);
 
   @override
@@ -17,62 +19,59 @@ class UserExpandableCard extends StatefulWidget {
 }
 
 class _UserExpandableCardState extends State<UserExpandableCard> {
-  List<User> _selectedUsers = []; // List to hold selected users
-  bool _isExpanded = false; // Track whether the card is expanded
+  List<User> _selectedUsers = [];
+  bool _isExpanded = false;
 
-  // Toggles the expansion of the card
   void _toggleExpansion() {
     setState(() {
-      _isExpanded = !_isExpanded; // Toggle expansion
+      _isExpanded = !_isExpanded;
     });
   }
 
-  // Method to handle user selection
   void _onUsersSelected(List<User> selectedUsers) {
     setState(() {
-      _selectedUsers = selectedUsers; // Update the selected users
+      _selectedUsers = selectedUsers;
     });
+
+    widget.onSelectedUsersChanged(selectedUsers); // <-- NOTIFY PARENT
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 5,
-      margin: EdgeInsets.all(10.0),
+      margin: const EdgeInsets.all(10.0),
       child: Padding(
-        padding: const EdgeInsets.all(8.0), // Add padding to the Card
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              title: Text('Select Users'),
-              trailing: Icon(
-                _isExpanded ? Icons.expand_less : Icons.expand_more,
-              ), // Change icon based on expansion state
+              title: const Text('Select Users'),
+              trailing:
+                  Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
               onTap: _toggleExpansion,
             ),
             AnimatedContainer(
-              duration: Duration(milliseconds: 300), // Animation duration
-              height: _isExpanded ? 100 : 0, // Adjust height based on expansion
+              duration: const Duration(milliseconds: 300),
+              height: _isExpanded ? 100 : 0,
               child: _isExpanded
                   ? SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.all(8.0), // Add padding to the scroll view
+                        padding: const EdgeInsets.all(8.0),
                         child: DialogButtonWidget(
                           selectedUsers: _selectedUsers,
                           usersAvailable: widget.usersAvailable,
-                          onUsersSelected: _onUsersSelected, // Pass callback
+                          onUsersSelected: _onUsersSelected,
                         ),
                       ),
                     )
-                  : SizedBox.shrink(), // Show empty space if collapsed
+                  : const SizedBox.shrink(),
             ),
-            // SizedBox(height: 10.0),
-            // Display the selected users below the button
             _selectedUsers.isNotEmpty
                 ? AnimatedUsersList(users: _selectedUsers)
-                : Padding(
-                    padding: const EdgeInsets.all(8.0), // Add padding to the text
+                : const Padding(
+                    padding: EdgeInsets.all(8.0),
                     child: Text('No users selected.'),
                   ),
           ],

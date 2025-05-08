@@ -4,8 +4,8 @@ import 'dart:developer' as devtools show log;
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/node_services/group_services.dart';
-import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/b-backend/api/group/group_services.dart';
+import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';
 
@@ -55,6 +55,9 @@ class GroupManagement extends ChangeNotifier {
       setCurrentUser(user);
     }
   }
+
+  List<Group> get groups => _lastFetchedGroups;
+  List<Group> _lastFetchedGroups = [];
 
   void setCurrentUser(User? user) {
     if (user == null) return; // Avoid null user
@@ -130,8 +133,11 @@ class GroupManagement extends ChangeNotifier {
         }
       }
 
-      // ✅ Clear previous group data — add this line
-      groupController.add([]); // <--- This clears old group data
+      // ✅ Save to internal state before pushing to the stream
+      _lastFetchedGroups = groups;
+
+      // ✅ Clear previous group data
+      groupController.add([]);
 
       // ✅ Update the currentUser's group list in memory
       currentUser.groupIds = validGroupIds;

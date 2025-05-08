@@ -1,8 +1,8 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
 import 'package:first_project/c-frontend/routes/routes.dart';

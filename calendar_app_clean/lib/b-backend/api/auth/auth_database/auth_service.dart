@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_repository.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_repository.dart';
 
 class AuthService implements AuthRepository {
   final AuthRepository repository;

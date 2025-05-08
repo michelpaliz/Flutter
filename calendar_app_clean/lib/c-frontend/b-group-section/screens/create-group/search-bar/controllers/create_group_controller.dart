@@ -9,7 +9,7 @@ import '../../../../../../a-models/group_model/calendar/calendar.dart';
 import '../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../a-models/notification_model/userInvitation_status.dart';
 import '../../../../../../a-models/user_model/user.dart';
-import '../../../../../../b-backend/auth/node_services/user_services.dart';
+import '../../../../../../b-backend/api/user/user_services.dart';
 import '../../../../../../d-stateManagement/group_management.dart';
 import '../../../../../../d-stateManagement/notification_management.dart';
 import '../../../../../../d-stateManagement/user_management.dart';

@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:flutter/material.dart';

@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../../a-models/user_model/user.dart';
-import '../../../../../../../../b-backend/auth/node_services/user_services.dart';
+import '../../../../../../b-backend/api/user/user_services.dart';
 import '../../../../../../../../f-themes/themes/theme_colors.dart';
 import '../../../../../../../../f-themes/utilities/utilities.dart';
 

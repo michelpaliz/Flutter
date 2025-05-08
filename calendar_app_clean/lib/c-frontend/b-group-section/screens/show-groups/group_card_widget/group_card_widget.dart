@@ -21,6 +21,9 @@ Widget buildGroupCard(
 ) {
   bool isHovered = false;
 
+  final role = group.userRoles[currentUser?.userName] ?? 'Member';
+  final canEdit = role != 'Member'; // Only non-Member can edit
+
   return InkWell(
     onTap: () async {
       User groupOwner =
@@ -33,11 +36,10 @@ Widget buildGroupCard(
         userManagement,
         groupManagement,
         updateRole,
+        canEdit, // 👈 pass permission flag to dialog
       );
     },
-    onHover: (hovering) {
-      isHovered = hovering;
-    },
+    onHover: (hovering) => isHovered = hovering,
     child: MouseRegion(
       onEnter: (_) => isHovered = true,
       onExit: (_) => isHovered = false,

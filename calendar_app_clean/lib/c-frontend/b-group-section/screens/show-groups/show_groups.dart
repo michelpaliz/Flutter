@@ -21,11 +21,10 @@ class ShowGroups extends StatefulWidget {
 
 class _ShowGroupsState extends State<ShowGroups> {
   Axis _scrollDirection = Axis.vertical;
-  String? _currentRole;
   bool _hasFetchedGroups = false;
   bool _initialized = false;
 
-  late UserManagement? _userManagement;
+  late UserManagement _userManagement;
   late GroupManagement _groupManagement;
 
   @override
@@ -39,7 +38,6 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   void _createGroup() {
     Navigator.pushNamed(context, AppRoutes.createGroupData);
-    setState(() {}); // Just for refresh if needed
   }
 
   void _toggleScrollDirection() {
@@ -61,7 +59,7 @@ class _ShowGroupsState extends State<ShowGroups> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // ✅ Only fetch once on first build
+        // ✅ Fetch groups only once
         if (!_hasFetchedGroups) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             GroupController.fetchGroups(user, _groupManagement);
@@ -72,18 +70,17 @@ class _ShowGroupsState extends State<ShowGroups> {
         return MainScaffold(
           title: AppLocalizations.of(context)!.groups,
           actions: [
-            // 🔄 Reload button to refetch groups
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: AppLocalizations.of(context)!.refresh,
               onPressed: () {
                 GroupController.fetchGroups(user, _groupManagement);
-                setState(() {}); // optional: to trigger rebuild if needed
+                setState(() {}); // refresh view
               },
             ),
             buildNotificationIcon(
               context: context,
-              userManagement: _userManagement!,
+              userManagement: _userManagement,
               notificationManagement:
                   Provider.of<NotificationManagement>(context, listen: false),
             ),
@@ -93,9 +90,9 @@ class _ShowGroupsState extends State<ShowGroups> {
             _scrollDirection,
             _toggleScrollDirection,
             user,
-            _userManagement!,
+            _userManagement,
             _groupManagement,
-            (String? role) => _currentRole = role,
+            (String? role) {}, // Optional callback
           ),
           fab: FloatingActionButton(
             onPressed: _createGroup,

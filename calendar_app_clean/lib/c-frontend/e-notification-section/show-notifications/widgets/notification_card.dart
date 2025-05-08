@@ -1,6 +1,7 @@
 import 'package:first_project/a-models/notification_model/notification_localization.dart';
 import 'package:first_project/a-models/notification_model/notification_user.dart';
 import 'package:first_project/c-frontend/e-notification-section/show-notifications/utils/notification_formatting.dart';
+import 'package:first_project/f-themes/utilities/view-item-styles/button/rounded_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -21,8 +22,9 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final actionable =
-        notification.questionsAndAnswers.isNotEmpty && !notification.isRead;
+
+    final actionable = (notification.category == Category.groupInvitation ||
+        notification.questionsAndAnswers.isNotEmpty);
 
     return Dismissible(
       key: Key(notification.id),
@@ -35,36 +37,40 @@ class NotificationCard extends StatelessWidget {
         child: ListTile(
           title: Text(
             notification.getLocalizedTitle(loc),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(notification.getLocalizedMessage(loc)),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 formatTimeDifference(notification.timestamp, context),
-                style: TextStyle(color: Colors.grey),
+                style: const TextStyle(color: Colors.grey),
               ),
-            ],
-          ),
-          trailing: actionable
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
+              const SizedBox(height: 8),
+              if (actionable)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: onConfirm,
-                      child: Text(loc.confirm), // ✅ Localized
+                    RoundedActionButton(
+                      text: loc.confirm,
+                      onPressed: onConfirm ?? () {},
+                      backgroundColor: Colors.green.shade600,
+                      textColor: Colors.white,
                     ),
-                    TextButton(
-                      onPressed: onNegate,
-                      child:
-                          Text(loc.cancel), // ✅ Localized as "Negate" fallback
+                    const SizedBox(width: 8),
+                    RoundedActionButton(
+                      text: loc.cancel,
+                      onPressed: onNegate ?? () {},
+                      backgroundColor: Colors.red.shade600,
+                      textColor: Colors.white,
                     ),
                   ],
                 )
-              : null,
+            ],
+          ),
         ),
       ),
     );
@@ -96,13 +102,13 @@ class NotificationCard extends StatelessWidget {
         color: Colors.blue,
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.only(left: 16),
-        child: Icon(Icons.info, color: Colors.white),
+        child: const Icon(Icons.info, color: Colors.white),
       );
 
   Widget swipeActionRight(AppLocalizations loc) => Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        child: Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete, color: Colors.white),
       );
 }

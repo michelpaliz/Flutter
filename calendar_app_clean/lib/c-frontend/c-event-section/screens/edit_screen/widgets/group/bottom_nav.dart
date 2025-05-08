@@ -1,6 +1,7 @@
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BottomNavigationSection extends StatelessWidget {
   final VoidCallback onGroupUpdate;
@@ -21,7 +22,10 @@ class BottomNavigationSection extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onGroupUpdate,
         icon: Icon(Icons.group_add_rounded, color: contrastTextColor),
-        label: Text('Edit', style: TextStyle(color: contrastTextColor)),
+        label: Text(
+          AppLocalizations.of(context)!.save,
+          style: TextStyle(color: contrastTextColor),
+        ),
         style: ButtonStyles.saucyButtonStyle(
           defaultBackgroundColor: backgroundColor,
           pressedBackgroundColor:

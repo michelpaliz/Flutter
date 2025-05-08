@@ -3,8 +3,8 @@ import 'package:first_project/a-models/group_model/event_appointment/event/event
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/updateInfo.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/node_services/event_services.dart';
-import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/b-backend/api/event/event_services.dart';
+import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';

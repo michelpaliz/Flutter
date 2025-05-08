@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:flutter/material.dart';
 

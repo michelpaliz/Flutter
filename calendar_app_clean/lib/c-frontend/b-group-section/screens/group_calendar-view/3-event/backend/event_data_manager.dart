@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/b-backend/auth/node_services/event_services.dart';
+import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 //  It can be used by the EventActionManager for event-related logic, but it focuses on data fetching, updating, and syncing with the backend.

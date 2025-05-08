@@ -11,8 +11,9 @@ class SaveButton extends StatelessWidget {
     return Center(
       child: ElevatedButton(
         onPressed: onPressed,
-        child: Text(AppLocalizations.of(context)!.edit),
+        child: Text(AppLocalizations.of(context)!.save),
       ),
     );
   }
 }
+  

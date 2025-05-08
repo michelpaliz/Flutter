@@ -1,7 +1,7 @@
 import 'package:first_project/a-models/notification_model/notification_user.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/auth/node_services/notification_services.dart';
-import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/b-backend/api/notification/notification_services.dart';
+import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/c-frontend/e-notification-section/enum/broad_category.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';

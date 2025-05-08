@@ -1,5 +1,5 @@
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart';
-import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:first_project/b-backend/api/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';

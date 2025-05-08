@@ -3,7 +3,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:first_project/a-models/group_model/calendar/calendar.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/token_storage.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {

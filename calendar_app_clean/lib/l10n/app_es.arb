@@ -254,7 +254,8 @@
         }
       }
     },
-    "edit": "Editar",
+    "editGroup": "Editar Grupo",
+
     "remove": "Eliminar",
     "confirm": "Confirmar",
     "cancel": "Cancelar",
@@ -262,6 +263,8 @@
     "removeConfirmation": "Confirmar eliminación",
     "permissionDenied": "Permiso denegado",
     "permissionDeniedInf": "No eres administrador para eliminar este elemento.",
+    "leaveGroup": "Salir del grupo",
+    "permissionDeniedRole": "Actualmente eres {role} de este grupo.",
     "putGroupImage": "Poner una imagen para el grupo",
     "close": "Cerrar",
     "addNewUser": "Añadir un nuevo usuario a tu grupo",
@@ -283,7 +286,7 @@
     "friday": "viernes",
     "saturday": "sábado",
     "sunday": "domingo",
-    "save": "Guardar",
+    "save": "Guardar Edición",
     "groupNameText": "Nombre del grupo",
     "groupOwner": "Propietario del grupo",
     "enableRepetitiveEvents": "Habilitar eventos repetitivos",
@@ -334,7 +337,7 @@
     },
     "createdOn": "Creado en",
     "userCount": "Contador",
-    
+
     "timeJustNow": "Justo ahora",
     "timeMinutesAgo": "hace {minutes} minutos",
     "timeHoursAgo": "hace {hours} horas",

@@ -1,4 +1,4 @@
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_service.dart'; // ✅ Still needed
+import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart'; // ✅ Still needed
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart'; // ✅ Required for accessing AuthService

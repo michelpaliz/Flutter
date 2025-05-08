@@ -1,4 +1,4 @@
-import 'package:first_project/b-backend/auth/auth_database/auth/auth_provider.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";

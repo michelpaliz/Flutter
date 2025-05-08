@@ -1,7 +1,7 @@
 // lib/b-backend/auth/auth_service.dart
 import 'dart:convert';
 import 'package:first_project/b-backend/api/config/api_client.dart';
-import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
+import 'package:first_project/b-backend/api/auth/exceptions/auth_exceptions.dart';
 
 class AuthService {
   final ApiClient _api = ApiClient();

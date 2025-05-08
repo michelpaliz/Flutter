@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:first_project/b-backend/api/config/api_rotues.dart';
-import 'package:first_project/b-backend/auth/auth_database/auth/token_storage.dart';
-import 'package:first_project/b-backend/auth/auth_database/exceptions/auth_exceptions.dart';
-import 'package:first_project/b-backend/auth/node_services/user_services.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:first_project/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 

@@ -8,17 +8,23 @@ import 'profile_alert_dialog_actions.dart';
 import 'profile_alert_dialog_content.dart';
 
 void showProfileAlertDialog(
-  BuildContext context,
-  Group group,
-  User owner,
-  User? currentUser,
-  UserManagement userManagement,
-  GroupManagement groupManagement,
-  void Function(String?) updateRole,
-) {
+    BuildContext context,
+    Group group,
+    User owner,
+    User? currentUser,
+    UserManagement userManagement,
+    GroupManagement groupManagement,
+    void Function(String?) updateRole,
+    [bool? overridePermission]) {
   final user = currentUser ?? userManagement.user!;
-  final hasPermission = true; // Call your permission logic here
-  final role = ''; // Call your role logic here
+
+  // 👇 Get the role of the current user in this group
+  final role = group.userRoles[user.userName] ?? 'Member';
+
+  // 👇 Determine if the user has permission to edit
+  final hasPermission = overridePermission ?? role != 'Member';
+
+  // Update the role in external state (optional usage)
   updateRole(role);
 
   showDialog(
@@ -30,7 +36,7 @@ void showProfileAlertDialog(
           context,
           group,
           user,
-          hasPermission,
+          hasPermission, // 👈 Apply permission logic
           role,
           userManagement,
           groupManagement,

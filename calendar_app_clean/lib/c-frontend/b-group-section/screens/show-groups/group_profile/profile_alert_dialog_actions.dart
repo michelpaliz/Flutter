@@ -10,24 +10,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'confirmation_dialog.dart';
 
-/// Builds a list of dialog action widgets for a profile alert based on user permissions.
-///
-/// This function returns a list of [Widget]s representing actions that can be performed
-/// on a group profile dialog. If the user has the necessary permissions, actions include
-/// editing the group and removing it. If the user does not have permission, actions include
-/// displaying the user's role and allowing them to leave the group.
-///
-/// Parameters:
-/// - [context]: The [BuildContext] of the current widget tree.
-/// - [group]: The [Group] object representing the group in question.
-/// - [user]: The [User] object representing the current user.
-/// - [hasPermission]: A [bool] indicating if the user has permission to edit or remove the group.
-/// - [role]: A [String] representing the role of the user in the group.
-/// - [userManagement]: An instance of [UserManagement] to handle user-related operations.
-/// - [groupManagement]: An instance of [GroupManagement] to handle group-related operations.
-///
-/// Returns a list of [Widget]s containing [TextButton]s for each possible action.
-
 List<Widget> buildProfileDialogActions(
   BuildContext context,
   Group group,
@@ -37,6 +19,10 @@ List<Widget> buildProfileDialogActions(
   UserManagement userManagement,
   GroupManagement groupManagement,
 ) {
+  final loc = AppLocalizations.of(context)!;
+  final roleDisplay =
+      role[0].toUpperCase() + role.substring(1); // Capitalize role
+
   if (hasPermission) {
     return [
       TextButton(
@@ -45,11 +31,9 @@ List<Widget> buildProfileDialogActions(
 
           await Future.delayed(const Duration(milliseconds: 100));
 
-          // Use root navigator context (safe)
           final overlayContext =
               Navigator.of(context, rootNavigator: true).context;
 
-          // Show loading
           showDialog(
             context: overlayContext,
             barrierDismissible: false,
@@ -76,12 +60,12 @@ List<Widget> buildProfileDialogActions(
             if (overlayContext.mounted)
               Navigator.of(overlayContext).pop(); // close loader
             ScaffoldMessenger.of(overlayContext).showSnackBar(
-              SnackBar(content: Text('Error loading group: $e')),
+              SnackBar(content: Text('${loc.failedToEditGroup} $e')),
             );
           }
         },
         child: Text(
-          AppLocalizations.of(context)!.edit,
+          loc.editGroup,
           style: TextStyle(color: ThemeColors.getTextColor(context)),
         ),
       ),
@@ -89,7 +73,7 @@ List<Widget> buildProfileDialogActions(
         onPressed: () async {
           final confirm = await showConfirmationDialog(
             context,
-            AppLocalizations.of(context)!.questionDeleteGroup,
+            loc.questionDeleteGroup,
           );
 
           if (confirm) {
@@ -99,20 +83,18 @@ List<Widget> buildProfileDialogActions(
                 if (context.mounted) Navigator.pop(context);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Error: ${e.toString()}")),
+                  SnackBar(content: Text('${loc.failedToEditGroup} $e')),
                 );
               }
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content:
-                        Text("Only the group owner can delete this group.")),
+                SnackBar(content: Text(loc.permissionDeniedInf)),
               );
             }
           }
         },
         child: Text(
-          AppLocalizations.of(context)!.remove,
+          loc.remove,
           style: TextStyle(color: ThemeColors.getTextColor(context)),
         ),
       ),
@@ -122,7 +104,7 @@ List<Widget> buildProfileDialogActions(
       TextButton(
         onPressed: () => Navigator.pop(context),
         child: Text(
-          "Currently you are a/an $role of this group",
+          loc.permissionDeniedRole(roleDisplay),
           style: TextStyle(color: ThemeColors.getTextColor(context)),
         ),
       ),
@@ -131,8 +113,8 @@ List<Widget> buildProfileDialogActions(
           final confirm = await showConfirmationDialog(
             context,
             user.id == group.ownerId
-                ? 'Are you sure you want to dissolve this group?'
-                : 'Are you sure you want to leave this group?',
+                ? loc.questionDeleteGroup
+                : loc.removeGroup,
           );
           if (confirm) {
             await groupManagement.groupService.leaveGroup(user.id, group.id);
@@ -140,7 +122,7 @@ List<Widget> buildProfileDialogActions(
           }
         },
         child: Text(
-          "Leave group",
+          loc.leaveGroup,
           style: TextStyle(color: ThemeColors.getTextColor(context)),
         ),
       ),
