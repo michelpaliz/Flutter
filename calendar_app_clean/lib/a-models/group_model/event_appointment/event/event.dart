@@ -1,4 +1,3 @@
-
 import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/a-models/notification_model/updateInfo.dart';
 
@@ -12,12 +11,13 @@ class Event {
   final String? localization;
   final String? note;
   final String? description;
-  final int eventColorIndex; // Store the index of the color
-  late final bool allDay;
-  bool done;
-  final List<String> recipients; // Changed to List<String> with default empty list
-  final String ownerID; // Changed to ownerID for consistency
-  List<UpdateInfo> updateHistory; // New list to store update information
+  final int eventColorIndex;
+  final bool allDay;
+  bool isDone;
+  DateTime? completedAt;
+  final List<String> recipients;
+  final String ownerId;
+  List<UpdateInfo> updateHistory;
 
   Event({
     required this.id,
@@ -25,25 +25,24 @@ class Event {
     required this.endDate,
     required this.title,
     this.groupId,
-    this.done = false,
     this.recurrenceRule,
     this.localization,
-    this.allDay = false,
     this.note,
     this.description,
-    required this.eventColorIndex, // Store the color index
-    List<String>? recipients, // Initialize recipient as a list with default
-    required this.ownerID, // Initialize ownerID
-    List<UpdateInfo>? updateHistory, // Initialize updateHistory
+    required this.eventColorIndex,
+    this.allDay = false,
+    this.isDone = false,
+    this.completedAt,
+    List<String>? recipients,
+    required this.ownerId,
+    List<UpdateInfo>? updateHistory,
   })  : recipients = recipients ?? [],
         updateHistory = updateHistory ?? [];
 
-  // Method to add an update record
   void addUpdate(String userId) {
     updateHistory.add(UpdateInfo(userId: userId, updatedAt: DateTime.now()));
   }
 
-  // Method to create a new Event instance with modified fields (immutability)
   Event copyWith({
     String? id,
     DateTime? startDate,
@@ -56,9 +55,10 @@ class Event {
     String? description,
     int? eventColorIndex,
     bool? allDay,
-    bool? done,
+    bool? isDone,
+    DateTime? completedAt,
     List<String>? recipients,
-    String? ownerID,
+    String? ownerId,
     List<UpdateInfo>? updateHistory,
   }) {
     return Event(
@@ -73,82 +73,74 @@ class Event {
       description: description ?? this.description,
       eventColorIndex: eventColorIndex ?? this.eventColorIndex,
       allDay: allDay ?? this.allDay,
-      done: done ?? this.done,
+      isDone: isDone ?? this.isDone,
+      completedAt: completedAt ?? this.completedAt,
       recipients: recipients ?? List.from(this.recipients),
-      ownerID: ownerID ?? this.ownerID,
+      ownerId: ownerId ?? this.ownerId,
       updateHistory: updateHistory != null
-          ? List.from(updateHistory.map((info) => info.copyWith()))
+          ? List.from(updateHistory.map((u) => u.copyWith()))
           : List.from(this.updateHistory),
     );
   }
 
-  // Convert the object to a map for JSON serialization
   Map<String, dynamic> toMap() {
-    final Map<String, dynamic> json = {
+    return {
       'id': id,
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'title': title,
       'groupId': groupId,
-      'done': done,
-      if (recurrenceRule != null) 'recurrenceRule': recurrenceRule!.toMap(),
-      if (localization != null) 'localization': localization,
-      'allDay': allDay,
-      if (note != null) 'note': note,
-      if (description != null) 'description': description,
+      'recurrenceRule': recurrenceRule?.toMap(),
+      'localization': localization,
+      'note': note,
+      'description': description,
       'eventColorIndex': eventColorIndex,
-      'recipients': recipients, // Consistent naming
-      'ownerID': ownerID, // Consistent naming
-      'updateHistory': updateHistory
-          .map((updateInfo) => updateInfo.toMap())
-          .toList(), // Add update history to map
+      'allDay': allDay,
+      'isDone': isDone,
+      'completedAt': completedAt?.toIso8601String(),
+      'recipients': recipients,
+      'ownerId': ownerId,
+      'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
     };
-    return json;
   }
 
-  // Factory constructor to create an object from a map (JSON deserialization)
   factory Event.fromJson(Map<String, dynamic> json) {
-    try {
-      final recurrenceRuleJson = json['recurrenceRule'];
-      RecurrenceRule? recurrenceRule;
-
-      if (recurrenceRuleJson != null) {
-        recurrenceRule = RecurrenceRule.fromMap(recurrenceRuleJson);
-      }
-
-      return Event(
-        id: json['id'],
-        startDate: DateTime.parse(json['startDate']).toUtc(),
-        endDate: DateTime.parse(json['endDate']).toUtc(),
-        title: json['title'] ?? '',
-        groupId: json['groupId'],
-        done: json['done'] ?? false,
-        recurrenceRule: recurrenceRule,
-        localization: json['localization'] ?? '',
-        allDay: json['allDay'] ?? false,
-        note: json['note'] ?? '',
-        description: json['description'] ?? '',
-        eventColorIndex: json['eventColorIndex'],
-        recipients: (json['recipients'] as List<dynamic>?)
-            ?.map((item) => item as String)
-            .toList() ?? [], // Ensure no null issues for recipients
-        ownerID: json['ownerID'], // Consistent naming for ownerID
-        updateHistory: (json['updateHistory'] as List<dynamic>?)
-            ?.map((item) => UpdateInfo.fromMap(item as Map<String, dynamic>))
-            .toList() ?? [], // Ensure no null issues for updateHistory
-      );
-    } catch (e) {
-      throw Exception('Error parsing Event: $e');
-    }
+    return Event(
+      id: json['id'],
+      startDate: DateTime.parse(json['startDate']).toUtc(),
+      endDate: DateTime.parse(json['endDate']).toUtc(),
+      title: json['title'] ?? '',
+      groupId: json['groupId'],
+      recurrenceRule: json['recurrenceRule'] != null
+          ? RecurrenceRule.fromMap(json['recurrenceRule'])
+          : null,
+      localization: json['localization'],
+      note: json['note'],
+      description: json['description'],
+      eventColorIndex: json['eventColorIndex'],
+      allDay: json['allDay'] ?? false,
+      isDone: json['isDone'] ?? false,
+      completedAt: json['completedAt'] != null
+          ? DateTime.tryParse(json['completedAt'])
+          : null,
+      recipients: (json['recipients'] as List<dynamic>?)
+              ?.map((item) => item as String)
+              .toList() ??
+          [],
+      ownerId: json['ownerId'],
+      updateHistory: (json['updateHistory'] as List<dynamic>?)
+              ?.map((item) => UpdateInfo.fromMap(item))
+              .toList() ??
+          [],
+    );
   }
 
   @override
   String toString() {
-    return 'Event -- > {id: $id, startDate: $startDate, endDate: $endDate, '
-        'title: $title, groupId: $groupId, recurrenceRule: $recurrenceRule, '
-        'localization: $localization, note: $note, description: $description, '
-        'eventColorIndex: $eventColorIndex, allDay: $allDay, done: $done, '
-        'recipients: ${recipients.join(', ')}, ownerID: $ownerID, '
-        'updateHistory: $updateHistory}'; // Format lists for readability
+    return 'Event{id: $id, start: $startDate, end: $endDate, title: $title, '
+        'groupId: $groupId, recurrenceRule: $recurrenceRule, location: $localization, '
+        'note: $note, desc: $description, color: $eventColorIndex, allDay: $allDay, '
+        'isDone: $isDone, completedAt: $completedAt, recipients: $recipients, '
+        'ownerId: $ownerId, updates: $updateHistory}';
   }
 }

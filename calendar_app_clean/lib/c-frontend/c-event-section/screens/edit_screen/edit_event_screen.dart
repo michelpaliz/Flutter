@@ -7,7 +7,7 @@ import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';

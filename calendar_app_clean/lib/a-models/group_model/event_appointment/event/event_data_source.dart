@@ -1,5 +1,5 @@
-import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -64,7 +64,7 @@ class EventDataSource extends CalendarDataSource {
   }
 
   bool isDone(int index) {
-    return events[index].done;
+    return events[index].isDone;
   }
 
   // Implement other necessary methods as needed

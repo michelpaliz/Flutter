@@ -1,6 +1,7 @@
 import 'dart:ui';
+
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -43,7 +44,7 @@ class DataSource extends CalendarDataSource<Event> {
       endDate: appointment.endTime.toUtc(),
       title: appointment.subject,
       groupId: customData.groupId,
-      done: customData.done,
+      isDone : customData.isDone,
       recurrenceRule: customData.recurrenceRule,
       localization: customData.localization,
       allDay: appointment.isAllDay,
@@ -51,7 +52,7 @@ class DataSource extends CalendarDataSource<Event> {
       description: customData.description,
       eventColorIndex: customData.eventColorIndex,
       recipients: customData.recipients, // Keep the recipient list
-      ownerID: customData.ownerID, // Include the ownerID (creator of the event)
+      ownerId: customData.ownerId, // Include the ownerID (creator of the event)
     )..updateHistory = customData.updateHistory; // Copy the update history
   }
 
@@ -62,7 +63,8 @@ class DataSource extends CalendarDataSource<Event> {
   }
 
   // Method to calculate the number of days between two dates, avoiding leap years
-  int _calculateDaysBetweenDatesAvoidLeapYears(DateTime startDate, DateTime endDate) {
+  int _calculateDaysBetweenDatesAvoidLeapYears(
+      DateTime startDate, DateTime endDate) {
     final difference = endDate.difference(startDate).inDays;
     return difference;
   }
@@ -126,19 +128,23 @@ class DataSource extends CalendarDataSource<Event> {
       recurrenceRuleString = 'FREQ=DAILY;INTERVAL=$repeatInterval';
     } else if (recurrenceType == 'Weekly' && weeklyDays.isNotEmpty) {
       final daysOfWeekString = weeklyDays.join(',');
-      recurrenceRuleString = 'FREQ=WEEKLY;INTERVAL=$repeatInterval;BYDAY=$daysOfWeekString';
+      recurrenceRuleString =
+          'FREQ=WEEKLY;INTERVAL=$repeatInterval;BYDAY=$daysOfWeekString';
     } else if (recurrenceType == 'Monthly') {
       final dayOfMonth = startDate.day;
-      recurrenceRuleString = 'FREQ=MONTHLY;INTERVAL=$repeatInterval;BYMONTHDAY=$dayOfMonth';
+      recurrenceRuleString =
+          'FREQ=MONTHLY;INTERVAL=$repeatInterval;BYMONTHDAY=$dayOfMonth';
     } else if (recurrenceType == 'Yearly') {
       final monthIndex = startDate.month;
       final dayOfMonth = startDate.day;
-      recurrenceRuleString = 'FREQ=YEARLY;INTERVAL=$repeatInterval;BYMONTH=$monthIndex;BYMONTHDAY=$dayOfMonth';
+      recurrenceRuleString =
+          'FREQ=YEARLY;INTERVAL=$repeatInterval;BYMONTH=$monthIndex;BYMONTHDAY=$dayOfMonth';
     }
 
     // Add the "UNTIL" parameter if specified
     if (untilDate != null) {
-      final untilDateString = DateFormat('yyyyMMddTHHmmss').format(untilDate.toUtc());
+      final untilDateString =
+          DateFormat('yyyyMMddTHHmmss').format(untilDate.toUtc());
       recurrenceRuleString += ';UNTIL=$untilDateString';
     }
 

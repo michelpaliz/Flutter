@@ -3,7 +3,7 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/1.1-main_calendar_view.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/event/color_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';

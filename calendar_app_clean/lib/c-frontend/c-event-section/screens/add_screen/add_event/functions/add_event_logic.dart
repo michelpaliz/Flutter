@@ -1,5 +1,4 @@
 import 'dart:developer' as devtools show log;
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,19 +12,18 @@ import '../../../../../../d-stateManagement/group_management.dart';
 import '../../../../../../d-stateManagement/notification_management.dart';
 import '../../../../../../d-stateManagement/user_management.dart';
 import '../../../../../../f-themes/utilities/utilities.dart';
-import '../../../../utils/event/color_manager.dart';
-import '../functions/add_event_dialogs.dart';
+import '../../../../utils/color_manager.dart';
 
-mixin AddEventLogic<T extends StatefulWidget> on State<T>
-    implements AddEventDialogs {
-  // Core services
+mixin AddEventLogic<T extends StatefulWidget> on State<T> {
+
+  // Services
   late UserManagement userManagement;
   late GroupManagement groupManagement;
   late NotificationManagement notificationManagement;
   final EventService _eventService = EventService();
   final UserService _userService = UserService();
 
-  // App models and data
+  // Models
   late User user;
   late Group _group;
   late Color _selectedEventColor;
@@ -40,7 +38,7 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T>
   final _noteController = TextEditingController();
   final _locationController = TextEditingController();
 
-  // Logic states
+  // State
   bool isRepetitive = false;
   bool isLoading = true;
   final double toggleWidth = 50.0;
@@ -48,7 +46,7 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T>
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
 
-  // Initialize state from group
+  // Logic
   void initializeLogic(Group group, BuildContext context) async {
     _group = group;
     _selectedEventColor = ColorManager.eventColors.last;
@@ -58,8 +56,8 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T>
 
     if (_group.userIds.isNotEmpty) {
       for (var userId in _group.userIds) {
-        User user = await _userService.getUserById(userId);
-        _users.add(user);
+        final fetchedUser = await _userService.getUserById(userId);
+        _users.add(fetchedUser);
       }
     }
 
@@ -141,7 +139,9 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T>
       description: _descriptionController.text,
       eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
       recipients: _selectedUsers.map((u) => u.id).toList(),
-      ownerID: user.id,
+      ownerId: user.id,
+      isDone: false,
+      completedAt: null,
     );
 
     final exists = _eventList.any((existing) =>
@@ -156,9 +156,9 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T>
     }
 
     final created = await _eventService.createEvent(newEvent);
+    final addedEvent = _eventService.event;
 
-    if (created) {
-      final addedEvent = _eventService.event;
+    if (created && addedEvent != null) {
       _eventList.add(addedEvent);
       user.events.add(addedEvent.id);
 
@@ -218,27 +218,5 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T>
   void setSelectedUsers(List<User> users) {
     _selectedUsers = users;
     if (mounted) setState(() {});
-  }
-
-  // Dialog placeholders to avoid error
-  @override
-  void showRepetitionDialog(BuildContext context) {
-    // Implement if needed or from AddEventDialogs mixin
-  }
-
-  @override
-  void showErrorDialog(BuildContext context) {
-    // Implement if needed or from AddEventDialogs mixin
-  }
-
-  @override
-  Widget buildRepetitionDialog(BuildContext context) {
-    // Implement if needed or from AddEventDialogs mixin
-    return const SizedBox.shrink();
-  }
-
-  @override
-  void showGroupFetchErrorDialog(BuildContext context) {
-    // Implement if needed or from AddEventDialogs mixin
   }
 }

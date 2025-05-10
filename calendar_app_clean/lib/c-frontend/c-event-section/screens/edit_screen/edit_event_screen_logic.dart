@@ -181,7 +181,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       eventColorIndex: ColorManager().getColorIndex(_selectedEventColor),
       recipients: _recipients,
       updateHistory: _updateInfo,
-      ownerID: _event.ownerID,
+      ownerId: _event.ownerId,
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:first_project/c-frontend/c-event-section/utils/event/number_selector.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/number_selector.dart';
 import 'package:first_project/a-models/group_model/event_appointment/appointment/custom_day_week.dart';
 import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:flutter/material.dart';
