@@ -100,4 +100,18 @@ class EventService {
       throw Exception('Failed to update event status');
     }
   }
+
+  Future<List<Event>> getEventsByGroupId(String groupId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/group/$groupId'),
+      headers: await _authHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.map((e) => Event.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to fetch events for group $groupId');
+    }
+  }
 }

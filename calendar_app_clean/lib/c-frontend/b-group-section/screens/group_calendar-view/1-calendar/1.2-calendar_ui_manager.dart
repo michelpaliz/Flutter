@@ -1,9 +1,11 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event_data_source.dart';
+import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/2.1-appointment_builder.dart';
-import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
+import 'package:first_project/d-stateManagement/event_data_manager.dart';
+import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -16,31 +18,36 @@ class CalendarUIManager {
   final String userRole;
 
   late CalendarAppointmentBuild _calendarAppointmentBuilder;
-
   CalendarView _selectedView = CalendarView.month;
   DateTime? _selectedDate;
 
-  CalendarUIManager(
-    this._eventDataManager, {
+  CalendarUIManager({
     required this.events,
+    required Group group,
     required EventService eventService,
     required EventDisplayManager eventDisplayManager,
     required this.userRole,
-  }) : _eventDisplayManager = eventDisplayManager {
+    required GroupManagement groupManagement,
+  })  : _eventDisplayManager = eventDisplayManager,
+        _eventDataManager = EventDataManager(
+          events,
+          group: group,
+          eventService: eventService,
+          groupManagement: groupManagement,
+        ) {
     _calendarAppointmentBuilder = CalendarAppointmentBuild(
       _eventDataManager,
-      _eventDisplayManager, // Corrected parameter
+      _eventDisplayManager,
     );
   }
 
   Widget buildCalendar(BuildContext context, double height, double width) {
     Color textColor = ThemeColors.getTextColor(context);
 
-    // Dynamic dimensions
-    double appointmentItemHeight = height * 0.15; // 15% of the calendar height
-    double monthHeaderHeight = height * 0.1; // 10% of the calendar height
-    double agendaItemHeight = height * 0.1; // 10% of the calendar height
-    double fontSize = width * 0.04; // Font size 4% of the screen width
+    double appointmentItemHeight = height * 0.15;
+    double monthHeaderHeight = height * 0.1;
+    double agendaItemHeight = height * 0.1;
+    double fontSize = width * 0.04;
 
     return Container(
       height: height,
@@ -69,7 +76,7 @@ class CalendarUIManager {
         headerStyle: CalendarHeaderStyle(
           textAlign: TextAlign.center,
           textStyle: TextStyle(
-            fontSize: fontSize, // Dynamic font size
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -82,15 +89,15 @@ class CalendarUIManager {
           }
         },
         scheduleViewSettings: ScheduleViewSettings(
-          appointmentItemHeight: appointmentItemHeight, // Dynamic height
+          appointmentItemHeight: appointmentItemHeight,
           monthHeaderSettings: MonthHeaderSettings(
             monthFormat: 'MMMM, yyyy',
-            height: monthHeaderHeight, // Dynamic height
+            height: monthHeaderHeight,
             textAlign: TextAlign.left,
             backgroundColor: Color.fromARGB(255, 3, 87, 102),
             monthTextStyle: TextStyle(
               fontFamily: 'lato',
-              fontSize: fontSize, // Dynamic font size
+              fontSize: fontSize,
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -102,23 +109,20 @@ class CalendarUIManager {
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontFamily: 'lato',
-            fontSize: fontSize, // Dynamic font size
+            fontSize: fontSize,
           ),
         ),
-        monthCellBuilder: (context, details) {
-          return _buildMonthCell(details);
-        },
+        monthCellBuilder: _buildMonthCell,
         monthViewSettings: MonthViewSettings(
           showAgenda: true,
-          agendaItemHeight: agendaItemHeight, // Dynamic agenda item height
+          agendaItemHeight: agendaItemHeight,
           dayFormat: 'EEE',
           appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
           appointmentDisplayCount: 4,
           showTrailingAndLeadingDates: false,
           navigationDirection: MonthNavigationDirection.vertical,
         ),
-        appointmentBuilder:
-            (BuildContext context, CalendarAppointmentDetails details) {
+        appointmentBuilder: (context, details) {
           dynamic appointment = details.appointments.first;
 
           switch (_controller.view) {
@@ -140,7 +144,7 @@ class CalendarUIManager {
                 textColor,
                 context,
                 _selectedView.toString(),
-                userRole, // Pass user role to the default build method
+                userRole,
               );
           }
         },
@@ -149,9 +153,7 @@ class CalendarUIManager {
     );
   }
 
-  // Custom month cell builder for month view
-  Widget _buildMonthCell(MonthCellDetails details) {
-    // Add your custom month cell building logic here
+  Widget _buildMonthCell(BuildContext context, MonthCellDetails details) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black),

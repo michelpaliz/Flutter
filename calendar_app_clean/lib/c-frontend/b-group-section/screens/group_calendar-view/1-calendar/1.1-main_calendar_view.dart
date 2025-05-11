@@ -1,17 +1,17 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/1.2-calendar_ui_manager.dart';
-import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/a-event_ui_manger.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/c-event_actions_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_content_builder.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/app_bar_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/app_screen_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
+import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 
 class MainCalendarView extends StatefulWidget {
@@ -55,59 +55,73 @@ class _MainCalendarViewState extends State<MainCalendarView> {
   late Group _group;
   late UserManagement _userManagement;
   late NotificationManagement _notificationManagement;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() => _isLoading = true);
 
     _group = widget.group;
     _groupManagement = widget.groupManagement;
     _userManagement = widget.userManagement;
     _notificationManagement = widget.notificationManagement;
     _userRole = widget.userRole;
-
-    // Initialize services
-    _eventService = widget.eventService; // Make sure to pass this correctly
-    _colorManager = widget.colorManager; // Use the colorManager from widget
+    _eventService = widget.eventService;
+    _colorManager = widget.colorManager;
     _contentBuilder = EventContentBuilder(colorManager: _colorManager);
 
-    // Initialize event data manager with actual events from the group
-    _eventDataManager = EventDataManager(
-      _group.calendar.events,
-      group: _group,
-      eventService: _eventService,
-      groupManagement: _groupManagement,
-    );
+    try {
+      final events = await _eventService.getEventsByGroupId(_group.id);
 
-    // Initialize event UI components
-    _actionManager = EventActionManager(
-      _groupManagement,
-      _userManagement,
-      _notificationManagement,
-      eventDataManager: _eventDataManager,
-    );
-    _eventUIManager = EventUIManager(
-      colorManager: _colorManager,
-      contentBuilder: _contentBuilder,
-      actionManager: _actionManager,
-      displayManager:
-          EventDisplayManager(_actionManager, contentBuilder: _contentBuilder),
-    );
+      _eventDataManager = EventDataManager(
+        events,
+        group: _group,
+        eventService: _eventService,
+        groupManagement: _groupManagement,
+      );
 
-    // Initialize the calendar UI manager with the necessary data
-    _calendarManager = CalendarUIManager(
-      _eventDataManager,
-      // events: _eventDataManager.getEventsForDate(_group.calendar.events),
-      events: _group.calendar.events,
-      eventService: _eventService,
-      eventDisplayManager: _eventUIManager.displayManager,
-      userRole: _userRole!,
-    );
+      _actionManager = EventActionManager(
+        _groupManagement,
+        _userManagement,
+        _notificationManagement,
+        eventDataManager: _eventDataManager,
+      );
+
+      _eventUIManager = EventUIManager(
+        colorManager: _colorManager,
+        contentBuilder: _contentBuilder,
+        actionManager: _actionManager,
+        displayManager: EventDisplayManager(_actionManager,
+            contentBuilder: _contentBuilder),
+      );
+
+      _calendarManager = CalendarUIManager(
+        events: events,
+        group: _group,
+        groupManagement: _groupManagement,
+        eventService: _eventService,
+        eventDisplayManager: _eventUIManager.displayManager,
+        userRole: _userRole!,
+      );
+    } catch (e) {
+      print('Failed to fetch events for group: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Dynamically set height and width based on the screen size
     _screenManager.setScreenWidthAndCalendarHeight(context);
+
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -115,9 +129,8 @@ class _MainCalendarViewState extends State<MainCalendarView> {
           padding: EdgeInsets.all(10.0),
           child: Column(
             children: [
-              // Use the available height dynamically
               SizedBox(
-                height: constraints.maxHeight * 0.8, // 80% of available height
+                height: constraints.maxHeight * 0.8,
                 child: _calendarManager.buildCalendar(
                   context,
                   _screenManager.calendarHeight,
