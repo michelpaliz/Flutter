@@ -1,4 +1,6 @@
 import 'dart:developer' as devtools show log;
+
+import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -15,6 +17,8 @@ import '../../../../../../f-themes/utilities/utilities.dart';
 import '../../../../utils/color_manager.dart';
 
 mixin AddEventLogic<T extends StatefulWidget> on State<T> {
+  // Add this dependency
+  late EventDataManager _eventDataManager;
 
   // Services
   late UserManagement userManagement;
@@ -46,13 +50,32 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
 
+  void injectDependencies({
+    required GroupManagement groupMgmt,
+    required UserManagement userMgmt,
+    required NotificationManagement notifMgmt,
+  }) {
+    groupManagement = groupMgmt;
+    userManagement = userMgmt;
+    notificationManagement = notifMgmt;
+    user = userManagement.user!;
+  }
+
   // Logic
-  void initializeLogic(Group group, BuildContext context) async {
+  Future<void> initializeLogic(Group group, BuildContext context) async {
     _group = group;
     _selectedEventColor = ColorManager.eventColors.last;
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventList = _group.calendar.events;
+
+    // Initialize EventDataManager with proper parameters
+    _eventDataManager = EventDataManager(
+      group.calendar.events, // Positional events parameter
+      group: group, // Named group parameter
+      eventService: EventService(),
+      groupManagement: groupManagement,
+    );
 
     if (_group.userIds.isNotEmpty) {
       for (var userId in _group.userIds) {
@@ -60,8 +83,6 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
         _users.add(fetchedUser);
       }
     }
-
-    isLoading = false;
     if (mounted) setState(() {});
   }
 
@@ -144,7 +165,8 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
       completedAt: null,
     );
 
-    final exists = _eventList.any((existing) =>
+    // Check for duplicates through EventDataManager
+    final exists = _eventDataManager.events.any((existing) =>
         existing.startDate.year == newEvent.startDate.year &&
         existing.startDate.month == newEvent.startDate.month &&
         existing.startDate.day == newEvent.startDate.day &&
@@ -155,20 +177,19 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
       return;
     }
 
-    final created = await _eventService.createEvent(newEvent);
-    final addedEvent = _eventService.event;
+    try {
+      // Use EventDataManager to create the event
+      final createdEvent = await _eventDataManager.createEvent(newEvent);
 
-    if (created && addedEvent != null) {
-      _eventList.add(addedEvent);
-      user.events.add(addedEvent.id);
-
+      // Update user events
+      user.events.add(createdEvent.id);
       await userManagement.updateUser(user);
-      _group.calendar.events.add(addedEvent);
-      await groupManagement.updateGroup(_group, userManagement);
 
+      // No need to manually update _group.calendar.events - EventDataManager handles it
+
+      // Fetch updated group through groupManagement
       fetchedUpdatedGroup =
           await groupManagement.groupService.getGroupById(_group.id);
-
       if (fetchedUpdatedGroup == null) {
         devtools.log("Failed to fetch updated group.");
         onError();
@@ -178,7 +199,8 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
       groupManagement.currentGroup = fetchedUpdatedGroup!;
       clearFormFields();
       onSuccess();
-    } else {
+    } catch (e) {
+      devtools.log('Error creating event: $e');
       onError();
     }
   }

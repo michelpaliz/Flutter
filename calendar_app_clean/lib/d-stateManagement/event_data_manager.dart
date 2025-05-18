@@ -1,94 +1,138 @@
+import 'dart:async';
+
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
+import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
-//  It can be used by the EventActionManager for event-related logic, but it focuses on data fetching, updating, and syncing with the backend.
-
-//  Primary Purpose
-
-//     EventDataManager:
-//         This class is responsible for managing the event data itself, including syncing it with the backend (e.g., updating or removing events from the database), maintaining the local list of events, and providing methods to fetch, update, or delete events.
-//         It does not handle any UI or interaction logic directly. Instead, it focuses on data handling and backend communication.
-
-// 2. Responsibilities
-//     EventDataManager:
-//         Manages the local list of events and synchronizes it with the backend (_updateCalendarDataSource, removeGroupEvents, updateEvent).
-//         Provides methods to fetch and update event data, including communication with services like EventService (fetchEvent, updateEvent).
-//         Focuses on data operations, such as retrieving events for a specific date (getEventsForDate) or calculating differences between dates (calculateDaysBetweenDates).
-
-// 3. Interfacing with Other Components
-
-//     EventDataManager:
-//         Primarily interacts with the backend services like EventService for CRUD operations on events.
-//         Interfaces with GroupManagement to maintain consistency between the events and the associated group.
-
 
 class EventDataManager {
-  late List<Event> _events;
-  late Group _group;
+  List<Event> _events = [];
+  late final Group _group;
   final EventService _eventService;
   final GroupManagement _groupManagement;
+  final StreamController<List<Event>> _eventsController =
+      StreamController<List<Event>>.broadcast();
 
   EventDataManager(
-    List<Event> events, {
+    List<Event> initialEvents, {
     required Group group,
     required EventService eventService,
     required GroupManagement groupManagement,
   })  : _group = group,
         _eventService = eventService,
         _groupManagement = groupManagement {
-    _events = _group.calendar.events;
+    _initialize(initialEvents);
   }
 
-  // Update an event in the data source
-  Future<void> updateEvent(Event event) async {
-    try {
-      // Update the event using the service
-      Event updatedEvent = await _eventService.updateEvent(event.id, event);
-      int index = _events.indexWhere((e) => e.id == event.id);
-      if (index != -1) {
-        _events[index] = updatedEvent;
-        _updateCalendarDataSource();
-      }
-    } catch (error) {
-      print('Error updating event: $error');
-    }
+  // --- Public API ---
+  List<Event> get events => _events;
+  Stream<List<Event>> get eventsStream => _eventsController.stream;
+
+  // --- Initialization ---
+  Future<void> _initialize(List<Event> initialEvents) async {
+    _events = _deduplicateEvents([...initialEvents, ..._group.calendar.events]);
+    await _refreshFromBackend();
   }
 
-  // Remove group events from Firestore and locally
-  Future<void> removeGroupEvents({required Event event}) async {
-    await _eventService.deleteEvent(event.id);
-    _events.removeWhere((e) => e.id == event.id);
-    _updateCalendarDataSource();
-  }
-
-  // Method to reload group data and update events
-  Future<void> reloadData() async {
-    Group? group = await _groupManagement.groupService.getGroupById(_group.id);
-    _group = group;
-    _events = group.calendar.events;
-    _updateCalendarDataSource();
-    }
-
-  // Get events for a specific date
-  List<Event> getEventsForDate(DateTime date) {
-    final DateTime utcDate = DateTime.utc(date.year, date.month, date.day);
-    return _events.where((event) {
-      final DateTime eventStartDate = event.startDate.toUtc();
-      final DateTime eventEndDate = event.endDate.toUtc();
-      return eventStartDate.isBefore(utcDate.add(Duration(days: 1))) &&
-          eventEndDate.isAfter(utcDate);
-    }).toList();
-  }
-
-  // Helper to update the local calendar's data source
-  void _updateCalendarDataSource() {
-    _group.calendar.events = _events;
-    _groupManagement.currentGroup = _group;
-  }
-
-  // Fetch event with EventDataManager
+  // Add this method back (unchanged from original)
   Future<Event?> fetchEvent(String eventId) {
     return _eventService.getEventById(eventId);
+  }
+
+  // --- Hybrid Operations ---
+  Future<void> manualRefresh() async => await _refreshFromBackend();
+
+  Future<Event> createEvent(Event event) async {
+    try {
+      final createdEvent = await _eventService.createEvent(event);
+      _events = _deduplicateEvents([..._events, createdEvent]);
+      _notifyChanges();
+      return createdEvent;
+    } catch (e) {
+      await _refreshFromBackend(); // Fallback to sync
+      rethrow;
+    }
+  }
+
+  Future<Event> updateEvent(Event event) async {
+    try {
+      final updatedEvent = await _eventService.updateEvent(event.id, event);
+      _replaceInList(updatedEvent);
+      return updatedEvent;
+    } catch (e) {
+      await _refreshFromBackend();
+      rethrow;
+    }
+  }
+
+  // Add this to your EventDataManager class
+  void updateEvents(List<Event> newEvents) {
+    _events = _deduplicateEvents(newEvents);
+    _notifyChanges(); // This will update both the stream and group management
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    try {
+      await _eventService.deleteEvent(eventId);
+      _events.removeWhere((e) => e.id == eventId);
+      _notifyChanges();
+    } catch (e) {
+      await _refreshFromBackend();
+      rethrow;
+    }
+  }
+
+  // --- Data Helpers ---
+  Future<void> _refreshFromBackend() async {
+    try {
+      _events =
+          _deduplicateEvents(await _eventService.getEventsByGroupId(_group.id));
+      _notifyChanges();
+    } catch (e) {
+      _eventsController.addError(e);
+      rethrow;
+    }
+  }
+
+  void _replaceInList(Event updatedEvent) {
+    final index = _events.indexWhere((e) => e.id == updatedEvent.id);
+    if (index != -1) {
+      _events[index] = updatedEvent;
+      _notifyChanges();
+    }
+  }
+
+  List<Event> _deduplicateEvents(List<Event> events) {
+    return events
+        .fold<Map<String, Event>>({}, (map, event) {
+          map[event.id] = event;
+          return map;
+        })
+        .values
+        .toList();
+  }
+
+  Future<void> removeGroupEvents({required Event event}) async {
+    await deleteEvent(event.id);
+  }
+
+  void _notifyChanges() {
+    _group.calendar.events = _events;
+    _groupManagement.currentGroup = _group;
+    _eventsController.add(_events);
+  }
+
+  // --- Cleanup ---
+  void dispose() => _eventsController.close();
+
+  // --- Date Filtering ---
+  List<Event> getEventsForDate(DateTime date) {
+    final utcDate = DateTime.utc(date.year, date.month, date.day);
+    return _events.where((event) {
+      final start = event.startDate.toUtc();
+      final end = event.endDate.toUtc();
+      return start.isBefore(utcDate.add(const Duration(days: 1))) &&
+          end.isAfter(utcDate);
+    }).toList();
   }
 }

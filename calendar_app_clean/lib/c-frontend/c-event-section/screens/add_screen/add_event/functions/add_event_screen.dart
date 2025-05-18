@@ -21,19 +21,37 @@ class AddEvent extends StatefulWidget {
 
 class _AddEventState extends State<AddEvent>
     with AddEventLogic<AddEvent>, AddEventDialogs {
-  @override
-  void initState() {
-    super.initState();
-    initializeLogic(widget.group, context);
-  }
+  bool _initialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    notificationManagement = Provider.of<NotificationManagement>(context);
-    userManagement = Provider.of<UserManagement>(context);
-    groupManagement = Provider.of<GroupManagement>(context);
-    user = userManagement.user!;
+
+    if (!_initialized) {
+      final groupManagement = Provider.of<GroupManagement>(context);
+      final userManagement = Provider.of<UserManagement>(context);
+      final notificationManagement =
+          Provider.of<NotificationManagement>(context);
+
+      // ✅ Inject dependencies
+      injectDependencies(
+        groupMgmt: groupManagement,
+        userMgmt: userManagement,
+        notifMgmt: notificationManagement,
+      );
+
+      // ✅ Now run init logic
+      Future.microtask(() async {
+        await initializeLogic(widget.group, context);
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      });
+
+      _initialized = true;
+    }
   }
 
   @override

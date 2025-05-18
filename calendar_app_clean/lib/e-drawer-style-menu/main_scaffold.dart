@@ -19,9 +19,14 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:
+          Theme.of(context).scaffoldBackgroundColor, // ✅ respects theme
       appBar: AppBar(title: Text(title), actions: actions),
-      drawer: MyDrawer(), // 👈 Reuse your existing drawer
-      body: body,
+      drawer: MyDrawer(),
+      body: SafeArea(
+        // ✅ protects content from system overlays
+        child: body,
+      ),
       floatingActionButton: fab,
     );
   }

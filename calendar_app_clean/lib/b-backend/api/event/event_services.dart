@@ -20,10 +20,9 @@ class EventService {
     };
   }
 
-  Future<bool> createEvent(Event eventData) async {
+// In EventService.dart
+  Future<Event> createEvent(Event eventData) async {
     try {
-      devtools.log('[CREATE] Event data: ${eventData.toMap()}');
-
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: await _authHeaders(),
@@ -32,15 +31,12 @@ class EventService {
 
       if (response.statusCode == 201) {
         _event = Event.fromJson(jsonDecode(response.body));
-        devtools.log('[SUCCESS] Event created: $_event');
-        return true;
-      } else {
-        devtools.log('[ERROR] Create failed: ${response.body}');
-        return false;
+        return _event!; // Return the created event
       }
+      throw Exception('Failed to create event: ${response.body}');
     } catch (error) {
       devtools.log('[EXCEPTION] Create error: $error');
-      throw Exception('An error occurred while creating the event.');
+      rethrow;
     }
   }
 

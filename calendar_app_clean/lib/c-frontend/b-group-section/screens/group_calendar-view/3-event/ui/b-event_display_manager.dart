@@ -7,46 +7,28 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import 'event_content_builder.dart';
 
-//  Primary Purpose
-
-//     EventDisplayManager:
-//         This class is focused on managing the UI-related logic for displaying and interacting with events in the app. It handles how event details are presented to the user, the interaction for editing or deleting events (e.g., showing confirmation dialogs), and the user permissions for these actions.
-//         It interacts with the UI layer by building widgets and dealing with user gestures like taps, swipes, and dismiss actions.
-
-
-// 2. Responsibilities
-
-//     EventDisplayManager:
-//         Builds the UI components for displaying event details (buildEventDetails, buildFutureEventContent).
-//         Manages user interactions, such as tapping an event to edit it, swiping to delete it, and confirming event deletions (_showRemoveConfirmationDialog, _editEvent).
-//         Deals with UI permission logic (checking user roles to allow editing or deleting).
-//         Uses EventDataManager and EventActionManager to interact with the backend or perform actions but doesn’t handle the backend communication directly.
-
-
-// 3. Interfacing with Other Components
-
-//     EventDisplayManager:
-//         Relies on EventDataManager to handle the actual data operations. For example, when a user confirms event removal, it calls removeGroupEvents from EventDataManager to handle the deletion of the event from the backend and local storage.
-//         Interfaces with the UI framework by building widgets and responding to user input.
-//         Calls methods like _editEvent to navigate to other parts of the app (e.g., the event editing screen).
-
-
 class EventDisplayManager {
+  EventActionManager? _eventActionManager; // ✅ Made nullable and non-final
   final EventContentBuilder _contentBuilder;
-  final EventActionManager _eventActionManager;
 
-  EventDisplayManager(this._eventActionManager, 
-      {required EventContentBuilder contentBuilder})
-      : _contentBuilder = contentBuilder;
+  EventDisplayManager(
+    EventActionManager? eventActionManager, {
+    required EventContentBuilder contentBuilder,
+  })  : _eventActionManager = eventActionManager,
+        _contentBuilder = contentBuilder;
 
-  // Builds the event details for user interaction (editing, deleting)
+  // ✅ New setter method to inject the action manager later
+  void setEventActionManager(EventActionManager manager) {
+    _eventActionManager = manager;
+  }
+
   Widget buildEventDetails(Event event, BuildContext context, Color textColor,
       dynamic appointment, String userRole) {
     return GestureDetector(
       onTap: () {
-        // Allow only Administrator or Co-Administrator to edit the event
+        if (_eventActionManager == null) return;
         if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
-          _eventActionManager.editEvent(event, context); // Use EventActionManager to edit
+          _eventActionManager!.editEvent(event, context);
         }
       },
       child: Dismissible(
@@ -59,29 +41,29 @@ class EventDisplayManager {
           child: Icon(Icons.delete, color: Colors.white),
         ),
         confirmDismiss: (direction) async {
-          // Allow only Administrator or Co-Administrator to delete the event
+          if (_eventActionManager == null) return false;
           if (userRole == 'Administrator' || userRole == 'Co-Administrator') {
             final bool confirm =
-                await _eventActionManager.removeEvent(event, true); // Use EventActionManager for removal
+                await _eventActionManager!.removeEvent(event, true);
             return confirm;
           } else {
             _showPermissionDeniedDialog(context);
             return false;
           }
         },
-        onDismissed: (direction) {
-          // Event was dismissed, no further action needed since EventActionManager handled removal
-        },
         child: _contentBuilder.buildEventContent(event, textColor),
       ),
     );
   }
 
-  // Fetch and display future events asynchronously
   Widget buildFutureEventContent(String eventId, Color textColor,
       BuildContext context, dynamic appointment) {
+    if (_eventActionManager == null) {
+      return const SizedBox.shrink();
+    }
+
     return FutureBuilder<Event?>(
-      future: _eventActionManager.eventDataManager.fetchEvent(eventId),
+      future: _eventActionManager!.eventDataManager.fetchEvent(eventId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator.adaptive();
@@ -90,14 +72,12 @@ class EventDisplayManager {
         } else {
           final Event? event = snapshot.data;
           if (event != null) {
-            return buildEventDetails(event, context, textColor, appointment,
-                ''); // Pass appropriate userRole if available
+            return buildEventDetails(
+                event, context, textColor, appointment, '');
           } else {
-            return Container(
-              child: Text(
-                AppLocalizations.of(context)!.noEventsFoundForDate,
-                style: TextStyle(fontSize: 16, color: textColor),
-              ),
+            return Text(
+              AppLocalizations.of(context)!.noEventsFoundForDate,
+              style: TextStyle(fontSize: 16, color: textColor),
             );
           }
         }
@@ -105,13 +85,11 @@ class EventDisplayManager {
     );
   }
 
-  // Builds non-month-view event details (for timeline views)
   Widget buildNonMonthViewEvent(Event event, CalendarAppointmentDetails details,
       Color textColor, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Handle event editing if necessary
-        _eventActionManager.editEvent(event, context);
+        _eventActionManager?.editEvent(event, context);
       },
       child: Container(
         width: details.bounds.width,
@@ -128,7 +106,6 @@ class EventDisplayManager {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Display event time and title
             Padding(
               padding: EdgeInsets.all(2),
               child: Row(
@@ -165,7 +142,6 @@ class EventDisplayManager {
                 ),
               ],
             ),
-            // Display event description if available
             if (event.description != null && event.description!.isNotEmpty)
               Padding(
                 padding: EdgeInsets.only(top: 4),
@@ -183,9 +159,6 @@ class EventDisplayManager {
     );
   }
 
-  
-
-  // Show permission denied dialog
   void _showPermissionDeniedDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -196,9 +169,7 @@ class EventDisplayManager {
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
