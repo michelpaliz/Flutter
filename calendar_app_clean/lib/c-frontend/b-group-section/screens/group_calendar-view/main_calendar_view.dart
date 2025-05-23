@@ -6,10 +6,10 @@ import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-
 import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_screen.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
-import 'package:first_project/d-stateManagement/event_data_manager.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/notification/notification_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

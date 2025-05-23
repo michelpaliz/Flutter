@@ -3,9 +3,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../a-models/group_model/group/group.dart';
-import '../../../../../../d-stateManagement/group_management.dart';
-import '../../../../../../d-stateManagement/notification_management.dart';
-import '../../../../../../d-stateManagement/user_management.dart';
+import '../../../../../../d-stateManagement/group/group_management.dart';
+import '../../../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../../../d-stateManagement/user/user_management.dart';
 import 'add_event_dialogs.dart';
 import 'add_event_form.dart';
 import 'add_event_logic.dart';

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:first_project/f-themes/palette/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -67,16 +67,18 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    Brightness brightness = Theme.of(context).brightness;
-    bool isDarkMode = brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     // Decide colors based on theme
-    Color headerBackgroundColor =
-        isDarkMode ? AppColors.brown : AppColors.yellow;
-    Color nameTextColor = isDarkMode ? AppColors.yellowLight : AppColors.brown;
-    Color emailTextColor =
-        isDarkMode ? AppColors.yellowDark : AppColors.brownDark;
+    final headerBackgroundColor =
+        isDarkMode ? AppDarkColors.background : AppColors.background;
+    final nameTextColor =
+        isDarkMode ? AppDarkColors.textPrimary : AppColors.textPrimary;
+    final emailTextColor =
+        isDarkMode ? AppDarkColors.textSecondary : AppColors.textSecondary;
 
     return Container(
       color: headerBackgroundColor,

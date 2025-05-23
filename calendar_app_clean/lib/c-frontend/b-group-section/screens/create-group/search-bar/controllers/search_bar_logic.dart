@@ -2,7 +2,7 @@ import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/user/user_services.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 import "package:flutter_gen/gen_l10n/app_localizations.dart";

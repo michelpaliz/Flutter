@@ -4,9 +4,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../a-models/user_model/user.dart';
-import '../../../../d-stateManagement/group_management.dart';
-import '../../../../d-stateManagement/notification_management.dart';
-import '../../../../d-stateManagement/user_management.dart';
+import '../../../../d-stateManagement/group/group_management.dart';
+import '../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../d-stateManagement/user/user_management.dart';
 import '../../../routes/appRoutes.dart';
 import 'controller/list_group_controller.dart';
 import 'group_body_builder/group_body_builder.dart';

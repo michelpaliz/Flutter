@@ -1,4 +1,3 @@
-import 'package:first_project/f-themes/palette/app_colors.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
 import 'package:flutter/material.dart';
@@ -17,13 +16,16 @@ class GroupNameField extends StatelessWidget {
     final TextEditingController _controller =
         TextEditingController(text: groupName);
 
-    // Define background color of the input
+    // Background for the input, adapts light ↔ dark
     final Color backgroundColor = ThemeColors.getLighterInputFillColor(context);
 
-    // Now define the correct contrast text color based on that background
+    // Contrast text & icon colors based on that background
     final Color contrastTextColor =
-        ThemeColors.getContrastTextColorForBackground(backgroundColor);
-    final Color getColor = ThemeColors.getButtonTextColor(context);
+        ThemeColors.getContrastTextColor(context, backgroundColor);
+    final Color iconColor = contrastTextColor;
+
+    // Main text color for the field
+    final Color textColor = ThemeColors.getTextColor(context);
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -32,16 +34,15 @@ class GroupNameField extends StatelessWidget {
         labelText: 'Group Name'.toUpperCase(),
         maxLength: 25,
         prefixIcon: Icons.group,
-        backgroundColor:
-            AppColors.brownLight.withOpacity(0.9), // 👈 Custom background
-        iconColor: AppColors.yellowDark, // Optional override
+        backgroundColor: backgroundColor, // from ThemeColors
+        iconColor: iconColor, // contrast against bg
         labelStyle: TextStyle(
           color: contrastTextColor,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         textStyle: TextStyle(
-          color: getColor,
+          color: textColor,
           fontWeight: FontWeight.w400,
         ),
       ),

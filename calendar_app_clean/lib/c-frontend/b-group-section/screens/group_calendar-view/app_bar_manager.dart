@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
-import 'package:first_project/d-stateManagement/event_data_manager.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import "package:flutter_gen/gen_l10n/app_localizations.dart";
 

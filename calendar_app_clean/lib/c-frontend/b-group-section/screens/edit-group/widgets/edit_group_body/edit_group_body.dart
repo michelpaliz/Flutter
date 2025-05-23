@@ -6,9 +6,9 @@ import 'package:first_project/c-frontend/b-group-section/screens/edit-group/serv
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_bottom_nav.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_header.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/edit_group_ppl.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/notification/notification_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 

@@ -1,4 +1,3 @@
-import 'package:first_project/f-themes/palette/app_colors.dart';
 import 'package:first_project/f-themes/themes/theme_colors.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
 import 'package:flutter/material.dart';
@@ -18,10 +17,13 @@ class GroupTextFields extends StatelessWidget {
 
     final Color backgroundColor = ThemeColors.getLighterInputFillColor(context);
     final Color contrastTextColor =
-        ThemeColors.getContrastTextColorForBackground(backgroundColor);
-    final Color textColor = ThemeColors.getButtonTextColor(context);
-    final Color backgroundText = AppColors.brownLight.withOpacity(0.9);
-    final Color iconColor = AppColors.yellowDark;
+        ThemeColors.getContrastTextColor(context, backgroundColor);
+    final Color textColor = ThemeColors.getTextColor(context);
+
+// Instead of a custom brown background, reuse the adaptive fill
+    final Color backgroundText = backgroundColor;
+// And icon tint matches the contrasting text color
+    final Color iconColor = contrastTextColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

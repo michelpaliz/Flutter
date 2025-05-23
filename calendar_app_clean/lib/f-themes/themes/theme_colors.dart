@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 
 class ThemeColors {
   static Color getTextColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? AppDarkColors.textPrimary
-        : AppColors.black;
+        : AppColors.textPrimary;
   }
 
   static Color getContrastTextColorForBackground(Color backgroundColor) {
-    // Automatically decides between white or black text based on brightness
     return ThemeData.estimateBrightnessForColor(backgroundColor) ==
             Brightness.dark
         ? Colors.white
@@ -26,31 +25,30 @@ class ThemeColors {
     final base = getContainerBackgroundColor(context);
     final brightness = ThemeData.estimateBrightnessForColor(base);
 
-    // Lighten or darken depending on theme
     return brightness == Brightness.dark
         ? base.withOpacity(0.4)
         : base.withOpacity(0.9);
   }
 
   static Color getTextColorWhite(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? AppDarkColors.textPrimary
-        : AppColors.brown;
+        : AppColors.primary;
   }
 
   static Color getCardBackgroundColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? AppDarkColors.surface
-        : AppColors.yellow.withOpacity(0.8);
+        : AppColors.surface;
   }
 
   static Color getContainerBackgroundColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppDarkColors.brown
-        : AppColors.brown;
+        ? AppDarkColors.background
+        : AppColors.background;
   }
 
   static Color getButtonTextColor(BuildContext context) {
@@ -58,49 +56,49 @@ class ThemeColors {
   }
 
   static Color getButtonBackgroundColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppDarkColors.green
-        : AppColors.brown;
+        ? AppDarkColors.primary
+        : AppColors.primary;
   }
 
   static Color getSearchBarBackgroundColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? AppDarkColors.surface
-        : AppColors.yellowLight.withOpacity(0.8);
+        : AppColors.surface.withOpacity(0.8);
   }
 
   static Color getSearchBarIconColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
-        ? AppDarkColors.yellow
-        : AppColors.brown;
+        ? AppDarkColors.secondary
+        : AppColors.secondary;
   }
 
   static Color getSearchBarHintTextColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? AppDarkColors.textSecondary
-        : AppColors.brownDark;
+        : AppColors.textSecondary;
   }
 
   static Color getCardShadowColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? Colors.black54
         : Colors.black26;
   }
 
   static Color getListTileBackgroundColor(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? AppDarkColors.surface
-        : Colors.white;
+        : AppColors.white;
   }
 
   static Color getFilterChipGlowColor(BuildContext context, Color baseColor) {
-    ThemeData theme = Theme.of(context);
+    final theme = Theme.of(context);
     return theme.brightness == Brightness.dark
         ? baseColor.withOpacity(0.4)
         : _darkenColor(baseColor, 0.6);

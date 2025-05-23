@@ -1,7 +1,7 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 
 // Fetching groups
 // Checking permissions

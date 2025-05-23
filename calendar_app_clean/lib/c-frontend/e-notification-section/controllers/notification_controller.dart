@@ -4,9 +4,9 @@ import 'package:first_project/a-models/notification_model/notification_user.dart
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/notification/notification_services.dart';
 import 'package:first_project/b-backend/api/user/user_services.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/notification/notification_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 
 class NotificationController {
   final UserManagement userManagement;

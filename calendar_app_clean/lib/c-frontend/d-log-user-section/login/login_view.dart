@@ -2,8 +2,8 @@ import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart
 import 'package:first_project/b-backend/api/auth/exceptions/auth_exceptions.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:first_project/f-themes/palette/color_properties.dart';
 import 'package:first_project/f-themes/utilities/logo/logo_widget.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';

@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:first_project/f-themes/utilities/utilities.dart';
 import 'package:flutter/material.dart';

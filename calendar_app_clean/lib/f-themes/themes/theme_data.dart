@@ -4,32 +4,42 @@ import 'package:flutter/material.dart';
 
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
-  primaryColor: AppColors.green,
-  scaffoldBackgroundColor: AppColors.yellow,
+  primaryColor: AppColors.primary,
+  scaffoldBackgroundColor: AppColors.background,
   appBarTheme:
       AppBarStyles.defaultAppBarTheme(), // 👈 using reusable appbar style
   colorScheme: ColorScheme.fromSwatch(
     brightness: Brightness.light,
-    primarySwatch: Colors.green,
+    primarySwatch: Colors.blue,
   ).copyWith(
-    secondary: AppColors.blue,
-    background: AppColors.yellow,
-    primary: AppColors.green,
+    primary: AppColors.primary,
+    secondary: AppColors.secondary,
+    background: AppColors.background,
+    surface: AppColors.surface,
+    onPrimary: AppColors.white,
+    onSecondary: AppColors.white,
+    onBackground: AppColors.textPrimary,
+    onSurface: AppColors.textPrimary,
   ),
 );
 
 final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
-  primaryColor: AppColors.green,
-  scaffoldBackgroundColor: AppColors.brown,
+  primaryColor: AppDarkColors.primary,
+  scaffoldBackgroundColor: AppDarkColors.background,
   appBarTheme: AppBarStyles.defaultAppBarTheme(
       isDarkMode: true), // 👈 using reusable appbar style for dark mode
   colorScheme: ColorScheme.fromSwatch(
     brightness: Brightness.dark,
-    primarySwatch: Colors.green,
+    primarySwatch: Colors.blue,
   ).copyWith(
-    secondary: AppColors.blue,
-    background: AppColors.brown,
-    primary: AppColors.green,
+    primary: AppDarkColors.primary,
+    secondary: AppDarkColors.secondary,
+    background: AppDarkColors.background,
+    surface: AppDarkColors.surface,
+    onPrimary: AppDarkColors.textPrimary,
+    onSecondary: AppDarkColors.textPrimary,
+    onBackground: AppDarkColors.textPrimary,
+    onSurface: AppDarkColors.textPrimary,
   ),
 );

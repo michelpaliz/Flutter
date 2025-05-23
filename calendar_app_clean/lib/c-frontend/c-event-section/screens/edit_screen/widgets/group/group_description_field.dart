@@ -9,37 +9,37 @@ class GroupDescriptionField extends StatelessWidget {
   const GroupDescriptionField({
     required this.descriptionController,
   });
+@override
+Widget build(BuildContext context) {
+  // Use our ThemeColors utilities for background & text
+  final Color backgroundColor = ThemeColors.getLighterInputFillColor(context);
+  final Color contrastTextColor =
+      ThemeColors.getContrastTextColor(context, backgroundColor);
+  // Icon can follow the same contrast logic
+  final Color iconColor =
+      ThemeColors.getContrastTextColor(context, backgroundColor);
 
-  @override
-  Widget build(BuildContext context) {
-    // Get background and contrast text color
-    final Color backgroundColor = ThemeColors.getLighterInputFillColor(context);
-    final Color contrastTextColor =
-        ThemeColors.getContrastTextColorForBackground(backgroundColor);
-
-    final Color getTextColor = ThemeColors.getTextColor(context);
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: CustomEditableTextField(
-        controller: descriptionController,
-        labelText: 'Group Description'.toUpperCase(),
-        maxLength: 100,
-        isMultiline: true,
-        prefixIcon: Icons.description,
-        backgroundColor:
-            AppColors.brownLight.withOpacity(0.9), // 👈 Custom background
-        iconColor: AppColors.yellowDark, // Optional override
-        labelStyle: TextStyle(
-          color: contrastTextColor,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-        textStyle: TextStyle(
-          color: getTextColor,
-          fontWeight: FontWeight.w400,
-        ),
+  return Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: CustomEditableTextField(
+      controller: descriptionController,
+      labelText: 'Group Description'.toUpperCase(),
+      maxLength: 100,
+      isMultiline: true,
+      prefixIcon: Icons.description,
+      backgroundColor: backgroundColor,       // from ThemeColors
+      iconColor: iconColor,                   // contrast against bg
+      labelStyle: TextStyle(
+        color: contrastTextColor,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
       ),
-    );
-  }
+      textStyle: TextStyle(
+        color: ThemeColors.getTextColor(context),
+        fontWeight: FontWeight.w400,
+      ),
+    ),
+  );
+}
+
 }

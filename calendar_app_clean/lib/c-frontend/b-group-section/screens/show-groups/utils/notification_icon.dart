@@ -1,8 +1,8 @@
 
 import 'package:first_project/a-models/notification_model/notification_user.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/notification/notification_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 // This widget plugs into the AppBar and manages:

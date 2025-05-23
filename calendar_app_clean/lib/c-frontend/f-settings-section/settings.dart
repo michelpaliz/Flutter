@@ -1,8 +1,8 @@
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:first_project/b-backend/api/auth/exceptions/password_exceptions.dart';
-import 'package:first_project/d-stateManagement/LocaleProvider.dart';
-import 'package:first_project/d-stateManagement/theme_preference_provider.dart';
+import 'package:first_project/d-stateManagement/local/LocaleProvider.dart';
+import 'package:first_project/d-stateManagement/theme/theme_preference_provider.dart';
 import 'package:first_project/f-themes/themes/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';

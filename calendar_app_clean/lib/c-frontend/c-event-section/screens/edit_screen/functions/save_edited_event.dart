@@ -1,7 +1,7 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 

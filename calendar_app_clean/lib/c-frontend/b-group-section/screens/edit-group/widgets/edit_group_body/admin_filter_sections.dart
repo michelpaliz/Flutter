@@ -25,8 +25,14 @@ class AdminWithFiltersSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get dynamic background for the container
+    final Color containerBg = ThemeColors.getContainerBackgroundColor(context);
+    // Contrast text/icon color based on that bg
+    final Color contrastText =
+        ThemeColors.getContrastTextColor(context, containerBg);
+
     return Card(
-      color: ThemeColors.getContainerBackgroundColor(context),
+      color: containerBg,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -38,8 +44,8 @@ class AdminWithFiltersSection extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  child: Icon(Icons.person),
-                  backgroundColor: Colors.green.withOpacity(0.2),
+                  child: Icon(Icons.person, color: contrastText),
+                  backgroundColor: AppColors.secondary.withOpacity(0.2),
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -48,21 +54,17 @@ class AdminWithFiltersSection extends StatelessWidget {
                     Text(
                       currentUser.userName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color:
-                                ThemeColors.getContrastTextColorForBackground(
-                                    AppColors.brown),
+                            color: contrastText,
                           ),
                     ),
                     Text(
                       'Administrator',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                ThemeColors.getContrastTextColorForBackground(
-                                    AppColors.brown),
+                            color: contrastText.withOpacity(0.7),
                           ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -84,6 +86,7 @@ class AdminWithFiltersSection extends StatelessWidget {
     );
   }
 
+// FilterChip builder aligned to blue-centric palette
   Widget _buildFilterChip(BuildContext context, String label, bool selected) {
     IconData icon;
     Color activeColor;
@@ -92,32 +95,32 @@ class AdminWithFiltersSection extends StatelessWidget {
     switch (label) {
       case 'Accepted':
         icon = Icons.check_circle;
-        activeColor = AppColors.greenDark;
-        inactiveColor = AppColors.green.withOpacity(0.2);
+        activeColor = AppColors.primaryDark;
+        inactiveColor = AppColors.primary.withOpacity(0.2);
         break;
       case 'Pending':
         icon = Icons.hourglass_empty;
-        activeColor = AppColors.yellowStrong;
-        inactiveColor = AppColors.yellow.withOpacity(0.2);
+        activeColor = AppColors.secondaryDark;
+        inactiveColor = AppColors.secondary.withOpacity(0.2);
         break;
       case 'NotAccepted':
         icon = Icons.cancel;
-        activeColor = AppColors.redDark;
-        inactiveColor = AppColors.red.withOpacity(0.2);
+        activeColor = AppDarkColors.error;
+        inactiveColor = AppDarkColors.error.withOpacity(0.2);
         break;
       case 'New Users':
         icon = Icons.group_add;
-        activeColor = AppColors.blueDark;
-        inactiveColor = AppColors.blue.withOpacity(0.2);
+        activeColor = AppColors.primary;
+        inactiveColor = AppColors.primaryLight.withOpacity(0.2);
         break;
       case 'Expired':
         icon = Icons.schedule;
-        activeColor = AppColors.grey;
-        inactiveColor = AppColors.grey.withOpacity(0.2);
+        activeColor = AppColors.surface;
+        inactiveColor = AppColors.surface.withOpacity(0.2);
         break;
       default:
         icon = Icons.label;
-        activeColor = Theme.of(context).primaryColor.withOpacity(0.8);
+        activeColor = Theme.of(context).colorScheme.primary.withOpacity(0.8);
         inactiveColor = Theme.of(context).disabledColor.withOpacity(0.2);
     }
 

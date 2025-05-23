@@ -1,6 +1,6 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/d-stateManagement/event_data_manager.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -10,9 +10,9 @@ import '../../../../../../a-models/group_model/event_appointment/event/event.dar
 import '../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../a-models/user_model/user.dart';
 import '../../../../../../b-backend/api/user/user_services.dart';
-import '../../../../../../d-stateManagement/group_management.dart';
-import '../../../../../../d-stateManagement/notification_management.dart';
-import '../../../../../../d-stateManagement/user_management.dart';
+import '../../../../../../d-stateManagement/group/group_management.dart';
+import '../../../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../../../d-stateManagement/user/user_management.dart';
 import '../../../../../../f-themes/utilities/utilities.dart';
 import '../../../../utils/color_manager.dart';
 
@@ -67,7 +67,7 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventList = _group.calendar.events;
-    
+
     // try to grab it—Provider.of will throw if it's missing
     late final EventDataManager edm;
     try {

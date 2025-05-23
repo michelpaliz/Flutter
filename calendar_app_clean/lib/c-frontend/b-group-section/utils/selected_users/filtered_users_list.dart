@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 class UserList extends StatelessWidget {

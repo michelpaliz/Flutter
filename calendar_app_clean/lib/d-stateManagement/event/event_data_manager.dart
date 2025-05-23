@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
+import 'package:first_project/c-frontend/b-group-section/utils/network/safe_api_call.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
 
 class EventDataManager {
   List<Event> _events = [];
@@ -31,7 +32,7 @@ class EventDataManager {
   // --- Initialization ---
   Future<void> _initialize(List<Event> initialEvents) async {
     _events = _deduplicateEvents([...initialEvents, ..._group.calendar.events]);
-    await _refreshFromBackend();
+    await safeApiCall(() => _refreshFromBackend()); //the user must have a token
   }
 
   // Add this method back (unchanged from original)

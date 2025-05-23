@@ -4,17 +4,19 @@ import 'package:flutter/material.dart';
 class AppBarStyles {
   static AppBarTheme defaultAppBarTheme({bool isDarkMode = false}) {
     return AppBarTheme(
-      color: isDarkMode ? AppColors.greenDark : AppColors.brown,
+      // Primary blue for light, darker primary for dark mode
+      color: isDarkMode ? AppDarkColors.primaryDark : AppColors.primary,
       centerTitle: true,
-      titleTextStyle: TextStyle(
+      titleTextStyle: const TextStyle(
         color: Colors.white,
-        fontSize: 20,
         fontWeight: FontWeight.bold,
-        fontFamily: 'YourCustomFont', // you can customize here
+        fontSize: 20,
+        fontFamily: 'Lato',
       ),
-      iconTheme: IconThemeData(
-        color: Colors.white, // For back button and icons inside AppBar
+      iconTheme: const IconThemeData(
+        color: Colors.white,
       ),
+      foregroundColor: Colors.white,
     );
   }
 }

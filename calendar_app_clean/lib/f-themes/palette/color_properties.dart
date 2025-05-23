@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 
 class ColorProperties {
   // Button Colors
-  static const Color BUTTON_DEFAULT_PROPERTY = AppColors.green;
-  static const Color BUTTON_PRESSED_BACKGROUND = AppColors.greenLight;
+  static const Color BUTTON_DEFAULT_PROPERTY = AppColors.primary;
+  static const Color BUTTON_PRESSED_BACKGROUND = AppColors.primaryLight;
   static const Color BUTTON_TEXT_COLOR = AppColors.white;
-  static const Color BUTTON_BORDER_COLOR = AppColors.greenDark;
+  static const Color BUTTON_BORDER_COLOR = AppColors.primaryDark;
 
   static ButtonStyle defaultButton() {
     return ButtonStyles.saucyButtonStyle(
@@ -18,22 +18,23 @@ class ColorProperties {
     );
   }
 
-  // Optionally add more buttons
+  // Danger button (uses error color)
   static ButtonStyle dangerButton() {
     return ButtonStyles.saucyButtonStyle(
-      defaultBackgroundColor: AppColors.red,
-      pressedBackgroundColor: AppColors.redLight,
+      defaultBackgroundColor: AppDarkColors.error,
+      pressedBackgroundColor: AppDarkColors.error.withOpacity(0.8),
       textColor: AppColors.white,
-      borderColor: AppColors.redDark,
+      borderColor: AppDarkColors.error,
     );
   }
 
+  // Info button (accent blue)
   static ButtonStyle infoButton() {
     return ButtonStyles.saucyButtonStyle(
-      defaultBackgroundColor: AppColors.blue,
-      pressedBackgroundColor: AppColors.blueLight,
+      defaultBackgroundColor: AppColors.secondary,
+      pressedBackgroundColor: AppColors.secondaryLight,
       textColor: AppColors.white,
-      borderColor: AppColors.blueDark,
+      borderColor: AppColors.secondaryDark,
     );
   }
 }

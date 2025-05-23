@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
-import 'package:first_project/d-stateManagement/event_data_manager.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 

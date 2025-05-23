@@ -10,9 +10,9 @@ import '../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../a-models/notification_model/userInvitation_status.dart';
 import '../../../../../../a-models/user_model/user.dart';
 import '../../../../../../b-backend/api/user/user_services.dart';
-import '../../../../../../d-stateManagement/group_management.dart';
-import '../../../../../../d-stateManagement/notification_management.dart';
-import '../../../../../../d-stateManagement/user_management.dart';
+import '../../../../../../d-stateManagement/group/group_management.dart';
+import '../../../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../../../d-stateManagement/user/user_management.dart';
 
 class GroupController extends ChangeNotifier {
   BuildContext? context;

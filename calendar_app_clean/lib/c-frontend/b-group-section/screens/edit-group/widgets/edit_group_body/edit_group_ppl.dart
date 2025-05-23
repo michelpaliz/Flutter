@@ -4,9 +4,9 @@ import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/create-group/search-bar/controllers/create_group_controller.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/edit_group_body/admin_filter_sections.dart';
 import 'package:first_project/c-frontend/b-group-section/utils/shared/add_user_button.dart';
-import 'package:first_project/d-stateManagement/group_management.dart';
-import 'package:first_project/d-stateManagement/notification_management.dart';
-import 'package:first_project/d-stateManagement/user_management.dart';
+import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/notification/notification_management.dart';
+import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
