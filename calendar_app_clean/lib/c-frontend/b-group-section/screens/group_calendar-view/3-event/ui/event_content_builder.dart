@@ -1,123 +1,151 @@
+import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:flutter/material.dart';
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 
 class EventContentBuilder {
   final ColorManager colorManager;
 
   EventContentBuilder({required this.colorManager});
 
-  // Builds the default content for an event
-  Widget buildDefaultEventContent(Event event, Color textColor, BuildContext context) {
+  /// Builds the detailed event content used in full views
+  Widget buildDefaultEventContent(
+      Event event, Color textColor, BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(5),
+      margin: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(
-            width: 10,
+            width: 6,
             color: colorManager.getColor(event.eventColorIndex),
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: Offset(2, 2),
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           buildEventDateRow(event, textColor, context),
-          SizedBox(height: 3),
+          const SizedBox(height: 5),
           buildEventTimeRow(event, textColor, context),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           buildEventTitleRow(event, textColor, context),
+          if (event.description != null && event.description!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 16),
+              child: Text(
+                event.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: 13, color: textColor.withOpacity(0.8)),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  // Builds the event's date row
   Widget buildEventDateRow(Event event, Color textColor, BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 16),
+      margin: const EdgeInsets.only(left: 16),
       child: Row(
         children: [
           Text(
-            AppLocalizationsMethods.of(context)?.formatDate(event.startDate) ?? '',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: textColor),
+            AppLocalizationsMethods.of(context)?.formatDate(event.startDate) ??
+                '',
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
           ),
-          Text("  -  "),
+          const Text("  -  "),
           Text(
-            AppLocalizationsMethods.of(context)?.formatDate(event.endDate) ?? '',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: textColor),
+            AppLocalizationsMethods.of(context)?.formatDate(event.endDate) ??
+                '',
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
           ),
         ],
       ),
     );
   }
 
-  // Builds the event's time row
   Widget buildEventTimeRow(Event event, Color textColor, BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 16),
+      margin: const EdgeInsets.only(left: 16),
       child: Row(
         children: [
           Text(
-            AppLocalizationsMethods.of(context)!.formatHours(event.startDate) + "   - ",
-            style: TextStyle(fontSize: 15, color: textColor),
+            AppLocalizationsMethods.of(context)!.formatHours(event.startDate) +
+                " - ",
+            style: TextStyle(fontSize: 14, color: textColor),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
             AppLocalizationsMethods.of(context)!.formatHours(event.endDate),
-            style: TextStyle(fontSize: 15, color: textColor),
+            style: TextStyle(fontSize: 14, color: textColor),
           ),
         ],
       ),
     );
   }
 
-  // Builds the event's title row
-  Widget buildEventTitleRow(Event event, Color textColor, BuildContext context) {
+  Widget buildEventTitleRow(
+      Event event, Color textColor, BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 16),
+      margin: const EdgeInsets.only(left: 16),
       child: Row(
         children: [
-          Icon(Icons.event, size: 20, color: colorManager.getColor(event.eventColorIndex)),
-          SizedBox(width: 7),
-          Text(event.title, style: TextStyle(fontSize: 15, color: textColor)),
-          SizedBox(width: 10),
+          Icon(Icons.event,
+              size: 18, color: colorManager.getColor(event.eventColorIndex)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              event.title,
+              style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.bold, color: textColor),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return EventDetail(event: event);
-              }));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => EventDetail(event: event)));
             },
-            child: Icon(Icons.more_rounded, size: 20, color: colorManager.getColor(event.eventColorIndex)),
+            child: Icon(Icons.more_vert,
+                size: 20, color: colorManager.getColor(event.eventColorIndex)),
           ),
         ],
       ),
     );
   }
 
-  // Builds basic event content
+  /// Used in the calendar tiles (small version)
   Widget buildEventContent(Event event, Color textColor) {
     return Container(
-      padding: EdgeInsets.all(4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: colorManager.getColor(event.eventColorIndex),
-        borderRadius: BorderRadius.circular(2),
+        color: colorManager.getColor(event.eventColorIndex).withOpacity(0.9),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            event.title,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 9,
-              overflow: TextOverflow.ellipsis,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
+      child: Text(
+        event.title,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          overflow: TextOverflow.ellipsis,
+        ),
+        maxLines: 1,
       ),
     );
   }

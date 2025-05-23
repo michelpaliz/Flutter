@@ -4,68 +4,47 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class EventDataSource extends CalendarDataSource {
-  final List<Event> events;
+  List<Event> _events;
 
-  EventDataSource(this.events);
+  EventDataSource(List<Event> events) : _events = events {
+    appointments = events; // Initialize appointments
+  }
 
-  @override
-  List<dynamic> get appointments => events;
-
-  @override
-  DateTime getStartTime(int index) {
-    return events[index].startDate;
+  void updateEvents(List<Event> newEvents) {
+    _events = newEvents;
+    appointments = newEvents;
+    notifyListeners(CalendarDataSourceAction.reset, <Event>[]);
   }
 
   @override
-  DateTime getEndTime(int index) {
-    return events[index].endDate;
-  }
+  DateTime getStartTime(int index) => _events[index].startDate;
 
   @override
-  String getSubject(int index) {
-    return events[index].title;
-  }
+  DateTime getEndTime(int index) => _events[index].endDate;
 
   @override
-  String? getLocation(int index) {
-    return events[index].localization;
-  }
+  String getSubject(int index) => _events[index].title;
 
-  String? getDescription(int index) {
-    return events[index].description;
-  }
+  @override
+  String? getLocation(int index) => _events[index].localization;
 
-  String? getRecurrenceRule(int index) {
-    final recurrenceRule = events[index].recurrenceRule;
-    return recurrenceRule?.toString();
-  }
+  String? getDescription(int index) => _events[index].description;
+
+  String? getRecurrenceRule(int index) =>
+      _events[index].recurrenceRule?.toString();
 
   @override
   Color getColor(int index) {
-    // Use the eventColorIndex to determine the color for the appointment
-    // You can define a logic here to map eventColorIndex to a specific color
-    // For example, you can use a list of predefined colors and access them by index
     final List<Color> predefinedColors = ColorManager.eventColors;
+    final int colorIndex = _events[index].eventColorIndex;
 
-    final int colorIndex = events[index].eventColorIndex;
-
-    // Ensure the colorIndex is within the bounds of the predefinedColors list
-    if (colorIndex >= 0 && colorIndex < predefinedColors.length) {
-      return predefinedColors[colorIndex];
-    } else {
-      // Return a default color if the index is out of bounds
-      return Colors.grey;
-    }
+    return (colorIndex >= 0 && colorIndex < predefinedColors.length)
+        ? predefinedColors[colorIndex]
+        : Colors.grey;
   }
 
   @override
-  bool isAllDay(int index) {
-    return events[index].allDay;
-  }
+  bool isAllDay(int index) => _events[index].allDay;
 
-  bool isDone(int index) {
-    return events[index].isDone;
-  }
-
-  // Implement other necessary methods as needed
+  bool isDone(int index) => _events[index].isDone;
 }

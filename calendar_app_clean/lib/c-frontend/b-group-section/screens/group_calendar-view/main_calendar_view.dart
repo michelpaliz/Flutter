@@ -1,11 +1,12 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_UI_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/c-event_actions_manager.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_content_builder.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_logic.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_screen.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
+import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/user_management.dart';
@@ -22,8 +23,8 @@ class MainCalendarView extends StatefulWidget {
 
 class _MainCalendarViewState extends State<MainCalendarView>
     with AddEventLogic {
-  late CalendarUIManager _calendarUIManager;
-  late EventActionManager _eventActionManager;
+  CalendarUIManager? _calendarUIManager;
+  EventActionManager? _eventActionManager;
   late EventDisplayManager _displayManager;
   bool _isLoading = true;
 
@@ -81,9 +82,11 @@ class _MainCalendarViewState extends State<MainCalendarView>
           updatedGroup.userRoles[userManagement.user?.userName ?? ''] ??
               'Member';
 
+// ✅ Using the shared EventDataManager via Provider to sync logic and UI
+      final sharedEventDataManager = context.read<EventDataManager>();
+
       _calendarUIManager = CalendarUIManager(
-        group: updatedGroup,
-        eventService: EventService(),
+        eventDataManager: sharedEventDataManager,
         eventDisplayManager: _displayManager,
         userRole: userRole,
         groupManagement: groupManagement,
@@ -93,13 +96,15 @@ class _MainCalendarViewState extends State<MainCalendarView>
         groupManagement,
         userManagement,
         context.read<NotificationManagement>(),
-        eventDataManager: _calendarUIManager.eventDataManager,
+        eventDataManager: sharedEventDataManager,
       );
 
-      _displayManager.setEventActionManager(_eventActionManager);
+      if (_eventActionManager != null) {
+        _displayManager.setEventActionManager(_eventActionManager!);
+      }
 
       // Force refresh the events in the calendar
-      await _calendarUIManager.eventDataManager.manualRefresh();
+      await _calendarUIManager!.eventDataManager.manualRefresh();
 
       setState(() => _isLoading = false);
       debugPrint(
@@ -112,6 +117,20 @@ class _MainCalendarViewState extends State<MainCalendarView>
   }
 
   @override
+
+  /// Builds the main calendar view based on the currently selected group.
+  ///
+  /// If the group is not available, it displays a centered text message.
+  ///
+  /// If the user has the necessary permissions, it displays an "Add Event"
+  /// button below the calendar.
+  ///
+  /// When the button is pressed, it navigates to the add event screen and
+  /// refreshes the calendar when returning.
+  ///
+  /// The calendar is built using the [_calendarUIManager], which is
+  /// initialized in [_initializeCalendar].
+  ///
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
@@ -142,17 +161,33 @@ class _MainCalendarViewState extends State<MainCalendarView>
                 children: [
                   SizedBox(
                     height: constraints.maxHeight * 0.8,
-                    child: _calendarUIManager.buildCalendar(
-                      context,
-                      height: constraints.maxHeight * 0.8,
-                      width: constraints.maxWidth,
-                    ),
+                    child: _calendarUIManager?.buildCalendar(
+                          context,
+                          height: constraints.maxHeight * 0.8,
+                          width: constraints.maxWidth,
+                        ) ??
+                        const SizedBox(), // ✅ fallback if still null
                   ),
                   if (userRole == 'Administrator' ||
                       userRole == 'Co-Administrator')
-                    _eventActionManager.buildAddEventButton(
-                        context, currentGroup),
-                  const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        // Push AddEvent under the same provider tree
+                        final added = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute(
+                            builder: (ctx) => AddEvent(group: currentGroup),
+                          ),
+                        );
+
+                        // If the form returned `true`, refresh the calendar
+                        if (added == true) {
+                          setState(() => _isLoading = true);
+                          await _initializeCalendar(
+                              context.read<GroupManagement>());
+                        }
+                      },
+                      child: const Text("Add Event"),
+                    )
                 ],
               ),
             );

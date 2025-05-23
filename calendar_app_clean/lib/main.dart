@@ -1,12 +1,15 @@
 import 'dart:developer' as devtools show log;
 
+import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
 import 'package:first_project/c-frontend/routes/routes.dart';
 import 'package:first_project/d-stateManagement/LocaleProvider.dart';
+import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group_management.dart';
 import 'package:first_project/d-stateManagement/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme_management.dart';
@@ -23,34 +26,51 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(),
-        ),
+        // 1. Authentication
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         Provider<AuthService>(
-          create: (context) => AuthService(
-            Provider.of<AuthProvider>(context, listen: false),
-          ),
+          create: (ctx) => AuthService(ctx.read<AuthProvider>()),
         ),
-        ChangeNotifierProvider<UserManagement>(
-          create: (_) => UserManagement(
-            user: null,
-            notificationManagement: NotificationManagement(),
-          ),
-        ),
-        ChangeNotifierProvider<GroupManagement>(
-          create: (_) => GroupManagement(user: null),
-        ),
-        ChangeNotifierProvider<NotificationManagement>(
-          create: (_) => NotificationManagement(),
-        ),
-        ChangeNotifierProvider<ThemeManagement>(
-          create: (_) => ThemeManagement(),
-        ),
-        ChangeNotifierProvider<ThemePreferenceProvider>(
-          create: (_) => ThemePreferenceProvider(),
-        ),
-        ChangeNotifierProvider<LocaleProvider>(
-          create: (_) => LocaleProvider(),
+
+        // 2. User & Group state
+        ChangeNotifierProvider(
+            create: (_) => UserManagement(
+                user: null, notificationManagement: NotificationManagement())),
+        ChangeNotifierProvider(create: (_) => GroupManagement(user: null)),
+
+        // 3. Notifications, theming, locale
+        ChangeNotifierProvider(create: (_) => NotificationManagement()),
+        ChangeNotifierProvider(create: (_) => ThemeManagement()),
+        ChangeNotifierProvider(create: (_) => ThemePreferenceProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+
+        // 4. EventService
+        Provider(create: (_) => EventService()),
+
+        // 5. ProxyProvider2 to build EventDataManager from GroupManagement & EventService
+        ProxyProvider2<GroupManagement, EventService, EventDataManager>(
+          create: (_) {
+            // initial dummy: no group yet
+            return EventDataManager(
+              [], // no events
+              group: Group.createDefaultGroup(),
+              eventService: _.read<EventService>(),
+              groupManagement: _.read<GroupManagement>(),
+            );
+          },
+          update: (ctx, groupMgmt, eventSvc, previous) {
+            // as soon as currentGroup becomes non-null, rebuild with its calendar events
+            final current = groupMgmt.currentGroup;
+            if (current == null) {
+              return previous!;
+            }
+            return EventDataManager(
+              current.calendar.events,
+              group: current,
+              eventService: eventSvc,
+              groupManagement: groupMgmt,
+            );
+          },
         ),
       ],
       child: const MyMaterialApp(),

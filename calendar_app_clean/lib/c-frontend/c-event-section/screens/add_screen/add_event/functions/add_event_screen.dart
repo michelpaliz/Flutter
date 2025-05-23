@@ -22,35 +22,38 @@ class AddEvent extends StatefulWidget {
 class _AddEventState extends State<AddEvent>
     with AddEventLogic<AddEvent>, AddEventDialogs {
   bool _initialized = false;
+  bool _isLoading = true; // this is what drives the UI
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
     if (!_initialized) {
-      final groupManagement = Provider.of<GroupManagement>(context);
-      final userManagement = Provider.of<UserManagement>(context);
+      final groupManagement =
+          Provider.of<GroupManagement>(context, listen: false);
+      final userManagement =
+          Provider.of<UserManagement>(context, listen: false);
       final notificationManagement =
-          Provider.of<NotificationManagement>(context);
+          Provider.of<NotificationManagement>(context, listen: false);
 
-      // ✅ Inject dependencies
       injectDependencies(
         groupMgmt: groupManagement,
         userMgmt: userManagement,
         notifMgmt: notificationManagement,
       );
 
-      // ✅ Now run init logic
-      Future.microtask(() async {
-        await initializeLogic(widget.group, context);
-        if (mounted) {
-          setState(() {
-            isLoading = false;
-          });
-        }
-      });
-
       _initialized = true;
+      _initializeLogic(); // async init
+    }
+  }
+
+  Future<void> _initializeLogic() async {
+    // ⚠️ sanity check in debug:
+
+    try {
+      await initializeLogic(widget.group, context);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -68,7 +71,7 @@ class _AddEventState extends State<AddEvent>
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.event),
         ),
-        body: isLoading
+        body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),

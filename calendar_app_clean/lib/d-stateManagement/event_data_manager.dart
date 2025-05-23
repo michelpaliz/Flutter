@@ -84,9 +84,13 @@ class EventDataManager {
 
   // --- Data Helpers ---
   Future<void> _refreshFromBackend() async {
+    // ←——— if we're still on the dummy group, do nothing
+    if (_group.id == Group.createDefaultGroup().id) return;
+
     try {
-      _events =
-          _deduplicateEvents(await _eventService.getEventsByGroupId(_group.id));
+      _events = _deduplicateEvents(
+        await _eventService.getEventsByGroupId(_group.id),
+      );
       _notifyChanges();
     } catch (e) {
       _eventsController.addError(e);

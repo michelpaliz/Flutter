@@ -3,12 +3,12 @@ import 'dart:developer' as devtools show log;
 import 'package:first_project/d-stateManagement/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../../../a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import '../../../../../../a-models/group_model/event_appointment/event/event.dart';
 import '../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../a-models/user_model/user.dart';
-import '../../../../../../b-backend/api/event/event_services.dart';
 import '../../../../../../b-backend/api/user/user_services.dart';
 import '../../../../../../d-stateManagement/group_management.dart';
 import '../../../../../../d-stateManagement/notification_management.dart';
@@ -24,7 +24,6 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
   late UserManagement userManagement;
   late GroupManagement groupManagement;
   late NotificationManagement notificationManagement;
-  final EventService _eventService = EventService();
   final UserService _userService = UserService();
 
   // Models
@@ -68,14 +67,24 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
     _selectedStartDate = DateTime.now();
     _selectedEndDate = DateTime.now();
     _eventList = _group.calendar.events;
+    
+    // try to grab it—Provider.of will throw if it's missing
+    late final EventDataManager edm;
+    try {
+      edm = Provider.of<EventDataManager>(context, listen: false);
+    } catch (e) {
+      assert(
+          false,
+          'No EventDataManager found! '
+          'Make sure AddEvent is wrapped in a Provider<EventDataManager> above it.\n'
+          'Original error: $e');
+      rethrow; // in production this will propagate the original exception
+    }
+    _eventDataManager = edm;
 
     // Initialize EventDataManager with proper parameters
-    _eventDataManager = EventDataManager(
-      group.calendar.events, // Positional events parameter
-      group: group, // Named group parameter
-      eventService: EventService(),
-      groupManagement: groupManagement,
-    );
+// ✅ Use shared instance from Provider
+    _eventDataManager = Provider.of<EventDataManager>(context, listen: false);
 
     if (_group.userIds.isNotEmpty) {
       for (var userId in _group.userIds) {
@@ -197,6 +206,10 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
       }
 
       groupManagement.currentGroup = fetchedUpdatedGroup!;
+
+      // ✅ Sync the events with EventDataManager
+      _eventDataManager.updateEvents(fetchedUpdatedGroup!.calendar.events);
+
       clearFormFields();
       onSuccess();
     } catch (e) {

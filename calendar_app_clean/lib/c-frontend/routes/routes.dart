@@ -40,23 +40,13 @@ final Map<String, WidgetBuilder> routes = {
   },
   AppRoutes.groupCalendar: (context) {
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
-    return group != null
-        ? MainCalendarView(group: group)
-        : const SizedBox.shrink();
+    if (group == null) return const SizedBox.shrink();
+    return MainCalendarView(group: group);
   },
   AppRoutes.addEvent: (context) {
-    final arg = ModalRoute.of(context)?.settings.arguments;
-
-    if (arg is Group) {
-      return AddEvent(
-        group: arg,
-      );
-    } else {
-      // Provide a default instance of Group if none is passed
-      return AddEvent(
-        group: Group.createDefaultGroup(),
-      );
-    }
+    final group = ModalRoute.of(context)!.settings.arguments as Group?;
+    if (group == null) return const SizedBox.shrink();
+    return AddEvent(group: group);
   },
   AppRoutes.eventDetail: (context) {
     final event = ModalRoute.of(context)?.settings.arguments as Event?;

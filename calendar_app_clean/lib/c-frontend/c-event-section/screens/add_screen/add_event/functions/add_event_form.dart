@@ -74,7 +74,9 @@ class AddEventForm extends StatelessWidget {
           onAddEvent: () async {
             await logic.addEvent(
               context,
-              () => Navigator.pop(context, logic.updatedGroup),
+              () {
+                Navigator.pop(context, true); // ✅ success flag
+              },
               () => dialogs.showErrorDialog(context),
               () => dialogs.showRepetitionDialog(context),
             );

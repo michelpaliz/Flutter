@@ -1,7 +1,5 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event_data_source.dart';
-import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/2.1-appointment_builder.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
@@ -19,33 +17,36 @@ class CalendarUIManager {
   final EventDataManager _eventDataManager;
   final String userRole;
   final GroupManagement groupManagement;
+  late final EventDataSource _eventDataSource;
 
   late CalendarAppointmentBuild _calendarAppointmentBuilder;
   CalendarView _selectedView = CalendarView.month;
   DateTime? _selectedDate;
 
+  /// ✅ Constructor now expects shared EventDataManager
   CalendarUIManager({
-    required Group group,
-    required EventService eventService,
+    required EventDataManager eventDataManager,
     required EventDisplayManager eventDisplayManager,
     required this.userRole,
     required this.groupManagement,
   })  : _eventDisplayManager = eventDisplayManager,
-        _eventDataManager = EventDataManager(
-          group.calendar.events,
-          group: group,
-          eventService: eventService,
-          groupManagement: groupManagement,
-        ) {
+        _eventDataManager = eventDataManager {
     _calendarAppointmentBuilder = CalendarAppointmentBuild(
       _eventDataManager,
       _eventDisplayManager,
     );
+
+    // ✅ Initialize the data source from EventDataManager
+    _eventDataSource = EventDataSource(_eventDataManager.events);
+
+    // ✅ Listen to the shared event stream
+    _eventDataManager.eventsStream.listen((updatedEvents) {
+      _eventDataSource.updateEvents(updatedEvents);
+    });
   }
 
   EventDataManager get eventDataManager => _eventDataManager;
 
-  /// ✅ Call this to reload the group and update the event list
   Future<void> reloadGroup({required String groupId}) async {
     final updatedGroup =
         await groupManagement.groupService.getGroupById(groupId);
@@ -53,20 +54,18 @@ class CalendarUIManager {
     debugPrint("📦 Group fetched: ${updatedGroup.id}");
   }
 
-
   Widget buildCalendar(BuildContext context, {double? height, double? width}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = getTextColor(context);
     final backgroundColor = getBackgroundColor(context).withOpacity(0.8);
     final fontSize = (width ?? MediaQuery.of(context).size.width) * 0.035;
 
-    // ✅ Always get fresh events from the current group
     final List<Event> currentEvents =
         groupManagement.currentGroup?.calendar.events ?? [];
 
     final calendar = SfCalendar(
       controller: _controller,
-      dataSource: EventDataSource(currentEvents),
+      dataSource: _eventDataSource,
       view: _selectedView,
       allowedViews: CalendarView.values,
       onViewChanged: (_) => _selectedView = _controller.view!,

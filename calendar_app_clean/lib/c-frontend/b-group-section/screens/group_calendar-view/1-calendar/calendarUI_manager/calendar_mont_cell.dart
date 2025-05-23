@@ -27,7 +27,6 @@ Widget buildMonthCell({
   final cellColor = isSelected
       ? (isDarkMode ? Colors.blue[700] : Colors.blue[300])
       : Colors.transparent;
-
   return Container(
     margin: const EdgeInsets.all(2),
     decoration: BoxDecoration(
