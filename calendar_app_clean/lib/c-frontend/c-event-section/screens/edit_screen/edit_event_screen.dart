@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/edit_event_logic.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/functions/edit/edit_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/date_picker.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/description_input.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/event_color_dropdown.dart';
