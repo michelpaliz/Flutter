@@ -1,8 +1,10 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/0-parent/add_event_button.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_UI_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/c-event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_content_builder.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/actions/event_actions_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_content_builder.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/app_screen_manager.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_screen.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
@@ -23,6 +25,7 @@ class MainCalendarView extends StatefulWidget {
 
 class _MainCalendarViewState extends State<MainCalendarView>
     with AddEventLogic {
+  final AppScreenManager _screenManager = AppScreenManager();
   CalendarUIManager? _calendarUIManager;
   EventActionManager? _eventActionManager;
   late EventDisplayManager _displayManager;
@@ -35,12 +38,33 @@ class _MainCalendarViewState extends State<MainCalendarView>
     _loadData();
   }
 
+  // void _initializeManagers() {
+  //   final colorManager = ColorManager();
+  //   final contentBuilder = EventContentBuilder(colorManager: colorManager);
+  //   _displayManager = EventDisplayManager(null, contentBuilder: contentBuilder);
+  // }
+
   void _initializeManagers() {
     final colorManager = ColorManager();
     final contentBuilder = EventContentBuilder(colorManager: colorManager);
-    _displayManager = EventDisplayManager(null, contentBuilder: contentBuilder);
+
+    // Use `builder:` because that's what the constructor expects now
+    _displayManager = EventDisplayManager(
+      null,
+      builder: contentBuilder,
+    );
   }
 
+  /// Loads the group data and initializes the calendar.
+  ///
+  /// If the group is not available, it displays a centered text message.
+  ///
+  /// If the user has the necessary permissions, it displays an "Add Event"
+  /// button below the calendar.
+  ///
+  /// When the button is pressed, it navigates to the add event screen and
+  /// refreshes the calendar when returning.
+  ///
   Future<void> _loadData() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final groupManagement = context.read<GroupManagement>();
@@ -68,6 +92,18 @@ class _MainCalendarViewState extends State<MainCalendarView>
     });
   }
 
+  /// Initializes the calendar with the given [GroupManagement].
+  ///
+  /// This does the following:
+  ///
+  /// 1. Force refreshes the group data.
+  /// 2. Creates a new [CalendarUIManager] instance with the shared [EventDataManager].
+  /// 3. Creates a new [EventActionManager] instance with the shared [EventDataManager].
+  /// 4. Sets the [EventActionManager] instance in the [EventDisplayManager].
+  /// 5. Force refreshes the events in the calendar.
+  ///
+  /// If any error occurs, it's caught and [_isLoading] is set to false.
+  ///
   Future<void> _initializeCalendar(GroupManagement groupManagement) async {
     try {
       setState(() => _isLoading = true);
@@ -131,7 +167,10 @@ class _MainCalendarViewState extends State<MainCalendarView>
   /// The calendar is built using the [_calendarUIManager], which is
   /// initialized in [_initializeCalendar].
   ///
+  @override
   Widget build(BuildContext context) {
+    _screenManager.setScreenWidthAndCalendarHeight(context);
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -152,46 +191,44 @@ class _MainCalendarViewState extends State<MainCalendarView>
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(currentGroup.name),
+      ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: constraints.maxHeight * 0.8,
-                    child: _calendarUIManager?.buildCalendar(
-                          context,
-                          height: constraints.maxHeight * 0.8,
-                          width: constraints.maxWidth,
-                        ) ??
-                        const SizedBox(), // ✅ fallback if still null
-                  ),
-                  if (userRole == 'Administrator' ||
-                      userRole == 'Co-Administrator')
-                    ElevatedButton(
-                      onPressed: () async {
-                        // Push AddEvent under the same provider tree
-                        final added = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(
-                            builder: (ctx) => AddEvent(group: currentGroup),
-                          ),
-                        );
-
-                        // If the form returned `true`, refresh the calendar
-                        if (added == true) {
-                          setState(() => _isLoading = true);
-                          await _initializeCalendar(
-                              context.read<GroupManagement>());
-                        }
-                      },
-                      child: const Text("Add Event"),
-                    )
-                ],
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              // Calendar expands to fill available space
+              Expanded(
+                child: _calendarUIManager?.buildCalendar(
+                      context,
+                      // height: double.infinity,
+                      // width: double.infinity,
+                    ) ??
+                    const SizedBox(),
               ),
-            );
-          },
+
+              // Add Event button at bottom
+              if (userRole == 'Administrator' || userRole == 'Co-Administrator')
+                AddEventButton(
+                  isVisible: true,
+                  onPressed: () async {
+                    final added = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (_) => AddEvent(group: currentGroup),
+                      ),
+                    );
+                    if (added == true) {
+                      setState(() => _isLoading = true);
+                      await _initializeCalendar(
+                        context.read<GroupManagement>(),
+                      );
+                    }
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/c-event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_content_builder.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/actions/event_actions_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_content_builder.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -28,21 +28,17 @@ class EventUIManager {
         event, context, textColor, appointment, userRole);
   }
 
-  // Builds future event content, delegating to the EventDisplayManager
   Widget buildFutureEventContent(
-      String eventId,
-      Color textColor,
-      BuildContext context,
-      dynamic appointment,
-      Future<Event?> Function(String) fetchEvent) {
-    // Delegates to EventDisplayManager, no need to pass fetchEvent because it is handled internally
-    return displayManager.buildFutureEventContent(
-        eventId, textColor, context, appointment);
-  }
+    String eventId,
+    Color textColor,
+    BuildContext context,
+    dynamic appointment,
+  ) =>
+      displayManager.buildFutureEventContent(
+          eventId, textColor, context, appointment);
 
   // Builds the add event button, delegating to EventActionManager
-  Widget buildAddEventButton(
-      BuildContext context, Group group, Function(Group) updateGroup) {
+  Widget buildAddEventButton(BuildContext context, Group group) {
     // Delegates to EventActionManager
     return actionManager.buildAddEventButton(context, group);
   }

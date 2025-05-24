@@ -3,7 +3,7 @@ import 'package:first_project/a-models/notification_model/userInvitation_status.
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/c-frontend/b-group-section/utils/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:first_project/c-frontend/b-group-section/utils/shared/group_user_card.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/functions/user_removal_service.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/functions/user/user_removal_service.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/notification/notification_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';

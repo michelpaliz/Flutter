@@ -1,8 +1,9 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event_data_source.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/2.1-appointment_builder.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/appointment_builder.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';

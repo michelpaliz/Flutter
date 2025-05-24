@@ -174,17 +174,18 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
       completedAt: null,
     );
 
-    // Check for duplicates through EventDataManager
-    final exists = _eventDataManager.events.any((existing) =>
-        existing.startDate.year == newEvent.startDate.year &&
-        existing.startDate.month == newEvent.startDate.month &&
-        existing.startDate.day == newEvent.startDate.day &&
-        existing.startDate.hour == newEvent.startDate.hour);
+    //TODO WE ARE NOT GONNA USE IT FOR NOW
+    // // Check for duplicates through EventDataManager
+    // final exists = _eventDataManager.events.any((existing) =>
+    //     existing.startDate.year == newEvent.startDate.year &&
+    //     existing.startDate.month == newEvent.startDate.month &&
+    //     existing.startDate.day == newEvent.startDate.day &&
+    //     existing.startDate.hour == newEvent.startDate.hour);
 
-    if (exists) {
-      onRepetitionError();
-      return;
-    }
+    // if (exists) {
+    //   onRepetitionError();
+    //   return;
+    // }
 
     try {
       // Use EventDataManager to create the event
@@ -254,4 +255,6 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
     _selectedUsers = users;
     if (mounted) setState(() {});
   }
+
+  
 }

@@ -1,36 +1,103 @@
-import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/a-models/notification_model/updateInfo.dart';
-import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/b-backend/api/event/event_services.dart';
-import 'package:first_project/b-backend/api/user/user_services.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/edit_event_logic.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/date_picker.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/description_input.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/event_color_dropdown.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/location_input.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/note_input.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/repetition_toggle.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/widgets/event/title_input.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-
-import 'functions/fetch_data.dart';
-import 'functions/save_edited_event.dart';
-import 'functions/select_date.dart';
-import 'widgets/event/date_picker.dart';
-import 'widgets/event/description_input.dart';
-import 'widgets/event/event_color_dropdown.dart';
-import 'widgets/event/location_input.dart';
-import 'widgets/event/note_input.dart';
-import 'widgets/event/repetition_toggle.dart';
-import 'widgets/event/save_button.dart';
-import 'widgets/event/title_input.dart';
-import 'widgets/event/user_dropdown.dart';
-
-part 'edit_event_screen_logic.dart';
 
 class EditEventScreen extends StatefulWidget {
   final Event event;
   const EditEventScreen({Key? key, required this.event}) : super(key: key);
 
   @override
-  _EditEventScreenState createState() => _EditEventScreenState();
+  State<EditEventScreen> createState() => _EditEventScreenState();
+}
+
+class _EditEventScreenState extends State<EditEventScreen>
+    with EditEventLogic<EditEventScreen> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    initLogic(
+      event: widget.event,
+      gm: context.read<GroupManagement>(),
+      um: context.read<UserManagement>(),
+    );
+  }
+
+  @override
+  void dispose() {
+    disposeLogic();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(title: Text(loc.event)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            EventColorDropdown(
+              selectedColor: selectedColor,
+              colorList: ColorManager.eventColors,
+              onColorSelected: setSelectedColor,
+            ),
+            const SizedBox(height: 10),
+            TitleInput(controller: titleController),
+            const SizedBox(height: 10),
+            DatePickerRow(
+              selectedStartDate: selectedStartDate,
+              selectedEndDate: selectedEndDate,
+              // wrap your helper to match the expected signature:
+              selectDateFn: (ctx, isStart) => showDateTimePicker(
+                ctx,
+                isStart ? selectedStartDate : selectedEndDate,
+              ),
+              onDateSelected: (isStart, picked) {
+                if (isStart)
+                  setStartDate(picked);
+                else
+                  setEndDate(picked);
+              },
+            ),
+            const SizedBox(height: 10),
+            LocationInput(controller: locationController),
+            const SizedBox(height: 10),
+            DescriptionInput(controller: descriptionController),
+            const SizedBox(height: 10),
+            NoteInput(controller: noteController),
+            const SizedBox(height: 20),
+            RepetitionToggle(
+              isRepetitive: recurrenceRule != null,
+              initialRule: recurrenceRule,
+              toggleWidth: toggleWidth,
+              startDate: selectedStartDate,
+              endDate: selectedEndDate,
+              onToggleChanged: setRecurrenceRule,
+            ),
+            const SizedBox(height: 25),
+            Center(
+              child: ElevatedButton(
+                onPressed: saveEditedEvent,
+                child: Text(loc.save),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
