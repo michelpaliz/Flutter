@@ -31,40 +31,33 @@ class EventContentBuilder {
 
   Widget buildDefaultEventCard({
     required Widget dateRow,
-    required Widget timeRow,
     required Widget titleRow,
     String? description,
     required Color cardColor,
   }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      elevation: 2,
-      color: cardColor,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          dateRow,
-          timeRow,
-
-          // Allow the title to shrink if there's not enough room
-          Flexible(
-            child: titleRow,
+          Container(
+            padding: const EdgeInsets.only(top: 4), // ✅ Internal spacing only
+            child: dateRow,
           ),
-
-          if (description?.isNotEmpty ?? false)
-            // And likewise for the description
-            Flexible(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
+          const SizedBox(height: 4),
+          titleRow,
         ],
       ),
     );

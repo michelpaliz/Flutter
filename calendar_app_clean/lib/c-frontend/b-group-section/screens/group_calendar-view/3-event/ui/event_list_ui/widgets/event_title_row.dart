@@ -19,7 +19,10 @@ class EventTitleRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = colorManager.getColor(event.eventColorIndex);
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 8, top: 4),
+      padding: const EdgeInsets.only(
+        left: 16,
+        right: 8,
+      ),
       child: Row(
         children: [
           Icon(Icons.event, size: 18, color: accent),

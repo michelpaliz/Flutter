@@ -1,12 +1,11 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/actions/event_actions_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/combined_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import 'event_content_builder.dart';
-import 'event_date_row.dart';
-import 'event_time_row.dart';
 import 'event_title_row.dart';
 
 class EventDisplayManager {
@@ -32,42 +31,49 @@ class EventDisplayManager {
     dynamic appointment,
     String userRole,
   ) {
-    final dateRow = EventDateRow(event: event, textColor: textColor);
-    final timeRow = EventTimeRow(event: event, textColor: textColor);
+    final dateRow = EventDateTimeRow(event: event, textColor: textColor);
+
     final titleRow = EventTitleRow(
       event: event,
       textColor: textColor,
       colorManager: _builder.colorManager,
     );
 
-    return Dismissible(
-      key: Key(appointment.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      confirmDismiss: (_) async {
-        if (_actionManager == null ||
-            !(userRole == 'Administrator' || userRole == 'Co-Administrator'))
-          return false;
-        return _actionManager!.removeEvent(event, true);
-      },
-      child: GestureDetector(
-        onTap: () {
-          if (_actionManager != null &&
-              (userRole == 'Administrator' || userRole == 'Co-Administrator')) {
-            _actionManager!.editEvent(event, context);
-          }
-        },
-        child: _builder.buildDefaultEventCard(
-          dateRow: dateRow,
-          timeRow: timeRow,
-          titleRow: titleRow,
-          description: event.description,
-          cardColor: Colors.white,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Dismissible(
+          key: Key(appointment.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          confirmDismiss: (_) async {
+            if (_actionManager == null ||
+                !(userRole == 'Administrator' ||
+                    userRole == 'Co-Administrator')) {
+              return false;
+            }
+            return _actionManager!.removeEvent(event, true);
+          },
+          child: GestureDetector(
+            onTap: () {
+              if (_actionManager != null &&
+                  (userRole == 'Administrator' ||
+                      userRole == 'Co-Administrator')) {
+                _actionManager!.editEvent(event, context);
+              }
+            },
+            child: _builder.buildDefaultEventCard(
+              dateRow: dateRow,
+              titleRow: titleRow,
+              description: event.description,
+              cardColor: Colors.white,
+            ),
+          ),
         ),
       ),
     );
@@ -115,8 +121,10 @@ class EventDisplayManager {
     Color textColor,
     BuildContext context,
   ) {
-    final dateRow = EventDateRow(event: event, textColor: textColor);
-    final timeRow = EventTimeRow(event: event, textColor: textColor);
+    // final dateRow = EventDateRow(event: event, textColor: textColor);
+    // final timeRow = EventTimeRow(event: event, textColor: textColor);
+    final dateRow = EventDateTimeRow(event: event, textColor: textColor);
+
     final titleRow = EventTitleRow(
       event: event,
       textColor: textColor,
@@ -139,7 +147,7 @@ class EventDisplayManager {
         ),
         child: _builder.buildDefaultEventCard(
           dateRow: dateRow,
-          timeRow: timeRow,
+          // timeRow: timeRow,
           titleRow: titleRow,
           description: event.description,
           cardColor: Colors.white,

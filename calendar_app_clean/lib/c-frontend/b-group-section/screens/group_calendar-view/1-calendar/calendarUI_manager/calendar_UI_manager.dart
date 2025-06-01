@@ -3,7 +3,6 @@ import 'package:first_project/a-models/group_model/event_appointment/event/event
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/appointment_builder.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
-
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +68,14 @@ class CalendarUIManager {
       dataSource: _eventDataSource,
       view: _selectedView,
       allowedViews: CalendarView.values,
+
+      // ✅ Set height of appointments in day/week/workWeek views
+      // timeSlotViewSettings: const TimeSlotViewSettings(
+      //   minimumAppointmentDuration: Duration(minutes: 150), // or 90, 120 etc.
+      //   timeIntervalHeight: 120, // increase this for more vertical spa
+      //   timeInterval: Duration(minutes: 30),
+      // ),
+
       onViewChanged: (_) => _selectedView = _controller.view!,
       onSelectionChanged: (details) {
         if (details.date != null) {
@@ -77,6 +84,8 @@ class CalendarUIManager {
           _eventDataManager.getEventsForDate(_selectedDate!);
         }
       },
+
+      // ✅ Custom month cell builder
       monthCellBuilder: (context, details) => buildMonthCell(
         context: context,
         details: details,
@@ -84,6 +93,8 @@ class CalendarUIManager {
         isDarkMode: isDarkMode,
         events: currentEvents,
       ),
+
+      // ✅ Custom appointment rendering
       appointmentBuilder: (context, details) {
         try {
           final dynamic appointment = details.appointments.first;
@@ -93,8 +104,13 @@ class CalendarUIManager {
           }
 
           return _calendarAppointmentBuilder
-              .defaultBuildAppointment(details, textColor, context,
-                  _selectedView.toString(), userRole)
+              .defaultBuildAppointment(
+                details,
+                textColor,
+                context,
+                _selectedView.toString(),
+                userRole,
+              )
               .animate()
               .fadeIn(duration: 300.ms)
               .scale();
@@ -105,7 +121,8 @@ class CalendarUIManager {
               style: TextStyle(color: Colors.red));
         }
       },
-      selectionDecoration: BoxDecoration(color: Colors.transparent),
+
+      selectionDecoration: const BoxDecoration(color: Colors.transparent),
       showNavigationArrow: true,
       showDatePickerButton: true,
       firstDayOfWeek: DateTime.monday,
