@@ -232,16 +232,17 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
   TextEditingController get noteController => _noteController;
   TextEditingController get locationController => _locationController;
 
-  Color get selectedEventColor => _selectedEventColor;
-  List<Color> get colorList => ColorManager.eventColors;
+  int? get selectedEventColor => _selectedEventColor.value;
+  List<int> get colorList =>
+      ColorManager.eventColors.map((c) => c.value).toList();
   DateTime get selectedStartDate => _selectedStartDate;
   DateTime get selectedEndDate => _selectedEndDate;
   List<User> get users => _users;
   List<User> get selectedUsers => _selectedUsers;
   Group? get updatedGroup => fetchedUpdatedGroup;
 
-  void setSelectedColor(Color color) {
-    _selectedEventColor = color;
+  void setSelectedColor(int colorValue) {
+    _selectedEventColor = Color(colorValue);
     if (mounted) setState(() {});
   }
 
@@ -255,6 +256,4 @@ mixin AddEventLogic<T extends StatefulWidget> on State<T> {
     _selectedUsers = users;
     if (mounted) setState(() {});
   }
-
-  
 }

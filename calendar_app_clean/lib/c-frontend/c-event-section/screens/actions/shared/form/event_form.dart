@@ -1,5 +1,4 @@
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/add_event_button_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/description_input_widget.dart';
@@ -8,40 +7,55 @@ import 'package:first_project/c-frontend/c-event-section/screens/actions/add_scr
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/title_input_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/repetition_toggle_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import 'add_event_dialogs.dart';
-import 'add_event_logic.dart';
+import 'event_form_logic.dart';
 
-class AddEventForm extends StatelessWidget {
-  final AddEventLogic logic;
-  final AddEventDialogs dialogs;
+/// Optional dialogs interface (used only in Add flow)
+abstract class EventDialogs {
+  Widget buildRepetitionDialog(BuildContext context);
+  void showErrorDialog(BuildContext context);
+  void showRepetitionDialog(BuildContext context);
+}
 
-  const AddEventForm({
+class EventForm extends StatelessWidget {
+  final EventFormLogic logic;
+  final VoidCallback onSubmit;
+  final bool isEditing;
+  final EventDialogs? dialogs;
+
+  const EventForm({
     Key? key,
     required this.logic,
-    required this.dialogs,
+    required this.onSubmit,
+    this.dialogs,
+    this.isEditing = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Color Picker
         ColorPickerWidget(
           selectedEventColor: logic.selectedEventColor == null
               ? null
               : Color(logic.selectedEventColor!),
           onColorChanged: (color) {
-            if (color != null)
-              logic.setSelectedColor(color.value); // make sure to pass int
+            if (color != null) logic.setSelectedColor(color.value);
           },
-          colorList: logic.colorList
-              .map((c) => Color(c))
-              .toList(), // also convert int list to Color
+          colorList: logic.colorList.map((c) => Color(c)).toList(),
         ),
         const SizedBox(height: 10),
+
+        // Title
         TitleInputWidget(titleController: logic.titleController),
         const SizedBox(height: 10),
+
+        // Date pickers
         DatePickersWidget(
           startDate: logic.selectedStartDate,
           endDate: logic.selectedEndDate,
@@ -49,43 +63,65 @@ class AddEventForm extends StatelessWidget {
           onEndDateTap: () => logic.selectDate(context, false),
         ),
         const SizedBox(height: 10),
+
+        // Location
         LocationInputWidget(locationController: logic.locationController),
         const SizedBox(height: 10),
+
+        // Description
         DescriptionInputWidget(
-            descriptionController: logic.descriptionController),
+          descriptionController: logic.descriptionController,
+        ),
         const SizedBox(height: 10),
+
+        // Note
         NoteInputWidget(noteController: logic.noteController),
         const SizedBox(height: 10),
+
+        // Repetition toggle
         RepetitionToggleWidget(
           isRepetitive: logic.isRepetitive,
           toggleWidth: logic.toggleWidth,
           onTap: () async {
-            final result = await showDialog(
-              context: context,
-              builder: (context) => dialogs.buildRepetitionDialog(context),
-            );
-            if (result != null && result.isNotEmpty) {
-              logic.toggleRepetition(result[1], result[0]);
+            if (!isEditing && dialogs != null) {
+              final result = await showDialog(
+                context: context,
+                builder: (context) => dialogs!.buildRepetitionDialog(context),
+              );
+              if (result != null && result.isNotEmpty) {
+                logic.toggleRepetition(result[1], result[0]);
+              }
             }
           },
         ),
         const SizedBox(height: 10),
-        UserExpandableCard(
-          usersAvailable: logic.users,
-          onSelectedUsersChanged: logic.setSelectedUsers,
-        ),
+
+        // User selector (only in Add flow, ignore if not used in Edit)
+        if (!isEditing)
+          UserExpandableCard(
+            usersAvailable: logic.users,
+            onSelectedUsersChanged: logic.setSelectedUsers,
+          ),
+
         const SizedBox(height: 25),
-        AddEventButtonWidget(
-          onAddEvent: () async {
-            await logic.addEvent(
-              context,
-              () {
-                Navigator.pop(context, true); // ✅ success flag
-              },
-              () => dialogs.showErrorDialog(context),
-              () => dialogs.showRepetitionDialog(context),
-            );
-          },
+
+        // Submit button
+        Center(
+          child: ElevatedButton(
+            onPressed: () async {
+              if (isEditing) {
+                onSubmit();
+              } else {
+                await logic.addEvent(
+                  context,
+                  () => Navigator.pop(context, true),
+                  () => dialogs?.showErrorDialog(context),
+                  () => dialogs?.showRepetitionDialog(context),
+                );
+              }
+            },
+            child: Text(isEditing ? loc.save : loc.addEvent),
+          ),
         ),
       ],
     );

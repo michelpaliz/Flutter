@@ -1,5 +1,5 @@
 import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/show-groups/show_groups.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/show-groups/show_groups.dart';
 import 'package:first_project/e-drawer-style-menu/my_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // ✅ Required for Provider access
