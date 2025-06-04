@@ -23,9 +23,9 @@ import "package:flutter_gen/gen_l10n/app_localizations.dart";
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../a-models/group_model/event_appointment/event/event.dart';
-import '../../../../../a-models/group_model/group/group.dart';
-import '../../../../../a-models/user_model/user.dart';
+import '../../../../../../a-models/group_model/event_appointment/event/event.dart';
+import '../../../../../../a-models/group_model/group/group.dart';
+import '../../../../../../a-models/user_model/user.dart';
 
 class AddEvent extends StatefulWidget {
   final Group group;

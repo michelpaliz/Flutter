@@ -52,5 +52,5 @@ class EventTitleRow extends StatelessWidget {
         ],
       ),
     );
-  }
+      }
 }

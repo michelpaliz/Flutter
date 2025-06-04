@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../../../a-models/group_model/group/group.dart';
-import '../../../../../../d-stateManagement/group/group_management.dart';
-import '../../../../../../d-stateManagement/notification/notification_management.dart';
-import '../../../../../../d-stateManagement/user/user_management.dart';
-import 'add_event_dialogs.dart';
-import 'add_event_form.dart';
-import 'add_event_logic.dart';
+import '../../../../../../../../a-models/group_model/group/group.dart';
+import '../../../../../../../d-stateManagement/group/group_management.dart';
+import '../../../../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../../../../d-stateManagement/user/user_management.dart';
+import '../functions/add_event_dialogs.dart';
+import '../functions/add_event_form.dart';
+import '../functions/add_event_logic.dart';
 
-class AddEvent extends StatefulWidget {
+class AddEventScreen extends StatefulWidget {
   final Group group;
 
-  const AddEvent({Key? key, required this.group}) : super(key: key);
+  const AddEventScreen({Key? key, required this.group}) : super(key: key);
 
   @override
-  State<AddEvent> createState() => _AddEventState();
+  State<AddEventScreen> createState() => _AddEventScreenState();
 }
 
-class _AddEventState extends State<AddEvent>
-    with AddEventLogic<AddEvent>, AddEventDialogs {
+class _AddEventScreenState extends State<AddEventScreen>
+    with AddEventLogic<AddEventScreen>, AddEventDialogs {
   bool _initialized = false;
   bool _isLoading = true; // this is what drives the UI
 

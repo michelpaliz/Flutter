@@ -1,12 +1,12 @@
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/0-parent/add_event_button.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_UI_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/actions/event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_content_builder.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/app_screen_manager.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_logic.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_screen.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/0-parent/add_event_button.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/1-calendar/calendarUI_manager/calendar_ui_controller.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/3-event/actions/event_actions_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_content_builder.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/app_screen_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/add_event/functions/add_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
@@ -26,7 +26,7 @@ class MainCalendarView extends StatefulWidget {
 class _MainCalendarViewState extends State<MainCalendarView>
     with AddEventLogic {
   final AppScreenManager _screenManager = AppScreenManager();
-  CalendarUIManager? _calendarUIManager;
+  CalendarUIController? _calendarUIManager;
   EventActionManager? _eventActionManager;
   late EventDisplayManager _displayManager;
   bool _isLoading = true;
@@ -97,7 +97,7 @@ class _MainCalendarViewState extends State<MainCalendarView>
   /// This does the following:
   ///
   /// 1. Force refreshes the group data.
-  /// 2. Creates a new [CalendarUIManager] instance with the shared [EventDataManager].
+  /// 2. Creates a new [CalendarUIController] instance with the shared [EventDataManager].
   /// 3. Creates a new [EventActionManager] instance with the shared [EventDataManager].
   /// 4. Sets the [EventActionManager] instance in the [EventDisplayManager].
   /// 5. Force refreshes the events in the calendar.
@@ -121,7 +121,7 @@ class _MainCalendarViewState extends State<MainCalendarView>
 // ✅ Using the shared EventDataManager via Provider to sync logic and UI
       final sharedEventDataManager = context.read<EventDataManager>();
 
-      _calendarUIManager = CalendarUIManager(
+      _calendarUIManager = CalendarUIController(
         eventDataManager: sharedEventDataManager,
         eventDisplayManager: _displayManager,
         userRole: userRole,
@@ -216,7 +216,7 @@ class _MainCalendarViewState extends State<MainCalendarView>
                   onPressed: () async {
                     final added = await Navigator.of(context).push<bool>(
                       MaterialPageRoute(
-                        builder: (_) => AddEvent(group: currentGroup),
+                        builder: (_) => AddEventScreen(group: currentGroup),
                       ),
                     );
                     if (added == true) {

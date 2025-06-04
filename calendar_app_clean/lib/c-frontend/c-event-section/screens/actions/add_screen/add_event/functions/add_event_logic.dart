@@ -5,16 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../../a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
-import '../../../../../../a-models/group_model/event_appointment/event/event.dart';
-import '../../../../../../a-models/group_model/group/group.dart';
-import '../../../../../../a-models/user_model/user.dart';
-import '../../../../../../b-backend/api/user/user_services.dart';
-import '../../../../../../d-stateManagement/group/group_management.dart';
-import '../../../../../../d-stateManagement/notification/notification_management.dart';
-import '../../../../../../d-stateManagement/user/user_management.dart';
-import '../../../../../../f-themes/utilities/utilities.dart';
-import '../../../../utils/color_manager.dart';
+import '../../../../../../../a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
+import '../../../../../../../a-models/group_model/event_appointment/event/event.dart';
+import '../../../../../../../a-models/group_model/group/group.dart';
+import '../../../../../../../a-models/user_model/user.dart';
+import '../../../../../../../b-backend/api/user/user_services.dart';
+import '../../../../../../../d-stateManagement/group/group_management.dart';
+import '../../../../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../../../../d-stateManagement/user/user_management.dart';
+import '../../../../../../../f-themes/utilities/utilities.dart';
+import '../../../../../utils/color_manager.dart';
 
 mixin AddEventLogic<T extends StatefulWidget> on State<T> {
   // Add this dependency

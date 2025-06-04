@@ -1,8 +1,8 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event_data_source.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/appointment_builder.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/2-appointment/appointment_builder.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +11,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import 'calendar_styles.dart';
 
-class CalendarUIManager {
+class CalendarUIController {
   final CalendarController _controller = CalendarController();
   final EventDisplayManager _eventDisplayManager;
   final EventDataManager _eventDataManager;
@@ -24,7 +24,7 @@ class CalendarUIManager {
   DateTime? _selectedDate;
 
   /// ✅ Constructor now expects shared EventDataManager
-  CalendarUIManager({
+  CalendarUIController({
     required EventDataManager eventDataManager,
     required EventDisplayManager eventDisplayManager,
     required this.userRole,

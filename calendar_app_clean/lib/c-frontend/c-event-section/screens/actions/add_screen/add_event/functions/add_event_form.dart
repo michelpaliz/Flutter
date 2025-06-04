@@ -1,16 +1,16 @@
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/dialog/user_expandable_card.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/add_event_button_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/color_picker_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/date_picker_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/description_input_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/location_input_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/note_input_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/form/title_input_widget.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/utils/repetition_toggle_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/add_event_button_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/description_input_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/location_input_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/note_input_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/title_input_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/repetition_toggle_widget.dart';
 import 'package:flutter/material.dart';
 
-import '../functions/add_event_dialogs.dart';
-import '../functions/add_event_logic.dart';
+import 'add_event_dialogs.dart';
+import 'add_event_logic.dart';
 
 class AddEventForm extends StatelessWidget {
   final AddEventLogic logic;

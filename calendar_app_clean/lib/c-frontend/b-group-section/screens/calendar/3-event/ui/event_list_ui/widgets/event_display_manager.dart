@@ -1,6 +1,6 @@
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/actions/event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/event_list_ui/widgets/combined_widget.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/3-event/actions/event_actions_manager.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/3-event/ui/event_list_ui/widgets/combined_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';

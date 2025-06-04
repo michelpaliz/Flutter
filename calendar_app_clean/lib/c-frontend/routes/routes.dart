@@ -8,10 +8,10 @@ import 'package:first_project/c-frontend/b-group-section/screens/create-group/se
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/edit_group_data.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/group-settings/group_settings.dart';
-import 'package:first_project/c-frontend/b-group-section/screens/group_calendar-view/0-parent/main_calendar_view.dart';
+import 'package:first_project/c-frontend/b-group-section/screens/calendar/0-parent/main_calendar_view.dart';
 import 'package:first_project/c-frontend/b-group-section/screens/show-groups/show_groups.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/add_screen/add_event/functions/add_event_screen.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/edit_screen/edit_event_screen.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_view.dart';
 import 'package:first_project/c-frontend/d-log-user-section/recover_password.dart';
@@ -46,7 +46,7 @@ final Map<String, WidgetBuilder> routes = {
   AppRoutes.addEvent: (context) {
     final group = ModalRoute.of(context)!.settings.arguments as Group?;
     if (group == null) return const SizedBox.shrink();
-    return AddEvent(group: group);
+    return AddEventScreen(group: group);
   },
   AppRoutes.eventDetail: (context) {
     final event = ModalRoute.of(context)?.settings.arguments as Event?;
