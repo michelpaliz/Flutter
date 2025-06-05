@@ -1,6 +1,6 @@
 // lib/c-frontend/b-group-section/screens/edit-group/edit_group_admin_info.dart
 import 'package:first_project/a-models/user_model/user.dart';
-import 'package:first_project/c-frontend/b-group-section/utils/selected_users/admin_info_card.dart';
+import 'package:first_project/c-frontend/b-calendar-section/utils/selected_users/admin_info_card.dart';
 import 'package:flutter/material.dart';
 
 class EditGroupAdminInfo extends StatelessWidget {

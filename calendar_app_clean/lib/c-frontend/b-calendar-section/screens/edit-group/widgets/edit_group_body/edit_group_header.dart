@@ -1,6 +1,7 @@
 import 'package:first_project/c-frontend/b-calendar-section/screens/edit-group/widgets/form/group_description_field.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/edit-group/widgets/form/group_image_section.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/edit-group/widgets/form/group_name_field.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/actions/edit_screen/functions/widgets/form/group_image_section.dart';
+
 import 'package:first_project/f-themes/shape/solid/solid_header.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
