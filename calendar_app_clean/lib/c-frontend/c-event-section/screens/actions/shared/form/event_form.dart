@@ -6,10 +6,9 @@ import 'package:first_project/c-frontend/c-event-section/screens/actions/add_scr
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/note_input_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/title_input_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/repetition_toggle_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import 'event_form_logic.dart';
 
 /// Optional dialogs interface (used only in Add flow)
 abstract class EventDialogs {
@@ -19,7 +18,7 @@ abstract class EventDialogs {
 }
 
 class EventForm extends StatelessWidget {
-  final EventFormLogic logic;
+  final BaseEventLogic logic;
   final VoidCallback onSubmit;
   final bool isEditing;
   final EventDialogs? dialogs;
@@ -70,8 +69,7 @@ class EventForm extends StatelessWidget {
 
         // Description
         DescriptionInputWidget(
-          descriptionController: logic.descriptionController,
-        ),
+            descriptionController: logic.descriptionController),
         const SizedBox(height: 10),
 
         // Note
@@ -96,7 +94,7 @@ class EventForm extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // User selector (only in Add flow, ignore if not used in Edit)
+        // User selection (only in add flow)
         if (!isEditing)
           UserExpandableCard(
             usersAvailable: logic.users,
@@ -110,9 +108,10 @@ class EventForm extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () async {
               if (isEditing) {
-                onSubmit();
+                onSubmit(); // edit flow
               } else {
-                await logic.addEvent(
+                await (logic as dynamic).addEvent(
+                  // cast for dynamic safety
                   context,
                   () => Navigator.pop(context, true),
                   () => dialogs?.showErrorDialog(context),

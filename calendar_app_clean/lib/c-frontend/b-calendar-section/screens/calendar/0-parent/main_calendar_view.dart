@@ -23,8 +23,7 @@ class MainCalendarView extends StatefulWidget {
   State<MainCalendarView> createState() => _MainCalendarViewState();
 }
 
-class _MainCalendarViewState extends State<MainCalendarView>
-    with AddEventLogic {
+class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
   final AppScreenManager _screenManager = AppScreenManager();
   CalendarUIController? _calendarUIManager;
   EventActionManager? _eventActionManager;

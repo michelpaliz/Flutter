@@ -1,35 +1,29 @@
-import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/form/event_form_logic.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
-mixin EditEventLogic<T extends StatefulWidget> on State<T>
-    implements EventFormLogic {
+abstract class EditEventLogic<T extends StatefulWidget>
+    extends BaseEventLogic<T> {
   // ── injected services ─────────────────────────────────────────────────────
   late final EventService _eventService;
   late final GroupManagement _groupMgmt;
   late final UserManagement _userMgmt;
 
-  // ── models & UI state ──────────────────────────────────────────────────────
+  // ── models ────────────────────────────────────────────────────────────────
   late final Group _group;
   late Event _event;
-  late Color _selectedColor;
-  RecurrenceRule? _recurrenceRule;
-  late DateTime _selectedStartDate;
-  late DateTime _selectedEndDate;
-  final double _toggleWidth = 50.0; // ← you forgot this
 
-  // ── text controllers ──────────────────────────────────────────────────────
-  late final TextEditingController _titleController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _noteController;
-  late final TextEditingController _locationController;
+  @override
+  void initState() {
+    super.initState();
+    initializeBaseDefaults(); // ← must be called before using dates
+  }
 
   /// Call once to wire everything up.
   void initLogic({
@@ -43,67 +37,35 @@ mixin EditEventLogic<T extends StatefulWidget> on State<T>
     _event = event;
     _group = gm.currentGroup!;
 
-    // init UI state
-    _selectedColor = ColorManager.eventColors[event.eventColorIndex];
-    _recurrenceRule = event.recurrenceRule;
-    _selectedStartDate = event.startDate;
-    _selectedEndDate = event.endDate;
+    // ✅ Use public setters from BaseEventLogic
+    setSelectedColor(ColorManager.eventColors[event.eventColorIndex].value);
+    setRecurrenceRule(event.recurrenceRule);
+    setStartDate(event.startDate);
+    setEndDate(event.endDate);
 
-    // init controllers
-    _titleController = TextEditingController(text: event.title);
-    _descriptionController =
-        TextEditingController(text: event.description ?? '');
-    _noteController = TextEditingController(text: event.note ?? '');
-    _locationController = TextEditingController(text: event.localization ?? '');
+    // ✅ Use public controller fields
+    titleController.text = event.title;
+    descriptionController.text = event.description ?? '';
+    noteController.text = event.note ?? '';
+    locationController.text = event.localization ?? '';
   }
 
-  /// Clean up.
   void disposeLogic() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _noteController.dispose();
-    _locationController.dispose();
+    disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
-  /// Combines date+time pickers.
-  Future<DateTime?> showDateTimePicker(
-      BuildContext ctx, DateTime initial) async {
-    final date = await showDatePicker(
-      context: ctx,
-      initialDate: initial,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (date == null) return null;
-
-    final time = await showTimePicker(
-      context: ctx,
-      initialTime: TimeOfDay.fromDateTime(initial),
-    );
-    if (time == null) return null;
-
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-  }
-
-  /// Build the updated event and save it.
   Future<void> saveEditedEvent() async {
     final updated = Event(
       id: _event.id,
-      startDate: _selectedStartDate,
-      endDate: _selectedEndDate,
-      title: _titleController.text,
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
+      title: titleController.text,
       groupId: _event.groupId,
-      description: _descriptionController.text,
-      note: _noteController.text,
-      localization: _locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
-      recurrenceRule: _recurrenceRule,
-      eventColorIndex: ColorManager().getColorIndex(_selectedColor),
+      description: descriptionController.text,
+      note: noteController.text,
+      localization: locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
+      recurrenceRule: recurrenceRule,
+      eventColorIndex: ColorManager().getColorIndex(Color(selectedEventColor!)),
       recipients: _event.recipients,
       updateHistory: _event.updateHistory,
       ownerId: _event.ownerId,
@@ -116,81 +78,28 @@ mixin EditEventLogic<T extends StatefulWidget> on State<T>
       evs[idx] = updated;
       _groupMgmt.currentGroup = _group;
     }
+
     Navigator.of(context).pop(true);
   }
 
-  // ── public getters & setters ───────────────────────────────────────────────
-  Color get selectedColor => _selectedColor;
-  double get toggleWidth => _toggleWidth;
-  TextEditingController get titleController => _titleController;
-  TextEditingController get descriptionController => _descriptionController;
-  TextEditingController get noteController => _noteController;
-  TextEditingController get locationController => _locationController;
-  DateTime get selectedStartDate => _selectedStartDate;
-  DateTime get selectedEndDate => _selectedEndDate;
-  RecurrenceRule? get recurrenceRule => _recurrenceRule;
-
-  @override
-  List<int> get colorList =>
-      ColorManager.eventColors.map((c) => c.value).toList();
-  @override
-  void setSelectedColor(int colorValue) {
-    _selectedColor = Color(colorValue);
-    if (mounted) setState(() {});
-  }
-
-  @override
-  Future<void> selectDate(BuildContext context, bool isStart) async {
-    final picked = await showDateTimePicker(
-      context,
-      isStart ? _selectedStartDate : _selectedEndDate,
-    );
-    if (picked != null) {
-      if (isStart) {
-        setStartDate(picked);
-      } else {
-        setEndDate(picked);
-      }
-    }
-  }
-
-  @override
+  // Unused methods from EventFormLogic in Edit mode
   Future<void> addEvent(
     BuildContext context,
     VoidCallback onSuccess,
     VoidCallback onError,
     VoidCallback onRepetitionError,
   ) async {
-    // Not used in edit flow
+    // No-op
   }
 
   @override
   void setSelectedUsers(List<User> selected) {
-    // No-op (not used in edit flow)
+    // No-op
   }
 
   @override
-  List<User> get users => []; // No user selection in edit for now
+  List<User> get users => [];
 
   @override
-  void toggleRepetition(bool value, RecurrenceRule? rule) {
-    _recurrenceRule = value ? rule : null;
-    if (mounted) setState(() {});
-  }
-
-  @override
-  bool get isRepetitive => _recurrenceRule != null;
-
-  int? get selectedEventColor => _selectedColor.value;
-  void setRecurrenceRule(bool r, RecurrenceRule? rule) {
-    setState(() => _recurrenceRule = rule);
-  }
-
-  void setStartDate(DateTime dt) => setState(() {
-        _selectedStartDate = dt;
-        if (_selectedEndDate.isBefore(dt)) {
-          _selectedEndDate = dt.add(const Duration(hours: 1));
-        }
-      });
-  void setEndDate(DateTime dt) => setState(() => _selectedEndDate = dt);
+  bool get isRepetitive => recurrenceRule != null;
 }

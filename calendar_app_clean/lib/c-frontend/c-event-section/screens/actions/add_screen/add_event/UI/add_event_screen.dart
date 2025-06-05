@@ -1,5 +1,4 @@
 import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/form/event_form.dart';
-import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/form/event_form_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -20,9 +19,9 @@ class AddEventScreen extends StatefulWidget {
   State<AddEventScreen> createState() => _AddEventScreenState();
 }
 
-class _AddEventScreenState extends State<AddEventScreen>
-    with AddEventLogic<AddEventScreen>, AddEventDialogs
-    implements EventFormLogic, EventDialogs {
+class _AddEventScreenState extends AddEventLogic<AddEventScreen>
+    with AddEventDialogs
+    implements EventDialogs {
   bool _initialized = false;
   bool _isLoading = true;
 

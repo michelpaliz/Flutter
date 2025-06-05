@@ -15,8 +15,7 @@ class EditEventScreen extends StatefulWidget {
   State<EditEventScreen> createState() => _EditEventScreenState();
 }
 
-class _EditEventScreenState extends State<EditEventScreen>
-    with EditEventLogic<EditEventScreen> {
+class _EditEventScreenState extends EditEventLogic<EditEventScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -34,20 +33,19 @@ class _EditEventScreenState extends State<EditEventScreen>
   }
 
   @override
-Widget build(BuildContext context) {
-  final loc = AppLocalizations.of(context)!;
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
 
-  return Scaffold(
-    appBar: AppBar(title: Text(loc.event)),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: EventForm(
-        logic: this,
-        onSubmit: saveEditedEvent, // <-- from your logic mixin
-        isEditing: true,           // <-- tells EventForm to use edit mode
+    return Scaffold(
+      appBar: AppBar(title: Text(loc.event)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: EventForm(
+          logic: this,
+          onSubmit: saveEditedEvent,
+          isEditing: true,
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }
