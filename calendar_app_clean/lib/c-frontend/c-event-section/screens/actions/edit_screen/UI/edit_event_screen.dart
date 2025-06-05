@@ -16,14 +16,24 @@ class EditEventScreen extends StatefulWidget {
 }
 
 class _EditEventScreenState extends EditEventLogic<EditEventScreen> {
+  bool _isInitialized = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    initLogic(
+    if (!_isInitialized) {
+      _initializeLogic();
+      _isInitialized = true;
+    }
+  }
+
+  Future<void> _initializeLogic() async {
+    await initLogic(
       event: widget.event,
       gm: context.read<GroupManagement>(),
       um: context.read<UserManagement>(),
     );
+    if (mounted) setState(() {}); // ensure rebuild after async setup
   }
 
   @override
@@ -38,14 +48,16 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(loc.event)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: EventForm(
-          logic: this,
-          onSubmit: saveEditedEvent,
-          isEditing: true,
-        ),
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: EventForm(
+                logic: this,
+                onSubmit: saveEditedEvent,
+                isEditing: true,
+              ),
+            ),
     );
   }
 }

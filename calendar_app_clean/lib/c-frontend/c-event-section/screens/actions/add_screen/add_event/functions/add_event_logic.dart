@@ -23,6 +23,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
   late GroupManagement groupManagement;
   late NotificationManagement notificationManagement;
   final UserService _userService = UserService();
+  
 
   // Models
   late User user;
@@ -30,6 +31,12 @@ abstract class AddEventLogic<T extends StatefulWidget>
   Group? fetchedUpdatedGroup;
 
   bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeBaseDefaults(); // ← must be called before using dates
+  }
 
   void injectDependencies({
     required GroupManagement groupMgmt,
@@ -40,12 +47,6 @@ abstract class AddEventLogic<T extends StatefulWidget>
     userManagement = userMgmt;
     notificationManagement = notifMgmt;
     user = userManagement.user!;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initializeBaseDefaults(); // ← must be called before using dates
   }
 
   Future<void> initializeLogic(Group group, BuildContext context) async {

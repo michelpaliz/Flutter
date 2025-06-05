@@ -95,11 +95,12 @@ class EventForm extends StatelessWidget {
         const SizedBox(height: 10),
 
         // User selection (only in add flow)
-        if (!isEditing)
-          UserExpandableCard(
-            usersAvailable: logic.users,
-            onSelectedUsersChanged: logic.setSelectedUsers,
-          ),
+        // User selection (available in both add and edit)
+        UserExpandableCard(
+          usersAvailable: logic.users,
+          initiallySelected: logic.selectedUsers,
+          onSelectedUsersChanged: logic.setSelectedUsers,
+        ),
 
         const SizedBox(height: 25),
 

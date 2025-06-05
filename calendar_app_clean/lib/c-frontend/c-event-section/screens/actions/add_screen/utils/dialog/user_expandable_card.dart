@@ -6,12 +6,14 @@ import 'dialog_button_widget.dart'; // Import the DialogButtonWidget here
 
 class UserExpandableCard extends StatefulWidget {
   final List<User> usersAvailable;
-  final ValueChanged<List<User>> onSelectedUsersChanged; // <-- ADD THIS
+  final ValueChanged<List<User>> onSelectedUsersChanged;
+  final List<User>? initiallySelected; // ✅ NEW PARAM
 
   const UserExpandableCard({
     Key? key,
     required this.usersAvailable,
-    required this.onSelectedUsersChanged, // <-- AND THIS
+    required this.onSelectedUsersChanged,
+    this.initiallySelected, // ✅ OPTIONAL INITIAL USERS
   }) : super(key: key);
 
   @override
@@ -19,8 +21,14 @@ class UserExpandableCard extends StatefulWidget {
 }
 
 class _UserExpandableCardState extends State<UserExpandableCard> {
-  List<User> _selectedUsers = [];
+  late List<User> _selectedUsers; // ✅ CHANGED TO LATE
   bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedUsers = widget.initiallySelected ?? []; // ✅ INITIALIZE FROM PARAM
+  }
 
   void _toggleExpansion() {
     setState(() {
@@ -32,8 +40,7 @@ class _UserExpandableCardState extends State<UserExpandableCard> {
     setState(() {
       _selectedUsers = selectedUsers;
     });
-
-    widget.onSelectedUsersChanged(selectedUsers); // <-- NOTIFY PARENT
+    widget.onSelectedUsersChanged(selectedUsers); // ✅ NOTIFY PARENT
   }
 
   @override
@@ -48,8 +55,7 @@ class _UserExpandableCardState extends State<UserExpandableCard> {
           children: [
             ListTile(
               title: const Text('Select Users'),
-              trailing:
-                  Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+              trailing: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
               onTap: _toggleExpansion,
             ),
             AnimatedContainer(
