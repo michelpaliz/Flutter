@@ -1,4 +1,5 @@
 import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/form/event_form.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -71,6 +72,15 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
                 isEditing: false,
               ),
             ),
+    );
+  }
+
+  @override
+  Widget buildRepetitionDialog(BuildContext context) {
+    return RepetitionDialog(
+      selectedStartDate: selectedStartDate,
+      selectedEndDate: selectedEndDate,
+      initialRecurrenceRule: recurrenceRule,
     );
   }
 }

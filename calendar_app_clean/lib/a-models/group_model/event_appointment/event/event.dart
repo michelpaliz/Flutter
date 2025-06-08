@@ -13,6 +13,7 @@ class Event {
   final String? description;
   final int eventColorIndex;
   final bool allDay;
+  final int? reminderTime;
   bool isDone;
   DateTime? completedAt;
   final List<String> recipients;
@@ -31,6 +32,7 @@ class Event {
     this.description,
     required this.eventColorIndex,
     this.allDay = false,
+    this.reminderTime,
     this.isDone = false,
     this.completedAt,
     List<String>? recipients,
@@ -55,6 +57,7 @@ class Event {
     String? description,
     int? eventColorIndex,
     bool? allDay,
+    int? reminderTime,
     bool? isDone,
     DateTime? completedAt,
     List<String>? recipients,
@@ -73,6 +76,7 @@ class Event {
       description: description ?? this.description,
       eventColorIndex: eventColorIndex ?? this.eventColorIndex,
       allDay: allDay ?? this.allDay,
+      reminderTime: reminderTime ?? this.reminderTime,
       isDone: isDone ?? this.isDone,
       completedAt: completedAt ?? this.completedAt,
       recipients: recipients ?? List.from(this.recipients),
@@ -96,6 +100,7 @@ class Event {
       'description': description,
       'eventColorIndex': eventColorIndex,
       'allDay': allDay,
+      'reminderTime': reminderTime,
       'isDone': isDone,
       'completedAt': completedAt?.toIso8601String(),
       'recipients': recipients,
@@ -119,6 +124,7 @@ class Event {
       description: json['description'],
       eventColorIndex: json['eventColorIndex'],
       allDay: json['allDay'] ?? false,
+      reminderTime: json['reminderTime'],
       isDone: json['isDone'] ?? false,
       completedAt: json['completedAt'] != null
           ? DateTime.tryParse(json['completedAt'])

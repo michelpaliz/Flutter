@@ -1,4 +1,5 @@
 import 'dart:core';
+
 import 'package:first_project/a-models/group_model/event_appointment/appointment/custom_day_week.dart';
 import 'package:uuid/uuid.dart'; // Add the UUID package
 
@@ -52,7 +53,8 @@ class RecurrenceRule {
         recurrenceType = RecurrenceType.Monthly;
 
   // Named constructor for Yearly recurrence
-  RecurrenceRule.yearly({this.month, this.dayOfMonth, this.repeatInterval, this.untilDate})
+  RecurrenceRule.yearly(
+      {this.month, this.dayOfMonth, this.repeatInterval, this.untilDate})
       : id = Uuid().v4(), // Generate unique ID without const
         name = 'Yearly',
         daysOfWeek = null,
@@ -117,7 +119,8 @@ class RecurrenceRule {
     );
   }
 
-  static RecurrenceType _mapStringToRecurrenceType(String recurrenceTypeString) {
+  static RecurrenceType _mapStringToRecurrenceType(
+      String recurrenceTypeString) {
     switch (recurrenceTypeString.toLowerCase()) {
       case 'daily':
         return RecurrenceType.Daily;
@@ -155,5 +158,38 @@ class RecurrenceRule {
     }
     buffer.write('}');
     return buffer.toString();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'recurrenceType':
+          recurrenceType.name, // Use `.name` instead of .toString()
+      'repeatInterval': repeatInterval,
+      'untilDate': untilDate?.toIso8601String(),
+      'daysOfWeek': daysOfWeek?.map((day) => day.name).toList(),
+      'dayOfMonth': dayOfMonth,
+      'month': month,
+    };
+  }
+
+  factory RecurrenceRule.fromJson(Map<String, dynamic> json) {
+    return RecurrenceRule(
+      id: json['id'] ?? const Uuid().v4(),
+      name: json['name'] ?? '',
+      recurrenceType:
+          _mapStringToRecurrenceType(json['recurrenceType'] ?? 'Daily'),
+      repeatInterval: json['repeatInterval'],
+      untilDate: json['untilDate'] != null
+          ? DateTime.tryParse(json['untilDate'])
+          : null,
+      daysOfWeek: json['daysOfWeek'] != null
+          ? (json['daysOfWeek'] as List<dynamic>)
+              .map((day) => CustomDayOfWeek.fromString(day.toString()))
+              .toList()
+          : null,
+      dayOfMonth: json['dayOfMonth'],
+      month: json['month'],
+    );
   }
 }

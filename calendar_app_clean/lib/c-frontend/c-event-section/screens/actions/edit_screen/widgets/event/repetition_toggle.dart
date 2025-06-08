@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
-import 'package:first_project/c-frontend/c-event-section/utils/repetition_dialog.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RepetitionToggle extends StatelessWidget {
@@ -56,7 +56,9 @@ class RepetitionToggle extends StatelessWidget {
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: isRepetitive
-                    ? const Text('ON', style: TextStyle(color: Color.fromARGB(255, 28, 86, 120)))
+                    ? const Text('ON',
+                        style:
+                            TextStyle(color: Color.fromARGB(255, 28, 86, 120)))
                     : const Text('OFF', style: TextStyle(color: Colors.white)),
               ),
             ),

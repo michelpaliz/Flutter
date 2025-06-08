@@ -1,3 +1,4 @@
+import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
@@ -13,8 +14,16 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 /// Optional dialogs interface (used only in Add flow)
 abstract class EventDialogs {
   Widget buildRepetitionDialog(BuildContext context);
+
   void showErrorDialog(BuildContext context);
-  void showRepetitionDialog(BuildContext context);
+
+  /// Update this to match your new signature
+  Future<List?> showRepetitionDialog(
+    BuildContext context, {
+    required DateTime selectedStartDate,
+    required DateTime selectedEndDate,
+    RecurrenceRule? initialRule,
+  });
 }
 
 class EventForm extends StatelessWidget {
@@ -116,7 +125,12 @@ class EventForm extends StatelessWidget {
                   context,
                   () => Navigator.pop(context, true),
                   () => dialogs?.showErrorDialog(context),
-                  () => dialogs?.showRepetitionDialog(context),
+                  () => dialogs?.showRepetitionDialog(
+                    context,
+                    selectedStartDate: logic.selectedStartDate,
+                    selectedEndDate: logic.selectedEndDate,
+                    initialRule: logic.recurrenceRule,
+                  ),
                 );
               }
             },
