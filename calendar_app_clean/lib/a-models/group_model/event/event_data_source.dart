@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -11,9 +11,15 @@ class EventDataSource extends CalendarDataSource {
   }
 
   void updateEvents(List<Event> newEvents) {
-    _events = newEvents;
-    appointments = newEvents;
-    notifyListeners(CalendarDataSourceAction.reset, <Event>[]);
+    // Create a completely new list to ensure reference changes
+    _events = List<Event>.from(newEvents);
+
+    // Create new appointments list to force change detection
+    appointments = List<Event>.from(newEvents);
+
+    // Notify with both reset and add actions
+    notifyListeners(CalendarDataSourceAction.reset, _events);
+    // notifyListeners(CalendarDataSourceAction.add, _events);
   }
 
   @override

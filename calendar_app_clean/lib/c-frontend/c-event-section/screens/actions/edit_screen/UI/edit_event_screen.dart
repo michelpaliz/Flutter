@@ -1,8 +1,9 @@
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/edit_screen/functions/edit/edit_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/form/event_form.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,8 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
               padding: const EdgeInsets.all(16),
               child: EventForm(
                 logic: this,
-                onSubmit: saveEditedEvent,
+                onSubmit: () =>
+                    saveEditedEvent(context.read<EventDataManager>()),
                 isEditing: true,
               ),
             ),

@@ -1,4 +1,4 @@
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart'; // make sure this is imported
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';

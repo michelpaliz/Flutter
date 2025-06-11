@@ -119,6 +119,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
 
 // ✅ Using the shared EventDataManager via Provider to sync logic and UI
       final sharedEventDataManager = context.read<EventDataManager>();
+debugPrint("📅 Shared EventDataManager hash: ${identityHashCode(sharedEventDataManager)}");
 
       _calendarUIManager = CalendarUIController(
         eventDataManager: sharedEventDataManager,
@@ -126,6 +127,9 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
         userRole: userRole,
         groupManagement: groupManagement,
       );
+
+      sharedEventDataManager.onExternalEventUpdate =
+          _calendarUIManager!.triggerCalendarHardRefresh;
 
       _eventActionManager = EventActionManager(
         groupManagement,
@@ -142,8 +146,6 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
       await _calendarUIManager!.eventDataManager.manualRefresh();
 
       setState(() => _isLoading = false);
-      debugPrint(
-          "✅ Calendar initialized with ${updatedGroup.calendar.events.length} events");
     } catch (e, stack) {
       debugPrint("❌ Error initializing calendar: $e");
       debugPrintStack(stackTrace: stack);

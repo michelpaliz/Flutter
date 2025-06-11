@@ -1,12 +1,14 @@
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/notification_model/userInvitation_status.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/notification/notification_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class EventActionManager {
   final EventDataManager eventDataManager;
@@ -34,17 +36,20 @@ class EventActionManager {
           child: IconButton(
               icon: Icon(Icons.add, color: Colors.white, size: 25),
               onPressed: () async {
-                final updatedGroup = await Navigator.pushNamed(
+                final added = await Navigator.pushNamed(
                   context,
                   AppRoutes.addEvent,
                   arguments: group,
                 );
 
-                if (updatedGroup != null &&
-                    updatedGroup is Group &&
-                    updatedGroup.calendar.events.length !=
-                        group.calendar.events.length) {
-                  groupManagement.updateGroup(updatedGroup, userManagement);
+                if (added != null) {
+                  // Optionally refetch group info if needed
+                  final refreshedGroup =
+                      await groupManagement.groupService.getGroupById(group.id);
+                  groupManagement.updateGroup(refreshedGroup, userManagement);
+
+                  // Refresh the events directly
+                  await eventDataManager.manualRefresh();
                 }
               }),
         ),
@@ -52,18 +57,19 @@ class EventActionManager {
     );
   }
 
-  // Edit event method using EventDataManager
+
   void editEvent(Event event, BuildContext context) {
-    Navigator.pushNamed(
+    final sharedEventDataManager = eventDataManager; // use existing instance
+
+    Navigator.push(
       context,
-      AppRoutes.editEvent,
-      arguments: event,
-    ).then((result) {
-      if (result != null && result is Event) {
-        eventDataManager
-            .updateEvent(result); // Use EventDataManager to update the event
-      }
-    });
+      MaterialPageRoute(
+        builder: (context) => Provider<EventDataManager>.value(
+          value: sharedEventDataManager,
+          child: EditEventScreen(event: event),
+        ),
+      ),
+    );
   }
 
   // Show the removal confirmation dialog and handle the removal logic

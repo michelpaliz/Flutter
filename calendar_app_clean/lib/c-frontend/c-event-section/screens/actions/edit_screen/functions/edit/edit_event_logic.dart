@@ -1,13 +1,15 @@
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/c-frontend/c-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 abstract class EditEventLogic<T extends StatefulWidget>
     extends BaseEventLogic<T> {
@@ -76,7 +78,8 @@ abstract class EditEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
-  Future<void> saveEditedEvent() async {
+  Future<void> saveEditedEvent(EventDataManager read) async {
+    final eventDataManager = context.read<EventDataManager>();
     final updated = Event(
       id: _event.id,
       startDate: selectedStartDate,
@@ -93,13 +96,24 @@ abstract class EditEventLogic<T extends StatefulWidget>
       ownerId: _event.ownerId,
     );
 
-    await _eventService.updateEvent(updated.id, updated);
+    await eventDataManager.updateEvent(updated); // ✅ Syncs with state + backend
 
-    final evs = _group.calendar.events;
-    final idx = evs.indexWhere((e) => e.id == updated.id);
-    if (idx != -1) {
-      evs[idx] = updated;
-      _groupMgmt.currentGroup = _group;
+    // // 🔁 Pull latest version from backend (if someone else also edited)
+    // await eventDataManager.manualRefresh();
+
+    // ✅ Notify calendar to refresh visuals
+
+    if (eventDataManager.onExternalEventUpdate != null) {
+      debugPrint(
+          "🔍 EventDataManager hash: ${identityHashCode(eventDataManager)}");
+
+      debugPrint("🔁 Triggering calendar refresh from EditEventLogic...");
+      eventDataManager.onExternalEventUpdate!.call();
+    } else {
+      //  This ensures that at least the data updates, even if the UI doesn't automatically reflect it.
+      debugPrint(
+          "⚠️ onExternalEventUpdate is null — triggering manual refresh.");
+      await eventDataManager.manualRefresh();
     }
 
     Navigator.of(context).pop(true);

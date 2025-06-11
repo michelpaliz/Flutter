@@ -1,13 +1,13 @@
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
-import 'package:first_project/b-backend/api/event/event_services.dart';
+import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> saveEditedEvent({
   required BuildContext context,
-  required EventService eventService,
+  required EventDataManager eventDataManager,
   required Event updatedData,
   required List<Event> eventList,
   required Group group,
@@ -40,7 +40,8 @@ Future<void> saveEditedEvent({
 
   if (isStartHourUnique || !allowRepetitiveHours) {
     try {
-      await eventService.updateEvent(updatedData.id, updatedData);
+      await eventDataManager.updateEvent(updatedData);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
       );
@@ -48,6 +49,9 @@ Future<void> saveEditedEvent({
       final updatedGroup =
           await groupManagement.groupService.getGroupById(group.id);
       groupManagement.currentGroup = updatedGroup;
+
+      // ✅ Optional: Sync local events with updated group (if needed)
+      await eventDataManager.manualRefresh();
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEditFailed)),

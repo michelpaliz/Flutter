@@ -5,7 +5,7 @@ import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../../../a-models/group_model/event_appointment/event/event.dart';
+import '../../../../../../../a-models/group_model/event/event.dart';
 import '../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../a-models/user_model/user.dart';
 import '../../../../../../../b-backend/api/user/user_services.dart';
@@ -23,7 +23,6 @@ abstract class AddEventLogic<T extends StatefulWidget>
   late GroupManagement groupManagement;
   late NotificationManagement notificationManagement;
   final UserService _userService = UserService();
-  
 
   // Models
   late User user;
@@ -95,6 +94,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       endDate: selectedEndDate,
       title: title,
       groupId: _group.id,
+      calendarId: _group.calendar.id, // ✅ this fixes the 401
       recurrenceRule: recurrenceRule,
       localization: location,
       allDay: false,
@@ -120,7 +120,8 @@ abstract class AddEventLogic<T extends StatefulWidget>
       }
 
       groupManagement.currentGroup = fetchedUpdatedGroup!;
-      _eventDataManager.updateEvents(fetchedUpdatedGroup!.calendar.events);
+      groupManagement.currentGroup = fetchedUpdatedGroup!;
+      await _eventDataManager.manualRefresh(); // ✅ Use the actual source
 
       clearFormFields();
       onSuccess();

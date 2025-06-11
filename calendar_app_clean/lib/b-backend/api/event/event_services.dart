@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
+import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,16 +23,29 @@ class EventService {
 // In EventService.dart
   Future<Event> createEvent(Event eventData) async {
     try {
+      final headers = await _authHeaders();
+      final body = jsonEncode(eventData.toMap());
+
+      // 🔍 Log the full request before sending
+      devtools.log("📤 Sending event to $baseUrl");
+      devtools.log("🧾 Headers: $headers");
+      devtools.log("📝 Event body: $body");
+
       final response = await http.post(
         Uri.parse(baseUrl),
-        headers: await _authHeaders(),
-        body: jsonEncode(eventData.toMap()),
+        headers: headers,
+        body: body,
       );
 
       if (response.statusCode == 201) {
         _event = Event.fromJson(jsonDecode(response.body));
-        return _event!; // Return the created event
+        return _event!;
       }
+
+      // 🔴 Still log error response
+      devtools.log("❌ Failed response: ${response.statusCode}");
+      devtools.log("❌ Response body: ${response.body}");
+
       throw Exception('Failed to create event: ${response.body}');
     } catch (error) {
       devtools.log('[EXCEPTION] Create error: $error');

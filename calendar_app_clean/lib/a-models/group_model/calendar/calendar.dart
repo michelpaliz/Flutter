@@ -1,53 +1,40 @@
-import 'package:first_project/a-models/group_model/event_appointment/event/event.dart';
-
 class Calendar {
   String _id;
   String _name;
-  List<Event> _events;
+  List<String> _eventIds;
 
-  Calendar(this._id, this._name, {List<Event>? events})
-      : _events = events ?? [];
+  Calendar(this._id, this._name, {List<String>? eventIds})
+      : _eventIds = eventIds ?? [];
 
   String get id => _id;
-
   String get name => _name;
-  set name(String name) {
-    _name = name;
-  }
+  set name(String name) => _name = name;
 
-  List<Event> get events => _events;
-  set events(List<Event> events) {
-    _events = events;
-  }
+  List<String> get eventIds => _eventIds;
+  set eventIds(List<String> ids) => _eventIds = ids;
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': _id, // Use Mongo's preferred field if needed
+      '_id': _id,
       'name': _name,
-      'events': _events.map((event) => event.toMap()).toList(),
+      'eventIds': _eventIds,
     };
   }
 
   factory Calendar.fromJson(Map<String, dynamic> json) {
     return Calendar(
-      json['_id'] ?? json['id'] ?? '', // ✅ supports both cases
+      json['_id'] ?? json['id'] ?? '',
       json['name'],
-      events: (json['events'] as List<dynamic>?)
-          ?.map((eventJson) => Event.fromJson(eventJson))
-          .toList(),
+      eventIds: List<String>.from(json['eventIds'] ?? []),
     );
   }
 
   static Calendar defaultCalendar() {
-    return Calendar(
-      'default_calendar_id',
-      'Default Calendar Name',
-      events: [],
-    );
+    return Calendar('default_calendar_id', 'Default Calendar Name');
   }
 
   @override
   String toString() {
-    return 'Calendar{id: $_id, name: $_name, events: $_events}';
+    return 'Calendar{id: $_id, name: $_name, eventIds: $_eventIds}';
   }
 }

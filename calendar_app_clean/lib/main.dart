@@ -1,5 +1,6 @@
 import 'dart:developer' as devtools show log;
 
+import 'package:first_project/a-models/group_model/event/event_group_resolver.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
@@ -8,9 +9,9 @@ import 'package:first_project/b-backend/api/event/event_services.dart';
 import 'package:first_project/c-frontend/a-home-section/home_page.dart';
 import 'package:first_project/c-frontend/d-log-user-section/register/register_view.dart';
 import 'package:first_project/c-frontend/routes/routes.dart';
-import 'package:first_project/d-stateManagement/local/LocaleProvider.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/local/LocaleProvider.dart';
 import 'package:first_project/d-stateManagement/notification/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme/theme_management.dart';
 import 'package:first_project/d-stateManagement/theme/theme_preference_provider.dart';
@@ -31,6 +32,7 @@ void main() {
         Provider<AuthService>(
           create: (ctx) => AuthService(ctx.read<AuthProvider>()),
         ),
+        Provider(create: (_) => GroupEventResolver()),
 
         // 2. User & Group state
         ChangeNotifierProvider(
@@ -48,28 +50,45 @@ void main() {
         Provider(create: (_) => EventService()),
 
         // 5. ProxyProvider2 to build EventDataManager from GroupManagement & EventService
-        ProxyProvider2<GroupManagement, EventService, EventDataManager>(
+        ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
+            EventDataManager>(
           create: (_) {
-            // initial dummy: no group yet
-            return EventDataManager(
-              [], // no events
+            final edm = EventDataManager(
+              [],
               group: Group.createDefaultGroup(),
               eventService: _.read<EventService>(),
               groupManagement: _.read<GroupManagement>(),
+              resolver: _.read<GroupEventResolver>(),
             );
+
+            // ✅ Set a default noop refresh handler
+            edm.onExternalEventUpdate = () {
+              debugPrint(
+                  "⚠️ Default fallback: no calendar UI registered to refresh.");
+            };
+
+            return edm;
           },
-          update: (ctx, groupMgmt, eventSvc, previous) {
-            // as soon as currentGroup becomes non-null, rebuild with its calendar events
+          update: (ctx, groupMgmt, eventSvc, resolver, previous) {
             final current = groupMgmt.currentGroup;
-            if (current == null) {
-              return previous!;
-            }
-            return EventDataManager(
-              current.calendar.events,
+            if (current == null) return previous!;
+
+            final edm = EventDataManager(
+              previous?.events ?? [],
               group: current,
               eventService: eventSvc,
               groupManagement: groupMgmt,
+              resolver: resolver,
             );
+
+            // ✅ Re-set the fallback again in case a new instance is created
+            edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??
+                () {
+                  debugPrint(
+                      "⚠️ Default fallback: no calendar UI registered to refresh.");
+                };
+
+            return edm;
           },
         ),
       ],
