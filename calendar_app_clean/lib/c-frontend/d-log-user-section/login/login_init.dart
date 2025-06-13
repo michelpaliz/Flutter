@@ -1,6 +1,8 @@
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:first_project/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:first_project/b-backend/api/socket/socket_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
@@ -26,13 +28,21 @@ class LoginInitializer {
     if (user != null) {
       if (authService.repository is AuthProvider) {
         final provider = authService.repository as AuthProvider;
-        provider.currentUser = user; // ✅ Notifies listeners
+        provider.currentUser = user;
       }
 
       _user = user;
       userManagement.setCurrentUser(user);
       groupManagement.setCurrentUser(user);
       debugPrint('✅ setCurrentUser called with: ${user.userName}');
+
+      // 🔐 Get token and initialize socket
+      final token = await TokenStorage.loadToken();
+      if (token != null) {
+        SocketManager().connect(token);
+      } else {
+        debugPrint('❌ No auth token found — cannot connect socket.');
+      }
     } else {
       debugPrint('❌ getCurrentUserModel returned null');
     }

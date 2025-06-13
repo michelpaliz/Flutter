@@ -4,6 +4,7 @@ import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/event/event_group_resolver.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/b-backend/api/event/event_services.dart';
+import 'package:first_project/b-backend/api/socket/socket_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,29 @@ class EventDataManager {
         _groupManagement = groupManagement,
         _resolver = resolver {
     _initialize(initialEvents);
+    _setupSocketListeners(); // 👈 Add this
+  }
+
+  void _setupSocketListeners() {
+    final socket = SocketManager().socket;
+
+    socket.on('event:created', (data) {
+      final newEvent = Event.fromJson(data);
+      _events = _deduplicateEvents([..._events, newEvent]);
+      _notifyChanges();
+    });
+
+    socket.on('event:updated', (data) {
+      final updated = Event.fromJson(data);
+      _events = _events.map((e) => e.id == updated.id ? updated : e).toList();
+      _notifyChanges();
+    });
+
+    socket.on('event:deleted', (data) {
+      final deletedId = data['id']; // or just `data` if you emit a string
+      _events.removeWhere((e) => e.id == deletedId);
+      _notifyChanges();
+    });
   }
 
   /// Initializes the manager with initial events and triggers a backend refresh.

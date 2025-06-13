@@ -1,8 +1,10 @@
 import 'package:first_project/b-backend/api/auth/auth_database/auth_service.dart';
 import 'package:first_project/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:first_project/b-backend/api/socket/socket_manager.dart';
 import 'package:first_project/c-frontend/d-log-user-section/login/login_init.dart';
 import 'package:first_project/c-frontend/routes/appRoutes.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
+import 'package:first_project/d-stateManagement/user/presence_manager.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:first_project/f-themes/palette/color_properties.dart';
 import 'package:first_project/f-themes/utilities/logo/logo_widget.dart';
@@ -102,6 +104,13 @@ class _LoginViewState extends State<LoginView> {
                 try {
                   await _loginInitializer.initializeUserAndServices(
                       email, password);
+
+                  // ✅ Set up socket listener using context
+                  SocketManager().on('presence:update', (data) {
+                    debugPrint("📥 Received presence:update with data: $data");
+                    context.read<PresenceManager>().updatePresenceList(data);
+                  });
+
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
                   _showSnackBar(AppLocalizations.of(context)!.userNotFound);

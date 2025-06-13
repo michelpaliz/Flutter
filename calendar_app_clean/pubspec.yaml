@@ -38,6 +38,8 @@ dependencies:
   flutter_slidable: ^4.0.0
   rrule: ^0.2.14
   dio: ^5.4.3+1
+  socket_io_client: ^2.0.3+1
+
 
   # Freezed / JSON annotations
   freezed_annotation: ^3.0.0

@@ -6,6 +6,7 @@ import 'package:first_project/b-backend/api/user/user_services.dart';
 import 'package:first_project/d-stateManagement/notification/notification_management.dart';
 import 'package:flutter/material.dart';
 
+
 class UserManagement extends ChangeNotifier {
   User? _user;
   final UserService userService = UserService();

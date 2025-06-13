@@ -15,6 +15,7 @@ import 'package:first_project/d-stateManagement/local/LocaleProvider.dart';
 import 'package:first_project/d-stateManagement/notification/notification_management.dart';
 import 'package:first_project/d-stateManagement/theme/theme_management.dart';
 import 'package:first_project/d-stateManagement/theme/theme_preference_provider.dart';
+import 'package:first_project/d-stateManagement/user/presence_manager.dart';
 import 'package:first_project/d-stateManagement/user/user_management.dart';
 import 'package:first_project/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +46,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => ThemeManagement()),
         ChangeNotifierProvider(create: (_) => ThemePreferenceProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(
+            create: (_) => PresenceManager()), // 👈 Add this line
 
         // 4. EventService
         Provider(create: (_) => EventService()),

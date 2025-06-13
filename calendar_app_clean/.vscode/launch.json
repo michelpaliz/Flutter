@@ -5,7 +5,13 @@
             "name": "calendar_app_clean (phone)",
             "request": "launch",
             "type": "dart",
-            "deviceId": "jnj7lb85rsrwxg6x" // <-- This is your phone's device ID
+            "deviceId": "jnj7lb85rsrwxg6x"
+        },
+        {
+            "name": "calendar_app_clean (2312DRAABG)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "n7jniv5lda9dljei"
         },
         {
             "name": "calendar_app_clean",
