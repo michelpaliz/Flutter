@@ -9,6 +9,30 @@ class UserStatusRow extends StatelessWidget {
     required this.userList,
   });
 
+  /// Get role icon
+  IconData _getRoleIcon(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return Icons.workspace_premium; // crown-like
+      case UserRole.coAdmin:
+        return Icons.shield;
+      case UserRole.member:
+        return Icons.person;
+    }
+  }
+
+  /// Get role icon background color (optional for badge)
+  Color _getRoleIconColor(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return Colors.orange;
+      case UserRole.coAdmin:
+        return Colors.blueAccent;
+      case UserRole.member:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -23,6 +47,7 @@ class UserStatusRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(
+                clipBehavior: Clip.none,
                 children: [
                   CircleAvatar(
                     radius: 20,
@@ -31,6 +56,8 @@ class UserStatusRow extends StatelessWidget {
                         : const AssetImage("assets/images/default_profile.png")
                             as ImageProvider,
                   ),
+
+                  // Online/offline dot (bottom right)
                   Positioned(
                     right: 0,
                     bottom: 0,
@@ -44,14 +71,27 @@ class UserStatusRow extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  // Role icon badge (top left)
+                  Positioned(
+                    left: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(1),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _getRoleIcon(user.role),
+                        size: 12,
+                        color: _getRoleIconColor(user.role),
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
-              // Text(
-              //   user.userName,
-              //   style: const TextStyle(fontSize: 10),
-              //   overflow: TextOverflow.ellipsis,
-              // ),
               Tooltip(
                 message: user.userName,
                 child: Text(
@@ -59,7 +99,7 @@ class UserStatusRow extends StatelessWidget {
                   style: const TextStyle(fontSize: 10),
                   overflow: TextOverflow.ellipsis,
                 ),
-              )
+              ),
             ],
           );
         },

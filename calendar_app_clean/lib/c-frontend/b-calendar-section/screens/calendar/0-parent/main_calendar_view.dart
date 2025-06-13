@@ -231,8 +231,17 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
                   final group = context.read<GroupManagement>().currentGroup;
                   if (group == null) return const SizedBox();
 
-                  final connectedUsers =
-                      presenceManager.getPresenceForGroup(group.userIds);
+                  final roleMap = {
+                    ...group
+                        .userRoles, // Comes from `userRoles: { michelp: 'Administrator' }`
+                    ...?group.invitedUsers
+                        ?.map((key, value) => MapEntry(key, value.role)),
+                  };
+
+                  final connectedUsers = presenceManager.getPresenceForGroup(
+                    group.userIds,
+                    roleMap,
+                  );
 
                   return UserStatusRow(userList: connectedUsers);
                 },

@@ -1,17 +1,37 @@
 import 'package:first_project/a-models/user_model/user.dart';
 import 'package:flutter/material.dart';
 
+/// Enum for user roles
+enum UserRole { admin, coAdmin, member }
+
+/// Convert role string from DB to UserRole enum
+UserRole parseUserRole(String? roleString) {
+  switch (roleString?.toLowerCase()) {
+    case 'administrator':
+      return UserRole.admin;
+    case 'co-administrator':
+    case 'coadmin':
+      return UserRole.coAdmin;
+    case 'member':
+    default:
+      return UserRole.member;
+  }
+}
+
+/// Updated UserPresence with role
 class UserPresence {
   final String userId;
   final String userName;
   final String photoUrl;
   final bool isOnline;
+  final UserRole role;
 
   UserPresence({
     required this.userId,
     required this.userName,
     required this.photoUrl,
     required this.isOnline,
+    required this.role,
   });
 }
 
@@ -19,6 +39,7 @@ class PresenceManager extends ChangeNotifier {
   final Map<String, UserPresence> _onlineUsers = {}; // userId -> UserPresence
   final Map<String, User> _knownUsers = {}; // from DB
 
+  /// Simpler update method with no role
   void updatePresenceList(List<dynamic> data) {
     debugPrint("📥 updatePresenceList called with: ${data.length} users");
     _onlineUsers.clear();
@@ -32,6 +53,7 @@ class PresenceManager extends ChangeNotifier {
         userName: user['userName'],
         photoUrl: user['photoUrl'],
         isOnline: true,
+        role: UserRole.member, // Temporarily default to member (role set later)
       );
 
       _onlineUsers[id] = presence;
@@ -51,24 +73,30 @@ class PresenceManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<UserPresence> getPresenceForGroup(List<String> userIds) {
+  /// Inject role mapping from group: username -> role string
+  List<UserPresence> getPresenceForGroup(
+    List<String> userIds,
+    Map<String, String> groupRoles,
+  ) {
     return userIds.map((id) {
       final normalizedId = id.toString().trim();
-
       final isOnline = _onlineUsers.containsKey(normalizedId);
-      debugPrint("🧪 Checking $normalizedId -> online: $isOnline");
-
       final onlinePresence = _onlineUsers[normalizedId];
-      if (onlinePresence != null) return onlinePresence;
 
-      final fallbackUser = _knownUsers[normalizedId];
-      debugPrint(
-          "🔁 Fallback to offline user: ${fallbackUser?.userName ?? "Unknown"}");
+      final knownUser = _knownUsers[normalizedId];
+      final userName =
+          onlinePresence?.userName ?? knownUser?.userName ?? "Unknown";
+      final photoUrl = onlinePresence?.photoUrl ?? knownUser?.photoUrl ?? "";
+
+      final rawRole = groupRoles[userName] ?? 'member';
+      final role = parseUserRole(rawRole);
+
       return UserPresence(
         userId: normalizedId,
-        userName: fallbackUser?.userName ?? "Unknown",
-        photoUrl: fallbackUser?.photoUrl ?? "", // leave empty
-        isOnline: false,
+        userName: userName,
+        photoUrl: photoUrl,
+        isOnline: isOnline,
+        role: role,
       );
     }).toList();
   }
