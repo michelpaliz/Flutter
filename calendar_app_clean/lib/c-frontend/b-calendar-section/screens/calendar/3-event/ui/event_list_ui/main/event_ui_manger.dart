@@ -1,8 +1,8 @@
 import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/group/group.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/actions/event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_content_builder.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/widgets/event_content_builder.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/event_display_manager.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -20,34 +20,87 @@ class EventUIManager {
     required this.displayManager,
   });
 
-  // Delegates the responsibility to sub-managers or builders
-  Widget buildEventDetails(Event event, BuildContext context, Color textColor,
-      dynamic appointment, String userRole) {
-    // Delegates to EventDisplayManager
+  /// Delegates to EventDisplayManager for full detail view
+  Widget buildEventDetails(
+    Event event,
+    BuildContext context,
+    Color textColor,
+    dynamic appointment,
+    String userRole,
+  ) {
     return displayManager.buildEventDetails(
-        event, context, textColor, appointment, userRole);
+      event,
+      context,
+      textColor,
+      appointment,
+      userRole,
+    );
   }
 
+  /// Delegates to EventDisplayManager for future content view
   Widget buildFutureEventContent(
     String eventId,
     Color textColor,
-    BuildContext context,
-    dynamic appointment,
-  ) =>
-      displayManager.buildFutureEventContent(
-          eventId, textColor, context, appointment);
+    CalendarAppointmentDetails details,
+    String userRole,
+  ) {
+    return displayManager.buildFutureEventContent(
+      eventId,
+      textColor,
+      details,
+      userRole,
+    );
+  }
 
-  // Builds the add event button, delegating to EventActionManager
+  /// Button builder — delegates to EventActionManager
   Widget buildAddEventButton(BuildContext context, Group group) {
-    // Delegates to EventActionManager
     return actionManager.buildAddEventButton(context, group);
   }
 
-  // Builds non-month-view events, delegating to the EventDisplayManager
-  Widget buildNonMonthViewEvent(Event event, CalendarAppointmentDetails details,
-      Color textColor, BuildContext context) {
-    // Delegates to EventDisplayManager
+  /// Compact view — day/week/agenda views
+  Widget buildNonMonthViewEvent(
+    Event event,
+    CalendarAppointmentDetails details,
+    Color textColor,
+    String userRole,
+  ) {
     return displayManager.buildNonMonthViewEvent(
-        event, details, textColor, context);
+      event,
+      details,
+      textColor,
+      userRole,
+    );
+  }
+
+  /// Timeline view box style
+  Widget buildTimelineDayStrip(
+    Event event,
+    CalendarAppointmentDetails details,
+    Color textColor,
+    String userRole,
+  ) {
+    return displayManager.buildTimelineDayAppointment(
+      event,
+      details,
+      textColor,
+      userRole,
+    );
+  }
+
+  /// Schedule view — card layout
+  Widget buildScheduleCardView(
+    Event event,
+    BuildContext context,
+    Color textColor,
+    dynamic appointment,
+    String userRole,
+  ) {
+    return displayManager.buildScheduleViewEvent(
+      event,
+      context,
+      textColor,
+      appointment,
+      userRole,
+    );
   }
 }

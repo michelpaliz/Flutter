@@ -1,5 +1,5 @@
 import 'package:first_project/a-models/group_model/event/event.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/event_display_manager.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -10,99 +10,114 @@ class CalendarAppointmentBuild {
 
   CalendarAppointmentBuild(this._eventManager, this._eventDisplayManager);
 
-  // Build for week view appointments
-  Widget buildWeekAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context, dynamic appointment) {
-    return _eventDisplayManager.buildFutureEventContent(
-        appointment.id, textColor, context, appointment);
-  }
-
-  // Build for timeline day appointments
-  Widget buildTimelineDayAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context, dynamic appointment) {
-    return _eventDisplayManager.buildFutureEventContent(
-        appointment.id, textColor, context, appointment);
-  }
-
-  // Build for timeline week appointments
-  Widget buildTimelineWeekAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context, dynamic appointment) {
-    return _eventDisplayManager.buildFutureEventContent(
-        appointment.id, textColor, context, appointment);
-  }
-
-  // Build for timeline month appointments
-  Widget buildTimelineMonthAppointment(CalendarAppointmentDetails details,
-      Color textColor, BuildContext context, dynamic appointment) {
-    return _eventDisplayManager.buildFutureEventContent(
-        appointment.id, textColor, context, appointment);
-  }
-
-  // Default build method when the view is not explicitly handled
-  Widget defaultBuildAppointment(
-      CalendarAppointmentDetails details,
-      Color textColor,
-      BuildContext context,
-      String selectedView,
-      String userRole) {
-    final appointment = details.appointments.first;
-
-    // Check the selected calendar view type
-
-    return FutureBuilder<Event?>(
-      future: _eventManager.fetchEvent(appointment.id),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator.adaptive();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          final Event? event = snapshot.data;
-          if (event != null) {
-            return _eventDisplayManager.buildEventDetails(
-                event, context, textColor, appointment, userRole);
-          } else {
-            return Container(
-              child: Text(
-                'No events found for this date',
-                style: TextStyle(fontSize: 16, color: textColor),
-              ),
-            );
-          }
-        }
-      },
+  // Week view
+  Widget buildWeekAppointment(
+    CalendarAppointmentDetails details,
+    Color textColor,
+    Event event,
+    String userRole,
+  ) {
+    return _eventDisplayManager.buildNonMonthViewEvent(
+      event,
+      details,
+      textColor,
+      userRole,
     );
   }
 
-  // Build for Schedule view appointments
+  // Timeline Day view
+  Widget buildTimelineDayAppointment(
+    CalendarAppointmentDetails details,
+    Color textColor,
+    Event event,
+    String userRole,
+  ) {
+    return _eventDisplayManager.buildTimelineDayAppointment(
+      event,
+      details,
+      textColor,
+      userRole,
+    );
+  }
+
+  // Timeline Week view
+  Widget buildTimelineWeekAppointment(
+    CalendarAppointmentDetails details,
+    Color textColor,
+    Event event,
+    String userRole,
+  ) {
+    return _eventDisplayManager.buildTimelineDayAppointment(
+      event,
+      details,
+      textColor,
+      userRole,
+    );
+  }
+
+  // Timeline Month view
+  Widget buildTimelineMonthAppointment(
+    CalendarAppointmentDetails details,
+    Color textColor,
+    Event event,
+    String userRole,
+  ) {
+    return _eventDisplayManager.buildTimelineDayAppointment(
+      event,
+      details,
+      textColor,
+      userRole,
+    );
+  }
+
+  // Schedule view
   Widget buildScheduleAppointment(
     CalendarAppointmentDetails details,
     Color textColor,
     BuildContext context,
-    dynamic appointment,
+    Event event,
     String userRole,
-    Color cardColor, // 👈 Added parameter
+    Color cardColor,
   ) {
+    return _eventDisplayManager.buildScheduleViewEvent(
+      event,
+      context,
+      textColor,
+      details.appointments.first,
+      userRole,
+    );
+  }
+
+  // Fallback for unsupported views
+  Widget defaultBuildAppointment(
+    CalendarAppointmentDetails details,
+    Color textColor,
+    BuildContext context,
+    String selectedView,
+    String userRole,
+  ) {
+    final appointment = details.appointments.first;
+
     return FutureBuilder<Event?>(
       future: _eventManager.fetchEvent(appointment.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator.adaptive();
+          return const CircularProgressIndicator.adaptive();
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
+        } else if (snapshot.data != null) {
+          return _eventDisplayManager.buildEventDetails(
+            snapshot.data!,
+            context,
+            textColor,
+            appointment,
+            userRole,
+          );
         } else {
-          final Event? event = snapshot.data;
-          if (event != null) {
-            return _eventDisplayManager.buildScheduleViewEvent(
-              event,
-              context,
-              textColor,
-              appointment,
-              cardColor, // 👈 Pass it down
-            );
-          } else {
-            return Text('No event found for schedule view');
-          }
+          return Text(
+            'No events found for this date',
+            style: TextStyle(fontSize: 16, color: textColor),
+          );
         }
       },
     );

@@ -4,7 +4,7 @@ import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/a-models/group_model/event/event_data_source.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/2-appointment/appointment_builder.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/event_display_manager.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
@@ -132,15 +132,11 @@ class CalendarUIController {
                     _eventDataManager.getEventsForDate(_selectedDate!);
               }
             },
-
-            /// 👇 Use ValueListenableBuilder for updated events
             monthCellBuilder: (context, details) => buildMonthCell(
               context: context,
               details: details,
               selectedDate: _selectedDate,
-              // isDarkMode: isDarkMode,
-              events: _eventDataManager
-                  .events, // now up-to-date thanks to refreshKey
+              events: _eventDataManager.events,
             ),
             appointmentBuilder: (context, details) {
               try {
@@ -150,39 +146,28 @@ class CalendarUIController {
                       style: TextStyle(color: Colors.red));
                 }
 
-                // Switch by current calendar view
+                final event = appt;
+                final cardColor =
+                    ColorManager().getColor(event.eventColorIndex);
                 switch (_selectedView) {
                   case CalendarView.schedule:
-                    final cardColor =
-                        ColorManager().getColor(appt.eventColorIndex);
                     return _calendarAppointmentBuilder.buildScheduleAppointment(
                       details,
                       textColor,
                       context,
-                      appt,
+                      event,
                       userRole,
-                      cardColor, // 👈 pass it
+                      cardColor,
                     );
 
                   case CalendarView.week:
                   case CalendarView.workWeek:
-                    return _calendarAppointmentBuilder.buildWeekAppointment(
-                        details, textColor, context, appt);
-
                   case CalendarView.timelineDay:
-                    return _calendarAppointmentBuilder
-                        .buildTimelineDayAppointment(
-                            details, textColor, context, appt);
-
                   case CalendarView.timelineWeek:
-                    return _calendarAppointmentBuilder
-                        .buildTimelineWeekAppointment(
-                            details, textColor, context, appt);
-
                   case CalendarView.timelineMonth:
                     return _calendarAppointmentBuilder
-                        .buildTimelineMonthAppointment(
-                            details, textColor, context, appt);
+                        .buildTimelineDayAppointment(
+                            details, textColor, event, userRole);
 
                   default:
                     return _calendarAppointmentBuilder.defaultBuildAppointment(
@@ -200,7 +185,6 @@ class CalendarUIController {
                     style: TextStyle(color: Colors.red));
               }
             },
-
             selectionDecoration: const BoxDecoration(color: Colors.transparent),
             showNavigationArrow: true,
             showDatePickerButton: true,

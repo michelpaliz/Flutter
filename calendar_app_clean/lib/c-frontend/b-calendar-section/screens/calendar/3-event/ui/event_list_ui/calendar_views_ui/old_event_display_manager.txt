@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import 'event_content_builder.dart';
-import 'event_title_row.dart';
+import '../event_content_builder.dart';
+import '../event_title_row.dart';
 
 class EventDisplayManager {
   EventActionManager? _actionManager;
