@@ -385,7 +385,11 @@
     "notificationGroupUpdateMessage": "{editorName} updated the group: {groupName}",
   
     "notificationGroupDeletedAllTitle": "Group Deleted",
-    "notificationGroupDeletedAllMessage": "The group \"{groupName}\" has been deleted by the owner."
+    "notificationGroupDeletedAllMessage": "The group \"{groupName}\" has been deleted by the owner.",
+
+    "viewDetails": "View Details",
+    "editEvent": "Edit Event"
+
 
  
 

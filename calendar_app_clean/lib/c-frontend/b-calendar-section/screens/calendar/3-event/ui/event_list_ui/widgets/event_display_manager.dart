@@ -1,6 +1,8 @@
 import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/actions/event_actions_manager.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/combined_widget.dart';
+import 'package:first_project/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -31,50 +33,194 @@ class EventDisplayManager {
     dynamic appointment,
     String userRole,
   ) {
-    final dateRow = EventDateTimeRow(event: event, textColor: textColor);
+    final cardColor = ColorManager().getColor(event.eventColorIndex);
+    final canAdmin =
+        userRole == 'Administrator' || userRole == 'Co-Administrator';
 
-    final titleRow = EventTitleRow(
-      event: event,
-      textColor: textColor,
-      colorManager: _builder.colorManager,
-    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Dismissible(
+        key: Key(appointment.id),
+        direction:
+            canAdmin ? DismissDirection.endToStart : DismissDirection.none,
+        background: _buildDeleteBg(), // ↙ keeps swipe-to-delete
+        confirmDismiss: (_) async {
+          if (!canAdmin || _actionManager == null) {
+            return false;
+          }
+          return await _actionManager!.removeEvent(event, true);
+        },
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Dismissible(
-          key: Key(appointment.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: Colors.red,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const Icon(Icons.delete, color: Colors.white),
-          ),
-          confirmDismiss: (_) async {
-            if (_actionManager == null ||
-                !(userRole == 'Administrator' ||
-                    userRole == 'Co-Administrator')) {
-              return false;
-            }
-            return _actionManager!.removeEvent(event, true);
-          },
-          child: GestureDetector(
-            onTap: () {
-              if (_actionManager != null &&
-                  (userRole == 'Administrator' ||
-                      userRole == 'Co-Administrator')) {
-                _actionManager!.editEvent(event, context);
-              }
-            },
-            child: _builder.buildDefaultEventCard(
-              dateRow: dateRow,
-              titleRow: titleRow,
-              description: event.description,
-              cardColor: Colors.white,
+        child: Card(
+          margin: const EdgeInsets.symmetric(horizontal: 10),
+          elevation: 1,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: Theme.of(context).cardColor,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            child: Row(
+              children: [
+                _buildLeadingIcon(cardColor, event), // ⬅ icon
+                const SizedBox(width: 10),
+                Expanded(child: _buildMainContent(event, textColor)),
+                // ───────────────────────────────────────────────
+                IconButton(
+                  // ⋮ overflow
+                  icon: Icon(Icons.more_vert, color: cardColor),
+                  onPressed: () => _showEventOptionsSheet(
+                    context,
+                    event,
+                    canAdmin,
+                    cardColor,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+// ---------- helpers ---------------------------------------------------------
+
+  Widget _buildDeleteBg() => Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: const Icon(Icons.delete, color: Colors.white, size: 20),
+      );
+
+  Widget _buildLeadingIcon(Color cardColor, Event event) => Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: cardColor.withOpacity(0.2),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          event.isDone ? Icons.check_circle : Icons.event_note,
+          color: cardColor,
+          size: 20,
+        ),
+      );
+
+  Widget _buildMainContent(Event e, Color textColor) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EventDateTimeRow(event: e, textColor: textColor),
+          EventTitleRow(
+            event: e,
+            textColor: textColor,
+            colorManager: _builder.colorManager,
+          ),
+          if (e.description?.isNotEmpty ?? false)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                e.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: 12, color: textColor.withOpacity(0.8)),
+              ),
+            ),
+        ],
+      );
+
+  void _showEventOptionsSheet(
+    BuildContext context,
+    Event event,
+    bool canAdmin,
+    Color cardColor,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(AppLocalizations.of(ctx)!.viewDetails),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => EventDetail(event: event)),
+                  );
+                },
+              ),
+              if (canAdmin)
+                ListTile(
+                  leading: const Icon(Icons.edit),
+                  title: Text(AppLocalizations.of(ctx)!.editEvent),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _actionManager?.editEvent(event, context);
+                  },
+                ),
+              if (canAdmin)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    AppLocalizations.of(ctx)!.removeEvent,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await _actionManager?.removeEvent(event, true);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // utils
+  Widget _buildTimelineTile(Event event, Color textColor) {
+    final cardColor = ColorManager().getColor(event.eventColorIndex);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: cardColor.withOpacity(0.1),
+        border: Border.all(color: cardColor, width: 1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        event.title,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 12,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  void _showPermissionDeniedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.permissionDenied),
+        content: Text(AppLocalizations.of(context)!.permissionDeniedInf),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          )
+        ],
       ),
     );
   }
@@ -156,18 +302,139 @@ class EventDisplayManager {
     );
   }
 
-  void _showPermissionDeniedDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.permissionDenied),
-        content: Text(AppLocalizations.of(context)!.permissionDeniedInf),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          )
-        ],
+  Widget buildScheduleViewEvent(
+    Event event,
+    BuildContext context,
+    Color textColor,
+    dynamic appointment,
+    Color cardColor,
+  ) {
+    final timeRange = event.allDay
+        ? 'All Day'
+        : '${event.startDate.hour.toString().padLeft(2, '0')}:${event.startDate.minute.toString().padLeft(2, '0')}'
+            ' - '
+            '${event.endDate.hour.toString().padLeft(2, '0')}:${event.endDate.minute.toString().padLeft(2, '0')}';
+
+    final recurrenceText =
+        event.recurrenceRule != null ? event.recurrenceDescription : null;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            // Leading icon inside a colored circle
+            _buildLeadingIcon(cardColor, event),
+            const SizedBox(width: 12),
+
+            // Main content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      decoration:
+                          event.isDone ? TextDecoration.lineThrough : null,
+                      color: textColor,
+                    ),
+                  ),
+                  if (event.description != null &&
+                      event.description!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        event.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: textColor.withOpacity(0.8),
+                        ),
+                      ),
+                    ),
+                  if (context.mounted)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            timeRange,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textColor.withOpacity(0.7),
+                            ),
+                          ),
+                          if (recurrenceText != null) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '🔁 $recurrenceText',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: textColor.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            IconButton(
+              icon: Icon(Icons.more_vert, color: cardColor),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (BuildContext ctx) {
+                    return SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.info_outline),
+                            title:
+                                Text(AppLocalizations.of(context)!.viewDetails),
+                            onTap: () {
+                              Navigator.pop(ctx); // Close the bottom sheet
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EventDetail(event: event),
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.edit),
+                            title:
+                                Text(AppLocalizations.of(context)!.editEvent),
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              _actionManager?.editEvent(event, context);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -14,11 +14,9 @@ final ThemeData lightTheme = ThemeData(
   ).copyWith(
     primary: AppColors.primary,
     secondary: AppColors.secondary,
-    background: AppColors.background,
     surface: AppColors.surface,
     onPrimary: AppColors.white,
     onSecondary: AppColors.white,
-    onBackground: AppColors.textPrimary,
     onSurface: AppColors.textPrimary,
   ),
 );
@@ -35,11 +33,9 @@ final ThemeData darkTheme = ThemeData(
   ).copyWith(
     primary: AppDarkColors.primary,
     secondary: AppDarkColors.secondary,
-    background: AppDarkColors.background,
     surface: AppDarkColors.surface,
     onPrimary: AppDarkColors.textPrimary,
     onSecondary: AppDarkColors.textPrimary,
-    onBackground: AppDarkColors.textPrimary,
     onSurface: AppDarkColors.textPrimary,
   ),
 );

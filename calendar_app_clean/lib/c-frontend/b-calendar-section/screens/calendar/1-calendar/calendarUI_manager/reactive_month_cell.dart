@@ -28,7 +28,7 @@ class ReactiveMonthCell extends StatelessWidget {
           context: context,
           details: details,
           selectedDate: selectedDate,
-          isDarkMode: isDarkMode,
+          // isDarkMode: isDarkMode,
           events: events,
         );
       },

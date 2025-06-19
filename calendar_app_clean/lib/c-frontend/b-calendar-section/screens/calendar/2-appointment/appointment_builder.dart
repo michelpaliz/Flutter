@@ -1,6 +1,5 @@
 import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
-
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -49,50 +48,63 @@ class CalendarAppointmentBuild {
     final appointment = details.appointments.first;
 
     // Check the selected calendar view type
-    if (selectedView == CalendarView.month.toString()) {
-      return FutureBuilder<Event?>(
-        future: _eventManager. fetchEvent(appointment.id),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator.adaptive();
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
+
+    return FutureBuilder<Event?>(
+      future: _eventManager.fetchEvent(appointment.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator.adaptive();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          final Event? event = snapshot.data;
+          if (event != null) {
+            return _eventDisplayManager.buildEventDetails(
+                event, context, textColor, appointment, userRole);
           } else {
-            final Event? event = snapshot.data;
-            if (event != null) {
-              return _eventDisplayManager.buildEventDetails(
-                  event, context, textColor, appointment, userRole);
-            } else {
-              return Container(
-                child: Text(
-                  'No events found for this date',
-                  style: TextStyle(fontSize: 16, color: textColor),
-                ),
-              );
-            }
+            return Container(
+              child: Text(
+                'No events found for this date',
+                style: TextStyle(fontSize: 16, color: textColor),
+              ),
+            );
           }
-        },
-      );
-    } else {
-      // Handle other calendar views
-      return FutureBuilder<Event?>(
-        future: _eventManager.fetchEvent(appointment.id),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
+        }
+      },
+    );
+  }
+
+  // Build for Schedule view appointments
+  Widget buildScheduleAppointment(
+    CalendarAppointmentDetails details,
+    Color textColor,
+    BuildContext context,
+    dynamic appointment,
+    String userRole,
+    Color cardColor, // 👈 Added parameter
+  ) {
+    return FutureBuilder<Event?>(
+      future: _eventManager.fetchEvent(appointment.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator.adaptive();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          final Event? event = snapshot.data;
+          if (event != null) {
+            return _eventDisplayManager.buildScheduleViewEvent(
+              event,
+              context,
+              textColor,
+              appointment,
+              cardColor, // 👈 Pass it down
+            );
           } else {
-            final event = snapshot.data;
-            if (event != null) {
-              return _eventDisplayManager.buildNonMonthViewEvent(
-                  event, details, textColor, context);
-            } else {
-              return Text('No event data found for this appointment');
-            }
+            return Text('No event found for schedule view');
           }
-        },
-      );
-    }
+        }
+      },
+    );
   }
 }

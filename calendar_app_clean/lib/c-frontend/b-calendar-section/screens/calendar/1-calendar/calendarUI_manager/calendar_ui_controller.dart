@@ -5,6 +5,7 @@ import 'package:first_project/a-models/group_model/event/event_data_source.dart'
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/1-calendar/calendarUI_manager/calendar_mont_cell.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/2-appointment/appointment_builder.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/widgets/event_display_manager.dart';
+import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:first_project/d-stateManagement/event/event_data_manager.dart';
 import 'package:first_project/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
@@ -137,40 +138,69 @@ class CalendarUIController {
               context: context,
               details: details,
               selectedDate: _selectedDate,
-              isDarkMode: isDarkMode,
+              // isDarkMode: isDarkMode,
               events: _eventDataManager
                   .events, // now up-to-date thanks to refreshKey
             ),
-
             appointmentBuilder: (context, details) {
               try {
                 final appt = details.appointments.first;
                 if (appt is! Event) {
-                  return const Text(
-                    'Invalid Event',
-                    style: TextStyle(color: Colors.red),
-                  );
+                  return const Text('Invalid Event',
+                      style: TextStyle(color: Colors.red));
                 }
-                return _calendarAppointmentBuilder
-                    .defaultBuildAppointment(
+
+                // Switch by current calendar view
+                switch (_selectedView) {
+                  case CalendarView.schedule:
+                    final cardColor =
+                        ColorManager().getColor(appt.eventColorIndex);
+                    return _calendarAppointmentBuilder.buildScheduleAppointment(
+                      details,
+                      textColor,
+                      context,
+                      appt,
+                      userRole,
+                      cardColor, // 👈 pass it
+                    );
+
+                  case CalendarView.week:
+                  case CalendarView.workWeek:
+                    return _calendarAppointmentBuilder.buildWeekAppointment(
+                        details, textColor, context, appt);
+
+                  case CalendarView.timelineDay:
+                    return _calendarAppointmentBuilder
+                        .buildTimelineDayAppointment(
+                            details, textColor, context, appt);
+
+                  case CalendarView.timelineWeek:
+                    return _calendarAppointmentBuilder
+                        .buildTimelineWeekAppointment(
+                            details, textColor, context, appt);
+
+                  case CalendarView.timelineMonth:
+                    return _calendarAppointmentBuilder
+                        .buildTimelineMonthAppointment(
+                            details, textColor, context, appt);
+
+                  default:
+                    return _calendarAppointmentBuilder.defaultBuildAppointment(
                       details,
                       textColor,
                       context,
                       _selectedView.toString(),
                       userRole,
-                    )
-                    .animate()
-                    .fadeIn(duration: 300.ms)
-                    .scale();
+                    );
+                }
               } catch (e, stack) {
                 debugPrint('❌ Error in appointmentBuilder: $e');
                 debugPrintStack(stackTrace: stack);
-                return const Text(
-                  'Error rendering',
-                  style: TextStyle(color: Colors.red),
-                );
+                return const Text('Error rendering',
+                    style: TextStyle(color: Colors.red));
               }
             },
+
             selectionDecoration: const BoxDecoration(color: Colors.transparent),
             showNavigationArrow: true,
             showDatePickerButton: true,

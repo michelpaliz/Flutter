@@ -38,7 +38,6 @@ class CustomDayOfWeek {
         return customDaysOfWeek[6];
       default:
         if (dayString.length == 2) {
-          // Check for two-letter abbreviations
           switch (dayString.toLowerCase()) {
             case 'mo':
               return customDaysOfWeek[0];
@@ -54,8 +53,6 @@ class CustomDayOfWeek {
               return customDaysOfWeek[5];
             case 'su':
               return customDaysOfWeek[6];
-            default:
-              throw ArgumentError('Invalid dayString: $dayString');
           }
         }
         throw ArgumentError('Invalid dayString: $dayString');
@@ -83,7 +80,6 @@ class CustomDayOfWeek {
     }
   }
 
-// Define a mapping from abbreviations to DateTime objects
   static Map<String, int> abbreviationToDateTime = {
     'MO': DateTime.monday,
     'TU': DateTime.tuesday,
@@ -104,3 +100,27 @@ final customDaysOfWeek = [
   CustomDayOfWeek('Saturday', 6),
   CustomDayOfWeek('Sunday', 7),
 ];
+
+/// ✅ Extension: add shortName getter to CustomDayOfWeek
+extension CustomDayOfWeekShortName on CustomDayOfWeek {
+  String get shortName {
+    switch (name.toLowerCase()) {
+      case 'monday':
+        return 'Mon';
+      case 'tuesday':
+        return 'Tue';
+      case 'wednesday':
+        return 'Wed';
+      case 'thursday':
+        return 'Thu';
+      case 'friday':
+        return 'Fri';
+      case 'saturday':
+        return 'Sat';
+      case 'sunday':
+        return 'Sun';
+      default:
+        throw ArgumentError('Unknown day name: $name');
+    }
+  }
+}

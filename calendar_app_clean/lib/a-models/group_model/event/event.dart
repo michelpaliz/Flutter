@@ -1,3 +1,4 @@
+import 'package:first_project/a-models/group_model/event_appointment/appointment/custom_day_week.dart';
 import 'package:first_project/a-models/group_model/event_appointment/appointment/recurrence_rule.dart';
 import 'package:first_project/a-models/notification_model/updateInfo.dart';
 
@@ -194,4 +195,47 @@ class Event {
       title.hashCode ^
       calendarId.hashCode ^
       eventColorIndex.hashCode; // ← include
+
+  /// Returns a human-readable recurrence summary string.
+  String get recurrenceDescription {
+    final rule = recurrenceRule;
+    if (rule == null) return '';
+
+    final buffer = StringBuffer('Repeats ');
+
+    switch (rule.recurrenceType) {
+      case RecurrenceType.Daily:
+        buffer.write('every ${rule.repeatInterval ?? 1} day(s)');
+        break;
+      case RecurrenceType.Weekly:
+        buffer.write('weekly');
+        if (rule.daysOfWeek != null && rule.daysOfWeek!.isNotEmpty) {
+          final days = rule.daysOfWeek!.map((d) => d.shortName).join(', ');
+          buffer.write(' on $days');
+        }
+        break;
+      case RecurrenceType.Monthly:
+        if (rule.dayOfMonth != null) {
+          buffer.write('monthly on day ${rule.dayOfMonth}');
+        } else {
+          buffer.write('monthly');
+        }
+        break;
+      case RecurrenceType.Yearly:
+        if (rule.month != null && rule.dayOfMonth != null) {
+          buffer.write('yearly on ${rule.month}/${rule.dayOfMonth}');
+        } else {
+          buffer.write('yearly');
+        }
+        break;
+    }
+
+    if (rule.untilDate != null) {
+      final dateStr =
+          rule.untilDate!.toLocal().toIso8601String().split('T').first;
+      buffer.write(' until $dateStr');
+    }
+
+    return buffer.toString();
+  }
 }

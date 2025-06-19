@@ -383,6 +383,10 @@
     "notificationGroupUpdateMessage": "{editorName} actualizó el grupo: {groupName}",
   
     "notificationGroupDeletedAllTitle": "Grupo eliminado",
-    "notificationGroupDeletedAllMessage": "El grupo \"{groupName}\" ha sido eliminado por el propietario."
+    "notificationGroupDeletedAllMessage": "El grupo \"{groupName}\" ha sido eliminado por el propietario.",
+
+    "viewDetails": "Ver detalles",
+    "editEvent": "Editar Evento"
+
   }
   

@@ -29,7 +29,7 @@ class MainCalendarView extends StatefulWidget {
 
 class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
   final AppScreenManager _screenManager = AppScreenManager();
-  CalendarUIController? _calendarUIManager;
+  CalendarUIController? _calendarUIController;
   EventActionManager? _eventActionManager;
   late EventDisplayManager _displayManager;
   bool _isLoading = true;
@@ -146,7 +146,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
       debugPrint(
           "📅 Shared EventDataManager hash: ${identityHashCode(sharedEventDataManager)}");
 
-      _calendarUIManager = CalendarUIController(
+      _calendarUIController = CalendarUIController(
         eventDataManager: sharedEventDataManager,
         eventDisplayManager: _displayManager,
         userRole: userRole,
@@ -154,7 +154,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
       );
 
       sharedEventDataManager.onExternalEventUpdate =
-          _calendarUIManager!.triggerCalendarHardRefresh;
+          _calendarUIController!.triggerCalendarHardRefresh;
 
       _eventActionManager = EventActionManager(
         groupManagement,
@@ -168,7 +168,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
       }
 
       // Force refresh the events in the calendar
-      await _calendarUIManager!.eventDataManager.manualRefresh();
+      await _calendarUIController!.eventDataManager.manualRefresh();
 
       setState(() => _isLoading = false);
     } catch (e, stack) {
@@ -190,7 +190,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
   /// When the button is pressed, it navigates to the add event screen and
   /// refreshes the calendar when returning.
   ///
-  /// The calendar is built using the [_calendarUIManager], which is
+  /// The calendar is built using the [_calendarUIController], which is
   /// initialized in [_initializeCalendar].
   ///
   @override
@@ -251,7 +251,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
               ),
               // Calendar expands to fill available space
               Expanded(
-                child: _calendarUIManager?.buildCalendar(
+                child: _calendarUIController?.buildCalendar(
                       context,
                       // height: double.infinity,
                       // width: double.infinity,
