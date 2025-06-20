@@ -1,9 +1,9 @@
 import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/actions/event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/widgets/event_date_time.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/utils/action_sheet_helpers.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/utils/role_utils.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/widgets/leading_icon.dart';
+import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/widgets/event_date_time.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/widgets/event_title_row.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +34,7 @@ class EventDetailsCard extends StatelessWidget {
     final canAdmin = canEdit(userRole);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.zero, // remove vertical padding entirely
       child: Dismissible(
         key: Key(appointment.id),
         direction:
@@ -45,17 +45,20 @@ class EventDetailsCard extends StatelessWidget {
           return await actionManager!.removeEvent(event, true);
         },
         child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          elevation: 1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          margin: const EdgeInsets.symmetric(
+              horizontal: 8), // 🔽 slightly less side margin
+          elevation: 0.5, // 🔽 softer elevation
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                  12)), // 🔽 smaller radius if you want tighter look
           color: Theme.of(context).cardColor,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 8), // 🔽 smaller internal padding
             child: Row(
               children: [
-                buildLeadingIcon(cardColor, event), // ✅ working now
-                const SizedBox(width: 10),
+                buildLeadingIcon(cardColor, event),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -65,18 +68,18 @@ class EventDetailsCard extends StatelessWidget {
                       EventTitleRow(
                         event: event,
                         textColor: textColor,
-                        colorManager: colorManager, // ✅ use param
+                        colorManager: colorManager,
                       ),
                       if (event.description?.isNotEmpty ?? false)
                         Padding(
-                          padding: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.only(top: 0),
                           child: Text(
                             event.description!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 12,
-                              color: textColor.withOpacity(0.8),
+                              fontSize: 11, // 🔽 slightly smaller font
+                              color: textColor.withOpacity(0.75),
                             ),
                           ),
                         ),
@@ -84,7 +87,11 @@ class EventDetailsCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.more_vert, color: cardColor),
+                  padding: EdgeInsets.zero, // 🔽 removes default 8px padding
+                  constraints:
+                      const BoxConstraints(), // 🔽 shrinks icon size box
+                  icon: Icon(Icons.more_vert,
+                      color: cardColor, size: 20), // 🔽 smaller icon
                   onPressed: () {
                     showEventActionsSheet(
                       context: context,

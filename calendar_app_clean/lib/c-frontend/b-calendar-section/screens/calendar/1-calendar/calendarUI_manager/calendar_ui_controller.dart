@@ -54,7 +54,7 @@ class CalendarUIController {
 
     _eventDataManager.eventsStream.listen((updatedEvents) {
       debugPrint(
-        "📅 [CalendarUI] Received ${updatedEvents.length} events from stream",
+        "[CalendarUI] Received ${updatedEvents.length} events from stream",
       );
       _eventDataSource.updateEvents(updatedEvents);
 
@@ -162,21 +162,61 @@ class CalendarUIController {
 
                   case CalendarView.week:
                   case CalendarView.workWeek:
-                  case CalendarView.timelineDay:
-                  case CalendarView.timelineWeek:
-                  case CalendarView.timelineMonth:
-                    return _calendarAppointmentBuilder
-                        .buildTimelineDayAppointment(
-                            details, textColor, event, userRole);
-
-                  default:
-                    return _calendarAppointmentBuilder.defaultBuildAppointment(
+                  case CalendarView.day:
+                    return _calendarAppointmentBuilder.buildWeekAppointment(
                       details,
                       textColor,
-                      context,
-                      _selectedView.toString(),
+                      event,
                       userRole,
                     );
+
+                  case CalendarView.timelineDay:
+                    return _calendarAppointmentBuilder
+                        .buildTimelineDayAppointment(
+                      details,
+                      textColor,
+                      event,
+                      userRole,
+                    );
+
+                  case CalendarView.timelineWeek:
+                    return _calendarAppointmentBuilder
+                        .buildTimelineWeekAppointment(
+                      details,
+                      textColor,
+                      event,
+                      userRole,
+                    );
+
+                  case CalendarView.timelineMonth:
+                    return _calendarAppointmentBuilder
+                        .buildTimelineMonthAppointment(
+                      details,
+                      textColor,
+                      event,
+                      userRole,
+                    );
+
+                  default:
+                    if (_selectedView == CalendarView.week ||
+                        _selectedView == CalendarView.workWeek ||
+                        _selectedView == CalendarView.day) {
+                      return _calendarAppointmentBuilder.buildWeekAppointment(
+                        details,
+                        textColor,
+                        event,
+                        userRole,
+                      );
+                    } else {
+                      return _calendarAppointmentBuilder
+                          .defaultBuildAppointment(
+                        details,
+                        textColor,
+                        context,
+                        _selectedView.toString(),
+                        userRole,
+                      );
+                    }
                 }
               } catch (e, stack) {
                 debugPrint('❌ Error in appointmentBuilder: $e');

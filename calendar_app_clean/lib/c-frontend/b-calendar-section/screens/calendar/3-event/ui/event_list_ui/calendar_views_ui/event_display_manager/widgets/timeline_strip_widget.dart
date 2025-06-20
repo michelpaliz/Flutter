@@ -59,16 +59,14 @@ class TimelineStripWidget extends StatelessWidget {
       child: Container(
         width: details.bounds.width,
         height: details.bounds.height,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
         decoration: BoxDecoration(
           color: bgColor,
           border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           children: [
-            // buildLeadingIcon(borderColor, event, size: 28),
-            // const SizedBox(width: 6),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +75,7 @@ class TimelineStripWidget extends StatelessWidget {
                   Text(
                     event.title,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11, // Reduced from 12
                       fontWeight: FontWeight.w500,
                       color: textColor,
                       decoration: event.isDone
@@ -90,9 +88,10 @@ class TimelineStripWidget extends StatelessWidget {
                     Text(
                       '🔁 ${event.recurrenceDescription}',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 9, // Reduced
                         color: textColor.withOpacity(0.6),
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                 ],
               ),

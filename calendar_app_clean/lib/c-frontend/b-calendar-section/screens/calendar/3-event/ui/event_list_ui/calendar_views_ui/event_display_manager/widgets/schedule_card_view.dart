@@ -3,6 +3,7 @@ import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-e
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/utils/action_sheet_helpers.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/utils/role_utils.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/widgets/leading_icon.dart';
+import 'package:first_project/l10n/AppLocalitationMethod.dart';
 import 'package:flutter/material.dart';
 
 class ScheduleCardView extends StatelessWidget {
@@ -12,7 +13,7 @@ class ScheduleCardView extends StatelessWidget {
   final dynamic appointment;
   final Color cardColor;
   final EventActionManager? actionManager;
-  final String userRole; // ✅ Add this
+  final String userRole;
 
   const ScheduleCardView({
     super.key,
@@ -22,16 +23,21 @@ class ScheduleCardView extends StatelessWidget {
     required this.appointment,
     required this.cardColor,
     required this.actionManager,
-    required this.userRole, // ✅ Now required
+    required this.userRole,
   });
 
   @override
   Widget build(BuildContext context) {
-    final timeRange = event.allDay
-        ? 'All Day'
-        : '${event.startDate.hour.toString().padLeft(2, '0')}:${event.startDate.minute.toString().padLeft(2, '0')}'
-            ' - '
-            '${event.endDate.hour.toString().padLeft(2, '0')}:${event.endDate.minute.toString().padLeft(2, '0')}';
+    final loc = AppLocalizationsMethods.of(context)!;
+
+    final formattedStartDate =
+        '${loc.formatDate(event.startDate)} (${loc.formatHours(event.startDate)})';
+    final formattedEndDate =
+        '${loc.formatDate(event.endDate)} (${loc.formatHours(event.endDate)})';
+
+    final dateTimeText = event.allDay
+        ? '${loc.formatDate(event.startDate)} (All Day)'
+        : '$formattedStartDate  /  $formattedEndDate';
 
     final recurrenceText =
         event.recurrenceRule != null ? event.recurrenceDescription : null;
@@ -43,7 +49,7 @@ class ScheduleCardView extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: Theme.of(context).cardColor,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         child: Row(
           children: [
             buildLeadingIcon(cardColor, event, size: 40),
@@ -53,6 +59,17 @@ class ScheduleCardView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ⬆️ DATE + TIME shown at the top
+                  Text(
+                    dateTimeText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: textColor.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+
+                  // ⬆️ Title
                   Text(
                     event.title,
                     style: TextStyle(
@@ -63,43 +80,34 @@ class ScheduleCardView extends StatelessWidget {
                       color: textColor,
                     ),
                   ),
+
+                  // ⬆️ Optional Description
                   if (event.description?.isNotEmpty ?? false)
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         event.description!,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
-                          color: textColor.withOpacity(0.8),
+                          fontSize: 11, // Smaller
+                          color: textColor.withOpacity(0.7),
                         ),
                       ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        Text(
-                          timeRange,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textColor.withOpacity(0.7),
-                          ),
+
+                  // ⬆️ Optional recurrence
+                  if (recurrenceText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '🔁 $recurrenceText',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: textColor.withOpacity(0.6),
                         ),
-                        if (recurrenceText != null) ...[
-                          const SizedBox(width: 8),
-                          Text(
-                            '🔁 $recurrenceText',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: textColor.withOpacity(0.6),
-                            ),
-                          ),
-                        ],
-                      ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

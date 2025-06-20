@@ -1,8 +1,6 @@
 import 'package:first_project/a-models/group_model/event/event.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/actions/event_actions_manager.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/widgets/event_date_time.dart';
 import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/event_display_manager/utils/role_utils.dart';
-import 'package:first_project/c-frontend/b-calendar-section/screens/calendar/3-event/ui/event_list_ui/calendar_views_ui/widgets/event_title_row.dart';
 import 'package:first_project/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -13,7 +11,7 @@ class EventCompactView extends StatelessWidget {
   final Color textColor;
   final EventActionManager? actionManager;
   final ColorManager colorManager;
-  final String userRole; // ➊ pass in
+  final String userRole;
 
   const EventCompactView({
     super.key,
@@ -21,15 +19,14 @@ class EventCompactView extends StatelessWidget {
     required this.details,
     required this.textColor,
     required this.colorManager,
-    required this.userRole, // ➊
+    required this.userRole,
     this.actionManager,
   });
 
   @override
   Widget build(BuildContext context) {
     final cardColor = colorManager.getColor(event.eventColorIndex);
-    final canEditEvent =
-        canEdit(userRole); // ➋ no longer actionManager?.userRole
+    final canEditEvent = canEdit(userRole);
 
     return GestureDetector(
       onTap: () {
@@ -38,31 +35,24 @@ class EventCompactView extends StatelessWidget {
       child: Container(
         width: details.bounds.width,
         height: details.bounds.height,
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
-          border: Border.all(color: cardColor, width: 1),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: cardColor),
+          borderRadius: BorderRadius.circular(6),
+          color: cardColor.withOpacity(0.1),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            EventDateTimeRow(event: event, textColor: textColor),
-            EventTitleRow(
-              event: event,
-              textColor: textColor,
-              colorManager: colorManager, // ➌ use the one we received
+        child: Center(
+          child: Text(
+            event.title,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+              overflow: TextOverflow.ellipsis,
             ),
-            if (event.description?.isNotEmpty ?? false)
-              Text(
-                event.description!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    TextStyle(fontSize: 11, color: textColor.withOpacity(0.7)),
-              ),
-          ],
+            maxLines: 1,
+            softWrap: false,
+          ),
         ),
       ),
     );

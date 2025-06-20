@@ -66,7 +66,7 @@ ScheduleViewSettings buildScheduleSettings(
 
 MonthViewSettings buildMonthSettings() => MonthViewSettings(
       showAgenda: true,
-      agendaItemHeight: 80,
+      agendaItemHeight: 60,
       dayFormat: 'EEE',
       appointmentDisplayMode: MonthAppointmentDisplayMode.none,
       appointmentDisplayCount: 4,
