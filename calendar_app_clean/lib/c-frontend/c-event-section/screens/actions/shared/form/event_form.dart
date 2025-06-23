@@ -26,7 +26,7 @@ abstract class EventDialogs {
   });
 }
 
-class EventForm extends StatelessWidget {
+class EventForm extends StatefulWidget {
   final BaseEventLogic logic;
   final VoidCallback onSubmit;
   final bool isEditing;
@@ -41,100 +41,115 @@ class EventForm extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<EventForm> createState() => _EventFormState();
+}
+
+class _EventFormState extends State<EventForm> {
+  late DateTime startDate;
+  late DateTime endDate;
+
+  @override
+  void initState() {
+    super.initState();
+    startDate = widget.logic.selectedStartDate;
+    endDate = widget.logic.selectedEndDate;
+  }
+
+  Future<void> _handleDateSelection(bool isStart) async {
+    await widget.logic.selectDate(context, isStart);
+
+    setState(() {
+      startDate = widget.logic.selectedStartDate;
+      endDate = widget.logic.selectedEndDate;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Color Picker
         ColorPickerWidget(
-          selectedEventColor: logic.selectedEventColor == null
+          selectedEventColor: widget.logic.selectedEventColor == null
               ? null
-              : Color(logic.selectedEventColor!),
+              : Color(widget.logic.selectedEventColor!),
           onColorChanged: (color) {
-            if (color != null) logic.setSelectedColor(color.value);
+            if (color != null) widget.logic.setSelectedColor(color.value);
           },
-          colorList: logic.colorList.map((c) => Color(c)).toList(),
+          colorList: widget.logic.colorList.map((c) => Color(c)).toList(),
         ),
         const SizedBox(height: 10),
 
-        // Title
-        TitleInputWidget(titleController: logic.titleController),
+        TitleInputWidget(titleController: widget.logic.titleController),
         const SizedBox(height: 10),
 
-        // Date pickers
+        // ✅ Updated: dynamic & rebuilds after selection
         DatePickersWidget(
-          startDate: logic.selectedStartDate,
-          endDate: logic.selectedEndDate,
-          onStartDateTap: () => logic.selectDate(context, true),
-          onEndDateTap: () => logic.selectDate(context, false),
+          startDate: startDate,
+          endDate: endDate,
+          onStartDateTap: () => _handleDateSelection(true),
+          onEndDateTap: () => _handleDateSelection(false),
         ),
         const SizedBox(height: 10),
 
-        // Location
-        LocationInputWidget(locationController: logic.locationController),
+        LocationInputWidget(
+            locationController: widget.logic.locationController),
         const SizedBox(height: 10),
 
-        // Description
         DescriptionInputWidget(
-            descriptionController: logic.descriptionController),
+            descriptionController: widget.logic.descriptionController),
         const SizedBox(height: 10),
 
-        // Note
-        NoteInputWidget(noteController: logic.noteController),
+        NoteInputWidget(noteController: widget.logic.noteController),
         const SizedBox(height: 10),
 
-        // Repetition toggle
         RepetitionToggleWidget(
-          isRepetitive: logic.isRepetitive,
-          toggleWidth: logic.toggleWidth,
+          isRepetitive: widget.logic.isRepetitive,
+          toggleWidth: widget.logic.toggleWidth,
           onTap: () async {
-            if (!isEditing && dialogs != null) {
+            if (!widget.isEditing && widget.dialogs != null) {
               final result = await showDialog(
                 context: context,
-                builder: (context) => dialogs!.buildRepetitionDialog(context),
+                builder: (context) =>
+                    widget.dialogs!.buildRepetitionDialog(context),
               );
               if (result != null && result.isNotEmpty) {
-                logic.toggleRepetition(result[1], result[0]);
+                widget.logic.toggleRepetition(result[1], result[0]);
               }
             }
           },
         ),
         const SizedBox(height: 10),
 
-        // User selection (only in add flow)
-        // User selection (available in both add and edit)
         UserExpandableCard(
-          usersAvailable: logic.users,
-          initiallySelected: logic.selectedUsers,
-          onSelectedUsersChanged: logic.setSelectedUsers,
+          usersAvailable: widget.logic.users,
+          initiallySelected: widget.logic.selectedUsers,
+          onSelectedUsersChanged: widget.logic.setSelectedUsers,
         ),
-
         const SizedBox(height: 25),
 
-        // Submit button
         Center(
           child: ElevatedButton(
             onPressed: () async {
-              if (isEditing) {
-                onSubmit(); // edit flow
+              if (widget.isEditing) {
+                widget.onSubmit();
               } else {
-                await (logic as dynamic).addEvent(
-                  // cast for dynamic safety
+                await (widget.logic as dynamic).addEvent(
                   context,
                   () => Navigator.pop(context, true),
-                  () => dialogs?.showErrorDialog(context),
-                  () => dialogs?.showRepetitionDialog(
+                  () => widget.dialogs?.showErrorDialog(context),
+                  () => widget.dialogs?.showRepetitionDialog(
                     context,
-                    selectedStartDate: logic.selectedStartDate,
-                    selectedEndDate: logic.selectedEndDate,
-                    initialRule: logic.recurrenceRule,
+                    selectedStartDate: widget.logic.selectedStartDate,
+                    selectedEndDate: widget.logic.selectedEndDate,
+                    initialRule: widget.logic.recurrenceRule,
                   ),
                 );
               }
             },
-            child: Text(isEditing ? loc.save : loc.addEvent),
+            child: Text(widget.isEditing ? loc.save : loc.addEvent),
           ),
         ),
       ],
