@@ -1,0 +1,46 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "calendar_app_frontend (iPhone)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "00008101-00061CA11E92001E"
+        },
+        {
+            "name": "calendar_app_frontend (macOS)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "macos"
+        },
+        {
+            "name": "calendar_app_frontend (phone)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "jnj7lb85rsrwxg6x"
+        },
+        {
+            "name": "calendar_app_frontend (Android)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "n7jniv5lda9dljei"
+        },
+        {
+            "name": "calendar_app_frontend",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "calendar_app_frontend (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "calendar_app_frontend (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

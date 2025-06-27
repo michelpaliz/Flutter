@@ -1,0 +1,87 @@
+name: calendar_app_frontend
+description: A new Flutter project.
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Runtime dependencies
+  uuid: ^4.2.1
+  google_fonts: ^6.1.0
+  flutter_animate: ^4.2.0
+  shared_preferences: ^2.0.8
+  carousel_slider: ^5.0.0
+  geolocator: ^13.0.4
+  syncfusion_flutter_calendar: ^29.1.37
+  image_picker: ^1.0.4
+  cached_network_image: ^3.3.0
+  anim_search_bar: ^2.0.3
+  provider: ^6.0.5
+  flutter_i18n: ^0.36.2
+  intl: 0.20.2
+  animated_custom_dropdown: ^3.1.1
+  multi_select_flutter: ^4.1.3
+  flutter_staggered_animations: ^1.0.0
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  test: ^1.24.1
+  table_calendar: ^3.1.3
+  http: ^1.1.0
+  flutter_typeahead: ^5.2.0
+  flutter_slidable: ^4.0.0
+  
+  dio: ^5.4.3+1
+  socket_io_client: ^2.0.3+1
+
+
+  # Freezed / JSON annotations
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+  json_serializable: ^6.9.5
+  build_runner: ^2.4.15
+  rrule: 0.2.17
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code generators
+  freezed: ^3.0.0
+
+flutter:
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/images/login_image.png
+    - assets/images/beach_image.png
+    - assets/images/person_profile.png
+    - assets/images/profile.jpg
+    - assets/images/default_profile.png
+    - assets/images/january.png
+    - assets/images/february.png
+    - assets/images/march.png
+    - assets/images/april.png
+    - assets/images/may.png
+    - assets/images/june.png
+    - assets/images/july.png
+    - assets/images/august.png
+    - assets/images/september.png
+    - assets/images/october.png
+    - assets/images/november.png
+    - assets/images/december.png
+    - assets/images/logo.jpeg
+
+  fonts:
+    - family: bagel
+      fonts:
+        - asset: assets/fonts/bagel_fat_one.ttf
+        - asset: assets/fonts/lato.ttf
+        - asset: assets/fonts/righteous.ttf
