@@ -747,4 +747,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get editEvent => 'Editar Evento';
+
+  @override
+  String eventDayNotIncludedWarning(String day) {
+    return 'Advertencia: El evento comienza el $day, pero este día no está seleccionado en el patrón de repetición.';
+  }
 }

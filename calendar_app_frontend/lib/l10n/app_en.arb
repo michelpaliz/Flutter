@@ -388,7 +388,19 @@
     "notificationGroupDeletedAllMessage": "The group \"{groupName}\" has been deleted by the owner.",
 
     "viewDetails": "View Details",
-    "editEvent": "Edit Event"
+    "editEvent": "Edit Event",
+    "eventDayNotIncludedWarning": "Warning: The event starts on {day}, but this day is not selected in the recurrence pattern.",
+    "@eventDayNotIncludedWarning": {
+        "description": "Shown as a warning when a user selects weekly recurrence days that do not include the event's start day",
+        "placeholders": {
+            "day": {
+                "type": "String",
+                "example": "Monday"
+            }
+        }
+    }
+
+    
 
 
  

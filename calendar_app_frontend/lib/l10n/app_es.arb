@@ -1,392 +1,384 @@
 {
-    "darkMode": "Modo oscuro",
-    "groups": "Grupos",
-    "calendar": "Calendario",
-    "settings": "Configuración",
-    "logout": "Cerrar sesión",
-    "groupData": "Datos del grupo",
-    "notifications": "Notificaciones",
-    "goodMorning": "Buenos días",
-    "goodAfternoon": "Buenas tardes",
-    "goodEvening": "Buenas noches",
-    "language": "es",
-    "@language": {
-      "description": "El idioma actual"
-    },
-    "changeView": "Cambiar vista",
-    "@changeView": {
-      "description": "Cambiar vista"
-    },
-    "welcomeGroupView": "Bienvenido {username}, aquí puedes ver la lista de grupos de los que formas parte.",
-    "@welcome": {
-      "description": "Bienvenida a la vista de grupos",
-      "placeholders": {
-        "username": {
-          "type": "String"
-        }
+  "darkMode": "Modo oscuro",
+  "groups": "Grupos",
+  "calendar": "Calendario",
+  "settings": "Configuración",
+  "logout": "Cerrar sesión",
+  "groupData": "Datos del grupo",
+  "notifications": "Notificaciones",
+  "goodMorning": "Buenos días",
+  "goodAfternoon": "Buenas tardes",
+  "goodEvening": "Buenas noches",
+  "language": "es",
+  "@language": {
+    "description": "El idioma actual"
+  },
+  "changeView": "Cambiar vista",
+  "@changeView": {
+    "description": "Cambiar vista"
+  },
+  "welcomeGroupView": "Bienvenido {username}, aquí puedes ver la lista de grupos de los que formas parte.",
+  "@welcome": {
+    "description": "Bienvenida a la vista de grupos",
+    "placeholders": {
+      "username": {
+        "type": "String"
       }
-    },
-    "zeroNotifications": "No hay notificaciones disponibles",
-    "goToCalendar": "Ir al calendario",
-    "groupName": "Nombre del grupo (máximo {maxChar} caracteres)",
-    "@groupName": {
-      "description": "Note form",
-      "placeholders": {
-        "maxChar": {
-          "type": "int"
-        }
+    }
+  },
+  "zeroNotifications": "No hay notificaciones disponibles",
+  "goToCalendar": "Ir al calendario",
+  "groupName": "Nombre del grupo (máximo {maxChar} caracteres)",
+  "@groupName": {
+    "description": "Note form",
+    "placeholders": {
+      "maxChar": {
+        "type": "int"
       }
-    },
-    "groupDescription": "Descripción del grupo (máximo {maxChar} caracteres)",
-    "@groupDescription": {
-      "description": "Note form",
-      "placeholders": {
-        "maxChar": {
-          "type": "int"
-        }
+    }
+  },
+  "groupDescription": "Descripción del grupo (máximo {maxChar} caracteres)",
+  "@groupDescription": {
+    "description": "Note form",
+    "placeholders": {
+      "maxChar": {
+        "type": "int"
       }
-    },
-    "addPplGroup": "Añadir personas a tu grupo",
-    "addUser": "Añadir usuario",
-    "addEvent": "Añadir evento",
-    "administrator": "Administrador",
-    "coAdministrator": "Co-Administrador",
-    "member": "Miembro",
-    "saveGroup": "Guardar grupo",
-    "addImageGroup": "Añadir imagen para el grupo",
-    "removeEvent": "¿Estás seguro de que quieres eliminar este evento?",
-    "removeGroup": "¿Estás seguro de que quieres eliminar este grupo?",
-    "removeCalendar": "¿Estás seguro de que quieres eliminar este calendario?",
-    "groupCreated": "¡Grupo creado con éxito!",
-    "failedToCreateGroup": "Error al crear el grupo",
-    "eventCreated": "El evento ha sido creado",
-    "eventEdited": "El evento ha sido editado",
-    "eventAddedGroup": "El evento ha sido añadido al grupo",
-    "event": "Evento",
-    "chooseEventColor": "Elige el color del evento:",
-    "errorEventNote": "¡La nota del evento no puede estar vacía!",
-    "name": "Nombre",
-    "userName": "Nombre de usuario",
-    "currentPassword": "Introduce tu contraseña actual",
-    "newPassword": "Actualiza tu contraseña actual",
-    "confirmPassword": "Confirmar contraseña",
-    "password": "Contraseña",
-    "register": "Registrarse",
-    "login": "Iniciar sesión",
-    "userNameHint": "Introduce tu nombre de usuario (p.ej., john_doe123)",
-    "nameHint": "Introduce tu nombre",
-    "emailHint": "Introduce tu correo electrónico",
-    "passwordHint": "Introduce tu contraseña",
-    "confirmPasswordHint": "Introduce tu contraseña de nuevo",
-    "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
-    "passwordNotMatch": "La nueva contraseña y la confirmación no coinciden.",
-    "userNameTaken": "El nombre de usuario ya está en uso",
-    "weakPassword": "Contraseña débil",
-    "emailTaken": "El correo electrónico ya está en uso",
-    "invalidEmail": "Esta dirección de correo electrónico no es válida",
-    "registrationError": "Error de registro",
-    "userNotFound": "Usuario no encontrado",
-    "wrongCredentials": "Credenciales incorrectas",
-    "authError": "Error de autenticación",
-    "changePassword": "Cambiar contraseña",
-    "notRegistered": "¿No estás registrado? No te preocupes, regístrate aquí.",
-    "alreadyRegistered": "¿Ya estás registrado? Inicia sesión aquí.",
-    "title": "Título (máximo {maxChar} caracteres)",
-    "@tittle": {
-      "description": "Title form",
-      "placeholders": {
-        "maxChar": {
-          "type": "int"
-        }
+    }
+  },
+  "addPplGroup": "Añadir personas a tu grupo",
+  "addUser": "Añadir usuario",
+  "addEvent": "Añadir evento",
+  "administrator": "Administrador",
+  "coAdministrator": "Co-Administrador",
+  "member": "Miembro",
+  "saveGroup": "Guardar grupo",
+  "addImageGroup": "Añadir imagen para el grupo",
+  "removeEvent": "¿Estás seguro de que quieres eliminar este evento?",
+  "removeGroup": "¿Estás seguro de que quieres eliminar este grupo?",
+  "removeCalendar": "¿Estás seguro de que quieres eliminar este calendario?",
+  "groupCreated": "¡Grupo creado con éxito!",
+  "failedToCreateGroup": "Error al crear el grupo",
+  "eventCreated": "El evento ha sido creado",
+  "eventEdited": "El evento ha sido editado",
+  "eventAddedGroup": "El evento ha sido añadido al grupo",
+  "event": "Evento",
+  "chooseEventColor": "Elige el color del evento:",
+  "errorEventNote": "¡La nota del evento no puede estar vacía!",
+  "name": "Nombre",
+  "userName": "Nombre de usuario",
+  "currentPassword": "Introduce tu contraseña actual",
+  "newPassword": "Actualiza tu contraseña actual",
+  "confirmPassword": "Confirmar contraseña",
+  "password": "Contraseña",
+  "register": "Registrarse",
+  "login": "Iniciar sesión",
+  "userNameHint": "Introduce tu nombre de usuario (p.ej., john_doe123)",
+  "nameHint": "Introduce tu nombre",
+  "emailHint": "Introduce tu correo electrónico",
+  "passwordHint": "Introduce tu contraseña",
+  "confirmPasswordHint": "Introduce tu contraseña de nuevo",
+  "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
+  "passwordNotMatch": "La nueva contraseña y la confirmación no coinciden.",
+  "userNameTaken": "El nombre de usuario ya está en uso",
+  "weakPassword": "Contraseña débil",
+  "emailTaken": "El correo electrónico ya está en uso",
+  "invalidEmail": "Esta dirección de correo electrónico no es válida",
+  "registrationError": "Error de registro",
+  "userNotFound": "Usuario no encontrado",
+  "wrongCredentials": "Credenciales incorrectas",
+  "authError": "Error de autenticación",
+  "changePassword": "Cambiar contraseña",
+  "notRegistered": "¿No estás registrado? No te preocupes, regístrate aquí.",
+  "alreadyRegistered": "¿Ya estás registrado? Inicia sesión aquí.",
+  "title": "Título (máximo {maxChar} caracteres)",
+  "@tittle": {
+    "description": "Title form",
+    "placeholders": {
+      "maxChar": {
+        "type": "int"
       }
-    },
-    "description": "Descripción (máximo {maxChar} caracteres)",
-    "@description": {
-      "description": "Description form",
-      "placeholders": {
-        "maxChar": {
-          "type": "int"
-        }
+    }
+  },
+  "description": "Descripción (máximo {maxChar} caracteres)",
+  "@description": {
+    "description": "Description form",
+    "placeholders": {
+      "maxChar": {
+        "type": "int"
       }
-    },
-    "note": "Nota (máximo {maxChar} caracteres)",
-    "@note": {
-      "description": "Note form",
-      "placeholders": {
-        "maxChar": {
-          "type": "int"
-        }
+    }
+  },
+  "note": "Nota (máximo {maxChar} caracteres)",
+  "@note": {
+    "description": "Note form",
+    "placeholders": {
+      "maxChar": {
+        "type": "int"
       }
-    },
-    "location": "Ubicación",
-    "repetitionEvent": "Fecha de inicio duplicada",
-    "repetitionEventInfo": "Ya existe un evento con la misma hora y día de inicio.",
-    "daily": "Diario",
-    "weekly": "Semanal",
-    "monthly": "Mensual",
-    "yearly": "Anual",
-    "repetitionDetails": "Detalles de repetición",
-    "dailyRepetitionInf": "Este evento se repetirá cada {concurrenceDay} día",
-    "@dailyRepetitionInf": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "concurrenceDay": {
-          "type": "int"
-        }
+    }
+  },
+  "location": "Ubicación",
+  "repetitionEvent": "Fecha de inicio duplicada",
+  "repetitionEventInfo": "Ya existe un evento con la misma hora y día de inicio.",
+  "daily": "Diario",
+  "weekly": "Semanal",
+  "monthly": "Mensual",
+  "yearly": "Anual",
+  "repetitionDetails": "Detalles de repetición",
+  "dailyRepetitionInf": "Este evento se repetirá cada {concurrenceDay} día",
+  "@dailyRepetitionInf": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "concurrenceDay": {
+        "type": "int"
       }
-    },
-    "every": "Cada:",
-    "dailys": "diario(s)",
-    "weeklys": "semanal(es)",
-    "monthlies": "mensual(es)",
-    "yearlys": "año(s)",
-    "untilDate": "Hasta la fecha:",
-    "untilDateSelected": "Hasta la fecha: {untilDate}",
-    "@untilDateSelected": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "untilDate": {
-          "type": "String"
-        }
+    }
+  },
+  "every": "Cada:",
+  "dailys": "diario(s)",
+  "weeklys": "semanal(es)",
+  "monthlies": "mensual(es)",
+  "yearlys": "año(s)",
+  "untilDate": "Hasta la fecha:",
+  "untilDateSelected": "Hasta la fecha: {untilDate}",
+  "@untilDateSelected": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "untilDate": {
+        "type": "String"
       }
-    },
-    "notSelected": "No seleccionado",
-    "utilDateNotSelected": "Hasta la fecha: No seleccionado",
-    "specifyRepeatInterval": "Por favor, especifica el intervalo de repetición",
-    "selectOneDayAtLeast": "Por favor, selecciona al menos un día de la semana.",
-    "datesMustBeSame": "Las fechas de inicio y fin deben ser el mismo día para que el evento se repita.",
-    "startDate": "Fecha de inicio:",
-    "endDate": "Fecha de fin:",
-    "noDaysSelected": "No hay días seleccionados",
-    "selectRepetition": "Seleccionar repetición",
-    "selectDay": "Seleccionar día:",
-    "dayRepetitionInf": "Este evento se repetirá cada {concurrenceWeeks} día.",
-    "@dayRepetitionInf": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "concurrenceWeeks": {
-          "type": "int"
-        }
+    }
+  },
+  "notSelected": "No seleccionado",
+  "utilDateNotSelected": "Hasta la fecha: No seleccionado",
+  "specifyRepeatInterval": "Por favor, especifica el intervalo de repetición",
+  "selectOneDayAtLeast": "Por favor, selecciona al menos un día de la semana.",
+  "datesMustBeSame": "Las fechas de inicio y fin deben ser el mismo día para que el evento se repita.",
+  "startDate": "Fecha de inicio:",
+  "endDate": "Fecha de fin:",
+  "noDaysSelected": "No hay días seleccionados",
+  "selectRepetition": "Seleccionar repetición",
+  "selectDay": "Seleccionar día:",
+  "dayRepetitionInf": "Este evento se repetirá cada {concurrenceWeeks} día.",
+  "@dayRepetitionInf": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "concurrenceWeeks": {
+        "type": "int"
       }
-    },
-    "weeklyRepetitionInf": "Este evento se repetirá cada {concurrenceWeeks} semana(s) en {customDaysOfWeekString}, y {lastDay}",
-    "@weeklyRepetitionInf": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "concurrenceWeeks": {
-          "type": "int"
-        },
-        "customDaysOfWeeksString": {
-          "type": "String"
-        },
-        "lastDay": {
-          "type": "String"
-        }
+    }
+  },
+  "weeklyRepetitionInf": "Este evento se repetirá cada {concurrenceWeeks} semana(s) en {customDaysOfWeekString}, y {lastDay}",
+  "@weeklyRepetitionInf": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "concurrenceWeeks": {
+        "type": "int"
+      },
+      "customDaysOfWeeksString": {
+        "type": "String"
+      },
+      "lastDay": {
+        "type": "String"
       }
-    },
-    "weeklyRepetitionInf1": "Este evento se repetirá cada {repeatInterval} semana(s) en ${selectedDayNames}",
-    "@weeklyRepetitionInf1": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "repeatInterval": {
-          "type": "int"
-        },
-        "selectedDayNames": {
-          "type": "String"
-        }
+    }
+  },
+  "weeklyRepetitionInf1": "Este evento se repetirá cada {repeatInterval} semana(s) en ${selectedDayNames}",
+  "@weeklyRepetitionInf1": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "repeatInterval": {
+        "type": "int"
+      },
+      "selectedDayNames": {
+        "type": "String"
       }
-    },
-    "mon": "Lun",
-    "tue": "Mar",
-    "wed": "Mié",
-    "thu": "Jue",
-    "fri": "Vie",
-    "sat": "Sáb",
-    "sun": "Dom",
-    "errorSelectedDays": "El día del evento {selectedDays} debe coincidir con uno de los días seleccionados.",
-    "@errorSelectedDays": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "selectedDays": {
-          "type": "String"
-        }
+    }
+  },
+  "mon": "Lun",
+  "tue": "Mar",
+  "wed": "Mié",
+  "thu": "Jue",
+  "fri": "Vie",
+  "sat": "Sáb",
+  "sun": "Dom",
+  "errorSelectedDays": "El día del evento {selectedDays} debe coincidir con uno de los días seleccionados.",
+  "@errorSelectedDays": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "selectedDays": {
+        "type": "String"
       }
-    },
-    "textFieldGroupName": "Introduce el nombre del grupo (Límite: {TITLE_MAX_LENGHT} caracteres)",
-    "@textFieldGroupName": {
-      "description": "Textfield for the group name",
-      "placeholders": {
-        "TITLE_MAX_LENGHT": {
-          "type": "int"
-        }
+    }
+  },
+  "textFieldGroupName": "Introduce el nombre del grupo (Límite: {TITLE_MAX_LENGHT} caracteres)",
+  "@textFieldGroupName": {
+    "description": "Textfield for the group name",
+    "placeholders": {
+      "TITLE_MAX_LENGHT": {
+        "type": "int"
       }
-    },
-    "textFieldDescription": "Introduce la descripción del grupo (Límite: {DESCRIPTION_MAX_LENGHT} caracteres)",
-    "@textFieldDescription": {
-      "description": "Textfield for the group description",
-      "placeholders": {
-        "DESCRIPTION_MAX_LENGHT": {
-          "type": "int"
-        }
+    }
+  },
+  "textFieldDescription": "Introduce la descripción del grupo (Límite: {DESCRIPTION_MAX_LENGHT} caracteres)",
+  "@textFieldDescription": {
+    "description": "Textfield for the group description",
+    "placeholders": {
+      "DESCRIPTION_MAX_LENGHT": {
+        "type": "int"
       }
-    },
-    "monthlyRepetitionInf": "Este evento se repetirá el día {selectDay} de cada {repeatInterval} mes(es)",
-    "@monthlyRepetitionInf": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "selectedDay": {
-          "type": "String"
-        },
-        "repeatInterval": {
-          "type": "int"
-        }
+    }
+  },
+  "monthlyRepetitionInf": "Este evento se repetirá el día {selectDay} de cada {repeatInterval} mes(es)",
+  "@monthlyRepetitionInf": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "selectedDay": {
+        "type": "String"
+      },
+      "repeatInterval": {
+        "type": "int"
       }
-    },
-    "yearlyRepetitionInf": "Este evento se repetirá el día {selectDay} de cada {repeatInterval} año(s)",
-    "@yearlyRepetitionInf": {
-      "description": "Concurrence for the event",
-      "placeholders": {
-        "selectedDay": {
-          "type": "String"
-        },
-        "repeatInterval": {
-          "type": "int"
-        }
+    }
+  },
+  "yearlyRepetitionInf": "Este evento se repetirá el día {selectDay} de cada {repeatInterval} año(s)",
+  "@yearlyRepetitionInf": {
+    "description": "Concurrence for the event",
+    "placeholders": {
+      "selectedDay": {
+        "type": "String"
+      },
+      "repeatInterval": {
+        "type": "int"
       }
-    },
-    "editGroup": "Editar Grupo",
-
-    "remove": "Eliminar",
-    "confirm": "Confirmar",
-    "cancel": "Cancelar",
-    "confirmation": "Confirmación",
-    "removeConfirmation": "Confirmar eliminación",
-    "permissionDenied": "Permiso denegado",
-    "permissionDeniedInf": "No eres administrador para eliminar este elemento.",
-    "leaveGroup": "Salir del grupo",
-    "permissionDeniedRole": "Actualmente eres {role} de este grupo.",
-    "putGroupImage": "Poner una imagen para el grupo",
-    "close": "Cerrar",
-    "addNewUser": "Añadir un nuevo usuario a tu grupo",
-    "cannotRemoveYourself": "No puedes eliminarte del grupo",
-    "requiredTextFields": "El nombre y la descripción del grupo son obligatorios.",
-    "groupNameRequired": "El nombre del grupo no puede estar vacío",
-    "groupEdited": "¡Grupo editado con éxito!",
-    "failedToEditGroup": "Error al editar el grupo. Por favor, inténtalo de nuevo",
-    "searchPerson": "Buscar por nombre de usuario",
-    "delete": "Eliminar",
-    "confirmRemovalMessage": "¿Estás seguro de que quieres eliminar este grupo?",
-    "confirmRemoval": "Confirmar eliminación",
-    "groupDeletedSuccessfully": "¡Grupo eliminado con éxito!",
-    "noGroupsAvailable": "NO SE ENCONTRARON GRUPOS",
-    "monday": "lunes",
-    "tuesday": "martes",
-    "wednesday": "miércoles",
-    "thursday": "jueves",
-    "friday": "viernes",
-    "saturday": "sábado",
-    "sunday": "domingo",
-    "save": "Guardar Edición",
-    "groupNameText": "Nombre del grupo",
-    "groupOwner": "Propietario del grupo",
-    "enableRepetitiveEvents": "Habilitar eventos repetitivos",
-    "passwordChangedSuccessfully": "Contraseña cambiada con éxito",
-    "currentPasswordIncorrect": "La contraseña actual es incorrecta. Por favor, inténtalo de nuevo.",
-    "newPasswordConfirmationError": "La nueva contraseña y la confirmación no coinciden.",
-    "changedPasswordError": "Error al cambiar la contraseña. Por favor, inténtalo de nuevo",
-    "passwordContainsUnwantedChar": "La contraseña contiene caracteres no deseados.",
-    "changeUsername": "Cambiar tu nombre de usuario",
-    "successChangingUsername": "¡Nombre de usuario actualizado con éxito!",
-    "usernameAlreadyTaken": "El nombre de usuario ya está en uso. Elige otro.",
-    "errorUnwantedCharactersUsername": "Caracteres inválidos en el nombre de usuario. Usa solo caracteres alfanuméricos y guiones bajos.",
-    "errorChangingUsername": "Error al cambiar el nombre de usuario. Por favor, inténtalo de nuevo más tarde.",
-    "errorChangingPassword": "Error al cambiar la contraseña. Por favor, inténtalo de nuevo.",
-    "errorUsernameLength": "El nombre de usuario debe tener entre 6 y 10 caracteres",
-    "formatDate": "{date}",
-    "@formatDate": {
-      "date": {
-        "type": "DateTime",
-        "format": "EEE, MMM d",
-        "example": "11/10/2021",
-        "description": "Balance date"
+    }
+  },
+  "editGroup": "Editar Grupo",
+  "remove": "Eliminar",
+  "confirm": "Confirmar",
+  "cancel": "Cancelar",
+  "confirmation": "Confirmación",
+  "removeConfirmation": "Confirmar eliminación",
+  "permissionDenied": "Permiso denegado",
+  "permissionDeniedInf": "No eres administrador para eliminar este elemento.",
+  "leaveGroup": "Salir del grupo",
+  "permissionDeniedRole": "Actualmente eres {role} de este grupo.",
+  "putGroupImage": "Poner una imagen para el grupo",
+  "close": "Cerrar",
+  "addNewUser": "Añadir un nuevo usuario a tu grupo",
+  "cannotRemoveYourself": "No puedes eliminarte del grupo",
+  "requiredTextFields": "El nombre y la descripción del grupo son obligatorios.",
+  "groupNameRequired": "El nombre del grupo no puede estar vacío",
+  "groupEdited": "¡Grupo editado con éxito!",
+  "failedToEditGroup": "Error al editar el grupo. Por favor, inténtalo de nuevo",
+  "searchPerson": "Buscar por nombre de usuario",
+  "delete": "Eliminar",
+  "confirmRemovalMessage": "¿Estás seguro de que quieres eliminar este grupo?",
+  "confirmRemoval": "Confirmar eliminación",
+  "groupDeletedSuccessfully": "¡Grupo eliminado con éxito!",
+  "noGroupsAvailable": "NO SE ENCONTRARON GRUPOS",
+  "monday": "lunes",
+  "tuesday": "martes",
+  "wednesday": "miércoles",
+  "thursday": "jueves",
+  "friday": "viernes",
+  "saturday": "sábado",
+  "sunday": "domingo",
+  "save": "Guardar Edición",
+  "groupNameText": "Nombre del grupo",
+  "groupOwner": "Propietario del grupo",
+  "enableRepetitiveEvents": "Habilitar eventos repetitivos",
+  "passwordChangedSuccessfully": "Contraseña cambiada con éxito",
+  "currentPasswordIncorrect": "La contraseña actual es incorrecta. Por favor, inténtalo de nuevo.",
+  "newPasswordConfirmationError": "La nueva contraseña y la confirmación no coinciden.",
+  "changedPasswordError": "Error al cambiar la contraseña. Por favor, inténtalo de nuevo",
+  "passwordContainsUnwantedChar": "La contraseña contiene caracteres no deseados.",
+  "changeUsername": "Cambiar tu nombre de usuario",
+  "successChangingUsername": "¡Nombre de usuario actualizado con éxito!",
+  "usernameAlreadyTaken": "El nombre de usuario ya está en uso. Elige otro.",
+  "errorUnwantedCharactersUsername": "Caracteres inválidos en el nombre de usuario. Usa solo caracteres alfanuméricos y guiones bajos.",
+  "errorChangingUsername": "Error al cambiar el nombre de usuario. Por favor, inténtalo de nuevo más tarde.",
+  "errorChangingPassword": "Error al cambiar la contraseña. Por favor, inténtalo de nuevo.",
+  "errorUsernameLength": "El nombre de usuario debe tener entre 6 y 10 caracteres",
+  "formatDate": "{date}",
+  "@formatDate": {
+    "date": {
+      "type": "DateTime",
+      "format": "EEE, MMM d",
+      "example": "11/10/2021",
+      "description": "Balance date"
+    }
+  },
+  "forgotPassword": "Recupera tu contraseña aquí.",
+  "nameRequired": "El nombre es obligatorio",
+  "userNameRequired": "El nombre de usuario es obligatorio",
+  "emailRequired": "El correo electrónico es obligatorio",
+  "passwordLength": "La contraseña debe tener un máximo de 6 caracteres",
+  "groupNotCreated": "Error al crear el grupo, inténtalo de nuevo",
+  "questionDeleteGroup": "¿Estás seguro de que quieres eliminar este grupo?",
+  "errorEventCreation": "Se produjo un error al crear el evento, inténtalo más tarde",
+  "eventEditFailed": "Se produjo un error al editar el evento, inténtalo más tarde",
+  "noEventsFoundForDate": "No se encontraron eventos para esta fecha, inténtalo más tarde.",
+  "confirmDelete": "¿Estás seguro de que quieres eliminar este evento?",
+  "confirmDeleteDescription": "Eliminar evento.",
+  "groupNameLabel": "Nombre del grupo",
+  "descriptionLabel": "Descripción",
+  "refresh": "Actualizando pantalla...",
+  "accepted": "Aceptado",
+  "pending": "Pendiente",
+  "notAccepted": "No aceptado",
+  "newUsers": "Nuevos",
+  "expired": "Expirado",
+  "userNotSignedIn": "El usuario no esta logeado.",
+  "@userNotSignedIn": {
+    "description": "Erro el usuario necesita estar logeado."
+  },
+  "createdOn": "Creado en",
+  "userCount": "Contador",
+  "timeJustNow": "Justo ahora",
+  "timeMinutesAgo": "hace {minutes} minutos",
+  "timeHoursAgo": "hace {hours} horas",
+  "timeDaysAgo": "hace {days} días",
+  "timeLast30Days": "Últimos 30 días",
+  "groupRecent": "Reciente",
+  "groupLast7Days": "Últimos 7 días",
+  "groupLast30Days": "Últimos 30 días",
+  "groupOlder": "Antiguos",
+  "notificationGroupCreationTitle": "¡Felicidades!",
+  "notificationGroupCreationMessage": "Has creado el grupo: {groupName}",
+  "notificationJoinedGroupTitle": "Bienvenido al grupo",
+  "notificationJoinedGroupMessage": "Te has unido al grupo: {groupName}",
+  "notificationInvitationTitle": "Invitación al grupo",
+  "notificationInvitationMessage": "Has sido invitado a unirte al grupo: {groupName}",
+  "notificationInvitationDeniedTitle": "Invitación rechazada",
+  "notificationInvitationDeniedMessage": "{userName} rechazó la invitación para unirse a {groupName}",
+  "notificationUserAcceptedTitle": "Usuario se ha unido",
+  "notificationUserAcceptedMessage": "{userName} ha aceptado la invitación para unirse a {groupName}",
+  "notificationGroupEditedTitle": "Grupo actualizado",
+  "notificationGroupEditedMessage": "Has actualizado el grupo: {groupName}",
+  "notificationGroupDeletedTitle": "Grupo eliminado",
+  "notificationGroupDeletedMessage": "Has eliminado el grupo: {groupName}",
+  "notificationUserRemovedTitle": "Usuario eliminado",
+  "notificationUserRemovedMessage": "Has sido eliminado del grupo {groupName} por {adminName}",
+  "notificationAdminUserRemovedTitle": "Usuario eliminado",
+  "notificationAdminUserRemovedMessage": "{userName} fue eliminado del grupo {groupName}",
+  "notificationUserLeftTitle": "Usuario salió del grupo",
+  "notificationUserLeftMessage": "{userName} ha salido del grupo: {groupName}",
+  "notificationGroupUpdateTitle": "Grupo actualizado",
+  "notificationGroupUpdateMessage": "{editorName} actualizó el grupo: {groupName}",
+  "notificationGroupDeletedAllTitle": "Grupo eliminado",
+  "notificationGroupDeletedAllMessage": "El grupo \"{groupName}\" ha sido eliminado por el propietario.",
+  "viewDetails": "Ver detalles",
+  "editEvent": "Editar Evento",
+  "eventDayNotIncludedWarning": "Advertencia: El evento comienza el {day}, pero este día no está seleccionado en el patrón de repetición.",
+  "@eventDayNotIncludedWarning": {
+    "description": "Se muestra como advertencia cuando el usuario selecciona días semanales que no incluyen el día de inicio del evento",
+    "placeholders": {
+      "day": {
+        "type": "String",
+        "example": "Lunes"
       }
-    },
-    "forgotPassword": "Recupera tu contraseña aquí.",
-    "nameRequired": "El nombre es obligatorio",
-    "userNameRequired": "El nombre de usuario es obligatorio",
-    "emailRequired": "El correo electrónico es obligatorio",
-    "passwordLength": "La contraseña debe tener un máximo de 6 caracteres",
-    "groupNotCreated": "Error al crear el grupo, inténtalo de nuevo",
-    "questionDeleteGroup": "¿Estás seguro de que quieres eliminar este grupo?",
-    "errorEventCreation": "Se produjo un error al crear el evento, inténtalo más tarde",
-    "eventEditFailed": "Se produjo un error al editar el evento, inténtalo más tarde",
-    "noEventsFoundForDate": "No se encontraron eventos para esta fecha, inténtalo más tarde.",
-    "confirmDelete": "¿Estás seguro de que quieres eliminar este evento?",
-    "confirmDeleteDescription": "Eliminar evento.",
-    "groupNameLabel": "Nombre del grupo",
-    "descriptionLabel": "Descripción",
-    "refresh": "Actualizando pantalla...",
-    "accepted": "Aceptado",
-    "pending": "Pendiente",
-    "notAccepted": "No aceptado",
-    "newUsers": "Nuevos",
-    "expired": "Expirado",
-    "userNotSignedIn": "El usuario no esta logeado.",
-    "@userNotSignedIn": {
-        "description": "Erro el usuario necesita estar logeado."
-    },
-    "createdOn": "Creado en",
-    "userCount": "Contador",
-
-    "timeJustNow": "Justo ahora",
-    "timeMinutesAgo": "hace {minutes} minutos",
-    "timeHoursAgo": "hace {hours} horas",
-    "timeDaysAgo": "hace {days} días",
-    "timeLast30Days": "Últimos 30 días",
-
-    "groupRecent": "Reciente",
-    "groupLast7Days": "Últimos 7 días",
-    "groupLast30Days": "Últimos 30 días",
-    "groupOlder": "Antiguos",
-
-    "notificationGroupCreationTitle": "¡Felicidades!",
-    "notificationGroupCreationMessage": "Has creado el grupo: {groupName}",
-  
-    "notificationJoinedGroupTitle": "Bienvenido al grupo",
-    "notificationJoinedGroupMessage": "Te has unido al grupo: {groupName}",
-  
-    "notificationInvitationTitle": "Invitación al grupo",
-    "notificationInvitationMessage": "Has sido invitado a unirte al grupo: {groupName}",
-  
-    "notificationInvitationDeniedTitle": "Invitación rechazada",
-    "notificationInvitationDeniedMessage": "{userName} rechazó la invitación para unirse a {groupName}",
-  
-    "notificationUserAcceptedTitle": "Usuario se ha unido",
-    "notificationUserAcceptedMessage": "{userName} ha aceptado la invitación para unirse a {groupName}",
-  
-    "notificationGroupEditedTitle": "Grupo actualizado",
-    "notificationGroupEditedMessage": "Has actualizado el grupo: {groupName}",
-  
-    "notificationGroupDeletedTitle": "Grupo eliminado",
-    "notificationGroupDeletedMessage": "Has eliminado el grupo: {groupName}",
-  
-    "notificationUserRemovedTitle": "Usuario eliminado",
-    "notificationUserRemovedMessage": "Has sido eliminado del grupo {groupName} por {adminName}",
-  
-    "notificationAdminUserRemovedTitle": "Usuario eliminado",
-    "notificationAdminUserRemovedMessage": "{userName} fue eliminado del grupo {groupName}",
-  
-    "notificationUserLeftTitle": "Usuario salió del grupo",
-    "notificationUserLeftMessage": "{userName} ha salido del grupo: {groupName}",
-  
-    "notificationGroupUpdateTitle": "Grupo actualizado",
-    "notificationGroupUpdateMessage": "{editorName} actualizó el grupo: {groupName}",
-  
-    "notificationGroupDeletedAllTitle": "Grupo eliminado",
-    "notificationGroupDeletedAllMessage": "El grupo \"{groupName}\" ha sido eliminado por el propietario.",
-
-    "viewDetails": "Ver detalles",
-    "editEvent": "Editar Evento"
-
+    }
   }
-  
+}

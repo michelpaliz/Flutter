@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
-
 import 'package:calendar_app_frontend/a-models/group_model/event_appointment/appointment/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/group_model/event_appointment/appointment/legacy_recurrence_rule.dart';
-
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/frequency_selector.dart';
-import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/repeat_every_row.dart';
-import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/weekly_day_selector.dart';
-import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/until_date_picker.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/repetition_rule_helper.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/repeat_every_row.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/until_date_picker.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/weekly_day_selector.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class RepetitionDialog extends StatefulWidget {
   final DateTime selectedStartDate;
@@ -38,6 +37,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
   late DateTime _selectedEndDate;
   bool isRepeated = false;
   String? validationError;
+  String? warningMessage;
 
   @override
   void initState() {
@@ -45,6 +45,10 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     _selectedStartDate = widget.selectedStartDate;
     _selectedEndDate = widget.selectedEndDate;
     _fillVariablesFromInitialRecurrenceRule(widget.initialRecurrenceRule);
+
+    // ✅ Trigger warning check after the first frame
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _updateWarningMessage());
   }
 
   void _fillVariablesFromInitialRecurrenceRule(LegacyRecurrenceRule? rule) {
@@ -69,8 +73,29 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
     Navigator.of(context).pop([recurrenceRule, isRepeated]);
   }
 
+  void _updateWarningMessage() {
+    final eventDay = CustomDayOfWeek.getPattern(
+      DateFormat('EEEE', 'en_US').format(_selectedStartDate),
+    );
+    final requiredDay = CustomDayOfWeek.fromString(eventDay);
+
+    setState(() {
+      if (selectedFrequency == 'Weekly' &&
+          !selectedDays.contains(requiredDay)) {
+        warningMessage =
+            AppLocalizations.of(context)!.eventDayNotIncludedWarning(
+          DateFormat('EEEE').format(_selectedStartDate),
+        );
+      } else {
+        warningMessage = null;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // _updateWarningMessage(); // ensure it's always synced
+
     return AlertDialog(
       title: Center(
         child: Text(
@@ -82,19 +107,24 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 1. FREQUENCY SELECTOR
             RepeatFrequencySelector(
               selectedFrequency: selectedFrequency,
               onSelectFrequency: (frequency) {
                 setState(() {
                   selectedFrequency = frequency;
+
+                  if (frequency == 'Weekly') {
+                    final eventDay = CustomDayOfWeek.getPattern(
+                      DateFormat('EEEE', 'en_US').format(_selectedStartDate),
+                    );
+                    final requiredDay = CustomDayOfWeek.fromString(eventDay);
+                    selectedDays.add(requiredDay);
+                  }
+                  _updateWarningMessage();
                 });
               },
             ),
-
             const SizedBox(height: 12),
-
-            /// 2. REPEAT EVERY ROW
             RepeatEveryRow(
               selectedFrequency: selectedFrequency,
               repeatInterval: repeatInterval ?? 1,
@@ -108,10 +138,7 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 }
               },
             ),
-
             const SizedBox(height: 12),
-
-            /// 3. WEEKLY DAY SELECTOR
             if (selectedFrequency == 'Weekly')
               WeeklyDaySelector(
                 selectedDays: selectedDays,
@@ -122,13 +149,11 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                     } else {
                       selectedDays.remove(day);
                     }
+                    _updateWarningMessage();
                   });
                 },
               ),
-
             const SizedBox(height: 12),
-
-            /// 4. UNTIL DATE PICKER
             UntilDatePicker(
               isForever: isForever,
               untilDate: untilDate,
@@ -144,14 +169,24 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
                 });
               },
             ),
-
-            /// 5. VALIDATION ERROR
             if (validationError != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10),
                 child: Text(
                   validationError!,
                   style: const TextStyle(color: Colors.red, fontSize: 14),
+                ),
+              ),
+            if (warningMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  warningMessage!,
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
           ],
@@ -179,13 +214,15 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
               selectedMonth: selectedMonth,
             );
 
-            if (result.error != null) {
-              setState(() {
-                validationError = result.error;
-              });
-            } else {
-              _goBackToParentView(result.rule, true);
-            }
+            _updateWarningMessage();
+
+            setState(() {
+              validationError = result.error;
+
+              if (result.error == null && warningMessage == null) {
+                _goBackToParentView(result.rule, true);
+              }
+            });
           },
           child: Text(AppLocalizations.of(context)!.confirm),
         ),

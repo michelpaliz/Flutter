@@ -2,7 +2,6 @@ import 'package:calendar_app_frontend/a-models/group_model/event_appointment/app
 import 'package:calendar_app_frontend/a-models/group_model/event_appointment/appointment/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class RepetitionResult {
   final LegacyRecurrenceRule? rule;
@@ -25,7 +24,7 @@ RepetitionResult validateAndCreateRecurrenceRule({
 }) {
   final localizations = AppLocalizations.of(context)!;
 
-  if (repeatInterval == 0) {
+  if (repeatInterval == null || repeatInterval == 0) {
     return RepetitionResult(error: localizations.specifyRepeatInterval);
   }
 
@@ -33,65 +32,33 @@ RepetitionResult validateAndCreateRecurrenceRule({
     return RepetitionResult(error: localizations.untilDate);
   }
 
-  switch (frequency) {
-    case 'Weekly':
-      if (selectedDays.isEmpty) {
-        return RepetitionResult(error: localizations.selectOneDayAtLeast);
-      }
-
-      final eventDayAbbreviation = CustomDayOfWeek.getPattern(
-        DateFormat('EEEE', 'en_US').format(selectedStartDate),
-      );
-
-      final requiredDay = CustomDayOfWeek.fromString(eventDayAbbreviation);
-      if (!selectedDays.contains(requiredDay)) {
-        return RepetitionResult(
-          error: localizations.errorSelectedDays(
-            localizations.untilDateSelected(
-              DateFormat('EEEE').format(selectedStartDate),
-            ),
-          ),
-        );
-      }
-      break;
-    default:
-      break;
+  if (frequency == 'Weekly' && selectedDays.isEmpty) {
+    return RepetitionResult(error: localizations.selectOneDayAtLeast);
   }
 
-  // Create recurrence rule
-  LegacyRecurrenceRule rule;
-  switch (frequency) {
-    case 'Daily':
-      rule = LegacyRecurrenceRule.daily(
+  final rule = switch (frequency) {
+    'Daily' => LegacyRecurrenceRule.daily(
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
-      );
-      break;
-    case 'Weekly':
-      rule = LegacyRecurrenceRule.weekly(
+      ),
+    'Weekly' => LegacyRecurrenceRule.weekly(
         selectedDays.toList(),
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
-      );
-      break;
-    case 'Monthly':
-      rule = LegacyRecurrenceRule.monthly(
+      ),
+    'Monthly' => LegacyRecurrenceRule.monthly(
         dayOfMonth: dayOfMonth,
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
-      );
-      break;
-    case 'Yearly':
-      rule = LegacyRecurrenceRule.yearly(
+      ),
+    'Yearly' => LegacyRecurrenceRule.yearly(
         month: selectedMonth,
         dayOfMonth: dayOfMonth,
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
-      );
-      break;
-    default:
-      rule = LegacyRecurrenceRule.daily();
-  }
+      ),
+    _ => LegacyRecurrenceRule.daily(), // default fallback
+  };
 
   return RepetitionResult(rule: rule);
 }

@@ -56,12 +56,6 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              // child: EventForm(
-              //   logic: this,
-              //   onSubmit: () =>
-              //       saveEditedEvent(context.read<EventDataManager>()),
-              //   isEditing: true,
-              // ),
               child: EventForm(
                 logic: this,
                 onSubmit: () =>

@@ -1375,6 +1375,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Event'**
   String get editEvent;
+
+  /// Shown as a warning when a user selects weekly recurrence days that do not include the event's start day
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: The event starts on {day}, but this day is not selected in the recurrence pattern.'**
+  String eventDayNotIncludedWarning(String day);
 }
 
 class _AppLocalizationsDelegate
