@@ -166,38 +166,6 @@ class Event {
   factory Event.fromJson(Map<String, dynamic> json) => Event.fromMap(json);
   Map<String, dynamic> toJson() => toMap();
 
-  /// Returns a version of the event that prepares recurrenceRule for backend.
-  /// - Sends only the ID if valid
-  /// - Sends full object if new (no MongoDB ID)
-  // Map<String, dynamic> toBackendJson() {
-  //   final recurrenceRuleJson = recurrenceRule == null
-  //       ? null
-  //       : (RegExp(r'^[a-f0-9]{24}$').hasMatch(recurrenceRule!.id)
-  //           ? recurrenceRule!.id // ✅ Only send the ID
-  //           : null); // ❌ Don't send full object — send null or handle separately
-
-  //   return {
-  //     'id': id,
-  //     'startDate': startDate.toUtc().toIso8601String(),
-  //     'endDate': endDate.toUtc().toIso8601String(),
-  //     'title': title,
-  //     'groupId': groupId,
-  //     'calendarId': calendarId,
-  //     'recurrenceRule': recurrenceRuleJson,
-  //     'localization': localization,
-  //     'note': note,
-  //     'description': description,
-  //     'eventColorIndex': eventColorIndex,
-  //     'allDay': allDay,
-  //     'reminderTime': reminderTime,
-  //     'isDone': isDone,
-  //     'completedAt': completedAt?.toUtc().toIso8601String(),
-  //     'recipients': recipients,
-  //     'ownerId': ownerId,
-  //     'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
-  //   };
-  // }
-
   Map<String, dynamic> toBackendJson() {
     final recurrenceRuleJson = recurrenceRule == null
         ? null
