@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
+import 'package:calendar_app_frontend/a-models/group_model/event/event_group_resolver.dart';
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 class GroupManagement extends ChangeNotifier {
   final GroupService groupService = GroupService();
   final UserService userService = UserService();
+  final GroupEventResolver groupEventResolver;
 
   StreamController<List<Group>>? _groupController;
   StreamController<List<Group>> get groupController =>
@@ -48,12 +50,20 @@ class GroupManagement extends ChangeNotifier {
 
   bool _groupsInitialized = false; // Flag for initialization
 
-  GroupManagement({required User? user}) {
-    _groupController =
-        StreamController<List<Group>>.broadcast(); // Initialize here
-    if (user != null) {
-      setCurrentUser(user);
-    }
+  // GroupManagement({required User? user}) {
+  //   _groupController =
+  //       StreamController<List<Group>>.broadcast(); // Initialize here
+  //   if (user != null) {
+  //     setCurrentUser(user);
+  //   }
+  // }
+  
+  GroupManagement({
+    required this.groupEventResolver,
+    required User? user,
+  }){
+    _groupController = StreamController<List<Group>>.broadcast();
+    if (user != null) setCurrentUser(user);
   }
 
   List<Group> get groups => _lastFetchedGroups;

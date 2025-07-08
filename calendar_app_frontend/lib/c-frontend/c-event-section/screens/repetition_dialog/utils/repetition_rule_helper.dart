@@ -1,5 +1,5 @@
 import 'package:calendar_app_frontend/a-models/group_model/event_appointment/appointment/custom_day_week.dart';
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/appointment/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -40,24 +40,32 @@ RepetitionResult validateAndCreateRecurrenceRule({
     'Daily' => LegacyRecurrenceRule.daily(
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
+        startDate: selectedStartDate, // ← added
       ),
     'Weekly' => LegacyRecurrenceRule.weekly(
         selectedDays.toList(),
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
+        startDate: selectedStartDate, // ← added
       ),
     'Monthly' => LegacyRecurrenceRule.monthly(
         dayOfMonth: dayOfMonth,
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
+        startDate: selectedStartDate, // ← added
       ),
     'Yearly' => LegacyRecurrenceRule.yearly(
         month: selectedMonth,
         dayOfMonth: dayOfMonth,
         repeatInterval: repeatInterval,
         untilDate: isForever ? null : untilDate,
+        startDate: selectedStartDate, // ← added
       ),
-    _ => LegacyRecurrenceRule.daily(), // default fallback
+    _ => LegacyRecurrenceRule.daily(
+        repeatInterval: repeatInterval,
+        untilDate: isForever ? null : untilDate,
+        startDate: selectedStartDate, // ← added
+      ),
   };
 
   return RepetitionResult(rule: rule);

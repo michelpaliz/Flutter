@@ -10,6 +10,8 @@ class GroupEventResolver {
   final RecurrenceRuleService _ruleService = RecurrenceRuleService();
 
   final Map<String, List<Event>> _cache = {}; //  ← same cache
+  
+  RecurrenceRuleService  get ruleService => _ruleService;
 
   Future<List<Event>> getEventsForGroup(Group group) async {
     // 1. return from cache if we already have it

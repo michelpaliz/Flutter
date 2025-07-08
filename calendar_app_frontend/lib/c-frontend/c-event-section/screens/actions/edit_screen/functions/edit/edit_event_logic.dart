@@ -128,6 +128,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
       await eventDataManager.manualRefresh();
     }
 
+    if (!mounted) return;
     Navigator.of(context).pop(true);
   }
 

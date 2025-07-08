@@ -41,7 +41,14 @@ void main() {
             notificationManagement: NotificationManagement(),
           ),
         ),
-        ChangeNotifierProvider(create: (_) => GroupManagement(user: null)),
+
+        // 2️⃣ Then inject that resolver into GroupManagement:
+        ChangeNotifierProvider(
+          create: (ctx) => GroupManagement(
+            groupEventResolver: ctx.read<GroupEventResolver>(),
+            user: null, // or your initial user
+          ),
+        ),
 
         // 3. Notifications, theming, locale
         ChangeNotifierProvider(create: (_) => NotificationManagement()),

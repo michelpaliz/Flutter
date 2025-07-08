@@ -8,7 +8,7 @@ import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/crea
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/edit-group/edit_group_data.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-settings/group_settings.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/0-parent/main_calendar_view.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_main_view/main_calendar_view.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/show-groups/show_groups.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';

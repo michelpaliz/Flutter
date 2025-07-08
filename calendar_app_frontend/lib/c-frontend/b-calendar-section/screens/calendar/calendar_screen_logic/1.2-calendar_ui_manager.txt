@@ -1,0 +1,243 @@
+import 'package:calendar_app_frontend/a-models/group_model/event_appointment/event/event.dart';
+import 'package:calendar_app_frontend/a-models/group_model/event_appointment/event/event_data_source.dart';
+import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
+import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
+import 'package:calendar_app_frontend/c-frontend/b-group-section/screens/group_calendar-view/2-appointment/2.1-appointment_builder.dart';
+import 'package:calendar_app_frontend/c-frontend/b-group-section/screens/group_calendar-view/3-event/ui/b-event_display_manager.dart';
+import 'package:calendar_app_frontend/d-stateManagement/event_data_manager.dart';
+import 'package:calendar_app_frontend/d-stateManagement/group_management.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+class CalendarUIManager {
+  final CalendarController _controller = CalendarController();
+  final List<Event> events;
+  final EventDisplayManager _eventDisplayManager;
+  final EventDataManager _eventDataManager;
+  final String userRole;
+
+  late CalendarAppointmentBuild _calendarAppointmentBuilder;
+  CalendarView _selectedView = CalendarView.month;
+  DateTime? _selectedDate;
+
+  CalendarUIManager({
+    required this.events,
+    required Group group,
+    required EventService eventService,
+    required EventDisplayManager eventDisplayManager,
+    required this.userRole,
+    required GroupManagement groupManagement,
+  })  : _eventDisplayManager = eventDisplayManager,
+        _eventDataManager = EventDataManager(
+          events,
+          group: group,
+          eventService: eventService,
+          groupManagement: groupManagement,
+        ) {
+    _calendarAppointmentBuilder = CalendarAppointmentBuild(
+      _eventDataManager,
+      _eventDisplayManager,
+    );
+  }
+
+  Widget buildCalendar(BuildContext context, double height, double width) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+    // final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
+    final backgroundColor =
+        (isDarkMode ? Colors.grey[900] : Colors.white) ?? Colors.white;
+
+    double appointmentItemHeight = height * 0.12;
+    double monthHeaderHeight = height * 0.08;
+    double agendaItemHeight = height * 0.1;
+    double fontSize = width * 0.035;
+
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: backgroundColor.withOpacity(0.8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SfCalendar(
+        allowedViews: const [
+          CalendarView.month,
+          CalendarView.schedule,
+          CalendarView.day,
+          CalendarView.week,
+          CalendarView.timelineDay,
+          CalendarView.timelineWeek,
+          CalendarView.timelineMonth,
+        ],
+        controller: _controller,
+        onViewChanged: (ViewChangedDetails viewChangedDetails) {
+          Future.delayed(Duration.zero, () {
+            _selectedView = _controller.view!;
+          });
+        },
+        showNavigationArrow: true,
+        firstDayOfWeek: DateTime.monday,
+        initialSelectedDate: DateTime.now(),
+        view: _selectedView,
+        showDatePickerButton: true,
+        headerStyle: CalendarHeaderStyle(
+          textAlign: TextAlign.center,
+          backgroundColor: Colors.transparent,
+          textStyle: GoogleFonts.poppins(
+            fontSize: fontSize * 1.2,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+        onSelectionChanged: (CalendarSelectionDetails details) {
+          if (details.date != null) {
+            _selectedDate = details.date!;
+            _controller.selectedDate = _selectedDate;
+            _eventDataManager.getEventsForDate(details.date!);
+          }
+        },
+        scheduleViewSettings: ScheduleViewSettings(
+          appointmentItemHeight: appointmentItemHeight,
+          monthHeaderSettings: MonthHeaderSettings(
+            monthFormat: 'MMMM yyyy',
+            height: monthHeaderHeight,
+            textAlign: TextAlign.left,
+            backgroundColor: backgroundColor,
+            monthTextStyle: GoogleFonts.poppins(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+        ),
+        viewHeaderStyle: ViewHeaderStyle(
+          backgroundColor: isDarkMode ? Colors.grey[850] : Colors.grey[100],
+          dateTextStyle: GoogleFonts.poppins(
+            fontSize: fontSize,
+            color: textColor,
+          ),
+          dayTextStyle: GoogleFonts.poppins(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+        monthCellBuilder: (context, details) =>
+            _buildMonthCell(context, details, isDarkMode),
+        monthViewSettings: MonthViewSettings(
+          showAgenda: true,
+          agendaItemHeight: agendaItemHeight,
+          dayFormat: 'EEE',
+          appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
+          appointmentDisplayCount: 4,
+          showTrailingAndLeadingDates: false,
+          navigationDirection: MonthNavigationDirection.vertical,
+        ),
+        appointmentBuilder: (context, details) {
+          dynamic appointment = details.appointments.first;
+
+          return _calendarAppointmentBuilder
+              .defaultBuildAppointment(
+                details,
+                textColor,
+                context,
+                _selectedView.toString(),
+                userRole,
+              )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .scale();
+        },
+        dataSource: EventDataSource(events),
+      ),
+    ).animate().fadeIn(duration: 500.ms);
+  }
+
+  bool _isSelected(DateTime date) {
+    if (_selectedDate == null) return false;
+    return date.year == _selectedDate!.year &&
+        date.month == _selectedDate!.month &&
+        date.day == _selectedDate!.day;
+  }
+
+  Widget _buildMonthCell(
+      BuildContext context, MonthCellDetails details, bool isDarkMode) {
+    final eventsForDay = events
+        .where((event) =>
+            event.startDate.year == details.date.year &&
+            event.startDate.month == details.date.month &&
+            event.startDate.day == details.date.day)
+        .toList();
+
+    final cellColor = _isSelected(details.date)
+        ? (isDarkMode ? Colors.blue[700] : Colors.blue[300])
+        : Colors.transparent;
+
+    return Container(
+      margin: EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: cellColor!.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: _isSelected(details.date)
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            details.date.day.toString(),
+            style: GoogleFonts.poppins(
+              color: isDarkMode ? Colors.white : Colors.black87,
+              fontWeight:
+                  _isSelected(details.date) ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+          if (eventsForDay.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 4,
+                children: List.generate(
+                  eventsForDay.length.clamp(0, 3),
+                  (index) => Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.purpleAccent,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purpleAccent.withOpacity(0.4),
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ).animate().scale(duration: 200.ms, curve: Curves.easeInOut);
+  }
+}
