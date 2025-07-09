@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/event/event_data_source.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/appointment-widgets/appointment_builder.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/calendar-view/calendarUI_manager/calendar_ui_controller/ui/build/calendar_ui_build.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/event-view/ui/event_list_ui/calendar_views_ui/event_display_manager/event_display_manager.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/event_display_manager/event_display_manager.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';

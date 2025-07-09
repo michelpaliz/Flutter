@@ -43,8 +43,6 @@ class ScheduleCardView extends StatelessWidget {
         ? '${loc.formatDate(startLocal)} (All Day)'
         : '$formattedStartDate  /  $formattedEndDate';
 
-    final recurrenceText =
-        event.recurrenceRule != null ? event.recurrenceDescription : null;
     final canAdmin = canEdit(userRole);
 
     return Card(
@@ -70,16 +68,14 @@ class ScheduleCardView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    event.title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      decoration:
-                          event.isDone ? TextDecoration.lineThrough : null,
-                      color: textColor,
-                    )
-                  ),
+                  Text(event.title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        decoration:
+                            event.isDone ? TextDecoration.lineThrough : null,
+                        color: textColor,
+                      )),
                   if (event.description?.isNotEmpty ?? false)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
@@ -90,17 +86,6 @@ class ScheduleCardView extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           color: textColor.withOpacity(0.7),
-                        ),
-                      ),
-                    ),
-                  if (recurrenceText != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '🔁 $recurrenceText',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: textColor.withOpacity(0.6),
                         ),
                       ),
                     ),

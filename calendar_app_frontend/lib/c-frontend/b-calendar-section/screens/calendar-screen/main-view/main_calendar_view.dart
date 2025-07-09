@@ -2,10 +2,12 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/main-view/add_event_button.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/calendar-view/calendarUI_manager/calendar_ui_controller/ui/logic/calendar_ui_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/event-view/actions/event_actions_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/event-view/ui/event_list_ui/calendar_views_ui/event_display_manager/event_display_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/event-view/ui/event_list_ui/calendar_views_ui/widgets/event_content_builder.dart';
+
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/actions/event_actions_manager.dart';
+
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/widgets/event_content_builder.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar-screen/app_screen_manager.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/event_display_manager/event_display_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/functions/addEvent/add_event_logic.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_manager.dart';

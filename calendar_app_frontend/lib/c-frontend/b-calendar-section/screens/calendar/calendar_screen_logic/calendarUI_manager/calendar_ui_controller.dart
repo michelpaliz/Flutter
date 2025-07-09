@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/event/event_data_source.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_mont_cell.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/month_schedule_img/calendar_styles.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/event_display_manager/event_display_manager.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
@@ -158,6 +159,9 @@ class CalendarUIController {
                 );
               }
             },
+            scheduleViewMonthHeaderBuilder: (context, details) =>
+                buildScheduleMonthHeader(details),
+
             monthCellBuilder: (context, details) => buildMonthCell(
                 context: context,
                 details: details,
