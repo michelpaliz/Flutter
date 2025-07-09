@@ -45,7 +45,7 @@ class CalendarUIController {
       _eventDisplayManager,
     );
 
-    _eventDataSource = EventDataSource([]);
+    // _eventDataSource = EventDataSource([]);
 
     _eventDataManager.eventsStream.listen((updatedEvents) {
       debugPrint(

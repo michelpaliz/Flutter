@@ -2,7 +2,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/recurrence_rule_utils.dart';
+import 'package:calendar_app_frontend/a-models/group_model/event_appointment/utils_recurrence_rule/recurrence_rule_utils.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 

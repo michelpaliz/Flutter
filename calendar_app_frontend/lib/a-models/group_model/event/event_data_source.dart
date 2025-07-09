@@ -27,25 +27,46 @@ class EventDataSource extends CalendarDataSource {
 
   @override
   String? getLocation(int index) => _events[index].localization;
+  @override
+  Object? getId(int index) => _events[index].id;
+  @override
+  Object? getRecurrenceId(int index) => _events[index].recurrenceRule?.id;
 
   @override
   String? getRecurrenceRule(int index) {
-    final rule = _events[index].recurrenceRule?.toString();
-    if (rule == null) return null;
+    final rule = _events[index].recurrenceRule;
 
-    // Extract only the RRULE part
-    final match = RegExp(r'RRULE:(.*)').firstMatch(rule);
+    debugPrint('🧪 recurrenceRule runtimeType: ${rule.runtimeType}');
+    debugPrint('🧪 recurrenceRule content: $rule');
+
+    final stringValue = rule?.toString();
+    final match = RegExp(r'RRULE:(.*)').firstMatch(stringValue ?? '');
     final cleanedRule = match?.group(1);
 
     if (cleanedRule == null) {
-      debugPrint('⚠️ Recurrence rule malformed: $rule');
+      debugPrint('⚠️ Malformed recurrence rule string: $stringValue');
       return null;
     }
 
-    debugPrint(
-        '📅 Cleaned recurrence rule for "${_events[index].title}": $cleanedRule');
     return cleanedRule;
   }
+
+  // @override
+  // String? getRecurrenceRule(int index) {
+  //   final event = _events[index];
+  //   final rule = event.recurrenceRule;
+
+  //   if (rule == null) {
+  //     debugPrint('⚠️ No recurrence rule for "${event.title}"');
+  //     return null;
+  //   }
+
+  //   final rrule = rule.toRRuleString(event.startDate, includeDtStart: false);
+  //   final cleaned = rrule.replaceFirst('RRULE:', '');
+
+  //   debugPrint('📅 Final clean RRULE for "${event.title}": $cleaned');
+  //   return cleaned;
+  // }
 
   @override
   Color getColor(int index) {

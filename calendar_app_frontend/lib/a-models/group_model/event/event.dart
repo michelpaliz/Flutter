@@ -1,6 +1,6 @@
 import 'package:calendar_app_frontend/a-models/group_model/event/event_utils.dart'
     as utils;
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/appointment/custom_day_week.dart';
+import 'package:calendar_app_frontend/a-models/group_model/event_appointment/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/updateInfo.dart';
 
@@ -182,11 +182,9 @@ class Event {
   Map<String, dynamic> toBackendJson() {
     final recurrenceRuleJson = recurrenceRule == null
         ? null
-        : (
-            RegExp(r'^[a-f0-9]{24}$').hasMatch(recurrenceRule!.id)
-                ? recurrenceRule!.id
-                : utils.mapRule(recurrenceRule),
-          ); // ✅ FIX: send full object if no ID
+        : RegExp(r'^[a-f0-9]{24}$').hasMatch(recurrenceRule!.id)
+            ? recurrenceRule!.id
+            : utils.mapRule(recurrenceRule);
 
     return {
       'id': id,
