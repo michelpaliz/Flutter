@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/event/event_data_source.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_mont_cell.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/month_schedule_img/calendar_styles.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/widgets/cells_widgets/calendar_mont_cell.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/widgets/month_schedule_img/calendar_styles.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/event_display_manager/event_display_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_manager.dart';
@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import 'calendar_styles.dart';
+import 'widgets/cells_widgets/calendar_styles.dart';
 
 class CalendarUIController {
   final CalendarController _controller = CalendarController();
@@ -55,23 +55,8 @@ class CalendarUIController {
       _eventDisplayManager,
     );
 
-    // _eventDataSource = EventDataSource(_eventDataManager.baseEvents);
-    // _eventDataSource = EventDataSource(allEvents.value);
+
     _eventDataSource = EventDataSource([]); // start empty
-
-    // _eventDataManager.eventsStream.listen((updatedEvents) {
-    //   debugPrint(
-    //     "[CalendarUI] Received ${updatedEvents.length} events from stream",
-    //   );
-    //   _eventDataSource.updateEvents(updatedEvents);
-
-    //   // 👇 Update allEvents for month cell UI
-    //   allEvents.value = List<Event>.from(updatedEvents);
-
-    //   if (_selectedDate != null) {
-    //     dailyEvents.value = _eventDataManager.getEventsForDate(_selectedDate!);
-    //   }
-    // });
 
     _eventDataManager.eventsStream.listen((updatedEvents) {
       debugPrint(

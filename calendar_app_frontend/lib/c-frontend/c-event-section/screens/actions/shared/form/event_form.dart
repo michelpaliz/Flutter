@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';

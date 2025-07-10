@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:http/http.dart' as http;
 

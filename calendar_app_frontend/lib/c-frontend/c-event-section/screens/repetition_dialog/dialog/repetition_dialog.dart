@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/utils_recurrence_rule/custom_day_week.dart';
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/frequency_selector.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/repetition_rule_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/repeat_every_row.dart';

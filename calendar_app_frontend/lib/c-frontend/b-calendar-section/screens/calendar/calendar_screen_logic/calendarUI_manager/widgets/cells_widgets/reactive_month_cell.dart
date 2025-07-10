@@ -1,5 +1,5 @@
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_mont_cell.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/widgets/cells_widgets/calendar_mont_cell.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

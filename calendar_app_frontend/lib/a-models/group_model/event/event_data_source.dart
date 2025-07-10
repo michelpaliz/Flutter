@@ -31,41 +31,48 @@ class EventDataSource extends CalendarDataSource {
   Object? getId(int index) => _events[index].id;
   @override
   Object? getRecurrenceId(int index) => _events[index].recurrenceRule?.id;
+  // @override
+  // String? getRecurrenceRule(int index) {
+  //   final rule = _events[index].recurrenceRule;
+  //   if (rule == null) return null;
+  //   return rule.forSyncfusion(_events[index].startDate);
+  // }
 
   @override
   String? getRecurrenceRule(int index) {
-    final rule = _events[index].recurrenceRule;
+    final rule = _events[index].recurrenceRule?.toString();
+    if (rule == null) return null;
 
-    debugPrint('🧪 recurrenceRule runtimeType: ${rule.runtimeType}');
-    debugPrint('🧪 recurrenceRule content: $rule');
-
-    final stringValue = rule?.toString();
-    final match = RegExp(r'RRULE:(.*)').firstMatch(stringValue ?? '');
+    // Extract only the RRULE part
+    final match = RegExp(r'RRULE:(.*)').firstMatch(rule);
     final cleanedRule = match?.group(1);
 
     if (cleanedRule == null) {
-      debugPrint('⚠️ Malformed recurrence rule string: $stringValue');
+      debugPrint('⚠️ Recurrence rule malformed: $rule');
       return null;
     }
 
+    debugPrint(
+        '📅 Cleaned recurrence rule for "${_events[index].title}": $cleanedRule');
     return cleanedRule;
   }
 
   // @override
   // String? getRecurrenceRule(int index) {
   //   final event = _events[index];
-  //   final rule = event.recurrenceRule;
+  //   final rule = event.recurrenceRule?.toRRuleString(
+  //     event.startDate,
+  //     includeDtStart: false,
+  //   );
 
-  //   if (rule == null) {
-  //     debugPrint('⚠️ No recurrence rule for "${event.title}"');
+  //   if (rule == null || rule.isEmpty) {
+  //     debugPrint('⚠️ No valid recurrence rule for "${event.title}"');
   //     return null;
   //   }
 
-  //   final rrule = rule.toRRuleString(event.startDate, includeDtStart: false);
-  //   final cleaned = rrule.replaceFirst('RRULE:', '');
-
-  //   debugPrint('📅 Final clean RRULE for "${event.title}": $cleaned');
-  //   return cleaned;
+  //   // Do NOT prepend "RRULE:" again
+  //   debugPrint('📅 Clean RRULE for "${event.title}": $rule');
+  //   return rule;
   // }
 
   @override

@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
