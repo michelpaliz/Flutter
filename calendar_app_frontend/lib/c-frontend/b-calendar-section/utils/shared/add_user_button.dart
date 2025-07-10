@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/create-group/search-bar/controllers/create_group_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/create-group/search-bar/widgets/create_group_search_bar.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/create-group/search-bar/controllers/create_group_controller.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/create-group/search-bar/widgets/create_group_search_bar.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:flutter/material.dart';

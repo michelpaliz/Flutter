@@ -1,5 +1,5 @@
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/show-groups/show_groups.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/show-groups/show_groups.dart';
 import 'package:calendar_app_frontend/e-drawer-style-menu/my_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // ✅ Required for Provider access
