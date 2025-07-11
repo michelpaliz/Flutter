@@ -133,12 +133,10 @@ abstract class EditEventLogic<T extends StatefulWidget>
   }
 
   // No-op in edit mode
-  Future<void> addEvent(
-    BuildContext context,
-    VoidCallback onSuccess,
-    VoidCallback onError,
-    VoidCallback onRepetitionError,
-  ) async {}
+  @override
+  Future<bool> addEvent(BuildContext context) async {
+    return false; // or throw UnimplementedError() if you want to enforce that
+  }
 
   @override
   bool get isRepetitive => recurrenceRule != null;

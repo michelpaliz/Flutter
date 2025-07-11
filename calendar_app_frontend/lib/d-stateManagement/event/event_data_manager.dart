@@ -101,7 +101,7 @@ class EventDataManager {
   }
 
   Future<Event> updateEvent(Event event) async {
-    await _eventService.updateEvent(event.id, event.toBackendJson());
+    await _eventService.updateEvent(event);
     final fresh = await _eventService.getEventById(event.id);
     _baseEvents = _deduplicate(
       _baseEvents.map((e) => e.id == fresh.id ? fresh : e).toList(),
@@ -110,9 +110,28 @@ class EventDataManager {
     return fresh;
   }
 
+  // Future<void> deleteEvent(String id) async {
+  //   // Strip “-timestamp” suffix if present
+  //   final mongoId = id.contains('-') ? id.split('-').first : id;
+
+  //   await _eventService.deleteEvent(mongoId);
+  //   _baseEvents.removeWhere((e) => e.id == id || e.id == mongoId);
+  //   _notifyChanges();
+  // }
+
   Future<void> deleteEvent(String id) async {
-    await _eventService.deleteEvent(id);
-    _baseEvents.removeWhere((e) => e.id == id);
+    final mongoId = id.contains('-') ? id.split('-').first : id;
+
+    await _eventService.deleteEvent(mongoId);
+
+    _baseEvents.removeWhere(
+      (e) =>
+          e.id == id ||
+          e.id == mongoId ||
+          e.rawRuleId == mongoId || // ✅ covers expanded recurrences
+          e.rawRuleId == id,
+    );
+
     _notifyChanges();
   }
 

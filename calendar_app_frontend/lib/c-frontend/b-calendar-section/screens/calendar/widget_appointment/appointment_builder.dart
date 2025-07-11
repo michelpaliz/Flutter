@@ -95,34 +95,23 @@ class CalendarAppointmentBuild {
     String selectedView,
     String userRole,
   ) {
-    final appointment = details
-        .appointments.first; //important here fetches the real appointment's id for the repetitive events
+    final appointment = details.appointments.first;
 
-    // Try extracting the fallback ID (original ID for recurring instances)
-    final fallbackId = appointment is Event ? appointment.rawRuleId : null;
+    // If appointment is already an Event instance, render it directly
+    if (appointment is Event) {
+      return _eventDisplayManager.buildEventDetails(
+        appointment,
+        context,
+        textColor,
+        appointment,
+        userRole,
+      );
+    }
 
-    return FutureBuilder<Event?>(
-      future: _eventManager.fetchEvent(appointment.id, fallbackId: fallbackId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator.adaptive();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (snapshot.data != null) {
-          return _eventDisplayManager.buildEventDetails(
-            snapshot.data!,
-            context,
-            textColor,
-            appointment,
-            userRole,
-          );
-        } else {
-          return Text(
-            'No events found for this date',
-            style: TextStyle(fontSize: 16, color: textColor),
-          );
-        }
-      },
+    // Fallback if it's not an Event (unlikely case)
+    return Text(
+      'Unknown appointment type',
+      style: TextStyle(fontSize: 16, color: textColor),
     );
   }
 }

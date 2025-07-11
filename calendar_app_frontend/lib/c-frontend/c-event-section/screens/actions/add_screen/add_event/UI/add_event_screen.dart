@@ -1,7 +1,7 @@
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/shared/form/event_form.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../../a-models/group_model/group/group.dart';
@@ -44,6 +44,14 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
   Future<void> _initializeLogic() async {
     try {
       await initializeLogic(widget.group, context);
+    } catch (e, s) {
+      // Log & surface the problem instead of freezing on spinner
+      debugPrint('AddEventScreen init failed: $e\n$s');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not load data, try again.')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -68,7 +76,7 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
               child: EventForm(
                 logic: this,
                 dialogs: this,
-                onSubmit: () {}, // not used in add flow
+                onSubmit: () async {}, // not used in add flow
                 isEditing: false,
               ),
             ),

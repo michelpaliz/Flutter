@@ -73,21 +73,15 @@ abstract class AddEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
-  Future<void> addEvent(
-    BuildContext context,
-    VoidCallback onSuccess,
-    VoidCallback onError,
-    VoidCallback onRepetitionError,
-  ) async {
+  Future<bool> addEvent(BuildContext context) async {
     devtools.log("🚀 [addEvent] called");
 
-    if (!validateTitle(context, titleController)) return;
+    if (!validateTitle(context, titleController)) return false;
 
     if (!validateRecurrence(
       recurrenceRule: recurrenceRule,
       selectedStartDate: selectedStartDate,
-      onRepetitionError: onRepetitionError,
-    )) return;
+    )) return false;
 
     final newEvent = buildNewEvent(
       id: Utilities.generateRandomId(10),
@@ -106,16 +100,19 @@ abstract class AddEventLogic<T extends StatefulWidget>
 
     try {
       final createdEvent = await _eventDataManager.createEvent(newEvent);
+
       await hydrateRecurrenceRuleIfNeeded(
         groupManagement: groupManagement,
         rawRuleId: createdEvent.rawRuleId,
       );
+
       await _postCreationActions(createdEvent);
-      onSuccess();
-      devtools.log("🎉 [addEvent] onSuccess triggered");
+
+      devtools.log("🎉 [addEvent] Success");
+      return true;
     } catch (e, stack) {
       devtools.log('💥 [addEvent] Exception: $e\n$stack');
-      onError();
+      return false;
     } finally {
       devtools.log("🏁 [addEvent] Finished execution");
     }

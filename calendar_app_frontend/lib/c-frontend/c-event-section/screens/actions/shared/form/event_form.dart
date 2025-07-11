@@ -1,4 +1,5 @@
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
@@ -26,16 +27,21 @@ abstract class EventDialogs {
   });
 }
 
+/// ─────────────────────────────────────────────────────────────────────────────
+///  EventForm
+/// ─────────────────────────────────────────────────────────────────────────────
 class EventForm extends StatefulWidget {
+  /// 🔹 CHANGE:  make `onSubmit` await-able
+  final Future<void> Function() onSubmit;
+
   final BaseEventLogic logic;
-  final VoidCallback onSubmit;
   final bool isEditing;
   final EventDialogs? dialogs;
 
   const EventForm({
     Key? key,
     required this.logic,
-    required this.onSubmit,
+    required this.onSubmit, // ← now Future<void>
     this.dialogs,
     this.isEditing = false,
   }) : super(key: key);
@@ -57,7 +63,6 @@ class _EventFormState extends State<EventForm> {
 
   Future<void> _handleDateSelection(bool isStart) async {
     await widget.logic.selectDate(context, isStart);
-
     setState(() {
       startDate = widget.logic.selectedStartDate;
       endDate = widget.logic.selectedEndDate;
@@ -71,6 +76,7 @@ class _EventFormState extends State<EventForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── input widgets (unchanged) ───────────────────────────────────────
         ColorPickerWidget(
           selectedEventColor: widget.logic.selectedEventColor == null
               ? null
@@ -85,7 +91,6 @@ class _EventFormState extends State<EventForm> {
         TitleInputWidget(titleController: widget.logic.titleController),
         const SizedBox(height: 10),
 
-        // ✅ Updated: dynamic & rebuilds after selection
         DatePickersWidget(
           startDate: startDate,
           endDate: endDate,
@@ -95,55 +100,33 @@ class _EventFormState extends State<EventForm> {
         const SizedBox(height: 10),
 
         LocationInputWidget(
-          locationController: widget.logic.locationController,
-        ),
+            locationController: widget.logic.locationController),
         const SizedBox(height: 10),
 
         DescriptionInputWidget(
-          descriptionController: widget.logic.descriptionController,
-        ),
+            descriptionController: widget.logic.descriptionController),
         const SizedBox(height: 10),
 
         NoteInputWidget(noteController: widget.logic.noteController),
         const SizedBox(height: 10),
 
-        // RepetitionToggleWidget(
-        //   isRepetitive: widget.logic.isRepetitive,
-        //   toggleWidth: widget.logic.toggleWidth,
-        //   onTap: () async {
-        //     if (!widget.isEditing && widget.dialogs != null) {
-        //       final result = await showDialog(
-        //         context: context,
-        //         builder: (context) =>
-        //             widget.dialogs!.buildRepetitionDialog(context),
-        //       );
-        //       if (result != null && result.isNotEmpty) {
-        //         widget.logic.toggleRepetition(result[1], result[0]);
-        //       }
-        //     }
-        //   },
-        // ),
+        // repetition toggle (unchanged) …
         RepetitionToggleWidget(
           isRepetitive: widget.logic.isRepetitive,
           toggleWidth: widget.logic.toggleWidth,
           onTap: () async {
-            // Allow tapping even in edit mode, if a dialog is supplied
-            if (widget.dialogs != null) {
-              final result = await widget.dialogs!.showRepetitionDialog(
-                context,
-                selectedStartDate: widget.logic.selectedStartDate,
-                selectedEndDate: widget.logic.selectedEndDate,
-                initialRule: widget.logic.recurrenceRule,
-              );
-              if (result != null && result.isNotEmpty) {
-                // widget.logic.toggleRepetition(result[1], result[0]);
-                if (result.first is LegacyRecurrenceRule) {
-                  widget.logic.toggleRepetition(
-                      true, result.first as LegacyRecurrenceRule);
-                }
-              }
-            } else {
-              debugPrint("⚠️ Repetition dialog not available in this context.");
+            if (widget.dialogs == null) return;
+            final result = await widget.dialogs!.showRepetitionDialog(
+              context,
+              selectedStartDate: widget.logic.selectedStartDate,
+              selectedEndDate: widget.logic.selectedEndDate,
+              initialRule: widget.logic.recurrenceRule,
+            );
+            if (result != null &&
+                result.isNotEmpty &&
+                result.first is LegacyRecurrenceRule) {
+              widget.logic
+                  .toggleRepetition(true, result.first as LegacyRecurrenceRule);
             }
           },
         ),
@@ -157,27 +140,29 @@ class _EventFormState extends State<EventForm> {
         ),
         const SizedBox(height: 25),
 
+        /// ── SUBMIT BUTTON ──────────────────────────────────────────────────
         Center(
           child: ElevatedButton(
-            onPressed: () async {
-              if (widget.isEditing) {
-                widget.onSubmit();
-              } else {
-                await (widget.logic as dynamic).addEvent(
-                  context,
-                  () => Navigator.pop(context, true),
-                  () => widget.dialogs?.showErrorDialog(context),
-                  () => widget.dialogs?.showRepetitionDialog(
+              child: Text(widget.isEditing ? loc.save : loc.addEvent),
+              onPressed: () async {
+                if (widget.isEditing) {
+                  await withLoadingDialog(context, widget.onSubmit,
+                      message: 'Saving changes...');
+                  Navigator.pop(context, true);
+                } else {
+                  final ok = await withLoadingDialog(
                     context,
-                    selectedStartDate: widget.logic.selectedStartDate,
-                    selectedEndDate: widget.logic.selectedEndDate,
-                    initialRule: widget.logic.recurrenceRule,
-                  ),
-                );
-              }
-            },
-            child: Text(widget.isEditing ? loc.save : loc.addEvent),
-          ),
+                    () => widget.logic.addEvent(context), // clean, simple call
+                    message: 'Creating event...',
+                  );
+
+                  if (ok == true) {
+                    Navigator.pop(context, true);
+                  } else {
+                    widget.dialogs?.showErrorDialog(context);
+                  }
+                }
+              }),
         ),
       ],
     );

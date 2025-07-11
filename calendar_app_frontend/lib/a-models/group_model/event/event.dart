@@ -1,7 +1,7 @@
 import 'package:calendar_app_frontend/a-models/group_model/event/event_utils.dart'
     as utils;
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/updateInfo.dart';
 
 /// A simple mutable Event model without code generation.
@@ -127,51 +127,51 @@ class Event {
 
   /// Deserializes from a Map.
   factory Event.fromMap(Map<String, dynamic> map) {
-    // 1️⃣ Pull out whatever’s in the JSON under 'recurrenceRule'
-    final raw = map['recurrenceRule'];
-
-    LegacyRecurrenceRule? rule;
-    if (raw != null) {
-      if (raw is Map<String, dynamic>) {
-        // Already the right shape
-        rule = LegacyRecurrenceRule.fromJson(raw);
-      } else if (raw is Map) {
-        // Could be Map<dynamic, dynamic> under the hood
-        final safe = raw.cast<String, dynamic>();
-        rule = LegacyRecurrenceRule.fromJson(safe);
-      } else {
-        // e.g. someone sent just the rule-ID as a String
-        // you can handle that case here if you want
-        rule = null;
-      }
-    }
-
-    return Event(
-      id: map['id'] as String,
-      startDate: DateTime.parse(map['startDate'] as String),
-      endDate: DateTime.parse(map['endDate'] as String),
-      title: map['title'] as String,
-      groupId: map['groupId'] as String?,
-      calendarId: map['calendarId'] as String?,
-      recurrenceRule: rule,
-      rawRuleId: map['rawRuleId'] as String?,
-      localization: map['localization'] as String?,
-      note: map['note'] as String?,
-      description: map['description'] as String?,
-      eventColorIndex: map['eventColorIndex'] as int,
-      allDay: map['allDay'] as bool,
-      reminderTime: map['reminderTime'] as int?,
-      isDone: map['isDone'] as bool,
-      completedAt: map['completedAt'] != null
-          ? DateTime.parse(map['completedAt'] as String)
-          : null,
-      recipients: List<String>.from(map['recipients'] as List<dynamic>),
-      ownerId: map['ownerId'] as String,
-      updateHistory: (map['updateHistory'] as List<dynamic>)
-          .map((e) => UpdateInfo.fromMap(e as Map<String, dynamic>))
-          .toList(),
-    );
+  final rawId = map['id'] ?? map['_id'];
+  if (rawId == null) {
+    throw Exception("❌ Missing 'id' and '_id' in map: $map");
   }
+
+  final raw = map['recurrenceRule'];
+  LegacyRecurrenceRule? rule;
+  if (raw != null) {
+    if (raw is Map<String, dynamic>) {
+      rule = LegacyRecurrenceRule.fromJson(raw);
+    } else if (raw is Map) {
+      rule = LegacyRecurrenceRule.fromJson(raw.cast<String, dynamic>());
+    } else {
+      rule = null;
+    }
+  }
+
+  return Event(
+    id: rawId.toString(),
+    startDate: DateTime.parse(map['startDate'] as String),
+    endDate: DateTime.parse(map['endDate'] as String),
+    title: map['title'] as String? ?? '',
+    groupId: map['groupId'] as String?,
+    calendarId: map['calendarId'] as String?,
+    recurrenceRule: rule,
+    rawRuleId: map['rawRuleId'] as String?,
+    localization: map['localization'] as String?,
+    note: map['note'] as String?,
+    description: map['description'] as String?,
+    eventColorIndex: map['eventColorIndex'] as int? ?? 0,
+    allDay: map['allDay'] as bool? ?? false,
+    reminderTime: map['reminderTime'] as int?,
+    isDone: map['isDone'] as bool? ?? false,
+    completedAt: map['completedAt'] != null
+        ? DateTime.parse(map['completedAt'] as String)
+        : null,
+    recipients: List<String>.from(map['recipients'] ?? []),
+    ownerId: map['ownerId'] as String? ?? '',
+    updateHistory: (map['updateHistory'] as List?)
+            ?.map((e) => UpdateInfo.fromMap(e as Map<String, dynamic>))
+            .toList() ??
+        [],
+  );
+}
+
 
   String? get rule => recurrenceRule?.toRRuleString(startDate);
 
@@ -187,7 +187,6 @@ class Event {
             : utils.mapRule(recurrenceRule);
 
     return {
-      'id': id,
       'startDate': startDate.toUtc().toIso8601String(),
       'endDate': endDate.toUtc().toIso8601String(),
       'title': title,

@@ -72,12 +72,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
-  Future<void> addEvent(
-    BuildContext context,
-    VoidCallback onSuccess,
-    VoidCallback onError,
-    VoidCallback onRepetitionError,
-  ) async {
+  Future<bool> addEvent(BuildContext context) async {
     final title = titleController.text.trim();
     final location = locationController.text.replaceAll(RegExp(r'[┤├]'), '');
 
@@ -85,7 +80,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a title for the event.')),
       );
-      return;
+      return false;
     }
 
     final newEvent = Event(
@@ -94,7 +89,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       endDate: selectedEndDate,
       title: title,
       groupId: _group.id,
-      calendarId: _group.calendar.id, // ✅ this fixes the 401
+      calendarId: _group.calendar.id,
       recurrenceRule: recurrenceRule,
       localization: location,
       allDay: false,
@@ -111,24 +106,20 @@ abstract class AddEventLogic<T extends StatefulWidget>
       user.events.add(createdEvent.id);
       await userManagement.updateUser(user);
 
-      fetchedUpdatedGroup = await groupManagement.groupService.getGroupById(
-        _group.id,
-      );
+      fetchedUpdatedGroup =
+          await groupManagement.groupService.getGroupById(_group.id);
       if (fetchedUpdatedGroup == null) {
         devtools.log("Failed to fetch updated group.");
-        onError();
-        return;
+        return false;
       }
 
       groupManagement.currentGroup = fetchedUpdatedGroup!;
-      groupManagement.currentGroup = fetchedUpdatedGroup!;
-      await _eventDataManager.manualRefresh(); // ✅ Use the actual source
-
+      await _eventDataManager.manualRefresh();
       clearFormFields();
-      onSuccess();
+      return true;
     } catch (e) {
       devtools.log('Error creating event: $e');
-      onError();
+      return false;
     }
   }
 

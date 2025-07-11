@@ -122,4 +122,7 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
     _noteController.dispose();
     _locationController.dispose();
   }
+
+  /// Intended to be implemented by subclasses like AddEventLogic
+  Future<bool> addEvent(BuildContext context);
 }

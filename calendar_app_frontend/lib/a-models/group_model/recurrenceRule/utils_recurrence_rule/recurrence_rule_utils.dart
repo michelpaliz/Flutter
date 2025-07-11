@@ -1,6 +1,6 @@
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_of_week_extensions.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:flutter/material.dart';
 
 /// Converts a LegacyRecurrenceRule into a plain map.
@@ -29,19 +29,50 @@ Map<String, dynamic> legacyRuleToMap(LegacyRecurrenceRule rule) {
 }
 
 /// Reconstructs a LegacyRecurrenceRule from the serialized map.
+// LegacyRecurrenceRule legacyRuleFromMap(Map<String, dynamic> map) {
+//   try {
+//     final RecurrenceType recurrenceType = mapStringToRecurrenceType(
+//       map['recurrenceType'] ?? map['name'],
+//     );
+//     final daysOfWeek = map['daysOfWeek'] != null
+//         ? (map['daysOfWeek'] as List)
+//             .map((d) => CustomDayOfWeek.fromString(d.toString()))
+//             .toList()
+//         : null;
+
+//     return LegacyRecurrenceRule(
+//       id: map['id'] as String?,
+//       name: map['name'] as String? ?? '',
+//       recurrenceType: recurrenceType,
+//       daysOfWeek: daysOfWeek,
+//       dayOfMonth: map['dayOfMonth'] as int?,
+//       month: map['month'] as int?,
+//       repeatInterval: map['repeatInterval'] as int?,
+//       untilDate: map['untilDate'] != null
+//           ? DateTime.tryParse(map['untilDate'] as String)
+//           : null,
+//     );
+//   } catch (e) {
+//     debugPrint("❌ Failed to parse LegacyRecurrenceRule: $e");
+//     rethrow;
+//   }
+// }
+
 LegacyRecurrenceRule legacyRuleFromMap(Map<String, dynamic> map) {
   try {
     final RecurrenceType recurrenceType = mapStringToRecurrenceType(
       map['recurrenceType'] ?? map['name'],
     );
-    final daysOfWeek = map['daysOfWeek'] != null
-        ? (map['daysOfWeek'] as List)
-            .map((d) => CustomDayOfWeek.fromString(d.toString()))
-            .toList()
-        : null;
+
+    final daysOfWeek = (map['daysOfWeek'] as List?)
+        ?.map((d) => CustomDayOfWeek.fromString(d.toString()))
+        .toList();
+
+    // 👇 handle either "id" or "_id"
+    final ruleId = map['id'] ?? map['_id'];
 
     return LegacyRecurrenceRule(
-      id: map['id'] as String?,
+      id: ruleId as String?, // <–––– here
       name: map['name'] as String? ?? '',
       recurrenceType: recurrenceType,
       daysOfWeek: daysOfWeek,
@@ -52,8 +83,9 @@ LegacyRecurrenceRule legacyRuleFromMap(Map<String, dynamic> map) {
           ? DateTime.tryParse(map['untilDate'] as String)
           : null,
     );
-  } catch (e) {
-    debugPrint("❌ Failed to parse LegacyRecurrenceRule: $e");
+  } catch (e, st) {
+    debugPrint('❌ Failed to parse LegacyRecurrenceRule: $e');
+    debugPrintStack(stackTrace: st);
     rethrow;
   }
 }

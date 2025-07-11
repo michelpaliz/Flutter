@@ -77,9 +77,18 @@ class EventActionManager {
 
   // Show the removal confirmation dialog and handle the removal logic
   Future<bool> removeEvent(Event event, bool confirmed) async {
-    if (confirmed) {
-      await eventDataManager.removeGroupEvents(event: event);
+    if (!confirmed) return false;
+
+    // Get the real Mongo ID
+    final realId = event.rawRuleId ?? event.id.split('-').first;
+
+    try {
+      await eventDataManager.deleteEvent(realId);
+      return true;
+    } catch (e) {
+      debugPrint('❌ Delete failed: $e');
+      // You could show a snackbar here
+      return false;
     }
-    return confirmed;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:calendar_app_frontend/b-backend/api/event/string_utils.dart';
 import 'package:calendar_app_frontend/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -69,55 +70,95 @@ class EventService {
   }
 
   Future<Event> getEventById(String eventId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/$eventId'),
-      headers: await _authHeaders(),
-    );
+    // final url = '$baseUrl/$eventId';
+    final url = '$baseUrl/${baseId(eventId)}'; // ✅ strip suffix
 
-    if (response.statusCode == 200) {
-      return Event.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to fetch event');
+    final headers = await _authHeaders();
+
+    debugPrint("📡 GET $url");
+    debugPrint("🔐 Headers: $headers");
+
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    debugPrint("📥 Status Code: ${response.statusCode}");
+    debugPrint("📥 Response Body: ${response.body}");
+
+    try {
+      final decoded = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        debugPrint("✅ Decoded Event JSON: $decoded");
+        return Event.fromJson(decoded);
+      } else {
+        throw Exception(
+            '❌ Failed to fetch event – code: ${response.statusCode}, body: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint("❌ JSON parsing error or invalid event format: $e");
+      rethrow;
     }
   }
 
-  Future<Event> updateEvent(
-      String eventId, Map<String, dynamic> rawEventData) async {
-    final event = await _ensureRuleId(Event.fromJson(rawEventData));
+  // Future<Event> updateEvent(
+  //     String eventId, Map<String, dynamic> rawEventData) async {
+  //   final event = await _ensureRuleId(Event.fromJson(rawEventData));
+  //   final headers = await _authHeaders();
+  //   final payload = jsonEncode(event.toBackendJson());
+
+  //   debugPrint('📤 Sending payload: $payload');
+
+  //   final response = await http.put(
+  //     Uri.parse('$baseUrl/$eventId'),
+  //     headers: headers,
+  //     body: payload,
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     return Event.fromJson(jsonDecode(response.body));
+  //   } else {
+  //     debugPrint('❌ Server responded: ${response.statusCode}');
+  //     debugPrint('🧾 Body: ${response.body}');
+  //     throw Exception('Failed to update event');
+  //   }
+  // }
+
+  Future<Event> updateEvent(Event ev) async {
+    final ready = await _ensureRuleId(ev);
     final headers = await _authHeaders();
-    final payload = jsonEncode(event.toBackendJson());
+    final payload = jsonEncode(ready.toBackendJson());
 
-    debugPrint('📤 Sending payload: $payload');
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/$eventId'),
+    final res = await http.put(
+      // Uri.parse('$baseUrl/${ready.id.split('-').first}'),
+      Uri.parse('$baseUrl/${baseId(ready.id)}'),
       headers: headers,
       body: payload,
     );
 
-    if (response.statusCode == 200) {
-      return Event.fromJson(jsonDecode(response.body));
-    } else {
-      debugPrint('❌ Server responded: ${response.statusCode}');
-      debugPrint('🧾 Body: ${response.body}');
-      throw Exception('Failed to update event');
+    if (res.statusCode != 200) {
+      throw Exception('Failed to update event: ${res.body}');
     }
+    return Event.fromJson(jsonDecode(res.body));
   }
 
   Future<void> deleteEvent(String eventId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/$eventId'),
+      // Uri.parse('$baseUrl/$eventId'),
+      Uri.parse('$baseUrl/${baseId(eventId)}'),
+
       headers: await _authHeaders(),
     );
 
     if (response.statusCode != 200) {
+      debugPrint('❌ Delete failed with status: ${response.statusCode}');
+      debugPrint('❌ Response body: ${response.body}');
       throw Exception('Failed to delete event');
     }
   }
 
   Future<Event> markEventAsDone(String eventId, {required bool isDone}) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/$eventId'),
+      // Uri.parse('$baseUrl/$eventId'),
+      Uri.parse('$baseUrl/${baseId(eventId)}'),
+
       headers: await _authHeaders(),
       body: jsonEncode({
         'isDone': isDone,
