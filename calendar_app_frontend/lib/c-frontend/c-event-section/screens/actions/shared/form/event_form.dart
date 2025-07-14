@@ -146,13 +146,18 @@ class _EventFormState extends State<EventForm> {
               child: Text(widget.isEditing ? loc.save : loc.addEvent),
               onPressed: () async {
                 if (widget.isEditing) {
-                  await withLoadingDialog(context, widget.onSubmit,
-                      message: 'Saving changes...');
-                  Navigator.pop(context, true);
+                  await withLoadingDialog(
+                    context,
+                    widget
+                        .onSubmit, // ← already calls `saveEditedEvent`, which does pop()
+                    message: 'Saving changes...',
+                  );
+                  // ❌ REMOVE THIS:
+                  // Navigator.pop(context, true);
                 } else {
                   final ok = await withLoadingDialog(
                     context,
-                    () => widget.logic.addEvent(context), // clean, simple call
+                    () => widget.logic.addEvent(context),
                     message: 'Creating event...',
                   );
 
