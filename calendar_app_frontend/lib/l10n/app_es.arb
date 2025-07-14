@@ -169,7 +169,7 @@
       }
     }
   },
-  "weeklyRepetitionInf": "Este evento se repetirá cada {concurrenceWeeks} semana(s) en {customDaysOfWeekString}, y {lastDay}",
+  "weeklyRepetitionInf": "Este evento se repetirá cada {concurrenceWeeks} semana(s) el {customDaysOfWeekString}, y {lastDay}",
   "@weeklyRepetitionInf": {
     "description": "Concurrence for the event",
     "placeholders": {

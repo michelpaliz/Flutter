@@ -164,7 +164,7 @@ class RepeatEveryRow extends StatelessWidget {
             NumberSelector(
               key: Key(selectedFrequency),
               value: repeatInterval,
-              minValue: 0,
+              minValue: 1,
               maxValue: _getMaxRepeatValue(selectedFrequency),
               onChanged: (int? value) {
                 if (value != null) {

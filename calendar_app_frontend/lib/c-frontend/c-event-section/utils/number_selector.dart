@@ -70,13 +70,13 @@ class _NumberSelectorState extends State<NumberSelector> {
         IconButton(
           icon: Icon(Icons.remove),
           iconSize: 14,
-          onPressed: () {
-            final newValue = (widget.value ?? 0) - 1;
-            if (newValue >= widget.minValue) {
-              _controller.text = newValue.toString();
-              widget.onChanged(newValue);
-            }
-          },
+          onPressed: (widget.value ?? 0) > widget.minValue
+              ? () {
+                  final newValue = (widget.value ?? 0) - 1;
+                  _controller.text = newValue.toString();
+                  widget.onChanged(newValue);
+                }
+              : null,
         ),
         SizedBox(
           width: 30, // Adjust the width as needed
