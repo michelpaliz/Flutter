@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/frequency_selector.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/repetition_rule_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/widgets/repeat_every_row.dart';
@@ -94,8 +94,6 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // _updateWarningMessage(); // ensure it's always synced
-
     return AlertDialog(
       title: Center(
         child: Text(
@@ -193,38 +191,87 @@ class _RepetitionDialogState extends State<RepetitionDialog> {
         ),
       ),
       actions: <Widget>[
-        ElevatedButton(
-          onPressed: () {
-            _goBackToParentView(null, false);
-          },
-          child: Text(AppLocalizations.of(context)!.cancel),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final result = validateAndCreateRecurrenceRule(
-              context: context,
-              frequency: selectedFrequency,
-              repeatInterval: repeatInterval,
-              isForever: isForever,
-              untilDate: untilDate,
-              selectedStartDate: _selectedStartDate,
-              selectedEndDate: _selectedEndDate,
-              selectedDays: selectedDays,
-              dayOfMonth: dayOfMonth,
-              selectedMonth: selectedMonth,
-            );
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              onPressed: () {
+                if (widget.initialRecurrenceRule != null) {
+                  // Show confirmation dialog only if there's an existing recurrence rule
+                  showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(AppLocalizations.of(context)!.confirm),
+                      content: Text(AppLocalizations.of(context)!
+                          .removeRecurrenceConfirm),
+                      actions: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey[600],
+                          ),
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: Text(AppLocalizations.of(context)!.cancel),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: Text(AppLocalizations.of(context)!.remove),
+                        ),
+                      ],
+                    ),
+                  ).then((confirmed) {
+                    if (confirmed == true) {
+                      Navigator.of(context).pop([null, false]);
+                    }
+                  });
+                } else {
+                  // Just close the dialog if there's no existing recurrence rule
+                  _goBackToParentView(null, false);
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+              ),
+              onPressed: () {
+                final result = validateAndCreateRecurrenceRule(
+                  context: context,
+                  frequency: selectedFrequency,
+                  repeatInterval: repeatInterval,
+                  isForever: isForever,
+                  untilDate: untilDate,
+                  selectedStartDate: _selectedStartDate,
+                  selectedEndDate: _selectedEndDate,
+                  selectedDays: selectedDays,
+                  dayOfMonth: dayOfMonth,
+                  selectedMonth: selectedMonth,
+                );
 
-            _updateWarningMessage();
+                _updateWarningMessage();
 
-            setState(() {
-              validationError = result.error;
+                setState(() {
+                  validationError = result.error;
 
-              if (result.error == null && warningMessage == null) {
-                _goBackToParentView(result.rule, true);
-              }
-            });
-          },
-          child: Text(AppLocalizations.of(context)!.confirm),
+                  if (result.error == null && warningMessage == null) {
+                    _goBackToParentView(result.rule, true);
+                  }
+                });
+              },
+              child: Text(AppLocalizations.of(context)!.confirm),
+            ),
+          ],
         ),
       ],
     );

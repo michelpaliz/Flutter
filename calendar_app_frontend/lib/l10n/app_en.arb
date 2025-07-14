@@ -272,7 +272,6 @@
     "groupNameRequired": "Group name cannot be empty",
     "groupEdited": "Group edited successfully!",
     "failedToEditGroup": "Failed to edit the group. Please try again",
-
     "searchPerson": "Search by user name",
     "delete": "Delete",
     "confirmRemovalMessage": "Are you sure you want to delete this group?",
@@ -319,7 +318,7 @@
     "groupNotCreated": "There was an error creating the group, try again",
     "questionDeleteGroup": "Are you sure you want to delete this group?",
     "errorEventCreation": "Error occurred while creating the event, try again later",
-    "eventEditFailed": "Error occurred while editing the event, try again later" ,   
+    "eventEditFailed": "Error occurred while editing the event, try again later",
     "noEventsFoundForDate": "Events not found for this date, try again later.",
     "confirmDelete": "Are you sure you want to remove this event ?",
     "confirmDeleteDescription": "Remove event.",
@@ -329,64 +328,47 @@
     "accepted": "Accepted",
     "pending": "Pending",
     "notAccepted": "NotAccepted",
-    "newUsers":"New",
-    "expired":"Expired",
+    "newUsers": "New",
+    "expired": "Expired",
     "userNotSignedIn": "User is not signed in.",
     "@userNotSignedIn": {
         "description": "Error shown when a user action requires being signed in"
     },
     "createdOn": "Created On",
     "userCount": "User Count",
-
     "timeJustNow": "Just now",
     "timeMinutesAgo": "{minutes} minutes ago",
     "timeHoursAgo": "{hours} hours ago",
     "timeDaysAgo": "{days} days ago",
     "timeLast30Days": "Last 30 days",
-
     "groupRecent": "Recent",
     "groupLast7Days": "Last 7 days",
     "groupLast30Days": "Last 30 days",
     "groupOlder": "Older",
-
-
-
     "notificationGroupCreationTitle": "Congratulations!",
     "notificationGroupCreationMessage": "You created the group: {groupName}",
-  
     "notificationJoinedGroupTitle": "Welcome to the Group",
     "notificationJoinedGroupMessage": "You have joined the group: {groupName}",
-  
     "notificationInvitationTitle": "Group Invitation",
     "notificationInvitationMessage": "You have been invited to join the group: {groupName}",
-  
     "notificationInvitationDeniedTitle": "Invitation Declined",
     "notificationInvitationDeniedMessage": "{userName} declined the invitation to join {groupName}",
-  
     "notificationUserAcceptedTitle": "User Joined",
     "notificationUserAcceptedMessage": "{userName} has accepted the invitation to join {groupName}",
-  
     "notificationGroupEditedTitle": "Group Updated",
     "notificationGroupEditedMessage": "You updated the group: {groupName}",
-  
     "notificationGroupDeletedTitle": "Group Deleted",
     "notificationGroupDeletedMessage": "You have deleted the group: {groupName}",
-  
     "notificationUserRemovedTitle": "User Removed",
     "notificationUserRemovedMessage": "You have been removed from {groupName} by {adminName}",
-  
     "notificationAdminUserRemovedTitle": "User Removed",
     "notificationAdminUserRemovedMessage": "{userName} was removed from {groupName}",
-  
     "notificationUserLeftTitle": "User Left",
     "notificationUserLeftMessage": "{userName} has left the group: {groupName}",
-  
     "notificationGroupUpdateTitle": "Group Updated",
     "notificationGroupUpdateMessage": "{editorName} updated the group: {groupName}",
-  
     "notificationGroupDeletedAllTitle": "Group Deleted",
     "notificationGroupDeletedAllMessage": "The group \"{groupName}\" has been deleted by the owner.",
-
     "viewDetails": "View Details",
     "editEvent": "Edit Event",
     "eventDayNotIncludedWarning": "Warning: The event starts on {day}, but this day is not selected in the recurrence pattern.",
@@ -398,14 +380,7 @@
                 "example": "Monday"
             }
         }
-    }
-
-    
-
-
- 
-
-
-
-    
+    },
+    "removeRecurrence": "Remove Recurrence",
+    "removeRecurrenceConfirm": "Are you sure you want to remove the recurrence rule?"
 }

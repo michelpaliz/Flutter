@@ -1381,6 +1381,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Warning: The event starts on {day}, but this day is not selected in the recurrence pattern.'**
   String eventDayNotIncludedWarning(String day);
+
+  /// No description provided for @removeRecurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Recurrence'**
+  String get removeRecurrence;
+
+  /// No description provided for @removeRecurrenceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove the recurrence rule?'**
+  String get removeRecurrenceConfirm;
 }
 
 class _AppLocalizationsDelegate

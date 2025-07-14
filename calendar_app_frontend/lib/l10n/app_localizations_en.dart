@@ -745,4 +745,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String eventDayNotIncludedWarning(String day) {
     return 'Warning: The event starts on $day, but this day is not selected in the recurrence pattern.';
   }
+
+  @override
+  String get removeRecurrence => 'Remove Recurrence';
+
+  @override
+  String get removeRecurrenceConfirm =>
+      'Are you sure you want to remove the recurrence rule?';
 }

@@ -11,17 +11,39 @@ mixin AddEventDialogs {
     required DateTime selectedEndDate,
     LegacyRecurrenceRule? initialRule,
   }) {
-    return showDialog(
+    return showDialog<List?>(
       context: context,
       builder: (context) => RepetitionDialog(
         selectedStartDate: selectedStartDate,
         selectedEndDate: selectedEndDate,
         initialRecurrenceRule: initialRule,
+        // onRemoveRecurrence: () async {
+        //   final confirmed = await showDialog<bool>(
+        //     context: context,
+        //     builder: (_) => AlertDialog(
+        //       title: Text(AppLocalizations.of(context)!.confirm),
+        //       content: Text(AppLocalizations.of(context)!.removeRecurrenceConfirm),
+        //       actions: [
+        //         TextButton(
+        //           onPressed: () => Navigator.pop(context, false),
+        //           child: Text(AppLocalizations.of(context)!.cancel),
+        //         ),
+        //         ElevatedButton(
+        //           onPressed: () => Navigator.pop(context, true),
+        //           child: Text(AppLocalizations.of(context)!.remove),
+        //         ),
+        //       ],
+        //     ),
+        //   );
+
+        //   if (confirmed == true) {
+        //     Navigator.of(context).pop([null]); // 👈 Return null to signal removal
+        //   }
+        // },
       ),
     );
   }
 
-  /// Displays a simple error dialog for general event creation failure.
   void showErrorDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -40,7 +62,6 @@ mixin AddEventDialogs {
     );
   }
 
-  /// Displays an error dialog when fetching group data fails.
   void showGroupFetchErrorDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -61,7 +82,6 @@ mixin AddEventDialogs {
     );
   }
 
-  /// Optional: Shows a static info-only dialog about repetition (not interactive).
   void showRepetitionInfoDialog(BuildContext context) {
     showDialog(
       context: context,

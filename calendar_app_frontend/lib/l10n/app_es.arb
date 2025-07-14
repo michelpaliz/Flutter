@@ -380,5 +380,7 @@
         "example": "Lunes"
       }
     }
-  }
+  },
+  "removeRecurrence": "Eliminar recurrencia",
+  "removeRecurrenceConfirm": "¿Estás seguro de que deseas eliminar la regla de recurrencia?"
 }

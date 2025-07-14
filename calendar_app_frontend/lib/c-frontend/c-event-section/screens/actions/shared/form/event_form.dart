@@ -116,18 +116,22 @@ class _EventFormState extends State<EventForm> {
           toggleWidth: widget.logic.toggleWidth,
           onTap: () async {
             if (widget.dialogs == null) return;
+
             final result = await widget.dialogs!.showRepetitionDialog(
               context,
               selectedStartDate: widget.logic.selectedStartDate,
               selectedEndDate: widget.logic.selectedEndDate,
               initialRule: widget.logic.recurrenceRule,
             );
-            if (result != null &&
-                result.isNotEmpty &&
-                result.first is LegacyRecurrenceRule) {
-              widget.logic
-                  .toggleRepetition(true, result.first as LegacyRecurrenceRule);
-            }
+
+            if (result == null) return; // User canceled
+
+            final LegacyRecurrenceRule? rule =
+                result[0] as LegacyRecurrenceRule?;
+            final bool isRepeated =
+                result.length > 1 ? result[1] as bool : false;
+
+            widget.logic.toggleRepetition(isRepeated, rule);
           },
         ),
 
@@ -152,8 +156,6 @@ class _EventFormState extends State<EventForm> {
                         .onSubmit, // ← already calls `saveEditedEvent`, which does pop()
                     message: 'Saving changes...',
                   );
-                  // ❌ REMOVE THIS:
-                  // Navigator.pop(context, true);
                 } else {
                   final ok = await withLoadingDialog(
                     context,

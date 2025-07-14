@@ -318,7 +318,7 @@ class AppLocalizationsEs extends AppLocalizations {
       String customDaysOfWeeksString,
       String lastDay,
       Object customDaysOfWeekString) {
-    return 'Este evento se repetirá cada $concurrenceWeeks semana(s) en $customDaysOfWeekString, y $lastDay';
+    return 'Este evento se repetirá cada $concurrenceWeeks semana(s) el $customDaysOfWeekString, y $lastDay';
   }
 
   @override
@@ -752,4 +752,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String eventDayNotIncludedWarning(String day) {
     return 'Advertencia: El evento comienza el $day, pero este día no está seleccionado en el patrón de repetición.';
   }
+
+  @override
+  String get removeRecurrence => 'Eliminar recurrencia';
+
+  @override
+  String get removeRecurrenceConfirm =>
+      '¿Estás seguro de que deseas eliminar la regla de recurrencia?';
 }
