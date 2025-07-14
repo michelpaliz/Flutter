@@ -75,19 +75,23 @@ class EventActionManager {
     );
   }
 
-  // Show the removal confirmation dialog and handle the removal logic
-  Future<bool> removeEvent(Event event, bool confirmed) async {
-    if (!confirmed) return false;
+  /// helper that strips any `-timestamp` suffix you added client-side
+  String baseId(String id) => id.split('-').first;
 
-    // Get the real Mongo ID
-    final realId = event.rawRuleId ?? event.id.split('-').first;
+  Future<bool> removeEvent(Event ev, bool confirmed) async {
+    if (!confirmed) return false; // swipe was cancelled
+
+    final mongoId = baseId(ev.id); // <-- real _id
+    debugPrint('🗑️  [UI] removeEvent for ${ev.id}  →  $mongoId');
 
     try {
-      await eventDataManager.deleteEvent(realId);
+      await eventDataManager.deleteEvent(mongoId);
+      debugPrint('✅  [UI] deleteEvent completed for $mongoId');
       return true;
-    } catch (e) {
-      debugPrint('❌ Delete failed: $e');
-      // You could show a snackbar here
+    } catch (e, st) {
+      debugPrint('❌  [UI] deleteEvent threw: $e');
+      debugPrintStack(stackTrace: st);
+      // TODO: ScaffoldMessenger.of(context).showSnackBar(...)
       return false;
     }
   }

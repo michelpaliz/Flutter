@@ -37,13 +37,19 @@ class EventDetailsCard extends StatelessWidget {
       padding: EdgeInsets.zero, // remove vertical padding entirely
       child: Dismissible(
         key: Key(appointment.id),
-        direction: canAdmin
-            ? DismissDirection.endToStart
-            : DismissDirection.none,
+        direction:
+            canAdmin ? DismissDirection.endToStart : DismissDirection.none,
         background: _buildDeleteBackground(),
         confirmDismiss: (_) async {
           if (!canAdmin || actionManager == null) return false;
-          return await actionManager!.removeEvent(event, true);
+
+          debugPrint('🗑️  [UI] User requested delete for event ${event.id}');
+
+          final ok = await actionManager!.removeEvent(event, /*silent*/ true);
+
+          debugPrint('✅  [UI] removeEvent returned: $ok');
+
+          return ok;
         },
         child: Card(
           margin: const EdgeInsets.symmetric(
@@ -116,9 +122,9 @@ class EventDetailsCard extends StatelessWidget {
   }
 
   Widget _buildDeleteBackground() => Container(
-    color: Colors.red,
-    alignment: Alignment.centerRight,
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: const Icon(Icons.delete, color: Colors.white, size: 20),
-  );
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: const Icon(Icons.delete, color: Colors.white, size: 20),
+      );
 }

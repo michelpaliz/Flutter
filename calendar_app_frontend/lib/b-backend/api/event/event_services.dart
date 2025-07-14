@@ -140,18 +140,25 @@ class EventService {
   }
 
   Future<void> deleteEvent(String eventId) async {
-    final response = await http.delete(
-      // Uri.parse('$baseUrl/$eventId'),
-      Uri.parse('$baseUrl/${baseId(eventId)}'),
+    final id = baseId(eventId); // ensures we strip suffix
+    final url = '$baseUrl/$id';
 
-      headers: await _authHeaders(),
-    );
+    debugPrint('🌐 [API] DELETE → $url');
+
+    final headers = await _authHeaders();
+    debugPrint('🔐 [API] Headers: $headers');
+
+    final response = await http.delete(Uri.parse(url), headers: headers);
+
+    debugPrint('📥 [API] Response Status: ${response.statusCode}');
+    debugPrint('📥 [API] Response Body: ${response.body}');
 
     if (response.statusCode != 200) {
-      debugPrint('❌ Delete failed with status: ${response.statusCode}');
-      debugPrint('❌ Response body: ${response.body}');
+      debugPrint('❌ [API] Delete failed');
       throw Exception('Failed to delete event');
     }
+
+    debugPrint('✅ [API] Event deleted: $id');
   }
 
   Future<Event> markEventAsDone(String eventId, {required bool isDone}) async {
