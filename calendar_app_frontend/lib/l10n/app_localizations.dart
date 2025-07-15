@@ -1393,6 +1393,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to remove the recurrence rule?'**
   String get removeRecurrenceConfirm;
+
+  /// No description provided for @reminderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderLabel;
+
+  /// No description provided for @reminderHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose when to be reminded'**
+  String get reminderHelper;
+
+  /// No description provided for @reminderOptionAtTime.
+  ///
+  /// In en, this message translates to:
+  /// **'At time of event'**
+  String get reminderOptionAtTime;
+
+  /// No description provided for @reminderOption5min.
+  ///
+  /// In en, this message translates to:
+  /// **'5 minutes before'**
+  String get reminderOption5min;
+
+  /// No description provided for @reminderOption10min.
+  ///
+  /// In en, this message translates to:
+  /// **'10 minutes before'**
+  String get reminderOption10min;
+
+  /// No description provided for @reminderOption30min.
+  ///
+  /// In en, this message translates to:
+  /// **'30 minutes before'**
+  String get reminderOption30min;
+
+  /// No description provided for @reminderOption1hour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour before'**
+  String get reminderOption1hour;
+
+  /// No description provided for @reminderOption2hours.
+  ///
+  /// In en, this message translates to:
+  /// **'2 hours before'**
+  String get reminderOption2hours;
+
+  /// No description provided for @reminderOption1day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day before'**
+  String get reminderOption1day;
+
+  /// No description provided for @reminderOption2days.
+  ///
+  /// In en, this message translates to:
+  /// **'2 days before'**
+  String get reminderOption2days;
+
+  /// No description provided for @reminderOption3days.
+  ///
+  /// In en, this message translates to:
+  /// **'3 days before'**
+  String get reminderOption3days;
+
+  /// No description provided for @saveChangesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving changes...'**
+  String get saveChangesMessage;
+
+  /// No description provided for @createEventMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating event...'**
+  String get createEventMessage;
+
+  /// No description provided for @dialogSelectUsersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select users for this event'**
+  String get dialogSelectUsersTitle;
+
+  /// No description provided for @dialogClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get dialogClose;
+
+  /// No description provided for @dialogShowUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show User Selection'**
+  String get dialogShowUsers;
+
+  /// No description provided for @repeatEventLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat Event:'**
+  String get repeatEventLabel;
+
+  /// No description provided for @repeatYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get repeatYes;
+
+  /// No description provided for @repeatNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get repeatNo;
+
+  /// No description provided for @notificationEventReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Reminder'**
+  String get notificationEventReminderTitle;
+
+  /// No description provided for @notificationEventReminderMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder: \"{eventTitle}\" is coming up soon.'**
+  String notificationEventReminderMessage(Object eventTitle);
 }
 
 class _AppLocalizationsDelegate

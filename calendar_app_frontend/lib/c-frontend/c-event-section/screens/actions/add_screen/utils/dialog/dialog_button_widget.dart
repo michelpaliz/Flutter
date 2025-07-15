@@ -1,18 +1,17 @@
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart'; // ⬅️ add
 import 'package:flutter/material.dart';
 
 class DialogButtonWidget extends StatefulWidget {
-  final List<User>
-  selectedUsers; // List of selected users passed as a parameter
-  final List<User> usersAvailable; // List of all available users
-  final void Function(List<User>)
-  onUsersSelected; // Callback to update selected users
+  final List<User> selectedUsers;
+  final List<User> usersAvailable;
+  final void Function(List<User>) onUsersSelected;
 
   const DialogButtonWidget({
     Key? key,
     required this.selectedUsers,
     required this.usersAvailable,
-    required this.onUsersSelected, // Initialize callback
+    required this.onUsersSelected,
   }) : super(key: key);
 
   @override
@@ -25,34 +24,31 @@ class _DialogButtonWidgetState extends State<DialogButtonWidget> {
   @override
   void initState() {
     super.initState();
-    _selectedUsers = List.from(
-      widget.selectedUsers,
-    ); // Initialize with selected users
+    _selectedUsers = List.from(widget.selectedUsers);
   }
 
-  // Method to show the user selection dialog
   void _showUserSelectionDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ⬅️
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Select users for this event'),
-              content: Container(
-                width: 300, // Set a fixed width for the dialog
-                height: 150, // Set a fixed height for the dialog
+              title: Text(loc.dialogSelectUsersTitle), // ⬅️
+              content: SizedBox(
+                width: 300,
+                height: 150,
                 child: _buildUserSelection(context, setState),
               ),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    widget.onUsersSelected(
-                      _selectedUsers,
-                    ); // Pass updated users back
+                    widget.onUsersSelected(_selectedUsers);
                   },
-                  child: Text('Close'),
+                  child: Text(loc.dialogClose), // ⬅️
                 ),
               ],
             );
@@ -62,7 +58,6 @@ class _DialogButtonWidgetState extends State<DialogButtonWidget> {
     );
   }
 
-  // Method to build the user selection list
   Widget _buildUserSelection(BuildContext context, StateSetter setState) {
     return ListView.builder(
       itemCount: widget.usersAvailable.length,
@@ -89,10 +84,11 @@ class _DialogButtonWidgetState extends State<DialogButtonWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ⬅️
     return Center(
       child: ElevatedButton(
         onPressed: () => _showUserSelectionDialog(context),
-        child: Text('Show User Selection'),
+        child: Text(loc.dialogShowUsers), // ⬅️
       ),
     );
   }

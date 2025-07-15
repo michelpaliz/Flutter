@@ -754,9 +754,74 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get removeRecurrence => 'Eliminar recurrencia';
+  String get removeRecurrence => 'Remove Recurrence';
 
   @override
   String get removeRecurrenceConfirm =>
-      '¿Estás seguro de que deseas eliminar la regla de recurrencia?';
+      'Are you sure you want to remove the recurrence rule?';
+
+  @override
+  String get reminderLabel => 'Recordatorio';
+
+  @override
+  String get reminderHelper => 'Elige cuándo deseas ser recordado';
+
+  @override
+  String get reminderOptionAtTime => 'A la hora del evento';
+
+  @override
+  String get reminderOption5min => '5 minutos antes';
+
+  @override
+  String get reminderOption10min => '10 minutos antes';
+
+  @override
+  String get reminderOption30min => '30 minutos antes';
+
+  @override
+  String get reminderOption1hour => '1 hora antes';
+
+  @override
+  String get reminderOption2hours => '2 horas antes';
+
+  @override
+  String get reminderOption1day => '1 día antes';
+
+  @override
+  String get reminderOption2days => '2 días antes';
+
+  @override
+  String get reminderOption3days => '3 días antes';
+
+  @override
+  String get saveChangesMessage => 'Guardando cambios...';
+
+  @override
+  String get createEventMessage => 'Creando evento...';
+
+  @override
+  String get dialogSelectUsersTitle => 'Selecciona usuarios para este evento';
+
+  @override
+  String get dialogClose => 'Cerrar';
+
+  @override
+  String get dialogShowUsers => 'Seleccionar usuarios';
+
+  @override
+  String get repeatEventLabel => 'Repetir evento:';
+
+  @override
+  String get repeatYes => 'Sí';
+
+  @override
+  String get repeatNo => 'No';
+
+  @override
+  String get notificationEventReminderTitle => 'Recordatorio de evento';
+
+  @override
+  String notificationEventReminderMessage(Object eventTitle) {
+    return 'Recordatorio: \"$eventTitle\" comienza pronto.';
+  }
 }

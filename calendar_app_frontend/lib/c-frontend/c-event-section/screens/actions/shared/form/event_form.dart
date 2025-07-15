@@ -1,13 +1,14 @@
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/widgets/repetition_toggle_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/description_input_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/location_input_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/note_input_widget.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/repetition_toggle_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/form/title_input_widget.dart';
-import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/utils/repetition_toggle_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,7 @@ class EventForm extends StatefulWidget {
 class _EventFormState extends State<EventForm> {
   late DateTime startDate;
   late DateTime endDate;
+  int? _reminder;
 
   @override
   void initState() {
@@ -97,6 +99,14 @@ class _EventFormState extends State<EventForm> {
           onStartDateTap: () => _handleDateSelection(true),
           onEndDateTap: () => _handleDateSelection(false),
         ),
+
+        const SizedBox(height: 10),
+
+        ReminderTimeDropdownField(
+          initialValue: _reminder,
+          onChanged: (val) => _reminder = val,
+        ),
+
         const SizedBox(height: 10),
 
         LocationInputWidget(
@@ -147,29 +157,29 @@ class _EventFormState extends State<EventForm> {
         /// ── SUBMIT BUTTON ──────────────────────────────────────────────────
         Center(
           child: ElevatedButton(
-              child: Text(widget.isEditing ? loc.save : loc.addEvent),
-              onPressed: () async {
-                if (widget.isEditing) {
-                  await withLoadingDialog(
-                    context,
-                    widget
-                        .onSubmit, // ← already calls `saveEditedEvent`, which does pop()
-                    message: 'Saving changes...',
-                  );
-                } else {
-                  final ok = await withLoadingDialog(
-                    context,
-                    () => widget.logic.addEvent(context),
-                    message: 'Creating event...',
-                  );
+            child: Text(widget.isEditing ? loc.save : loc.addEvent),
+            onPressed: () async {
+              if (widget.isEditing) {
+                await withLoadingDialog(
+                  context,
+                  widget.onSubmit,
+                  message: loc.saveChangesMessage,
+                );
+              } else {
+                final ok = await withLoadingDialog(
+                  context,
+                  () => widget.logic.addEvent(context),
+                  message: loc.createEventMessage,
+                );
 
-                  if (ok == true) {
-                    Navigator.pop(context, true);
-                  } else {
-                    widget.dialogs?.showErrorDialog(context);
-                  }
+                if (ok == true) {
+                  Navigator.pop(context, true);
+                } else {
+                  widget.dialogs?.showErrorDialog(context);
                 }
-              }),
+              }
+            },
+          ),
         ),
       ],
     );

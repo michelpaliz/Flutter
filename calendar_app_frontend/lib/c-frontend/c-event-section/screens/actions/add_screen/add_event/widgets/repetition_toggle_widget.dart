@@ -1,3 +1,4 @@
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class RepetitionToggleWidget extends StatelessWidget {
@@ -14,11 +15,13 @@ class RepetitionToggleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Row(
       children: [
-        const Text(
-          'Repeat Event:',
-          style: TextStyle(fontSize: 16),
+        Text(
+          loc.repeatEventLabel,
+          style: const TextStyle(fontSize: 16),
         ),
         const SizedBox(width: 10),
         InkWell(
@@ -32,7 +35,7 @@ class RepetitionToggleWidget extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              isRepetitive ? 'Yes' : 'No',
+              isRepetitive ? loc.repeatYes : loc.repeatNo,
               style: const TextStyle(color: Colors.white),
             ),
           ),

@@ -381,6 +381,25 @@
       }
     }
   },
-  "removeRecurrence": "Eliminar recurrencia",
-  "removeRecurrenceConfirm": "¿Estás seguro de que deseas eliminar la regla de recurrencia?"
+  "reminderLabel": "Recordatorio",
+  "reminderHelper": "Elige cuándo deseas ser recordado",
+  "reminderOptionAtTime": "A la hora del evento",
+  "reminderOption5min": "5 minutos antes",
+  "reminderOption10min": "10 minutos antes",
+  "reminderOption30min": "30 minutos antes",
+  "reminderOption1hour": "1 hora antes",
+  "reminderOption2hours": "2 horas antes",
+  "reminderOption1day": "1 día antes",
+  "reminderOption2days": "2 días antes",
+  "reminderOption3days": "3 días antes",
+  "saveChangesMessage": "Guardando cambios...",
+  "createEventMessage": "Creando evento...",
+  "dialogSelectUsersTitle": "Selecciona usuarios para este evento",
+  "dialogClose": "Cerrar",
+  "dialogShowUsers": "Seleccionar usuarios",
+  "repeatEventLabel": "Repetir evento:",
+  "repeatYes": "Sí",
+  "repeatNo": "No",
+  "notificationEventReminderTitle": "Recordatorio de evento",
+  "notificationEventReminderMessage": "Recordatorio: \"{eventTitle}\" comienza pronto."
 }

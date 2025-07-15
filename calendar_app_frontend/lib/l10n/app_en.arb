@@ -382,5 +382,26 @@
         }
     },
     "removeRecurrence": "Remove Recurrence",
-    "removeRecurrenceConfirm": "Are you sure you want to remove the recurrence rule?"
+    "removeRecurrenceConfirm": "Are you sure you want to remove the recurrence rule?",
+    "reminderLabel": "Reminder",
+    "reminderHelper": "Choose when to be reminded",
+    "reminderOptionAtTime": "At time of event",
+    "reminderOption5min": "5 minutes before",
+    "reminderOption10min": "10 minutes before",
+    "reminderOption30min": "30 minutes before",
+    "reminderOption1hour": "1 hour before",
+    "reminderOption2hours": "2 hours before",
+    "reminderOption1day": "1 day before",
+    "reminderOption2days": "2 days before",
+    "reminderOption3days": "3 days before",
+    "saveChangesMessage": "Saving changes...",
+    "createEventMessage": "Creating event...",
+    "dialogSelectUsersTitle": "Select users for this event",
+    "dialogClose": "Close",
+    "dialogShowUsers": "Show User Selection",
+    "repeatEventLabel": "Repeat Event:",
+    "repeatYes": "Yes",
+    "repeatNo": "No",
+    "notificationEventReminderTitle": "Event Reminder",
+    "notificationEventReminderMessage": "Reminder: \"{eventTitle}\" is coming up soon."
 }

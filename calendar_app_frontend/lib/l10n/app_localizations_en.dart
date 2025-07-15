@@ -752,4 +752,69 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get removeRecurrenceConfirm =>
       'Are you sure you want to remove the recurrence rule?';
+
+  @override
+  String get reminderLabel => 'Reminder';
+
+  @override
+  String get reminderHelper => 'Choose when to be reminded';
+
+  @override
+  String get reminderOptionAtTime => 'At time of event';
+
+  @override
+  String get reminderOption5min => '5 minutes before';
+
+  @override
+  String get reminderOption10min => '10 minutes before';
+
+  @override
+  String get reminderOption30min => '30 minutes before';
+
+  @override
+  String get reminderOption1hour => '1 hour before';
+
+  @override
+  String get reminderOption2hours => '2 hours before';
+
+  @override
+  String get reminderOption1day => '1 day before';
+
+  @override
+  String get reminderOption2days => '2 days before';
+
+  @override
+  String get reminderOption3days => '3 days before';
+
+  @override
+  String get saveChangesMessage => 'Saving changes...';
+
+  @override
+  String get createEventMessage => 'Creating event...';
+
+  @override
+  String get dialogSelectUsersTitle => 'Select users for this event';
+
+  @override
+  String get dialogClose => 'Close';
+
+  @override
+  String get dialogShowUsers => 'Show User Selection';
+
+  @override
+  String get repeatEventLabel => 'Repeat Event:';
+
+  @override
+  String get repeatYes => 'Yes';
+
+  @override
+  String get repeatNo => 'No';
+
+  @override
+  String get notificationEventReminderTitle => 'Event Reminder';
+
+  @override
+  String notificationEventReminderMessage(Object eventTitle) {
+    return 'Reminder: \"$eventTitle\" is coming up soon.';
+  }
 }

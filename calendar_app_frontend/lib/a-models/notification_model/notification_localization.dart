@@ -28,6 +28,11 @@ extension NotificationLocalization on NotificationUser {
         return loc.notificationGroupUpdateTitle;
       case 'notification.groupDeletedAll.title':
         return loc.notificationGroupDeletedAllTitle;
+
+      // 🔹 NEW case for event reminder
+      case 'notification.event.reminder.title':
+        return loc.notificationEventReminderTitle;
+
       default:
         return fallbackTitle;
     }
@@ -77,6 +82,11 @@ extension NotificationLocalization on NotificationUser {
         );
       case 'notification.groupDeletedAll.message':
         return loc.notificationGroupDeletedAllMessage(args['groupName'] ?? '');
+
+      // 🔹 NEW case for event reminder
+      case 'notification.event.reminder.message':
+        return loc.notificationEventReminderMessage(args['eventTitle'] ?? '');
+
       default:
         return fallbackMessage;
     }
