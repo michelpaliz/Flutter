@@ -22,15 +22,30 @@ class NotificationService {
   }
 
   Future<List<NotificationUser>> getNotificationsForUser(
-    String username,
-  ) async {
-    final response = await http.get(Uri.parse('$baseUrl/user/$username'));
+      String username) async {
+    final url = Uri.parse('$baseUrl/user/$username');
+    print('📡 GET: $url');
+
+    final response = await http.get(url);
+
+    print('📬 Status: ${response.statusCode}');
+    print('📦 Body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonData = jsonDecode(response.body);
-      return jsonData.map((data) => NotificationUser.fromJson(data)).toList();
+      final body = response.body;
+      try {
+        final List<dynamic> jsonData = jsonDecode(body);
+        return jsonData.map((data) => NotificationUser.fromJson(data)).toList();
+      } catch (e) {
+        print('❌ Failed to parse notifications JSON: $e');
+        throw Exception('Invalid response format');
+      }
+    } else if (response.statusCode == 404) {
+      print('ℹ️ No notifications found for user: $username');
+      return []; // Don't throw — just return empty
     } else {
-      throw Exception('Failed to fetch user notifications');
+      throw Exception(
+          'Failed to fetch user notifications: ${response.statusCode}');
     }
   }
 
@@ -60,9 +75,8 @@ class NotificationService {
         );
       }
     } catch (error) {
-      final errorMessage = error is CustomException
-          ? error.message
-          : 'Unknown error';
+      final errorMessage =
+          error is CustomException ? error.message : 'Unknown error';
       final errorDetails = error is CustomException
           ? error.responseBody
           : 'No details available';

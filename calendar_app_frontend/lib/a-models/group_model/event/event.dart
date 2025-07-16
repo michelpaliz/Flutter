@@ -127,51 +127,50 @@ class Event {
 
   /// Deserializes from a Map.
   factory Event.fromMap(Map<String, dynamic> map) {
-  final rawId = map['id'] ?? map['_id'];
-  if (rawId == null) {
-    throw Exception("❌ Missing 'id' and '_id' in map: $map");
-  }
-
-  final raw = map['recurrenceRule'];
-  LegacyRecurrenceRule? rule;
-  if (raw != null) {
-    if (raw is Map<String, dynamic>) {
-      rule = LegacyRecurrenceRule.fromJson(raw);
-    } else if (raw is Map) {
-      rule = LegacyRecurrenceRule.fromJson(raw.cast<String, dynamic>());
-    } else {
-      rule = null;
+    final rawId = map['id'] ?? map['_id'];
+    if (rawId == null) {
+      throw Exception("❌ Missing 'id' and '_id' in map: $map");
     }
+
+    final raw = map['recurrenceRule'];
+    LegacyRecurrenceRule? rule;
+    if (raw != null) {
+      if (raw is Map<String, dynamic>) {
+        rule = LegacyRecurrenceRule.fromJson(raw);
+      } else if (raw is Map) {
+        rule = LegacyRecurrenceRule.fromJson(raw.cast<String, dynamic>());
+      } else {
+        rule = null;
+      }
+    }
+
+    return Event(
+      id: rawId.toString(),
+      startDate: DateTime.parse(map['startDate'] as String),
+      endDate: DateTime.parse(map['endDate'] as String),
+      title: map['title'] as String? ?? '',
+      groupId: map['groupId'] as String?,
+      calendarId: map['calendarId'] as String?,
+      recurrenceRule: rule,
+      rawRuleId: map['rawRuleId'] as String?,
+      localization: map['localization'] as String?,
+      note: map['note'] as String?,
+      description: map['description'] as String?,
+      eventColorIndex: map['eventColorIndex'] as int? ?? 0,
+      allDay: map['allDay'] as bool? ?? false,
+      reminderTime: map['reminderTime'] as int?,
+      isDone: map['isDone'] as bool? ?? false,
+      completedAt: map['completedAt'] != null
+          ? DateTime.parse(map['completedAt'] as String)
+          : null,
+      recipients: List<String>.from(map['recipients'] ?? []),
+      ownerId: map['ownerId'] as String? ?? '',
+      updateHistory: (map['updateHistory'] as List?)
+              ?.map((e) => UpdateInfo.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
   }
-
-  return Event(
-    id: rawId.toString(),
-    startDate: DateTime.parse(map['startDate'] as String),
-    endDate: DateTime.parse(map['endDate'] as String),
-    title: map['title'] as String? ?? '',
-    groupId: map['groupId'] as String?,
-    calendarId: map['calendarId'] as String?,
-    recurrenceRule: rule,
-    rawRuleId: map['rawRuleId'] as String?,
-    localization: map['localization'] as String?,
-    note: map['note'] as String?,
-    description: map['description'] as String?,
-    eventColorIndex: map['eventColorIndex'] as int? ?? 0,
-    allDay: map['allDay'] as bool? ?? false,
-    reminderTime: map['reminderTime'] as int?,
-    isDone: map['isDone'] as bool? ?? false,
-    completedAt: map['completedAt'] != null
-        ? DateTime.parse(map['completedAt'] as String)
-        : null,
-    recipients: List<String>.from(map['recipients'] ?? []),
-    ownerId: map['ownerId'] as String? ?? '',
-    updateHistory: (map['updateHistory'] as List?)
-            ?.map((e) => UpdateInfo.fromMap(e as Map<String, dynamic>))
-            .toList() ??
-        [],
-  );
-}
-
 
   String? get rule => recurrenceRule?.toRRuleString(startDate);
 

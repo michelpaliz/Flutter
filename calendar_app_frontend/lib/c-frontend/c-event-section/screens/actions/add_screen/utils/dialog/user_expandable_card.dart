@@ -1,19 +1,20 @@
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/utils/search_bar/selected_user_widget.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart'; // ✅ Import
 import 'package:flutter/material.dart';
 
-import 'dialog_button_widget.dart'; // Import the DialogButtonWidget here
+import 'dialog_button_widget.dart';
 
 class UserExpandableCard extends StatefulWidget {
   final List<User> usersAvailable;
   final ValueChanged<List<User>> onSelectedUsersChanged;
-  final List<User>? initiallySelected; // ✅ NEW PARAM
+  final List<User>? initiallySelected;
 
   const UserExpandableCard({
     Key? key,
     required this.usersAvailable,
     required this.onSelectedUsersChanged,
-    this.initiallySelected, // ✅ OPTIONAL INITIAL USERS
+    this.initiallySelected,
   }) : super(key: key);
 
   @override
@@ -21,13 +22,13 @@ class UserExpandableCard extends StatefulWidget {
 }
 
 class _UserExpandableCardState extends State<UserExpandableCard> {
-  late List<User> _selectedUsers; // ✅ CHANGED TO LATE
+  late List<User> _selectedUsers;
   bool _isExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedUsers = widget.initiallySelected ?? []; // ✅ INITIALIZE FROM PARAM
+    _selectedUsers = widget.initiallySelected ?? [];
   }
 
   void _toggleExpansion() {
@@ -40,11 +41,13 @@ class _UserExpandableCardState extends State<UserExpandableCard> {
     setState(() {
       _selectedUsers = selectedUsers;
     });
-    widget.onSelectedUsersChanged(selectedUsers); // ✅ NOTIFY PARENT
+    widget.onSelectedUsersChanged(selectedUsers);
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ✅ Localizations
+
     return Card(
       elevation: 5,
       margin: const EdgeInsets.all(10.0),
@@ -54,7 +57,7 @@ class _UserExpandableCardState extends State<UserExpandableCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              title: const Text('Select Users'),
+              title: Text(loc.userExpandableCardTitle), // ✅ Localized
               trailing: Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
               ),
@@ -78,9 +81,9 @@ class _UserExpandableCardState extends State<UserExpandableCard> {
             ),
             _selectedUsers.isNotEmpty
                 ? AnimatedUsersList(users: _selectedUsers)
-                : const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('No users selected.'),
+                : Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(loc.noUsersSelected), // ✅ Already localized
                   ),
           ],
         ),

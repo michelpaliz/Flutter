@@ -18,12 +18,16 @@ import 'package:calendar_app_frontend/d-stateManagement/user/presence_manager.da
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:calendar_app_frontend/l10n/l10n.dart';
+import 'package:calendar_app_frontend/utils/init_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeAppServices();
+
   runApp(
     MultiProvider(
       providers: [

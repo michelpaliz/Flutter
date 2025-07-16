@@ -1519,6 +1519,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminder: \"{eventTitle}\" is coming up soon.'**
   String notificationEventReminderMessage(Object eventTitle);
+
+  /// No description provided for @userDropdownSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Users'**
+  String get userDropdownSelect;
+
+  /// No description provided for @noUsersSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No users selected.'**
+  String get noUsersSelected;
+
+  /// No description provided for @userExpandableCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Users'**
+  String get userExpandableCardTitle;
+
+  /// No description provided for @eventDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Details'**
+  String get eventDetailsTitle;
+
+  /// No description provided for @eventTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get eventTitleHint;
+
+  /// No description provided for @eventStartDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get eventStartDateHint;
+
+  /// No description provided for @eventEndDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get eventEndDateHint;
+
+  /// No description provided for @eventLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Localization'**
+  String get eventLocationHint;
+
+  /// No description provided for @eventDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get eventDescriptionHint;
+
+  /// No description provided for @eventNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get eventNoteHint;
+
+  /// No description provided for @eventRecurrenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurrence Rule'**
+  String get eventRecurrenceHint;
 }
 
 class _AppLocalizationsDelegate

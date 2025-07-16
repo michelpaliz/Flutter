@@ -6,6 +6,7 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/show_recurrence.dart';
+import 'package:calendar_app_frontend/d-stateManagement/event/event_notification_helper.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 
@@ -96,6 +97,7 @@ class EventDataManager {
   Future<Event> createEvent(Event event) async {
     final created = await _eventService.createEvent(event);
     _baseEvents = _deduplicate([..._baseEvents, created]);
+    await syncReminderFor(created); // ← ADD THIS LINE
     _notifyChanges();
     return created;
   }
@@ -106,32 +108,32 @@ class EventDataManager {
     _baseEvents = _deduplicate(
       _baseEvents.map((e) => e.id == fresh.id ? fresh : e).toList(),
     );
+    await syncReminderFor(fresh); // ✅ ADD THIS LINE
     _notifyChanges();
     return fresh;
   }
-
-  // Future<void> deleteEvent(String id) async {
-  //   // Strip “-timestamp” suffix if present
-  //   final mongoId = id.contains('-') ? id.split('-').first : id;
-
-  //   await _eventService.deleteEvent(mongoId);
-  //   _baseEvents.removeWhere((e) => e.id == id || e.id == mongoId);
-  //   _notifyChanges();
-  // }
 
   Future<void> deleteEvent(String id) async {
     final mongoId = id.contains('-') ? id.split('-').first : id;
 
     await _eventService.deleteEvent(mongoId);
 
-    _baseEvents.removeWhere(
-      (e) =>
-          e.id == id ||
-          e.id == mongoId ||
-          e.rawRuleId == mongoId || // ✅ covers expanded recurrences
-          e.rawRuleId == id,
-    );
+    final toRemove = _baseEvents
+        .where(
+          (e) =>
+              e.id == id ||
+              e.id == mongoId ||
+              e.rawRuleId == mongoId ||
+              e.rawRuleId == id,
+        )
+        .toList();
 
+    // Cancel notifications before removing
+    for (final event in toRemove) {
+      await cancelReminderFor(event); // ← ADD THIS LINE
+    }
+
+    _baseEvents.removeWhere((e) => toRemove.contains(e));
     _notifyChanges();
   }
 
@@ -169,7 +171,16 @@ class EventDataManager {
 
   Future<void> _refreshFromBackend() async {
     if (_group.id == Group.createDefaultGroup().id) return;
-    _baseEvents = _deduplicate(await _resolver.getEventsForGroup(_group));
+
+    final fetchedEvents = await _resolver.getEventsForGroup(_group);
+    _baseEvents = _deduplicate(fetchedEvents);
+
+    // 🔔 Optional: Re-sync all notifications
+    final copy = List<Event>.from(_baseEvents);
+    for (final event in copy) {
+      await syncReminderFor(event);
+    }
+
     _notifyChanges();
   }
 

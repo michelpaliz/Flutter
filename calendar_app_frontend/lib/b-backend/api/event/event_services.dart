@@ -134,8 +134,11 @@ class EventService {
     );
 
     if (res.statusCode != 200) {
+      print('🔴 Update failed: ${res.statusCode}');
+      print('📦 Payload sent: $payload');
       throw Exception('Failed to update event: ${res.body}');
     }
+
     return Event.fromJson(jsonDecode(res.body));
   }
 

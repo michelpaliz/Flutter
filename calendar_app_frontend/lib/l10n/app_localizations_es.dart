@@ -824,4 +824,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String notificationEventReminderMessage(Object eventTitle) {
     return 'Recordatorio: \"$eventTitle\" comienza pronto.';
   }
+
+  @override
+  String get userDropdownSelect => 'Seleccionar usuarios';
+
+  @override
+  String get noUsersSelected => 'Ningún usuario seleccionado.';
+
+  @override
+  String get userExpandableCardTitle => 'Seleccionar usuarios';
+
+  @override
+  String get eventDetailsTitle => 'Detalles del evento';
+
+  @override
+  String get eventTitleHint => 'Título';
+
+  @override
+  String get eventStartDateHint => 'Fecha de inicio';
+
+  @override
+  String get eventEndDateHint => 'Fecha de fin';
+
+  @override
+  String get eventLocationHint => 'Ubicación';
+
+  @override
+  String get eventDescriptionHint => 'Descripción';
+
+  @override
+  String get eventNoteHint => 'Nota';
+
+  @override
+  String get eventRecurrenceHint => 'Regla de repetición';
 }

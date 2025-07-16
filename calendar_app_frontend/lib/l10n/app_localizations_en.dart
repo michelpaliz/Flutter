@@ -817,4 +817,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationEventReminderMessage(Object eventTitle) {
     return 'Reminder: \"$eventTitle\" is coming up soon.';
   }
+
+  @override
+  String get userDropdownSelect => 'Select Users';
+
+  @override
+  String get noUsersSelected => 'No users selected.';
+
+  @override
+  String get userExpandableCardTitle => 'Select Users';
+
+  @override
+  String get eventDetailsTitle => 'Event Details';
+
+  @override
+  String get eventTitleHint => 'Title';
+
+  @override
+  String get eventStartDateHint => 'Start Date';
+
+  @override
+  String get eventEndDateHint => 'End Date';
+
+  @override
+  String get eventLocationHint => 'Localization';
+
+  @override
+  String get eventDescriptionHint => 'Description';
+
+  @override
+  String get eventNoteHint => 'Note';
+
+  @override
+  String get eventRecurrenceHint => 'Recurrence Rule';
 }

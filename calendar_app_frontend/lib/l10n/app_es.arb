@@ -401,5 +401,16 @@
   "repeatYes": "Sí",
   "repeatNo": "No",
   "notificationEventReminderTitle": "Recordatorio de evento",
-  "notificationEventReminderMessage": "Recordatorio: \"{eventTitle}\" comienza pronto."
+  "notificationEventReminderMessage": "Recordatorio: \"{eventTitle}\" comienza pronto.",
+  "userDropdownSelect": "Seleccionar usuarios",
+  "noUsersSelected": "Ningún usuario seleccionado.",
+  "userExpandableCardTitle": "Seleccionar usuarios",
+  "eventDetailsTitle": "Detalles del evento",
+  "eventTitleHint": "Título",
+  "eventStartDateHint": "Fecha de inicio",
+  "eventEndDateHint": "Fecha de fin",
+  "eventLocationHint": "Ubicación",
+  "eventDescriptionHint": "Descripción",
+  "eventNoteHint": "Nota",
+  "eventRecurrenceHint": "Regla de repetición"
 }

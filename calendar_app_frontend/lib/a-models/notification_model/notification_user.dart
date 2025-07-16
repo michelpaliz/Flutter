@@ -88,21 +88,30 @@ class NotificationUser {
             : {},
         groupId: json['groupId']?.toString() ?? '',
         isRead: json['isRead'] ?? false,
-        type:
-            json['type'] is int && json['type'] < NotificationType.values.length
-                ? NotificationType.values[json['type']]
-                : NotificationType.message,
-        priority: json['priority'] is int &&
-                json['priority'] < PriorityLevel.values.length
-            ? PriorityLevel.values[json['priority']]
-            : PriorityLevel.medium,
-        category:
-            json['category'] is int && json['category'] < Category.values.length
-                ? Category.values[json['category']]
-                : Category.message,
+
+        // ✅ Robust enum parsing for type
+        type: _parseEnum<NotificationType>(
+          json['type'],
+          NotificationType.values,
+          NotificationType.message,
+        ),
+
+        // ✅ Robust enum parsing for priority
+        priority: _parseEnum<PriorityLevel>(
+          json['priority'],
+          PriorityLevel.values,
+          PriorityLevel.medium,
+        ),
+
+        // ✅ Robust enum parsing for category
+        category: _parseEnum<Category>(
+          json['category'],
+          Category.values,
+          Category.message,
+        ),
       );
     } catch (e) {
-      print('Error parsing NotificationUser from JSON: $e');
+      print('❌ Error parsing NotificationUser from JSON: $e');
       return NotificationUser(
         id: '',
         senderId: '',
@@ -153,4 +162,20 @@ class NotificationUser {
     map.remove('_id');
     return map;
   }
+}
+
+T _parseEnum<T>(dynamic value, List<T> enumValues, T fallback) {
+  if (value is int && value >= 0 && value < enumValues.length) {
+    return enumValues[value];
+  } else if (value is String) {
+    try {
+      return enumValues.firstWhere(
+        (e) => e.toString().split('.').last == value,
+        orElse: () => fallback,
+      );
+    } catch (_) {
+      return fallback;
+    }
+  }
+  return fallback;
 }

@@ -403,5 +403,16 @@
     "repeatYes": "Yes",
     "repeatNo": "No",
     "notificationEventReminderTitle": "Event Reminder",
-    "notificationEventReminderMessage": "Reminder: \"{eventTitle}\" is coming up soon."
+    "notificationEventReminderMessage": "Reminder: \"{eventTitle}\" is coming up soon.",
+    "userDropdownSelect": "Select Users",
+    "noUsersSelected": "No users selected.",
+    "userExpandableCardTitle": "Select Users",
+    "eventDetailsTitle": "Event Details",
+    "eventTitleHint": "Title",
+    "eventStartDateHint": "Start Date",
+    "eventEndDateHint": "End Date",
+    "eventLocationHint": "Localization",
+    "eventDescriptionHint": "Description",
+    "eventNoteHint": "Note",
+    "eventRecurrenceHint": "Recurrence Rule"
 }

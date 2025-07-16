@@ -1,4 +1,5 @@
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart'; // ⬅️ Add this
 import 'package:flutter/material.dart';
 
 class UserSelectionDialog extends StatefulWidget {
@@ -21,16 +22,16 @@ class _UserSelectionDialogState extends State<UserSelectionDialog> {
   @override
   void initState() {
     super.initState();
-    tempSelectedUsers = List.from(
-      widget.selectedUsers,
-    ); // Create a temporary list to hold selected users
+    tempSelectedUsers = List.from(widget.selectedUsers);
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ⬅️ Use localizations
+
     return AlertDialog(
-      title: Text('Select users for this event'),
-      content: Container(
+      title: Text(loc.dialogSelectUsersTitle), // ⬅️ Localized title
+      content: SizedBox(
         width: 300,
         height: 100,
         child: _buildUserSelection(context),
@@ -38,11 +39,9 @@ class _UserSelectionDialogState extends State<UserSelectionDialog> {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(
-              context,
-            ).pop(tempSelectedUsers); // Return selected users to parent widget
+            Navigator.of(context).pop(tempSelectedUsers);
           },
-          child: Text('Close'),
+          child: Text(loc.dialogClose), // ⬅️ Localized close
         ),
       ],
     );
