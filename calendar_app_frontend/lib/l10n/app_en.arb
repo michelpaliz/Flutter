@@ -414,5 +414,71 @@
     "eventLocationHint": "Localization",
     "eventDescriptionHint": "Description",
     "eventNoteHint": "Note",
-    "eventRecurrenceHint": "Recurrence Rule"
+    "eventRecurrenceHint": "Recurrence Rule",
+    "notificationEventCreatedTitle": "Event Created",
+    "notificationEventCreatedMessage": "An event \"{eventTitle}\" has been created.",
+    "@notificationEventCreatedMessage": {
+        "description": "Message shown when an event is created",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationEventUpdatedTitle": "Event Updated",
+    "notificationEventUpdatedMessage": "The event \"{eventTitle}\" has been updated.",
+    "@notificationEventUpdatedMessage": {
+        "description": "Message shown when an event is updated",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationEventDeletedTitle": "Event Deleted",
+    "notificationEventDeletedMessage": "The event \"{eventTitle}\" has been removed.",
+    "@notificationEventDeletedMessage": {
+        "description": "Message shown when an event is deleted",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationRecurrenceAddedTitle": "Recurring Event",
+    "notificationRecurrenceAddedMessage": "The event \"{title}\" is now recurring.",
+    "@notificationRecurrenceAddedMessage": {
+        "description": "Shown when a recurrence rule is added to an event",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationEventMarkedDoneTitle": "Event Completed",
+    "notificationEventMarkedDoneMessage": "The event \"{eventTitle}\" was marked as completed by {userName}.",
+    "@notificationEventMarkedDoneMessage": {
+        "description": "Shown when a user marks an event as completed",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            },
+            "userName": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationEventReopenedTitle": "Event Reopened",
+    "notificationEventReopenedMessage": "The event \"{eventTitle}\" was reopened by {userName}.",
+    "@notificationEventReopenedMessage": {
+        "description": "Shown when a user reopens an event",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            },
+            "userName": {
+                "type": "String"
+            }
+        }
+    }
 }

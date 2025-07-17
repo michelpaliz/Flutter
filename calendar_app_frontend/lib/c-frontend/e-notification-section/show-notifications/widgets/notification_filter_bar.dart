@@ -1,5 +1,6 @@
 import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
 import 'package:calendar_app_frontend/c-frontend/e-notification-section/enum/broad_category.dart';
+import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class NotificationFilterBar extends StatefulWidget {
@@ -37,12 +38,16 @@ class _NotificationFilterBarState extends State<NotificationFilterBar> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: selected ? Colors.teal : Colors.blue,
+                backgroundColor: selected
+                    ? ThemeColors.getButtonBackgroundColor(context)
+                    : ThemeColors.getButtonBackgroundColor(context)
+                        .withOpacity(0.5),
+                foregroundColor: ThemeColors.getButtonTextColor(context),
               ),
               onPressed: () {
                 widget.onCategorySelected(
                   selected ? null : cat,
-                ); // toggle selection
+                );
               },
               child: Text(cat.toString().split('.').last.toUpperCase()),
             ),

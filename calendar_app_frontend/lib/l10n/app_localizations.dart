@@ -1585,6 +1585,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recurrence Rule'**
   String get eventRecurrenceHint;
+
+  /// No description provided for @notificationEventCreatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Created'**
+  String get notificationEventCreatedTitle;
+
+  /// Message shown when an event is created
+  ///
+  /// In en, this message translates to:
+  /// **'An event \"{eventTitle}\" has been created.'**
+  String notificationEventCreatedMessage(String eventTitle);
+
+  /// No description provided for @notificationEventUpdatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Updated'**
+  String get notificationEventUpdatedTitle;
+
+  /// Message shown when an event is updated
+  ///
+  /// In en, this message translates to:
+  /// **'The event \"{eventTitle}\" has been updated.'**
+  String notificationEventUpdatedMessage(String eventTitle);
+
+  /// No description provided for @notificationEventDeletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Deleted'**
+  String get notificationEventDeletedTitle;
+
+  /// Message shown when an event is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'The event \"{eventTitle}\" has been removed.'**
+  String notificationEventDeletedMessage(String eventTitle);
+
+  /// No description provided for @notificationRecurrenceAddedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Event'**
+  String get notificationRecurrenceAddedTitle;
+
+  /// Shown when a recurrence rule is added to an event
+  ///
+  /// In en, this message translates to:
+  /// **'The event \"{title}\" is now recurring.'**
+  String notificationRecurrenceAddedMessage(String title);
+
+  /// No description provided for @notificationEventMarkedDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Completed'**
+  String get notificationEventMarkedDoneTitle;
+
+  /// Shown when a user marks an event as completed
+  ///
+  /// In en, this message translates to:
+  /// **'The event \"{eventTitle}\" was marked as completed by {userName}.'**
+  String notificationEventMarkedDoneMessage(String eventTitle, String userName);
+
+  /// No description provided for @notificationEventReopenedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Reopened'**
+  String get notificationEventReopenedTitle;
+
+  /// Shown when a user reopens an event
+  ///
+  /// In en, this message translates to:
+  /// **'The event \"{eventTitle}\" was reopened by {userName}.'**
+  String notificationEventReopenedMessage(String eventTitle, String userName);
 }
 
 class _AppLocalizationsDelegate

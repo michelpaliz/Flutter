@@ -857,4 +857,53 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get eventRecurrenceHint => 'Regla de repetición';
+
+  @override
+  String get notificationEventCreatedTitle => 'Evento creado';
+
+  @override
+  String notificationEventCreatedMessage(String eventTitle) {
+    return 'Se ha creado un evento \"$eventTitle\".';
+  }
+
+  @override
+  String get notificationEventUpdatedTitle => 'Evento actualizado';
+
+  @override
+  String notificationEventUpdatedMessage(String eventTitle) {
+    return 'El evento \"$eventTitle\" ha sido actualizado.';
+  }
+
+  @override
+  String get notificationEventDeletedTitle => 'Evento eliminado';
+
+  @override
+  String notificationEventDeletedMessage(String eventTitle) {
+    return 'El evento \"$eventTitle\" ha sido eliminado.';
+  }
+
+  @override
+  String get notificationRecurrenceAddedTitle => 'Evento recurrente';
+
+  @override
+  String notificationRecurrenceAddedMessage(String title) {
+    return 'El evento \"$title\" ahora se repite.';
+  }
+
+  @override
+  String get notificationEventMarkedDoneTitle => 'Evento completado';
+
+  @override
+  String notificationEventMarkedDoneMessage(
+      String eventTitle, String userName) {
+    return 'El evento \"$eventTitle\" fue marcado como completado por $userName.';
+  }
+
+  @override
+  String get notificationEventReopenedTitle => 'Evento reabierto';
+
+  @override
+  String notificationEventReopenedMessage(String eventTitle, String userName) {
+    return 'El evento \"$eventTitle\" fue reabierto por $userName.';
+  }
 }

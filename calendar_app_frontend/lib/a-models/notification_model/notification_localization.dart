@@ -29,9 +29,21 @@ extension NotificationLocalization on NotificationUser {
       case 'notification.groupDeletedAll.title':
         return loc.notificationGroupDeletedAllTitle;
 
-      // 🔹 NEW case for event reminder
+      // 🔹 Event-related titles
       case 'notification.event.reminder.title':
         return loc.notificationEventReminderTitle;
+      case 'notification.event.created.title':
+        return loc.notificationEventCreatedTitle;
+      case 'notification.event.updated.title':
+        return loc.notificationEventUpdatedTitle;
+      case 'notification.event.deleted.title':
+        return loc.notificationEventDeletedTitle;
+      case 'notification.recurrenceAdded.title':
+        return loc.notificationRecurrenceAddedTitle;
+      case 'notification.eventMarkedDone.title':
+        return loc.notificationEventMarkedDoneTitle;
+      case 'notification.eventReopened.title':
+        return loc.notificationEventReopenedTitle;
 
       default:
         return fallbackTitle;
@@ -83,9 +95,27 @@ extension NotificationLocalization on NotificationUser {
       case 'notification.groupDeletedAll.message':
         return loc.notificationGroupDeletedAllMessage(args['groupName'] ?? '');
 
-      // 🔹 NEW case for event reminder
+      // 🔹 Event-related messages
       case 'notification.event.reminder.message':
         return loc.notificationEventReminderMessage(args['eventTitle'] ?? '');
+      case 'notification.event.created.message':
+        return loc.notificationEventCreatedMessage(args['eventTitle'] ?? '');
+      case 'notification.event.updated.message':
+        return loc.notificationEventUpdatedMessage(args['eventTitle'] ?? '');
+      case 'notification.event.deleted.message':
+        return loc.notificationEventDeletedMessage(args['eventTitle'] ?? '');
+      case 'notification.recurrenceAdded.message':
+        return loc.notificationRecurrenceAddedMessage(args['title'] ?? '');
+      case 'notification.eventMarkedDone.message':
+        return loc.notificationEventMarkedDoneMessage(
+          args['eventTitle'] ?? '',
+          args['userName'] ?? '',
+        );
+      case 'notification.eventReopened.message':
+        return loc.notificationEventReopenedMessage(
+          args['eventTitle'] ?? '',
+          args['userName'] ?? '',
+        );
 
       default:
         return fallbackMessage;

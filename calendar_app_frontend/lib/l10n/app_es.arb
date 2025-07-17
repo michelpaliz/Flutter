@@ -412,5 +412,71 @@
   "eventLocationHint": "Ubicación",
   "eventDescriptionHint": "Descripción",
   "eventNoteHint": "Nota",
-  "eventRecurrenceHint": "Regla de repetición"
+  "eventRecurrenceHint": "Regla de repetición",
+  "notificationEventCreatedTitle": "Evento creado",
+  "notificationEventCreatedMessage": "Se ha creado un evento \"{eventTitle}\".",
+  "@notificationEventCreatedMessage": {
+    "description": "Mensaje mostrado cuando se crea un evento",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEventUpdatedTitle": "Evento actualizado",
+  "notificationEventUpdatedMessage": "El evento \"{eventTitle}\" ha sido actualizado.",
+  "@notificationEventUpdatedMessage": {
+    "description": "Mensaje mostrado cuando se actualiza un evento",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEventDeletedTitle": "Evento eliminado",
+  "notificationEventDeletedMessage": "El evento \"{eventTitle}\" ha sido eliminado.",
+  "@notificationEventDeletedMessage": {
+    "description": "Mensaje mostrado cuando se elimina un evento",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationRecurrenceAddedTitle": "Evento recurrente",
+  "notificationRecurrenceAddedMessage": "El evento \"{title}\" ahora se repite.",
+  "@notificationRecurrenceAddedMessage": {
+    "description": "Se muestra cuando se añade una regla de recurrencia a un evento",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEventMarkedDoneTitle": "Evento completado",
+  "notificationEventMarkedDoneMessage": "El evento \"{eventTitle}\" fue marcado como completado por {userName}.",
+  "@notificationEventMarkedDoneMessage": {
+    "description": "Se muestra cuando un usuario marca un evento como completado",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      },
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEventReopenedTitle": "Evento reabierto",
+  "notificationEventReopenedMessage": "El evento \"{eventTitle}\" fue reabierto por {userName}.",
+  "@notificationEventReopenedMessage": {
+    "description": "Se muestra cuando un usuario reabre un evento",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      },
+      "userName": {
+        "type": "String"
+      }
+    }
+  }
 }
