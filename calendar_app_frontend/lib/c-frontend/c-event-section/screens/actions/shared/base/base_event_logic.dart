@@ -16,6 +16,8 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   late DateTime _selectedEndDate;
   LegacyRecurrenceRule? _recurrenceRule;
   final double _toggleWidth = 50.0;
+  // add this to the top with other UI state
+  int _reminderMinutes = 10; // default to 10 mins
 
   // User selection (used in Add flow, no-op in Edit)
   @protected
@@ -125,4 +127,10 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
 
   /// Intended to be implemented by subclasses like AddEventLogic
   Future<bool> addEvent(BuildContext context);
+
+  void setReminderMinutes(int minutes) {
+    _reminderMinutes = minutes;
+  }
+
+  int get reminderMinutes => _reminderMinutes;
 }

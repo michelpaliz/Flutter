@@ -41,6 +41,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
     _group = gm.currentGroup!;
 
     // Base state setup
+    setReminderMinutes(event.reminderTime ?? 10);
     setSelectedColor(ColorManager.eventColors[event.eventColorIndex].value);
     setRecurrenceRule(event.recurrenceRule);
     setStartDate(event.startDate);
@@ -104,6 +105,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
       recipients: selectedUsers.map((u) => u.id).toList(),
       updateHistory: _event.updateHistory,
       ownerId: _event.ownerId,
+      reminderTime: reminderMinutes,
     );
 
     await eventDataManager.updateEvent(updated); // ✅ Syncs with state + backend

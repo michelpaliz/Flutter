@@ -61,6 +61,7 @@ class _EventFormState extends State<EventForm> {
     super.initState();
     startDate = widget.logic.selectedStartDate;
     endDate = widget.logic.selectedEndDate;
+    _reminder = widget.logic.reminderMinutes;
   }
 
   Future<void> _handleDateSelection(bool isStart) async {
@@ -157,29 +158,31 @@ class _EventFormState extends State<EventForm> {
         /// ── SUBMIT BUTTON ──────────────────────────────────────────────────
         Center(
           child: ElevatedButton(
-            child: Text(widget.isEditing ? loc.save : loc.addEvent),
-            onPressed: () async {
-              if (widget.isEditing) {
-                await withLoadingDialog(
-                  context,
-                  widget.onSubmit,
-                  message: loc.saveChangesMessage,
-                );
-              } else {
-                final ok = await withLoadingDialog(
-                  context,
-                  () => widget.logic.addEvent(context),
-                  message: loc.createEventMessage,
-                );
-
-                if (ok == true) {
-                  Navigator.pop(context, true);
+              child: Text(widget.isEditing ? loc.save : loc.addEvent),
+              onPressed: () async {
+                if (widget.isEditing) {
+                  widget.logic.setReminderMinutes(
+                      _reminder ?? kDefaultReminderMinutes); // ← add this line
+                  await withLoadingDialog(
+                    context,
+                    widget.onSubmit,
+                    message: loc.saveChangesMessage,
+                  );
                 } else {
-                  widget.dialogs?.showErrorDialog(context);
+                  widget.logic.setReminderMinutes(
+                      _reminder ?? kDefaultReminderMinutes); // ← also here
+                  final ok = await withLoadingDialog(
+                    context,
+                    () => widget.logic.addEvent(context),
+                    message: loc.createEventMessage,
+                  );
+                  if (ok == true) {
+                    Navigator.pop(context, true);
+                  } else {
+                    widget.dialogs?.showErrorDialog(context);
+                  }
                 }
-              }
-            },
-          ),
+              }),
         ),
       ],
     );
