@@ -73,7 +73,7 @@ class _EventFormState extends State<EventForm> {
   }
 
   @override
-  Widget build(BuildContext context) {
+    Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     return Column(

@@ -102,7 +102,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
     );
 
     try {
-      final createdEvent = await _eventDataManager.createEvent(newEvent);
+      final createdEvent = await _eventDataManager.createEvent(context,newEvent);
       user.events.add(createdEvent.id);
       await userManagement.updateUser(user);
 
@@ -114,7 +114,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       }
 
       groupManagement.currentGroup = fetchedUpdatedGroup!;
-      await _eventDataManager.manualRefresh();
+      await _eventDataManager.manualRefresh(context);
       clearFormFields();
       return true;
     } catch (e) {

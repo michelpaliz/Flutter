@@ -1657,6 +1657,31 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The event \"{eventTitle}\" was reopened by {userName}.'**
   String notificationEventReopenedMessage(String eventTitle, String userName);
+
+  /// No description provided for @notificationEventStartedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Started'**
+  String get notificationEventStartedTitle;
+
+  /// Message shown when an event starts
+  ///
+  /// In en, this message translates to:
+  /// **'The event \"{eventTitle}\" has just started.'**
+  String notificationEventStartedMessage(String eventTitle);
+
+  /// Body of a notification reminding about an event's start time
+  ///
+  /// In en, this message translates to:
+  /// **'“{eventTitle}” starts at {eventTime}'**
+  String notificationEventReminderBodyWithTime(
+      String eventTitle, String eventTime);
+
+  /// No description provided for @notificationEventReminderManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Test Notification'**
+  String get notificationEventReminderManual;
 }
 
 class _AppLocalizationsDelegate

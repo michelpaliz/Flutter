@@ -99,7 +99,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
     );
 
     try {
-      final createdEvent = await _eventDataManager.createEvent(newEvent);
+      final createdEvent = await _eventDataManager.createEvent(context,newEvent);
 
       await hydrateRecurrenceRuleIfNeeded(
         groupManagement: groupManagement,
@@ -141,7 +141,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       devtools.log("⚠️ No external calendar update hook found");
     }
 
-    await _eventDataManager.manualRefresh();
+    await _eventDataManager.manualRefresh(context);
     devtools.log("♻️ Manual refresh complete");
 
     clearFormFields();

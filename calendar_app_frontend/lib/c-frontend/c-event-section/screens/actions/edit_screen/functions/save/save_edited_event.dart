@@ -2,8 +2,8 @@ import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 
 Future<void> saveEditedEvent({
   required BuildContext context,
@@ -40,7 +40,7 @@ Future<void> saveEditedEvent({
 
   if (isStartHourUnique || !allowRepetitiveHours) {
     try {
-      await eventDataManager.updateEvent(updatedData);
+      await eventDataManager.updateEvent(context, updatedData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
@@ -52,7 +52,7 @@ Future<void> saveEditedEvent({
       groupManagement.currentGroup = updatedGroup;
 
       // ✅ Optional: Sync local events with updated group (if needed)
-      await eventDataManager.manualRefresh();
+      await eventDataManager.manualRefresh(context);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEditFailed)),

@@ -108,7 +108,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
       reminderTime: reminderMinutes,
     );
 
-    await eventDataManager.updateEvent(updated); // ✅ Syncs with state + backend
+    await eventDataManager.updateEvent(context, updated); // ✅ Syncs with state + backend
 
     // // 🔁 Pull latest version from backend (if someone else also edited)
     // await eventDataManager.manualRefresh();
@@ -127,7 +127,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
       debugPrint(
         "⚠️ onExternalEventUpdate is null — triggering manual refresh.",
       );
-      await eventDataManager.manualRefresh();
+      await eventDataManager.manualRefresh(context);
     }
 
     if (!mounted) return;

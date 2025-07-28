@@ -7,11 +7,13 @@ import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_serv
 import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
 import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
 import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/register_view.dart';
+import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/routes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/local/LocaleProvider.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
+import 'package:calendar_app_frontend/d-stateManagement/notification/socket_notification_listener.dart';
 import 'package:calendar_app_frontend/d-stateManagement/theme/theme_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/theme/theme_preference_provider.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/presence_manager.dart';
@@ -27,6 +29,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeAppServices();
+  await setupLocalNotifications();
 
   runApp(
     MultiProvider(
@@ -65,10 +68,55 @@ void main() async {
         Provider(create: (_) => EventService()),
 
         // 5. Safe EventDataManager
+        // ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
+        //     EventDataManager>(
+        //   create: (_) {
+        //     final groupMgmt = _.read<GroupManagement>();
+        //     final currentGroup = groupMgmt.currentGroup;
+
+        //     if (currentGroup == null) {
+        //       throw UnimplementedError(
+        //         'EventDataManager should not be created until currentGroup is available.',
+        //       );
+        //     }
+
+        //     final edm = EventDataManager(
+        //       [],
+        //       group: currentGroup,
+        //       eventService: _.read<EventService>(),
+        //       groupManagement: groupMgmt,
+        //       resolver: _.read<GroupEventResolver>(),
+        //     );
+
+        //     edm.onExternalEventUpdate = () {
+        //       debugPrint("⚠️ Default fallback: no calendar UI registered.");
+        //     };
+
+        //     return edm;
+        //   },
+        //   update: (ctx, groupMgmt, eventSvc, resolver, previous) {
+        //     final current = groupMgmt.currentGroup;
+        //     if (current == null) return previous!;
+
+        //     final edm = EventDataManager(
+        //       previous?.baseEvents ?? [],
+        //       group: current,
+        //       eventService: eventSvc,
+        //       groupManagement: groupMgmt,
+        //       resolver: resolver,
+        //     );
+
+        //     edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??
+        //         () => debugPrint(
+        //             "⚠️ Default fallback: no calendar UI registered.");
+
+        //     return edm;
+        //   },
+        // ),
         ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
             EventDataManager>(
-          create: (_) {
-            final groupMgmt = _.read<GroupManagement>();
+          create: (ctx) {
+            final groupMgmt = ctx.read<GroupManagement>();
             final currentGroup = groupMgmt.currentGroup;
 
             if (currentGroup == null) {
@@ -79,10 +127,11 @@ void main() async {
 
             final edm = EventDataManager(
               [],
+              context: ctx, // ✅ Pass context here
               group: currentGroup,
-              eventService: _.read<EventService>(),
+              eventService: ctx.read<EventService>(),
               groupManagement: groupMgmt,
-              resolver: _.read<GroupEventResolver>(),
+              resolver: ctx.read<GroupEventResolver>(),
             );
 
             edm.onExternalEventUpdate = () {
@@ -97,6 +146,7 @@ void main() async {
 
             final edm = EventDataManager(
               previous?.baseEvents ?? [],
+              context: ctx, // ✅ Also pass context here
               group: current,
               eventService: eventSvc,
               groupManagement: groupMgmt,
@@ -176,6 +226,12 @@ class _UserInitializerState extends State<UserInitializer> {
             .setCurrentUser(user);
         Provider.of<GroupManagement>(context, listen: false)
             .setCurrentUser(user);
+
+        // ✅ Add this (import your helper first)
+        if (user != null) {
+          initializeNotificationSocket(
+              user!.id); // <-- assuming `user.id` exists
+        }
       });
     } catch (e) {
       devtools.log('Failed to initialize user: $e');

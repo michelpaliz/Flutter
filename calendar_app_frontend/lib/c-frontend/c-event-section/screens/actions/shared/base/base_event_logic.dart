@@ -107,6 +107,13 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
 
       if (pickedTime != null) {
         final combined = DateTime(
+
+
+
+
+
+
+          
           pickedDate.year,
           pickedDate.month,
           pickedDate.day,

@@ -899,4 +899,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationEventReopenedMessage(String eventTitle, String userName) {
     return 'The event \"$eventTitle\" was reopened by $userName.';
   }
+
+  @override
+  String get notificationEventStartedTitle => 'Event Started';
+
+  @override
+  String notificationEventStartedMessage(String eventTitle) {
+    return 'The event \"$eventTitle\" has just started.';
+  }
+
+  @override
+  String notificationEventReminderBodyWithTime(
+      String eventTitle, String eventTime) {
+    return '“$eventTitle” starts at $eventTime';
+  }
+
+  @override
+  String get notificationEventReminderManual => 'Manual Test Notification';
 }

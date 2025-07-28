@@ -478,5 +478,28 @@
         "type": "String"
       }
     }
+  },
+  "notificationEventStartedTitle": "Evento Iniciado",
+  "notificationEventStartedMessage": "El evento \"{eventTitle}\" acaba de comenzar.",
+  "@notificationEventStartedMessage": {
+    "description": "Mensaje que se muestra cuando un evento ha comenzado",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEventReminderBodyWithTime": "Recordatorio: \"{eventTitle}\" comienza a las {eventTime}.",
+  "notificationEventReminderManual": "Notificación de prueba manual",
+  "@notificationEventReminderBodyWithTime": {
+    "description": "Cuerpo de una notificación que recuerda la hora de inicio de un evento",
+    "placeholders": {
+      "eventTitle": {
+        "type": "String"
+      },
+      "eventTime": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -480,5 +480,28 @@
                 "type": "String"
             }
         }
+    },
+    "notificationEventStartedTitle": "Event Started",
+    "notificationEventStartedMessage": "The event \"{eventTitle}\" has just started.",
+    "@notificationEventStartedMessage": {
+        "description": "Message shown when an event starts",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationEventReminderBodyWithTime": "“{eventTitle}” starts at {eventTime}",
+    "notificationEventReminderManual": "Manual Test Notification",
+    "@notificationEventReminderBodyWithTime": {
+        "description": "Body of a notification reminding about an event's start time",
+        "placeholders": {
+            "eventTitle": {
+                "type": "String"
+            },
+            "eventTime": {
+                "type": "String"
+            }
+        }
     }
 }

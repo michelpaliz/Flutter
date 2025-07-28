@@ -98,29 +98,6 @@ class EventService {
     }
   }
 
-  // Future<Event> updateEvent(
-  //     String eventId, Map<String, dynamic> rawEventData) async {
-  //   final event = await _ensureRuleId(Event.fromJson(rawEventData));
-  //   final headers = await _authHeaders();
-  //   final payload = jsonEncode(event.toBackendJson());
-
-  //   debugPrint('📤 Sending payload: $payload');
-
-  //   final response = await http.put(
-  //     Uri.parse('$baseUrl/$eventId'),
-  //     headers: headers,
-  //     body: payload,
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     return Event.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     debugPrint('❌ Server responded: ${response.statusCode}');
-  //     debugPrint('🧾 Body: ${response.body}');
-  //     throw Exception('Failed to update event');
-  //   }
-  // }
-
   Future<Event> updateEvent(Event ev) async {
     final ready = await _ensureRuleId(ev);
     final headers = await _authHeaders();
@@ -172,7 +149,7 @@ class EventService {
       headers: await _authHeaders(),
       body: jsonEncode({
         'isDone': isDone,
-        'completedAt': isDone ? DateTime.now().toIso8601String() : null,
+        'completedAt': isDone ? DateTime.now().toUtc().toIso8601String() : null,
       }),
     );
 

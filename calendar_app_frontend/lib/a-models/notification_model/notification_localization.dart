@@ -29,6 +29,10 @@ extension NotificationLocalization on NotificationUser {
       case 'notification.groupDeletedAll.title':
         return loc.notificationGroupDeletedAllTitle;
 
+      //Reminder notifications
+      case 'notification.event.started.title':
+        return loc.notificationEventStartedTitle;
+
       // 🔹 Event-related titles
       case 'notification.event.reminder.title':
         return loc.notificationEventReminderTitle;
@@ -116,6 +120,10 @@ extension NotificationLocalization on NotificationUser {
           args['eventTitle'] ?? '',
           args['userName'] ?? '',
         );
+
+      //Reminder notifications message
+      case 'notification.event.started.message':
+        return loc.notificationEventStartedMessage(args['eventTitle'] ?? '');
 
       default:
         return fallbackMessage;

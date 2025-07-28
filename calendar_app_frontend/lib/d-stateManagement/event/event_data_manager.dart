@@ -30,6 +30,7 @@ class EventDataManager {
 
   EventDataManager(
     List<Event> initialEvents, {
+    required BuildContext context,
     required Group group,
     required EventService eventService,
     required GroupManagement groupManagement,
@@ -38,13 +39,13 @@ class EventDataManager {
         _eventService = eventService,
         _groupManagement = groupManagement,
         _resolver = resolver {
-    _initialize(initialEvents);
+    _initialize(context, initialEvents);
     _setupSocketListeners();
   }
 
-  Future<void> _initialize(List<Event> initial) async {
+  Future<void> _initialize(BuildContext context, List<Event> initial) async {
     _baseEvents = _deduplicate(initial);
-    await _refreshFromBackend();
+    await _refreshFromBackend(context);
   }
 
   void _setupSocketListeners() {
@@ -73,7 +74,8 @@ class EventDataManager {
   List<Event> get baseEvents => _baseEvents;
   Stream<List<Event>> get eventsStream => _eventsController.stream;
 
-  Future<void> manualRefresh() async => _refreshFromBackend();
+  Future<void> manualRefresh(BuildContext context) async =>
+      _refreshFromBackend(context);
 
   Future<List<Event>> fetchAllEvents() async {
     final fresh = await _resolver.getEventsForGroup(_group);
@@ -94,23 +96,36 @@ class EventDataManager {
     }
   }
 
-  Future<Event> createEvent(Event event) async {
+  Future<Event> createEvent(BuildContext context, Event event) async {
     final created = await _eventService.createEvent(event);
     _baseEvents = _deduplicate([..._baseEvents, created]);
-    await syncReminderFor(created); // ← ADD THIS LINE
+    await syncReminderFor(context, created); // ✅ now works
     _notifyChanges();
     return created;
   }
 
-  Future<Event> updateEvent(Event event) async {
+  Future<Event> updateEvent(BuildContext context, Event event) async {
     await _eventService.updateEvent(event);
     final fresh = await _eventService.getEventById(event.id);
     _baseEvents = _deduplicate(
       _baseEvents.map((e) => e.id == fresh.id ? fresh : e).toList(),
     );
-    await syncReminderFor(fresh); // ✅ ADD THIS LINE
+    await syncReminderFor(context, fresh); // ✅
     _notifyChanges();
     return fresh;
+  }
+
+  Future<void> _refreshFromBackend(BuildContext context) async {
+    if (_group.id == Group.createDefaultGroup().id) return;
+
+    final fetchedEvents = await _resolver.getEventsForGroup(_group);
+    _baseEvents = _deduplicate(fetchedEvents);
+
+    for (final event in _baseEvents) {
+      await syncReminderFor(context, event); // ✅
+    }
+
+    _notifyChanges();
   }
 
   Future<void> deleteEvent(String id) async {
@@ -168,21 +183,6 @@ class EventDataManager {
   /// 🔁 Alias for clarity: "give me expanded events inside this date range"
   List<Event> getExpandedEvents(DateTimeRange range) =>
       getEventsForRange(range);
-
-  Future<void> _refreshFromBackend() async {
-    if (_group.id == Group.createDefaultGroup().id) return;
-
-    final fetchedEvents = await _resolver.getEventsForGroup(_group);
-    _baseEvents = _deduplicate(fetchedEvents);
-
-    // 🔔 Optional: Re-sync all notifications
-    final copy = List<Event>.from(_baseEvents);
-    for (final event in copy) {
-      await syncReminderFor(event);
-    }
-
-    _notifyChanges();
-  }
 
   void _notifyChanges() {
     _groupManagement.currentGroup = _group;

@@ -4,6 +4,7 @@ import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_serv
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
+import 'package:calendar_app_frontend/d-stateManagement/notification/socket_notification_listener.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +37,10 @@ class LoginInitializer {
       groupManagement.setCurrentUser(user);
       debugPrint('✅ setCurrentUser called with: ${user.userName}');
 
-      // 🔐 Get token and initialize socket
+      // ✅ Connect to the notification socket using user ID
+      initializeNotificationSocket(user.id); // ← ADD THIS LINE
+
+      // 🔐 Also connect other socket if using token
       final token = await TokenStorage.loadToken();
       if (token != null) {
         SocketManager().connect(token);

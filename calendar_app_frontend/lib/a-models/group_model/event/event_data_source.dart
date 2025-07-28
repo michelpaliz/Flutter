@@ -48,7 +48,7 @@ class EventDataSource extends CalendarDataSource {
     final cleanedRule = match?.group(1);
 
     if (cleanedRule == null) {
-      debugPrint('⚠️ Recurrence rule malformed: $rule');
+      // debugPrint('⚠️ Recurrence rule malformed: $rule');
       return null;
     }
 
