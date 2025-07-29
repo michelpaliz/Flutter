@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -40,7 +40,6 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     notifyListeners();
   }
 
-  // Add this getter at the bottom of your AuthProvider class
   String? get lastToken => _authToken;
 
   @override
@@ -63,16 +62,10 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       );
 
       final data = jsonDecode(response.body);
-      debugPrint("👀 Registration response body: $data"); // ✅ ADD THIS LINE
-      debugPrint(
-        "📤 Sending registration request: ${jsonEncode({'name': name, 'email': email, 'userName': userName, 'password': password})}",
-      );
-
       if (response.statusCode == 201) {
         return 'User created successfully';
       } else {
         final errorMessage = data['message']?.toString().toLowerCase() ?? '';
-
         if (errorMessage.contains('email') &&
             errorMessage.contains('already')) {
           throw EmailAlreadyUseAuthException();
@@ -83,13 +76,10 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
             errorMessage.contains('email')) {
           throw InvalidEmailAuthException();
         } else {
-          debugPrint('⚠️ Unmatched error message: $errorMessage');
           throw GenericAuthException();
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint("❌ Registration error: $e");
-      debugPrintStack(stackTrace: stackTrace);
+    } catch (_) {
       throw GenericAuthException();
     }
   }
@@ -103,21 +93,17 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      debugPrint("📥 Login response status: ${response.statusCode}");
-      debugPrint("📥 Login response body: ${response.body}");
-
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        _authToken = data['token'];
-        await TokenStorage.saveToken(_authToken!);
+        _authToken = data['accessToken'];
+        await TokenStorage.saveTokens(
+          accessToken: data['accessToken'],
+          refreshToken: data['refreshToken'],
+        );
 
         final userId = data['userId'];
-        // _user = await _userService.getUserById(userId);
         currentUser = await _userService.getUserById(userId);
-        _authStateController.add(_user);
-        notifyListeners();
-
         return _user;
       } else {
         throw Exception(data['message'] ?? 'Login failed');
@@ -131,7 +117,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   Future<void> logOut() async {
     _user = null;
     _authToken = null;
-    await TokenStorage.clearToken();
+    await TokenStorage.clearTokens(); // Clear both tokens
     _authStateController.add(null);
     notifyListeners();
   }
@@ -144,25 +130,44 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   @override
   Future<void> initialize() async {
     _authToken = await TokenStorage.loadToken();
+    debugPrint('📥 Loaded access token: $_authToken');
 
-    if (_authToken != null) {
-      try {
-        final response = await http.get(
-          Uri.parse('${ApiConstants.baseUrl}/profile'),
-          headers: {'Authorization': 'Bearer $_authToken'},
-        );
-
-        if (response.statusCode == 200) {
-          final json = jsonDecode(response.body);
-          _user = User.fromJson(json);
-          _authStateController.add(_user);
-        }
-      } catch (_) {
-        await logOut(); // If token is invalid
-      }
-
-      notifyListeners();
+    if (_authToken == null) {
+      debugPrint('🚫 No access token found in secure storage.');
+      return;
     }
+
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/profile'),
+        headers: {'Authorization': 'Bearer $_authToken'},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        _user = User.fromJson(json);
+        _authStateController.add(_user);
+        debugPrint('✅ User fetched successfully on app launch.');
+      } else if (response.statusCode == 401) {
+        debugPrint('🔁 Access token expired. Trying refresh...');
+        final refreshed = await _tryRefreshToken();
+        if (!refreshed) {
+          debugPrint(
+              '❌ Token refresh failed — but NOT logging out automatically.');
+          // 👇 Optional: notify UI to show login screen
+          _authStateController.add(null);
+        }
+      } else {
+        debugPrint(
+            '⚠️ Unexpected status code during profile fetch: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('📡 Network error during profile fetch: $e');
+      // DO NOT log out. Let user retry when network is restored.
+      // You can show an offline screen, fallback view, or toast.
+    }
+
+    notifyListeners();
   }
 
   @override
@@ -179,7 +184,6 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     if (newPassword != confirmPassword) {
       throw PasswordMismatchException();
     }
-
     if (_authToken == null) {
       throw UserNotSignedInException();
     }
@@ -214,5 +218,42 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         (_) => chars.codeUnitAt(random.nextInt(chars.length)),
       ),
     );
+  }
+
+  Future<bool> _tryRefreshToken() async {
+    final refreshToken = await TokenStorage.loadRefreshToken();
+    if (refreshToken == null) return false;
+
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/auth/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      _authToken = data['accessToken'];
+
+      await TokenStorage.saveTokens(
+        accessToken: _authToken!,
+        refreshToken: refreshToken,
+      );
+
+      // Re-fetch the user profile
+      final profileResponse = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/profile'),
+        headers: {'Authorization': 'Bearer $_authToken'},
+      );
+
+      if (profileResponse.statusCode == 200) {
+        final json = jsonDecode(profileResponse.body);
+        _user = User.fromJson(json);
+        _authStateController.add(_user);
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

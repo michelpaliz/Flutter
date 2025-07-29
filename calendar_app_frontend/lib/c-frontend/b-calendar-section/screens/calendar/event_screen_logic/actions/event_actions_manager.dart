@@ -52,7 +52,7 @@ class EventActionManager {
                 groupManagement.updateGroup(refreshedGroup, userManagement);
 
                 // Refresh the events directly
-                await eventDataManager.manualRefresh();
+                await eventDataManager.manualRefresh(context);
               }
             },
           ),

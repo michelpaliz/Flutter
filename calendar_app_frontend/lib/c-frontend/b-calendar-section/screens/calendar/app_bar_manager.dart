@@ -27,7 +27,7 @@ class AppBarManager {
           icon: Icon(Icons.refresh),
           onPressed: () async {
             try {
-              await eventDataManager.manualRefresh();
+              await eventDataManager.manualRefresh(context);
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Calendar refreshed')));

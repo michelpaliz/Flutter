@@ -169,7 +169,7 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
       }
 
       // Force refresh the events in the calendar
-      await _calendarUIController!.eventDataManager.manualRefresh();
+      await _calendarUIController!.eventDataManager.manualRefresh(context);
 
       setState(() => _isLoading = false);
     } catch (e, stack) {
