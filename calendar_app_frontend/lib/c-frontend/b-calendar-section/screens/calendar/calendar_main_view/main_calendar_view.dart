@@ -1,11 +1,11 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/app_screen_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_main_view/add_event_button.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_ui_controller.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/actions/event_actions_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/event_display_manager/event_display_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/widgets/event_content_builder.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/app_screen_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/functions/add_event_logic.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_manager.dart';
@@ -33,10 +33,21 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
   EventActionManager? _eventActionManager;
   late EventDisplayManager _displayManager;
   bool _isLoading = true;
+  late PresenceManager _presenceManager;
 
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _presenceManager = context.read<PresenceManager>();
+
+      // Listen for presence updates
+      SocketManager().on('presence:update', (data) {
+        _presenceManager.updatePresenceList(data);
+      });
+    });
+
     _initializeManagers();
     _loadData();
   }
@@ -280,7 +291,8 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
 
   @override
   void dispose() {
-    super.dispose();
+    SocketManager().off('presence:update'); // Unsubscribe from socket
     disposeControllers();
+    super.dispose();
   }
 }

@@ -80,7 +80,7 @@ flutter:
     - assets/images/months/october.png
     - assets/images/months/november.png
     - assets/images/months/december.png
-    - assets/images/logo.jpeg
+    - assets/images/logo.png
 
   fonts:
     - family: bagel

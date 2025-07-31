@@ -1,13 +1,17 @@
-// lib/d-socket/socket_manager.dart
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
   factory SocketManager() => _instance;
+
   late IO.Socket socket;
+
+  // ✅ Type-safe listener registry
+  final Map<String, void Function(dynamic)> _registeredHandlers = {};
 
   SocketManager._internal();
 
+  /// Connect to socket server with user token
   void connect(String userToken) {
     socket = IO.io('http://192.168.1.16:3000', <String, dynamic>{
       'transports': ['websocket'],
@@ -20,7 +24,7 @@ class SocketManager {
     socket.onConnect((_) {
       print("✅ Socket connected");
 
-      // Optional: Listen for all events (for debugging)
+      // Optional: debug log all events
       socket.onAny((event, data) {
         print("📥 Received event: $event with data: $data");
       });
@@ -30,15 +34,31 @@ class SocketManager {
     socket.onError((err) => print("❌ Socket error: $err"));
   }
 
-  void on(String event, Function(dynamic) handler) {
+  /// Register an event listener with deduplication
+  void on(String event, void Function(dynamic) handler) {
+    // Remove existing handler to avoid duplication
+    if (_registeredHandlers.containsKey(event)) {
+      socket.off(event, _registeredHandlers[event]);
+    }
+
+    _registeredHandlers[event] = handler;
     socket.on(event, handler);
   }
 
+  /// Unregister a specific event listener
+  void off(String event) {
+    if (_registeredHandlers.containsKey(event)) {
+      socket.off(event, _registeredHandlers[event]);
+      _registeredHandlers.remove(event);
+    }
+  }
+
+  /// Disconnect the socket
   void disconnect() {
     socket.disconnect();
   }
 
-  /// ✅ Call this after socket connection and after user + group are available
+  /// Emit a user join event after login
   void emitUserJoin({
     required String userId,
     required String userName,

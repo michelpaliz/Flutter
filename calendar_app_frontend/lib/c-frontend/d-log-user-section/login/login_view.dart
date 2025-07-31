@@ -9,8 +9,8 @@ import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dar
 import 'package:calendar_app_frontend/f-themes/palette/color_properties.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/logo/logo_widget.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart';
@@ -26,6 +26,8 @@ class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   late LoginInitializer _loginInitializer;
+  late PresenceManager _presenceManager;
+  bool _presenceManagerInitialized = false; // ✅ NEW
 
   bool buttonHovered = false;
   late ButtonStyle _myCustomButtonStyle;
@@ -42,7 +44,11 @@ class _LoginViewState extends State<LoginView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // ✅ Use injected AuthService instead of singleton
+    if (!_presenceManagerInitialized) {
+      _presenceManager = Provider.of<PresenceManager>(context, listen: false);
+      _presenceManagerInitialized = true;
+    }
+
     final authService = Provider.of<AuthService>(context, listen: false);
     final userManagement = Provider.of<UserManagement>(context, listen: false);
     final groupManagement = Provider.of<GroupManagement>(
@@ -59,6 +65,7 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   void dispose() {
+    SocketManager().off('presence:update');
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -107,10 +114,9 @@ class _LoginViewState extends State<LoginView> {
                     password,
                   );
 
-                  // ✅ Set up socket listener using context
                   SocketManager().on('presence:update', (data) {
                     debugPrint("📥 Received presence:update with data: $data");
-                    context.read<PresenceManager>().updatePresenceList(data);
+                    _presenceManager.updatePresenceList(data);
                   });
 
                   Navigator.pushNamed(context, AppRoutes.homePage);
@@ -146,8 +152,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
