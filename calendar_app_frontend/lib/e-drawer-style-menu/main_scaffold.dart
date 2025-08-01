@@ -1,3 +1,4 @@
+import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import 'my_drawer.dart';
@@ -18,14 +19,19 @@ class MainScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final customBackgroundColor =
+        isDark ? AppDarkColors.background : AppColors.background;
+
     return Scaffold(
-      backgroundColor:
-          Theme.of(context).scaffoldBackgroundColor, // ✅ respects theme
+      backgroundColor: customBackgroundColor,
       appBar: AppBar(title: Text(title), actions: actions),
       drawer: MyDrawer(),
       body: SafeArea(
-        // ✅ protects content from system overlays
-        child: body,
+        child: Container(
+          color: customBackgroundColor, // ✅ Custom palette color
+          child: body,
+        ),
       ),
       floatingActionButton: fab,
     );

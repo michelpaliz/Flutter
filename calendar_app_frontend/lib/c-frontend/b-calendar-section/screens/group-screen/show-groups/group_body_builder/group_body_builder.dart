@@ -6,8 +6,8 @@ import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/grou
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 
 Widget buildBody(
   BuildContext context,
@@ -31,7 +31,7 @@ Widget buildBody(
       } else if (snapshot.hasError) {
         return _buildErrorWidget('Error: ${snapshot.error}');
       } else if (snapshot.hasData && snapshot.data!.isEmpty) {
-        return _buildNoGroupsAvailableWidget();
+        return _buildNoGroupsAvailableWidget(context);
       } else if (snapshot.hasData) {
         List<Group> groups = snapshot.data!;
         return _buildGroupListBody(
@@ -45,17 +45,17 @@ Widget buildBody(
           updateRole,
         );
       } else {
-        return _buildNoGroupsAvailableWidget();
+        return _buildNoGroupsAvailableWidget(context);
       }
     },
   );
 }
 
-Widget _buildNoGroupsAvailableWidget() {
+Widget _buildNoGroupsAvailableWidget(BuildContext context) {
   return Center(
     child: Text(
-      'No groups available.',
-      style: TextStyle(fontSize: 16, color: Colors.grey),
+      AppLocalizations.of(context)!.noGroupsAvailable,
+      style: const TextStyle(fontSize: 16, color: Colors.grey),
     ),
   );
 }

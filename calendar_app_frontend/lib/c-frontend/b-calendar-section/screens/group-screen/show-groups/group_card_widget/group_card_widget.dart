@@ -69,10 +69,8 @@ Widget buildCard(Group group, BuildContext context, bool isHovered) {
   final theme = Theme.of(context);
   final textColor = theme.colorScheme.onSurface;
   final cardColor =
-      ThemeColors.getLighterInputFillColor(context); // ✅ lighter background
-
+      ThemeColors.getCardBackgroundColor(context).withOpacity(0.95);
   final hoverOverlay = theme.hoverColor.withOpacity(0.1);
-
   final effectiveBackgroundColor = isHovered ? hoverOverlay : cardColor;
 
   return Card(

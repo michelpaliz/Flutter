@@ -3,9 +3,10 @@ import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_prov
 import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/password_exceptions.dart';
 import 'package:calendar_app_frontend/d-stateManagement/local/LocaleProvider.dart';
 import 'package:calendar_app_frontend/d-stateManagement/theme/theme_preference_provider.dart';
+import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
 import 'package:calendar_app_frontend/f-themes/themes/define_colors/theme_data.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class Settings extends StatefulWidget {
@@ -191,9 +192,14 @@ class _SettingsState extends State<Settings> {
     final loc = AppLocalizations.of(context)!;
     final localeProv = Provider.of<LocaleProvider>(context, listen: false);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final customBackgroundColor =
+        isDark ? AppDarkColors.background : AppColors.background;
+
     return Consumer<ThemePreferenceProvider>(
       builder: (_, themeProv, __) => Scaffold(
         appBar: AppBar(title: Text(loc.settings)),
+        backgroundColor: customBackgroundColor, // ✅ Apply custom background
         body: ListView(
           children: [
             ListTile(
@@ -212,7 +218,6 @@ class _SettingsState extends State<Settings> {
                 onChanged: (_) => themeProv.toggleTheme(),
               ),
             ),
-            // Language selector
             ListTile(
               title: Text(loc.language),
               trailing: DropdownButton<Locale>(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
+import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -72,15 +73,12 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     final isDarkMode = theme.brightness == Brightness.dark;
 
     // Decide colors based on theme
-    final headerBackgroundColor = isDarkMode
-        ? AppDarkColors.background
-        : AppColors.background;
-    final nameTextColor = isDarkMode
-        ? AppDarkColors.textPrimary
-        : AppColors.textPrimary;
-    final emailTextColor = isDarkMode
-        ? AppDarkColors.textSecondary
-        : AppColors.textSecondary;
+    final headerBackgroundColor =
+        ThemeColors.getCardBackgroundColor(context).withOpacity(0.95);
+    final nameTextColor =
+        isDarkMode ? AppDarkColors.textPrimary : AppColors.textPrimary;
+    final emailTextColor =
+        isDarkMode ? AppDarkColors.textSecondary : AppColors.textSecondary;
 
     return Container(
       color: headerBackgroundColor,
@@ -97,7 +95,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
               backgroundImage: (_currentUser?.photoUrl?.isNotEmpty ?? false)
                   ? NetworkImage(_currentUser!.photoUrl!)
                   : const AssetImage('assets/images/default_profile.png')
-                        as ImageProvider,
+                      as ImageProvider,
             ),
           ),
           const SizedBox(height: 5),
