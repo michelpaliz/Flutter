@@ -1532,6 +1532,12 @@ abstract class AppLocalizations {
   /// **'No users selected.'**
   String get noUsersSelected;
 
+  /// No description provided for @noUserRolesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No user roles available'**
+  String get noUserRolesAvailable;
+
   /// No description provided for @userExpandableCardTitle.
   ///
   /// In en, this message translates to:

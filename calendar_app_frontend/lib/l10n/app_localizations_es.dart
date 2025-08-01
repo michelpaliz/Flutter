@@ -375,7 +375,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get editGroup => 'Editar Grupo';
+  String get editGroup => 'Editar';
 
   @override
   String get remove => 'Eliminar';
@@ -830,6 +830,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noUsersSelected => 'Ningún usuario seleccionado.';
+
+  @override
+  String get noUserRolesAvailable =>
+      'Ningun rol seleccionado para los usuarios';
 
   @override
   String get userExpandableCardTitle => 'Seleccionar usuarios';

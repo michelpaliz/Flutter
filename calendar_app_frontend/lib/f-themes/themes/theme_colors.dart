@@ -26,8 +26,8 @@ class ThemeColors {
     final brightness = ThemeData.estimateBrightnessForColor(base);
 
     return brightness == Brightness.dark
-        ? base.withOpacity(0.4)
-        : base.withOpacity(0.9);
+        ? base.withOpacity(0.6) // ⬆️ more visible in dark mode
+        : base.withOpacity(0.95); // ⬆️ slightly less transparent in light mode
   }
 
   static Color getTextColorWhite(BuildContext context) {

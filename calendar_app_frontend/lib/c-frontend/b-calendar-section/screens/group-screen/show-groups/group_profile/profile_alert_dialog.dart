@@ -32,12 +32,14 @@ void showProfileAlertDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
+        backgroundColor:
+            Theme.of(context).colorScheme.surface, // 👈 Dialog background color
         content: buildProfileDialogContent(context, group),
         actions: buildProfileDialogActions(
           context,
           group,
           user,
-          hasPermission, // 👈 Apply permission logic
+          hasPermission,
           role,
           userManagement,
           groupManagement,

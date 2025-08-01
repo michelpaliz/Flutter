@@ -825,6 +825,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUsersSelected => 'No users selected.';
 
   @override
+  String get noUserRolesAvailable => 'No user roles available';
+
+  @override
   String get userExpandableCardTitle => 'Select Users';
 
   @override

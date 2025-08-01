@@ -224,7 +224,9 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
         'Member';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor:
+          Theme.of(context).scaffoldBackgroundColor, // ✅ Recommended
+
       appBar: AppBar(title: Text(currentGroup.name)),
       body: SafeArea(
         child: Padding(

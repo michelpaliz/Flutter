@@ -1,3 +1,4 @@
+import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class RoundedSectionCard extends StatelessWidget {
@@ -11,14 +12,18 @@ class RoundedSectionCard extends StatelessWidget {
     Key? key,
     required this.child,
     this.title,
-    this.backgroundColor,
+    this.backgroundColor, // Allows override, still respected
     this.padding,
     this.margin,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final defaultBackground = backgroundColor ?? Colors.white.withOpacity(0.9);
+    final theme = Theme.of(context);
+
+    final defaultBackground = backgroundColor ??
+        ThemeColors.getLighterInputFillColor(
+            context); // ✅ lighter surface color
 
     return Container(
       margin:
@@ -43,9 +48,9 @@ class RoundedSectionCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12.0),
               child: Text(
                 title!,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface, // ✅ Respect text contrast
                 ),
               ),
             ),

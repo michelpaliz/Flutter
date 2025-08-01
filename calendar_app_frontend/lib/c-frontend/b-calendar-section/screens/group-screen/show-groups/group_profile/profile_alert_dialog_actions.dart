@@ -4,9 +4,8 @@ import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/grou
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 
 import 'confirmation_dialog.dart';
 
@@ -20,21 +19,22 @@ List<Widget> buildProfileDialogActions(
   GroupManagement groupManagement,
 ) {
   final loc = AppLocalizations.of(context)!;
-  final roleDisplay =
-      role[0].toUpperCase() + role.substring(1); // Capitalize role
+  final roleDisplay = role[0].toUpperCase() + role.substring(1);
+  final colorScheme = Theme.of(context).colorScheme;
+
+  // ➕ Shared padding between action buttons
+  const actionSpacing = SizedBox(height: 8);
 
   if (hasPermission) {
     return [
+      // ✏️ Edit Button
       TextButton(
         onPressed: () async {
-          Navigator.of(context).pop(); // close dialog
-
+          Navigator.of(context).pop();
           await Future.delayed(const Duration(milliseconds: 100));
 
-          final overlayContext = Navigator.of(
-            context,
-            rootNavigator: true,
-          ).context;
+          final overlayContext =
+              Navigator.of(context, rootNavigator: true).context;
 
           showDialog(
             context: overlayContext,
@@ -51,8 +51,7 @@ List<Widget> buildProfileDialogActions(
               ),
             );
 
-            if (overlayContext.mounted)
-              Navigator.of(overlayContext).pop(); // close loader
+            if (overlayContext.mounted) Navigator.of(overlayContext).pop();
 
             Navigator.pushNamed(
               overlayContext,
@@ -60,18 +59,30 @@ List<Widget> buildProfileDialogActions(
               arguments: EditGroupArguments(group: selectedGroup, users: users),
             );
           } catch (e) {
-            if (overlayContext.mounted)
-              Navigator.of(overlayContext).pop(); // close loader
+            if (overlayContext.mounted) Navigator.of(overlayContext).pop();
             ScaffoldMessenger.of(overlayContext).showSnackBar(
               SnackBar(content: Text('${loc.failedToEditGroup} $e')),
             );
           }
         },
-        child: Text(
-          loc.editGroup,
-          style: TextStyle(color: ThemeColors.getTextColor(context)),
+        style: TextButton.styleFrom(
+          backgroundColor: colorScheme.primaryContainer,
+          foregroundColor: colorScheme.onPrimaryContainer,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.edit),
+            const SizedBox(width: 8),
+            Text(loc.editGroup),
+          ],
         ),
       ),
+
+      actionSpacing,
+
+      // 🗑️ Remove Group Button (destructive)
       TextButton(
         onPressed: () async {
           final confirm = await showConfirmationDialog(
@@ -90,27 +101,41 @@ List<Widget> buildProfileDialogActions(
                 );
               }
             } else {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(loc.permissionDeniedInf)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(loc.permissionDeniedInf)),
+              );
             }
           }
         },
-        child: Text(
-          loc.remove,
-          style: TextStyle(color: ThemeColors.getTextColor(context)),
+        style: TextButton.styleFrom(
+          backgroundColor: colorScheme.errorContainer,
+          foregroundColor: colorScheme.onErrorContainer,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.delete_forever),
+            const SizedBox(width: 8),
+            Text(loc.remove),
+          ],
         ),
       ),
     ];
   } else {
     return [
+      // 🚫 Permission Denied Info
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: Text(
-          loc.permissionDeniedRole(roleDisplay),
-          style: TextStyle(color: ThemeColors.getTextColor(context)),
+        style: TextButton.styleFrom(
+          foregroundColor: colorScheme.onSurface,
         ),
+        child: Text(loc.permissionDeniedRole(roleDisplay)),
       ),
+
+      actionSpacing,
+
+      // 🚪 Leave Group Button
       TextButton(
         onPressed: () async {
           final confirm = await showConfirmationDialog(
@@ -124,9 +149,18 @@ List<Widget> buildProfileDialogActions(
             if (context.mounted) Navigator.pop(context);
           }
         },
-        child: Text(
-          loc.leaveGroup,
-          style: TextStyle(color: ThemeColors.getTextColor(context)),
+        style: TextButton.styleFrom(
+          backgroundColor: colorScheme.errorContainer,
+          foregroundColor: colorScheme.onErrorContainer,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.logout),
+            const SizedBox(width: 8),
+            Text(loc.leaveGroup),
+          ],
         ),
       ),
     ];

@@ -1,13 +1,13 @@
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/create-group/search-bar/controllers/create_group_controller.dart';
 import 'package:calendar_app_frontend/f-themes/shape/rounded/rounded_section_card.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../../../a-models/user_model/user.dart';
-import '../../../../../../../b-backend/api/user/user_services.dart';
 import '../../../../../../../../../f-themes/themes/theme_colors.dart';
 import '../../../../../../../../../f-themes/utilities/utilities.dart';
+import '../../../../../../../b-backend/api/user/user_services.dart';
 
 class GroupRoleList extends StatelessWidget {
   final GroupController? externalController;
@@ -23,7 +23,7 @@ class GroupRoleList extends StatelessWidget {
         final controller = externalController ?? controllerFromProvider;
 
         if (controller.userRoles.isEmpty) {
-          return const Text("No user roles available");
+          return Text(AppLocalizations.of(context)!.noUserRolesAvailable);
         }
 
         return RoundedSectionCard(

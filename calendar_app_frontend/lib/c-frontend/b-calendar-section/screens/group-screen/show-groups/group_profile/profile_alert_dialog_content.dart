@@ -1,30 +1,54 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
-import 'package:flutter/material.dart';
+import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Builds the content of a profile alert dialog for a group.
+///
+/// ✅ Features:
+/// - Displays group image, name, and creation date
+/// - Themed button to navigate to group calendar
+/// - Fully theme-aware for dark/light mode
 Widget buildProfileDialogContent(BuildContext context, Group group) {
+  final theme = Theme.of(context); // Access current theme
+  final textTheme = theme.textTheme;
+  final colorScheme = theme.colorScheme;
+
   return Column(
     mainAxisSize: MainAxisSize.min,
     children: [
+      // 🖼️ Group image
       CircleAvatar(
         radius: 30,
         backgroundImage: Utilities.buildProfileImage(group.photo),
       ),
       const SizedBox(height: 8),
+
+      // 📛 Group name
       Text(
         group.name,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        style: textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          color: colorScheme.onSurface, // Ensure contrast on dialogs
+        ),
       ),
       const SizedBox(height: 8),
+
+      // 📅 Creation date
       Text(
         '${group.createdTime.year}-${group.createdTime.month}-${group.createdTime.day}',
+        style: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurface.withOpacity(0.7),
+        ),
       ),
       const SizedBox(height: 15),
+
+      // 📆 Go to calendar button
       TextButton(
         onPressed: () {
           final groupManagement = Provider.of<GroupManagement>(
@@ -32,18 +56,23 @@ Widget buildProfileDialogContent(BuildContext context, Group group) {
             listen: false,
           );
           groupManagement.currentGroup = group;
+
           Navigator.pushNamed(
             context,
             AppRoutes.groupCalendar,
             arguments: group,
           );
         },
+
+        // 🎨 Custom button style (you could replace with theme-based styles too)
         style: ButtonStyles.saucyButtonStyle(
-          defaultBackgroundColor: const Color.fromARGB(255, 229, 117, 151),
-          pressedBackgroundColor: const Color.fromARGB(255, 227, 62, 98),
-          textColor: const Color.fromARGB(255, 26, 26, 26),
-          borderColor: const Color.fromARGB(255, 53, 10, 7),
+          defaultBackgroundColor: colorScheme.primaryContainer,
+          pressedBackgroundColor: colorScheme.primary,
+          textColor: colorScheme.onPrimaryContainer,
+          borderColor: colorScheme.primary,
         ),
+
+        // 📎 Button content
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

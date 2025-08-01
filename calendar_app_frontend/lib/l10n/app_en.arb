@@ -406,6 +406,7 @@
     "notificationEventReminderMessage": "Reminder: \"{eventTitle}\" is coming up soon.",
     "userDropdownSelect": "Select Users",
     "noUsersSelected": "No users selected.",
+    "noUserRolesAvailable": "No user roles available",
     "userExpandableCardTitle": "Select Users",
     "eventDetailsTitle": "Event Details",
     "eventTitleHint": "Title",

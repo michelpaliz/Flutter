@@ -2,8 +2,8 @@ import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/grou
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/create-group/search-bar/widgets/save_group_button.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/utils/shared/add_user_button.dart';
 import 'package:calendar_app_frontend/f-themes/shape/solid/solid_header.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -56,6 +56,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     return ChangeNotifierProvider<GroupController>.value(
       value: _controller,
       child: Scaffold(
+        backgroundColor:
+            Theme.of(context).colorScheme.surface, // or scaffoldBackgroundColor
         appBar: AppBar(title: Text(AppLocalizations.of(context)!.groupData)),
         body: Stack(
           children: [

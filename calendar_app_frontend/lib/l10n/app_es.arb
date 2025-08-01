@@ -254,7 +254,7 @@
       }
     }
   },
-  "editGroup": "Editar Grupo",
+  "editGroup": "Editar",
   "remove": "Eliminar",
   "confirm": "Confirmar",
   "cancel": "Cancelar",
@@ -404,6 +404,7 @@
   "notificationEventReminderMessage": "Recordatorio: \"{eventTitle}\" comienza pronto.",
   "userDropdownSelect": "Seleccionar usuarios",
   "noUsersSelected": "Ningún usuario seleccionado.",
+  "noUserRolesAvailable": "Ningun rol seleccionado para los usuarios",
   "userExpandableCardTitle": "Seleccionar usuarios",
   "eventDetailsTitle": "Detalles del evento",
   "eventTitleHint": "Título",
