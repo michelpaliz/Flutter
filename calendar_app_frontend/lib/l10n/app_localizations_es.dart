@@ -927,4 +927,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get notificationEventReminderManual => 'Notificación de prueba manual';
+
+  @override
+  String get categoryGroup => 'Grupo';
+
+  @override
+  String get categoryUser => 'Usuario';
+
+  @override
+  String get categorySystem => 'Sistema';
+
+  @override
+  String get categoryOther => 'Otro';
 }

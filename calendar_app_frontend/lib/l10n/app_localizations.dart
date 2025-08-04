@@ -1688,6 +1688,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manual Test Notification'**
   String get notificationEventReminderManual;
+
+  /// No description provided for @categoryGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get categoryGroup;
+
+  /// No description provided for @categoryUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get categoryUser;
+
+  /// No description provided for @categorySystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get categorySystem;
+
+  /// No description provided for @categoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get categoryOther;
 }
 
 class _AppLocalizationsDelegate

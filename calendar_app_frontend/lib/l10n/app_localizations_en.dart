@@ -919,4 +919,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationEventReminderManual => 'Manual Test Notification';
+
+  @override
+  String get categoryGroup => 'Group';
+
+  @override
+  String get categoryUser => 'User';
+
+  @override
+  String get categorySystem => 'System';
+
+  @override
+  String get categoryOther => 'Other';
 }

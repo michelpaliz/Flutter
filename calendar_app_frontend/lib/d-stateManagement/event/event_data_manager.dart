@@ -25,7 +25,7 @@ class EventDataManager {
   // Reactive mechanisms
   final ValueNotifier<List<Event>> eventsNotifier = ValueNotifier([]);
   final StreamController<List<Event>> _eventsController =
-      StreamController<List<Event>>.broadcast();
+      StreamController<List<Event>>.broadcast(); 
 
   void Function()? onExternalEventUpdate;
 

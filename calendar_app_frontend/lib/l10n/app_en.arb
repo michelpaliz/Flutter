@@ -504,5 +504,9 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "categoryGroup": "Group",
+    "categoryUser": "User",
+    "categorySystem": "System",
+    "categoryOther": "Other"
 }

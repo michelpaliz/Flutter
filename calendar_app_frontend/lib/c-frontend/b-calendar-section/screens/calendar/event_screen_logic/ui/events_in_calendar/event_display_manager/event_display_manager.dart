@@ -16,8 +16,8 @@ class EventDisplayManager {
   EventDisplayManager(
     EventActionManager? actionMgr, {
     required EventContentBuilder builder,
-  }) : _actionManager = actionMgr,
-       _builder = builder;
+  })  : _actionManager = actionMgr,
+        _builder = builder;
 
   void setEventActionManager(EventActionManager mgr) {
     _actionManager = mgr;

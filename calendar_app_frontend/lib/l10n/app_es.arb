@@ -502,5 +502,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "categoryGroup": "Grupo",
+  "categoryUser": "Usuario",
+  "categorySystem": "Sistema",
+  "categoryOther": "Otro"
 }

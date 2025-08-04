@@ -37,20 +37,19 @@ class _NotificationFilterBarState extends State<NotificationFilterBar> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: selected
-                    ? ThemeColors.getButtonBackgroundColor(context)
-                    : ThemeColors.getButtonBackgroundColor(context)
-                        .withOpacity(0.5),
-                foregroundColor: ThemeColors.getButtonTextColor(context),
-              ),
-              onPressed: () {
-                widget.onCategorySelected(
-                  selected ? null : cat,
-                );
-              },
-              child: Text(cat.toString().split('.').last.toUpperCase()),
-            ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selected
+                      ? ThemeColors.getButtonBackgroundColor(context)
+                      : ThemeColors.getButtonBackgroundColor(context)
+                          .withOpacity(0.5),
+                  foregroundColor: ThemeColors.getButtonTextColor(context),
+                ),
+                onPressed: () {
+                  widget.onCategorySelected(
+                    selected ? null : cat,
+                  );
+                },
+                child: Text(cat.localizedName(context))),
           );
         }).toList(),
       ),

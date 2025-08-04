@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
 
 enum BroadCategory { group, user, system, other }
 
 class BroadCategoryManager {
   BroadCategory? _selectedCategory;
-
-  // Define broader categories
 
   // Map existing categories to broader categories
   final Map<Category, BroadCategory> categoryMapping = {
@@ -18,7 +18,6 @@ class BroadCategoryManager {
     Category.systemAlert: BroadCategory.system,
     Category.systemUpdate: BroadCategory.system,
     Category.errorReport: BroadCategory.system,
-    // Everything else goes to "other"
     Category.eventReminder: BroadCategory.other,
     Category.taskUpdate: BroadCategory.other,
     Category.achievement: BroadCategory.other,
@@ -31,5 +30,22 @@ class BroadCategoryManager {
 
   void filterNotifications(BroadCategory? category) {
     _selectedCategory = category;
+  }
+}
+
+/// Extension to localize BroadCategory values
+extension BroadCategoryLocalization on BroadCategory {
+  String localizedName(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    switch (this) {
+      case BroadCategory.group:
+        return loc.categoryGroup;
+      case BroadCategory.user:
+        return loc.categoryUser;
+      case BroadCategory.system:
+        return loc.categorySystem;
+      case BroadCategory.other:
+        return loc.categoryOther;
+    }
   }
 }
