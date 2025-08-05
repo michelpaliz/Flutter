@@ -508,5 +508,11 @@
     "categoryGroup": "Group",
     "categoryUser": "User",
     "categorySystem": "System",
-    "categoryOther": "Other"
+    "categoryOther": "Other",
+    "passwordRecoveryTitle": "Password Recovery",
+    "passwordRecoveryInstruction": "Enter your account email or username to start password recovery:",
+    "emailOrUsername": "Email or Username",
+    "resetPassword": "Reset Password",
+    "passwordRecoveryEmptyField": "Please enter your email or username.",
+    "passwordRecoverySuccess": "A password reset request has been noted. Please contact support or check your account settings."
 }

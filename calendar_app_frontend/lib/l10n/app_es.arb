@@ -506,5 +506,11 @@
   "categoryGroup": "Grupo",
   "categoryUser": "Usuario",
   "categorySystem": "Sistema",
-  "categoryOther": "Otro"
+  "categoryOther": "Otro",
+  "passwordRecoveryTitle": "Recuperación de contraseña",
+  "passwordRecoveryInstruction": "Introduce tu correo electrónico o nombre de usuario para iniciar la recuperación de contraseña:",
+  "emailOrUsername": "Correo electrónico o nombre de usuario",
+  "resetPassword": "Restablecer contraseña",
+  "passwordRecoveryEmptyField": "Por favor, introduce tu correo electrónico o nombre de usuario.",
+  "passwordRecoverySuccess": "Se ha recibido una solicitud para restablecer la contraseña. Contacta con soporte o revisa la configuración de tu cuenta."
 }

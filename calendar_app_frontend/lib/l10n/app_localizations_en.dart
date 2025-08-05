@@ -931,4 +931,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryOther => 'Other';
+
+  @override
+  String get passwordRecoveryTitle => 'Password Recovery';
+
+  @override
+  String get passwordRecoveryInstruction =>
+      'Enter your account email or username to start password recovery:';
+
+  @override
+  String get emailOrUsername => 'Email or Username';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get passwordRecoveryEmptyField =>
+      'Please enter your email or username.';
+
+  @override
+  String get passwordRecoverySuccess =>
+      'A password reset request has been noted. Please contact support or check your account settings.';
 }

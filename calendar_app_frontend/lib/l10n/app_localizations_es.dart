@@ -939,4 +939,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get categoryOther => 'Otro';
+
+  @override
+  String get passwordRecoveryTitle => 'Recuperación de contraseña';
+
+  @override
+  String get passwordRecoveryInstruction =>
+      'Introduce tu correo electrónico o nombre de usuario para iniciar la recuperación de contraseña:';
+
+  @override
+  String get emailOrUsername => 'Correo electrónico o nombre de usuario';
+
+  @override
+  String get resetPassword => 'Restablecer contraseña';
+
+  @override
+  String get passwordRecoveryEmptyField =>
+      'Por favor, introduce tu correo electrónico o nombre de usuario.';
+
+  @override
+  String get passwordRecoverySuccess =>
+      'Se ha recibido una solicitud para restablecer la contraseña. Contacta con soporte o revisa la configuración de tu cuenta.';
 }

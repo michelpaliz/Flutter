@@ -9,9 +9,9 @@ import 'package:calendar_app_frontend/f-themes/palette/color_properties.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
     show TextFieldStyles;
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'register_controller.dart';
@@ -178,7 +178,10 @@ Widget buildLoginButton(BuildContext context) {
         children: [
           TextSpan(
             text: AppLocalizations.of(context)!.alreadyRegistered,
-            style: const TextStyle(color: Colors.black, fontSize: 16),
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontSize: 16,
+            ),
           ),
           TextSpan(
             text: AppLocalizations.of(context)!.login,

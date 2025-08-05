@@ -1,3 +1,4 @@
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class PasswordRecoveryScreen extends StatefulWidget {
@@ -10,17 +11,18 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
   String _message = '';
 
   Future<void> _resetPassword() async {
+    final loc = AppLocalizations.of(context)!;
+
     if (_emailController.text.trim().isEmpty) {
       setState(() {
-        _message = 'Please enter your email or username.';
+        _message = loc.passwordRecoveryEmptyField;
       });
       return;
     }
 
     // Simulated "reset" action
     setState(() {
-      _message =
-          'A password reset request has been noted. Please contact support or check your account settings.';
+      _message = loc.passwordRecoverySuccess;
     });
 
     // TODO: Connect this to your backend when ready
@@ -34,9 +36,11 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Password Recovery'),
+        title: Text(loc.passwordRecoveryTitle),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -44,21 +48,21 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Enter your account email or username to start password recovery:',
+              loc.passwordRecoveryInstruction,
               style: TextStyle(fontSize: 16.0),
             ),
             SizedBox(height: 16.0),
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
-                labelText: 'Email or Username',
+                labelText: loc.emailOrUsername,
                 border: OutlineInputBorder(),
               ),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _resetPassword,
-              child: Text('Reset Password'),
+              child: Text(loc.resetPassword),
             ),
             SizedBox(height: 16.0),
             Text(

@@ -1,10 +1,8 @@
-// lib/d-stateManagement/locale_provider.dart
-
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 
 class LocaleProvider extends ChangeNotifier {
-  Locale _locale = const Locale('en');
+  Locale _locale = const Locale('es'); // ✅ Default is now Spanish
 
   Locale get locale => _locale;
 
@@ -15,7 +13,7 @@ class LocaleProvider extends ChangeNotifier {
   }
 
   void clearLocale() {
-    _locale = const Locale('en');
+    _locale = const Locale('es'); // ✅ Also reset to Spanish
     notifyListeners();
   }
 }

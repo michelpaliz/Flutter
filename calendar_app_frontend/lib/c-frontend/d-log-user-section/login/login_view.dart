@@ -143,7 +143,12 @@ class _LoginViewState extends State<LoginView> {
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.registerRoute);
               },
-              child: Text(AppLocalizations.of(context)!.notRegistered),
+              child: Text(
+                AppLocalizations.of(context)!.notRegistered,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
             ),
           ],
         ),

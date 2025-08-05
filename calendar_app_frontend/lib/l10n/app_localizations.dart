@@ -1712,6 +1712,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get categoryOther;
+
+  /// No description provided for @passwordRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Recovery'**
+  String get passwordRecoveryTitle;
+
+  /// No description provided for @passwordRecoveryInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your account email or username to start password recovery:'**
+  String get passwordRecoveryInstruction;
+
+  /// No description provided for @emailOrUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or Username'**
+  String get emailOrUsername;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @passwordRecoveryEmptyField.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email or username.'**
+  String get passwordRecoveryEmptyField;
+
+  /// No description provided for @passwordRecoverySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'A password reset request has been noted. Please contact support or check your account settings.'**
+  String get passwordRecoverySuccess;
 }
 
 class _AppLocalizationsDelegate
