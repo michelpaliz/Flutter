@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import '../../../a-models/notification_model/notification_user.dart'; // Update this import based on your file structure
 
 class NotificationService {
-  final String baseUrl = '${ApiConstants.baseUrl}/events';
+   final String baseUrl = '${ApiConstants.baseUrl}/notifications';
+
 
   Future<List<NotificationUser>> getAllNotifications() async {
     final response = await http.get(Uri.parse('$baseUrl/'));

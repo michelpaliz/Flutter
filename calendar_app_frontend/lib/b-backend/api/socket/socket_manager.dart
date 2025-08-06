@@ -1,3 +1,4 @@
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketManager {
@@ -11,9 +12,33 @@ class SocketManager {
 
   SocketManager._internal();
 
-  /// Connect to socket server with user token
+  // /// Connect to socket server with user token
+  // void connect(String userToken) {
+  //   socket = IO.io('http://192.168.1.16:3000', <String, dynamic>{
+  //     'transports': ['websocket'],
+  //     'autoConnect': true,
+  //     'extraHeaders': {
+  //       'Authorization': 'Bearer $userToken',
+  //     }
+  //   });
+
+  //   socket.onConnect((_) {
+  //     print("✅ Socket connected");
+
+  //     // Optional: debug log all events
+  //     socket.onAny((event, data) {
+  //       print("📥 Received event: $event with data: $data");
+  //     });
+  //   });
+
+  //   socket.onDisconnect((_) => print("🔌 Socket disconnected"));
+  //   socket.onError((err) => print("❌ Socket error: $err"));
+  // }
+
   void connect(String userToken) {
-    socket = IO.io('http://192.168.1.16:3000', <String, dynamic>{
+    final socketUrl = ApiConstants.baseUrl.replaceFirst('/api', '');
+
+    socket = IO.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'extraHeaders': {

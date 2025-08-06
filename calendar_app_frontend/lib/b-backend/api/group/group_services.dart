@@ -8,7 +8,7 @@ import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
-  final String baseUrl = '${ApiConstants.baseUrl}/events';
+  final String baseUrl = '${ApiConstants.baseUrl}/groups';
 
   Future<Map<String, String>> _authHeaders() async {
     final token = await TokenStorage.loadToken();
@@ -139,8 +139,7 @@ class GroupService {
 
   // Get a calendar by its ID
   Future<Calendar> getCalendarById(String calendarId) async {
-    final String calendarUrl =
-        'http://192.168.1.16:3000/api/calendars/$calendarId'; // URL for calendar API
+    final String calendarUrl = '${ApiConstants.baseUrl}/calendars/$calendarId';
 
     final response = await http.get(Uri.parse(calendarUrl));
 

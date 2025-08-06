@@ -1,10 +1,13 @@
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 late IO.Socket notificationSocket;
 
 void initializeNotificationSocket(String userId) {
-  notificationSocket = IO.io('http://192.168.1.16:3000', <String, dynamic>{
+  final socketUrl = ApiConstants.baseUrl.replaceFirst('/api', '');
+
+  notificationSocket = IO.io(socketUrl, <String, dynamic>{
     'transports': ['websocket'],
     'autoConnect': false,
     'query': {'userId': userId},

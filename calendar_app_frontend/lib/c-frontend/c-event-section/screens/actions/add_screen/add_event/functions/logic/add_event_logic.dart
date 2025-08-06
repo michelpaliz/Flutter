@@ -74,50 +74,6 @@ abstract class AddEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
-  // Future<bool> addEvent(BuildContext context) async {
-  //   devtools.log("🚀 [addEvent] called");
-
-  //   if (!validateTitle(context, titleController)) return false;
-
-  //   if (!validateRecurrence(
-  //     recurrenceRule: recurrenceRule,
-  //     selectedStartDate: selectedStartDate,
-  //   )) return false;
-
-  //   final newEvent = buildNewEvent(
-  //     id: Utilities.generateRandomId(10),
-  //     startDate: selectedStartDate,
-  //     endDate: selectedEndDate,
-  //     title: titleController.text.trim(),
-  //     groupId: _group.id,
-  //     calendarId: _group.calendar.id,
-  //     recurrenceRule: recurrenceRule,
-  //     location: locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
-  //     description: descriptionController.text,
-  //     eventColorIndex: ColorManager().getColorIndex(Color(selectedEventColor!)),
-  //     recipients: selectedUsers.map((u) => u.id).toList(),
-  //     ownerId: user.id,
-  //   );
-
-  //   try {
-  //     final createdEvent = await _eventDataManager.createEvent(context,newEvent);
-
-  //     await hydrateRecurrenceRuleIfNeeded(
-  //       groupManagement: groupManagement,
-  //       rawRuleId: createdEvent.rawRuleId,
-  //     );
-
-  //     await _postCreationActions(createdEvent);
-
-  //     devtools.log("🎉 [addEvent] Success");
-  //     return true;
-  //   } catch (e, stack) {
-  //     devtools.log('💥 [addEvent] Exception: $e\n$stack');
-  //     return false;
-  //   } finally {
-  //     devtools.log("🏁 [addEvent] Finished execution");
-  //   }
-  // }
 
   Future<bool> addEvent(BuildContext context) async {
     devtools.log("🚀 [addEvent] called");

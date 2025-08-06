@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:dio/dio.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  final String baseUrl =
-      'http://192.168.1.16:3000/api/users'; // Your server URL
+ final String baseUrl = '${ApiConstants.baseUrl}/users';
+
 
   // Modify createUser to accept a User object and return User
   Future<User> createUser(User user) async {
