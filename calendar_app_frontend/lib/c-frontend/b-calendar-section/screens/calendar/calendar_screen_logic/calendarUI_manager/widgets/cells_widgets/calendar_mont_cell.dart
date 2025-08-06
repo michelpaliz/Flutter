@@ -30,13 +30,25 @@ Widget buildMonthCell({
   final textColor =
       Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
   final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  // final cellColor = isSelected
+  //     ? (isDarkMode ? Colors.blue[700] : Colors.blue[300])
+  //     : Colors.transparent;
+  final isWeekend = details.date.weekday == DateTime.saturday ||
+      details.date.weekday == DateTime.sunday;
+
   final cellColor = isSelected
       ? (isDarkMode ? Colors.blue[700] : Colors.blue[300])
-      : Colors.transparent;
+      : isWeekend
+          ? (isDarkMode
+              ? Colors.teal[900]?.withOpacity(0.3)
+              : Colors.teal[100]?.withOpacity(0.6))
+          : Colors.transparent;
 
   return LayoutBuilder(
     builder: (context, constraints) {
       final isCompact = constraints.maxHeight < 56;
+      final isWeekend = details.date.weekday == DateTime.saturday ||
+          details.date.weekday == DateTime.sunday;
 
       return Container(
         margin: const EdgeInsets.all(1.5),
@@ -71,7 +83,12 @@ Widget buildMonthCell({
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : textColor,
+                // color: isSelected ? Colors.white : textColor,
+                color: isSelected
+                    ? Colors.white
+                    : isWeekend
+                        ? (isDarkMode ? Colors.teal[100] : Colors.teal[900])
+                        : (isDarkMode ? Colors.white : Colors.black87),
               ),
             ),
             if (eventsForDay.isNotEmpty)

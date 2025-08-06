@@ -73,7 +73,7 @@ class _EventFormState extends State<EventForm> {
   }
 
   @override
-    Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     return Column(
@@ -151,38 +151,73 @@ class _EventFormState extends State<EventForm> {
         UserExpandableCard(
           usersAvailable: widget.logic.users,
           initiallySelected: widget.logic.selectedUsers,
-          onSelectedUsersChanged: widget.logic.setSelectedUsers,
+          onSelectedUsersChanged: (selected) {
+            widget.logic.setSelectedUsers(selected);
+            setState(
+                () {}); // ← THIS triggers the form to re-evaluate isFormValid()
+          },
         ),
+
         const SizedBox(height: 25),
 
         /// ── SUBMIT BUTTON ──────────────────────────────────────────────────
+        // Center(
+        //   child: ElevatedButton(
+        //       child: Text(widget.isEditing ? loc.save : loc.addEvent),
+        //       onPressed: () async {
+        //         if (widget.isEditing) {
+        //           widget.logic.setReminderMinutes(
+        //               _reminder ?? kDefaultReminderMinutes); // ← add this line
+        //           await withLoadingDialog(
+        //             context,
+        //             widget.onSubmit,
+        //             message: loc.saveChangesMessage,
+        //           );
+        //         } else {
+        //           widget.logic.setReminderMinutes(
+        //               _reminder ?? kDefaultReminderMinutes); // ← also here
+        //           final ok = await withLoadingDialog(
+        //             context,
+        //             () => widget.logic.addEvent(context),
+        //             message: loc.createEventMessage,
+        //           );
+        //           if (ok == true) {
+        //             Navigator.pop(context, true);
+        //           } else {
+        //             widget.dialogs?.showErrorDialog(context);
+        //           }
+        //         }
+        //       }),
+        // ),
         Center(
           child: ElevatedButton(
-              child: Text(widget.isEditing ? loc.save : loc.addEvent),
-              onPressed: () async {
-                if (widget.isEditing) {
-                  widget.logic.setReminderMinutes(
-                      _reminder ?? kDefaultReminderMinutes); // ← add this line
-                  await withLoadingDialog(
-                    context,
-                    widget.onSubmit,
-                    message: loc.saveChangesMessage,
-                  );
-                } else {
-                  widget.logic.setReminderMinutes(
-                      _reminder ?? kDefaultReminderMinutes); // ← also here
-                  final ok = await withLoadingDialog(
-                    context,
-                    () => widget.logic.addEvent(context),
-                    message: loc.createEventMessage,
-                  );
-                  if (ok == true) {
-                    Navigator.pop(context, true);
-                  } else {
-                    widget.dialogs?.showErrorDialog(context);
+            onPressed: widget.logic.isFormValid()
+                ? () async {
+                    widget.logic.setReminderMinutes(
+                        _reminder ?? kDefaultReminderMinutes);
+
+                    if (widget.isEditing) {
+                      await withLoadingDialog(
+                        context,
+                        widget.onSubmit,
+                        message: loc.saveChangesMessage,
+                      );
+                    } else {
+                      final ok = await withLoadingDialog(
+                        context,
+                        () => widget.logic.addEvent(context),
+                        message: loc.createEventMessage,
+                      );
+                      if (ok == true) {
+                        Navigator.pop(context, true);
+                      } else {
+                        widget.dialogs?.showErrorDialog(context);
+                      }
+                    }
                   }
-                }
-              }),
+                : null, // disables the button if form is invalid
+            child: Text(widget.isEditing ? loc.save : loc.addEvent),
+          ),
         ),
       ],
     );

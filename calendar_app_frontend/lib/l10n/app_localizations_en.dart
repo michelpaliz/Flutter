@@ -952,4 +952,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passwordRecoverySuccess =>
       'A password reset request has been noted. Please contact support or check your account settings.';
+
+  @override
+  String get endDateMustBeAfterStartDate =>
+      'End date must be after the start date';
+
+  @override
+  String get pleaseSelectAtLeastOneUser => 'Please select at least one user';
 }

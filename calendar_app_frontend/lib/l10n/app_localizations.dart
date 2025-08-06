@@ -1748,6 +1748,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A password reset request has been noted. Please contact support or check your account settings.'**
   String get passwordRecoverySuccess;
+
+  /// No description provided for @endDateMustBeAfterStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End date must be after the start date'**
+  String get endDateMustBeAfterStartDate;
+
+  /// No description provided for @pleaseSelectAtLeastOneUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one user'**
+  String get pleaseSelectAtLeastOneUser;
 }
 
 class _AppLocalizationsDelegate

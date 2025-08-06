@@ -1,7 +1,7 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
@@ -101,6 +101,12 @@ class GroupController extends ChangeNotifier {
         SnackBar(content: Text(message)),
       );
     }
+  }
+
+
+  bool hasAtLeastOneUser() {
+    // Make sure the current user is still there and that there's at least one user (typically more than 0)
+    return userRoles.isNotEmpty;
   }
 
   // Save the group data

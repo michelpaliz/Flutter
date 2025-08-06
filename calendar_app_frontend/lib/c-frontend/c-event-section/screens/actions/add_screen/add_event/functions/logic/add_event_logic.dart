@@ -3,18 +3,19 @@ import 'dart:developer' as devtools show log;
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../../../../a-models/group_model/group/group.dart';
-import '../../../../../../../../a-models/user_model/user.dart';
-import '../../../../../../../../b-backend/api/user/user_services.dart';
-import '../../../../../../../../d-stateManagement/group/group_management.dart';
-import '../../../../../../../../d-stateManagement/notification/notification_management.dart';
-import '../../../../../../../../d-stateManagement/user/user_management.dart';
-import '../../../../../../../../f-themes/utilities/utilities.dart';
-import '../../../../../../utils/color_manager.dart';
+import '../../../../../../../../../a-models/group_model/group/group.dart';
+import '../../../../../../../../../a-models/user_model/user.dart';
+import '../../../../../../../../../b-backend/api/user/user_services.dart';
+import '../../../../../../../../../d-stateManagement/group/group_management.dart';
+import '../../../../../../../../../d-stateManagement/notification/notification_management.dart';
+import '../../../../../../../../../d-stateManagement/user/user_management.dart';
+import '../../../../../../../../../f-themes/utilities/utilities.dart';
 
 abstract class AddEventLogic<T extends StatefulWidget>
     extends BaseEventLogic<T> {
@@ -73,6 +74,51 @@ abstract class AddEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
+  // Future<bool> addEvent(BuildContext context) async {
+  //   devtools.log("🚀 [addEvent] called");
+
+  //   if (!validateTitle(context, titleController)) return false;
+
+  //   if (!validateRecurrence(
+  //     recurrenceRule: recurrenceRule,
+  //     selectedStartDate: selectedStartDate,
+  //   )) return false;
+
+  //   final newEvent = buildNewEvent(
+  //     id: Utilities.generateRandomId(10),
+  //     startDate: selectedStartDate,
+  //     endDate: selectedEndDate,
+  //     title: titleController.text.trim(),
+  //     groupId: _group.id,
+  //     calendarId: _group.calendar.id,
+  //     recurrenceRule: recurrenceRule,
+  //     location: locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
+  //     description: descriptionController.text,
+  //     eventColorIndex: ColorManager().getColorIndex(Color(selectedEventColor!)),
+  //     recipients: selectedUsers.map((u) => u.id).toList(),
+  //     ownerId: user.id,
+  //   );
+
+  //   try {
+  //     final createdEvent = await _eventDataManager.createEvent(context,newEvent);
+
+  //     await hydrateRecurrenceRuleIfNeeded(
+  //       groupManagement: groupManagement,
+  //       rawRuleId: createdEvent.rawRuleId,
+  //     );
+
+  //     await _postCreationActions(createdEvent);
+
+  //     devtools.log("🎉 [addEvent] Success");
+  //     return true;
+  //   } catch (e, stack) {
+  //     devtools.log('💥 [addEvent] Exception: $e\n$stack');
+  //     return false;
+  //   } finally {
+  //     devtools.log("🏁 [addEvent] Finished execution");
+  //   }
+  // }
+
   Future<bool> addEvent(BuildContext context) async {
     devtools.log("🚀 [addEvent] called");
 
@@ -82,6 +128,20 @@ abstract class AddEventLogic<T extends StatefulWidget>
       recurrenceRule: recurrenceRule,
       selectedStartDate: selectedStartDate,
     )) return false;
+
+    // ✅ Validate at least one user is selected using SnackBar
+    if (selectedUsers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.pleaseSelectAtLeastOneUser,
+          ),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return false;
+    }
 
     final newEvent = buildNewEvent(
       id: Utilities.generateRandomId(10),
@@ -99,7 +159,8 @@ abstract class AddEventLogic<T extends StatefulWidget>
     );
 
     try {
-      final createdEvent = await _eventDataManager.createEvent(context,newEvent);
+      final createdEvent =
+          await _eventDataManager.createEvent(context, newEvent);
 
       await hydrateRecurrenceRuleIfNeeded(
         groupManagement: groupManagement,

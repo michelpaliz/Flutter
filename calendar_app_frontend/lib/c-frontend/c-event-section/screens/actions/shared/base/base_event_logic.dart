@@ -107,13 +107,6 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
 
       if (pickedTime != null) {
         final combined = DateTime(
-
-
-
-
-
-
-          
           pickedDate.year,
           pickedDate.month,
           pickedDate.day,
@@ -140,4 +133,12 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   }
 
   int get reminderMinutes => _reminderMinutes;
+
+  @protected
+  bool isFormValid() {
+    return titleController.text.trim().isNotEmpty &&
+        selectedUsers.isNotEmpty &&
+        (selectedStartDate.isBefore(selectedEndDate) ||
+            selectedStartDate.isAtSameMomentAs(selectedEndDate));
+  }
 }

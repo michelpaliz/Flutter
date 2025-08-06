@@ -514,5 +514,7 @@
     "emailOrUsername": "Email or Username",
     "resetPassword": "Reset Password",
     "passwordRecoveryEmptyField": "Please enter your email or username.",
-    "passwordRecoverySuccess": "A password reset request has been noted. Please contact support or check your account settings."
+    "passwordRecoverySuccess": "A password reset request has been noted. Please contact support or check your account settings.",
+    "endDateMustBeAfterStartDate": "End date must be after the start date",
+    "pleaseSelectAtLeastOneUser": "Please select at least one user"
 }

@@ -9,7 +9,7 @@ import '../../../../../../../d-stateManagement/group/group_management.dart';
 import '../../../../../../../d-stateManagement/notification/notification_management.dart';
 import '../../../../../../../d-stateManagement/user/user_management.dart';
 import '../functions/add_event_dialogs.dart';
-import '../functions/add_event_logic.dart';
+import '../functions/logic/add_event_logic.dart';
 
 class AddEventScreen extends StatefulWidget {
   final Group group;
@@ -41,11 +41,16 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
     }
   }
 
+  //
   Future<void> _initializeLogic() async {
     try {
       await initializeLogic(widget.group, context);
+
+      // ✅ Add this after logic is ready
+      titleController.addListener(() {
+        if (mounted) setState(() {});
+      });
     } catch (e, s) {
-      // Log & surface the problem instead of freezing on spinner
       debugPrint('AddEventScreen init failed: $e\n$s');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -512,5 +512,7 @@
   "emailOrUsername": "Correo electrónico o nombre de usuario",
   "resetPassword": "Restablecer contraseña",
   "passwordRecoveryEmptyField": "Por favor, introduce tu correo electrónico o nombre de usuario.",
-  "passwordRecoverySuccess": "Se ha recibido una solicitud para restablecer la contraseña. Contacta con soporte o revisa la configuración de tu cuenta."
+  "passwordRecoverySuccess": "Se ha recibido una solicitud para restablecer la contraseña. Contacta con soporte o revisa la configuración de tu cuenta.",
+  "endDateMustBeAfterStartDate": "La fecha de finalización debe ser posterior a la fecha de inicio",
+  "pleaseSelectAtLeastOneUser": "Por favor, selecciona al menos un usuario"
 }

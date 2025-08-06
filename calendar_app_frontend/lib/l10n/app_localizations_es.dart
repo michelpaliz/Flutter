@@ -960,4 +960,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get passwordRecoverySuccess =>
       'Se ha recibido una solicitud para restablecer la contraseña. Contacta con soporte o revisa la configuración de tu cuenta.';
+
+  @override
+  String get endDateMustBeAfterStartDate =>
+      'La fecha de finalización debe ser posterior a la fecha de inicio';
+
+  @override
+  String get pleaseSelectAtLeastOneUser =>
+      'Por favor, selecciona al menos un usuario';
 }

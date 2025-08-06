@@ -8,6 +8,7 @@ import 'package:calendar_app_frontend/c-frontend/c-event-section/utils/color_man
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 abstract class EditEventLogic<T extends StatefulWidget>
@@ -79,17 +80,41 @@ abstract class EditEventLogic<T extends StatefulWidget>
   }
 
   Future<void> saveEditedEvent(EventDataManager read) async {
-    // final eventDataManager = context.read<EventDataManager>();
+    final loc = AppLocalizations.of(context)!;
     final eventDataManager = read;
 
-    // ✅ Add this line for debugging before creating the updated event
-    debugPrint(
-        "Saving event with start: $selectedStartDate, end: $selectedEndDate");
+    // 🔒 Validate required title
+    if (titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.requiredTextFields),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
 
-    debugPrint("📅 selectedEndDate (local): $selectedEndDate");
-    debugPrint("📅 selectedEndDate (UTC): ${selectedEndDate.toUtc()}");
-    debugPrint(
-        "📅 selectedEndDate.toIso8601String(): ${selectedEndDate.toIso8601String()}");
+    // 🔒 Validate at least one participant
+    if (selectedUsers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.pleaseSelectAtLeastOneUser),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    // 🔒 Validate start and end date
+    if (selectedEndDate.isBefore(selectedStartDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.endDateMustBeAfterStartDate),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
 
     final updated = Event(
       id: _event.id,
@@ -108,25 +133,14 @@ abstract class EditEventLogic<T extends StatefulWidget>
       reminderTime: reminderMinutes,
     );
 
-    await eventDataManager.updateEvent(context, updated); // ✅ Syncs with state + backend
-
-    // // 🔁 Pull latest version from backend (if someone else also edited)
-    // await eventDataManager.manualRefresh();
-
-    // ✅ Notify calendar to refresh visuals
+    await eventDataManager.updateEvent(context, updated);
 
     if (eventDataManager.onExternalEventUpdate != null) {
-      debugPrint(
-        "🔍 EventDataManager hash: ${identityHashCode(eventDataManager)}",
-      );
-
       debugPrint("🔁 Triggering calendar refresh from EditEventLogic...");
       eventDataManager.onExternalEventUpdate!.call();
     } else {
-      //  This ensures that at least the data updates, even if the UI doesn't automatically reflect it.
       debugPrint(
-        "⚠️ onExternalEventUpdate is null — triggering manual refresh.",
-      );
+          "⚠️ onExternalEventUpdate is null — triggering manual refresh.");
       await eventDataManager.manualRefresh(context);
     }
 
