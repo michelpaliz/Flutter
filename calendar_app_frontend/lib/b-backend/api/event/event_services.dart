@@ -3,13 +3,15 @@ import 'dart:developer' as devtools show log;
 
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/string_utils.dart';
 import 'package:calendar_app_frontend/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class EventService {
-  final String baseUrl = 'http://192.168.1.16:3000/api/events';
+  final String baseUrl = '${ApiConstants.baseUrl}/events';
+
   final RecurrenceRuleService _ruleService;
 
   Event? _event;

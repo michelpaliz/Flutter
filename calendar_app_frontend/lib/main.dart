@@ -67,52 +67,6 @@ void main() async {
         // 4. API services
         Provider(create: (_) => EventService()),
 
-        // 5. Safe EventDataManager
-        // ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
-        //     EventDataManager>(
-        //   create: (_) {
-        //     final groupMgmt = _.read<GroupManagement>();
-        //     final currentGroup = groupMgmt.currentGroup;
-
-        //     if (currentGroup == null) {
-        //       throw UnimplementedError(
-        //         'EventDataManager should not be created until currentGroup is available.',
-        //       );
-        //     }
-
-        //     final edm = EventDataManager(
-        //       [],
-        //       group: currentGroup,
-        //       eventService: _.read<EventService>(),
-        //       groupManagement: groupMgmt,
-        //       resolver: _.read<GroupEventResolver>(),
-        //     );
-
-        //     edm.onExternalEventUpdate = () {
-        //       debugPrint("⚠️ Default fallback: no calendar UI registered.");
-        //     };
-
-        //     return edm;
-        //   },
-        //   update: (ctx, groupMgmt, eventSvc, resolver, previous) {
-        //     final current = groupMgmt.currentGroup;
-        //     if (current == null) return previous!;
-
-        //     final edm = EventDataManager(
-        //       previous?.baseEvents ?? [],
-        //       group: current,
-        //       eventService: eventSvc,
-        //       groupManagement: groupMgmt,
-        //       resolver: resolver,
-        //     );
-
-        //     edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??
-        //         () => debugPrint(
-        //             "⚠️ Default fallback: no calendar UI registered.");
-
-        //     return edm;
-        //   },
-        // ),
         ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
             EventDataManager>(
           create: (ctx) {

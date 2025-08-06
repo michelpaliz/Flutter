@@ -3,10 +3,12 @@ import 'dart:developer' as devtools show log;
 
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:http/http.dart' as http;
 
 class RecurrenceRuleService {
-  final String _baseUrl = 'http://192.168.1.16:3000/api/recurrence-rules';
+   final String _baseUrl = '${ApiConstants.baseUrl}/events';
+
 
   Future<Map<String, String>> _authHeaders() async {
     final token = await TokenStorage.loadToken();

@@ -4,11 +4,11 @@ import 'dart:developer' as devtools show log;
 import 'package:calendar_app_frontend/a-models/group_model/calendar/calendar.dart';
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
-  final String baseUrl =
-      'http://192.168.1.16:3000/api/groups'; // Your server URL
+  final String baseUrl = '${ApiConstants.baseUrl}/events';
 
   Future<Map<String, String>> _authHeaders() async {
     final token = await TokenStorage.loadToken();
