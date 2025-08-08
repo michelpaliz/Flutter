@@ -1,5 +1,6 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/invited-user/group_role_extension.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 
@@ -34,8 +35,8 @@ class GroupController {
   }
 
   static bool hasPermissions(User user, Group group) {
-    final role = getRole(user, group.userRoles);
-    return role == "Administrator" || role == "Co-Administrator";
+    final role = group.getRoleForUser(user);
+    return ['Administrator', 'Co-Administrator', 'Owner'].contains(role);
   }
 
   static Future<bool> removeGroup({

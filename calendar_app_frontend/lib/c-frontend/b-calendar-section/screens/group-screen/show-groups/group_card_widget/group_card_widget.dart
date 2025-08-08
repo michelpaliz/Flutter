@@ -1,5 +1,6 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/invited-user/group_role_extension.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/show-groups/group_profile/profile_alert_dialog.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
@@ -25,8 +26,9 @@ Widget buildGroupCard(
   GroupManagement groupManagement,
   void Function(String?) updateRole,
 ) {
-  final role = group.userRoles[currentUser?.userName] ?? 'Member';
-  final canEdit = role != 'Member'; // Only non-Members can edit the group
+  final role = group.getRoleForUser(currentUser!);
+  final canEdit =
+      role == 'Owner' || role == 'Administrator' || role == 'Co-Administrator';
 
   return StatefulBuilder(
     builder: (context, setState) {

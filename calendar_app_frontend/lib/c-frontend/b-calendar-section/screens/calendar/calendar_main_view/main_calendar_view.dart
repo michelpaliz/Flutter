@@ -2,6 +2,7 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/app_screen_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_main_view/add_event_button.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_main_view/utils/group_permissions_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_ui_controller.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/actions/event_actions_manager.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/calendar/event_screen_logic/ui/events_in_calendar/event_display_manager/event_display_manager.dart';
@@ -51,12 +52,6 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
     _initializeManagers();
     _loadData();
   }
-
-  // void _initializeManagers() {
-  //   final colorManager = ColorManager();
-  //   final contentBuilder = EventContentBuilder(colorManager: colorManager);
-  //   _displayManager = EventDisplayManager(null, contentBuilder: contentBuilder);
-  // }
 
   void _initializeManagers() {
     final colorManager = ColorManager();
@@ -205,89 +200,80 @@ class _MainCalendarViewState extends AddEventLogic<MainCalendarView> {
   /// The calendar is built using the [_calendarUIController], which is
   /// initialized in [_initializeCalendar].
   ///
+
   @override
   Widget build(BuildContext context) {
     _screenManager.setScreenWidthAndCalendarHeight(context);
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     final groupManagement = context.read<GroupManagement>();
-    if (groupManagement.currentGroup == null) {
-      return const Scaffold(body: Center(child: Text("No group available")));
+    final currentUser = context.read<UserManagement>().user;
+    final currentGroup = groupManagement.currentGroup;
+
+    if (currentUser == null || currentGroup == null) {
+      return const Scaffold(
+        body: Center(child: Text("No group available")),
+      );
     }
 
-    final currentGroup = groupManagement.currentGroup!;
-    final userRole = currentGroup
-            .userRoles[context.read<UserManagement>().user?.userName ?? ''] ??
-        'Member';
+    final canAddEvents =
+        GroupPermissionHelper.canAddEvents(currentUser, currentGroup);
 
     return Scaffold(
-      backgroundColor:
-          Theme.of(context).scaffoldBackgroundColor, // ✅ Recommended
-
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: Text(currentGroup.name)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Column(
             children: [
-              /// ✅ ADD THE AVATAR STATUS WIDGET HERE
-              Consumer<PresenceManager>(
-                builder: (context, presenceManager, _) {
-                  final group = context.read<GroupManagement>().currentGroup;
-                  if (group == null) return const SizedBox();
-
-                  final roleMap = {
-                    ...group
-                        .userRoles, // Comes from `userRoles: { michelp: 'Administrator' }`
-                    ...?group.invitedUsers?.map(
-                      (key, value) => MapEntry(key, value.role),
-                    ),
-                  };
-
-                  final connectedUsers = presenceManager.getPresenceForGroup(
-                    group.userIds,
-                    roleMap,
-                  );
-
-                  return UserStatusRow(userList: connectedUsers);
-                },
-              ),
-              SizedBox(height: 10),
-              // Calendar expands to fill available space
+              _buildUserPresenceStatus(context, currentGroup),
+              const SizedBox(height: 10),
               Expanded(
-                child: _calendarUIController?.buildCalendar(
-                      context,
-                      // height: double.infinity,
-                      // width: double.infinity,
-                    ) ??
+                child: _calendarUIController?.buildCalendar(context) ??
                     const SizedBox(),
               ),
-
-              // Add Event button at bottom
-              if (userRole == 'Administrator' || userRole == 'Co-Administrator')
-                AddEventButton(
-                  isVisible: true,
-                  onPressed: () async {
-                    final added = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (_) => AddEventScreen(group: currentGroup),
-                      ),
-                    );
-                    if (added == true) {
-                      setState(() => _isLoading = true);
-                      await _initializeCalendar(
-                        context.read<GroupManagement>(),
-                      );
-                    }
-                  },
-                ),
+              if (canAddEvents) _buildAddEventButton(context, currentGroup),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildUserPresenceStatus(BuildContext context, Group group) {
+    final presenceManager = context.read<PresenceManager>();
+
+    final roleMap = {
+      ...group.userRoles,
+      ...?group.invitedUsers?.map((key, value) => MapEntry(key, value.role)),
+    };
+
+    final connectedUsers = presenceManager.getPresenceForGroup(
+      group.userIds,
+      roleMap,
+    );
+
+    return UserStatusRow(userList: connectedUsers);
+  }
+
+  Widget _buildAddEventButton(BuildContext context, Group group) {
+    return AddEventButton(
+      isVisible: true,
+      onPressed: () async {
+        final added = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(builder: (_) => AddEventScreen(group: group)),
+        );
+        if (added == true) {
+          setState(() => _isLoading = true);
+          await _initializeCalendar(context.read<GroupManagement>());
+        }
+      },
     );
   }
 

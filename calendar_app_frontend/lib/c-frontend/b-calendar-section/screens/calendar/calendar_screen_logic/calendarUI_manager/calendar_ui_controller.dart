@@ -21,6 +21,7 @@ class CalendarUIController {
   final EventDataManager _eventDataManager;
   final GroupManagement groupManagement;
   final String userRole;
+  List<Event> _lastEventsSnapshot = [];
 
   late final EventDataSource _eventDataSource; // here we displayed the events
   final ValueNotifier<int> calendarRefreshKey = ValueNotifier(0);
@@ -74,30 +75,67 @@ class CalendarUIController {
     //   triggerCalendarHardRefresh();
     // });
 
+    // _eventDataManager.eventsStream.listen((updatedEvents) {
+    //   debugPrint("[CalendarUI] 📥 ${updatedEvents.length} events from stream");
+
+    //   // ✅ REUSE the same dataSource instance
+    //   calendarDataSourceNotifier.value.updateEvents(updatedEvents);
+
+    //   allEvents.value = List<Event>.from(updatedEvents);
+
+    //   if (_selectedDate != null) {
+    //     dailyEvents.value = _eventDataManager.getEventsForDate(_selectedDate!);
+    //   }
+
+    //   // ❌ REMOVE this unless absolutely needed
+    //   triggerCalendarHardRefresh();
+    // });
+
+    // _eventDataManager.onExternalEventUpdate = () {
+    //   // notifyCalendarToRedraw();
+    //   triggerCalendarHardRefresh();
+    // };
+
     _eventDataManager.eventsStream.listen((updatedEvents) {
       debugPrint("[CalendarUI] 📥 ${updatedEvents.length} events from stream");
 
-      // ✅ REUSE the same dataSource instance
-      calendarDataSourceNotifier.value.updateEvents(updatedEvents);
+      // Only update and trigger if the data has changed
+      if (!_areEventsEqual(updatedEvents, _lastEventsSnapshot)) {
+        _lastEventsSnapshot = List<Event>.from(updatedEvents);
 
-      allEvents.value = List<Event>.from(updatedEvents);
+        calendarDataSourceNotifier.value.updateEvents(updatedEvents);
+        allEvents.value = List<Event>.from(updatedEvents);
 
-      if (_selectedDate != null) {
-        dailyEvents.value = _eventDataManager.getEventsForDate(_selectedDate!);
+        if (_selectedDate != null) {
+          dailyEvents.value =
+              _eventDataManager.getEventsForDate(_selectedDate!);
+        }
+
+        triggerCalendarHardRefresh();
+      } else {
+        debugPrint("✅ Events are the same — skipping calendar refresh.");
       }
-
-      // ❌ REMOVE this unless absolutely needed
-      triggerCalendarHardRefresh();
     });
-
-    _eventDataManager.onExternalEventUpdate = () {
-      // notifyCalendarToRedraw();
-      triggerCalendarHardRefresh();
-    };
   }
+  bool _areEventsEqual(List<Event> a, List<Event> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].hashCode != b[i].hashCode) return false;
+    }
+    return true;
+  }
+
+  // void triggerCalendarHardRefresh() {
+  //   debugPrint("🔁 Triggering calendar hard refresh...");
+  //   _refreshDebounce?.cancel();
+  //   _refreshDebounce = Timer(const Duration(milliseconds: 100), () {
+  //     calendarRefreshKey.value++;
+  //   });
+  // }
 
   void triggerCalendarHardRefresh() {
     debugPrint("🔁 Triggering calendar hard refresh...");
+    debugPrintStack(label: '🔍 Stack trace for calendar refresh', maxFrames: 5);
     _refreshDebounce?.cancel();
     _refreshDebounce = Timer(const Duration(milliseconds: 100), () {
       calendarRefreshKey.value++;
