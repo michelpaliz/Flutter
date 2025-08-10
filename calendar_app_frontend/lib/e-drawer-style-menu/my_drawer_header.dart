@@ -41,7 +41,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
 
     final blobName = _currentUser!.photoBlobName;
     final hasBlob = (blobName != null && blobName.isNotEmpty);
-    final hasViewUrl =``
+    final hasViewUrl =
         (_currentUser!.photoUrl != null && _currentUser!.photoUrl!.isNotEmpty);
 
     if (!hasBlob || hasViewUrl) return;
