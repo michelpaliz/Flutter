@@ -55,7 +55,7 @@ class GroupSettings extends StatelessWidget {
     return Center(
       child: CircleAvatar(
         radius: 50,
-        backgroundImage: NetworkImage(group.photo),
+        backgroundImage: NetworkImage(group.photoUrl),
         onBackgroundImageError: (_, __) => const Icon(Icons.group, size: 50),
       ),
     );

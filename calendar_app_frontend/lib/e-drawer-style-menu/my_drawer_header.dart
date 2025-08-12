@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
+import 'package:calendar_app_frontend/b-backend/api/blobUploader/blob_uploader.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:calendar_app_frontend/c-frontend/g-common/user_avatar.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
@@ -23,128 +25,68 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   XFile? _selectedImage;
   User? _currentUser = User.empty();
   late UserManagement _userManagement;
-  bool _refreshingAvatar = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _userManagement = Provider.of<UserManagement>(context);
     _currentUser = _userManagement.user;
-
-    // Try to refresh a fresh SAS URL if we only have the blobName
-    _refreshProfileImageIfNeeded();
   }
 
-  Future<void> _refreshProfileImageIfNeeded() async {
-    if (_refreshingAvatar) return;
-    if (_currentUser == null) return;
+  /// Fetch a read SAS URL for a given blob name (used only when avatarsArePublic == false)
+  Future<String?> _fetchReadSas(String blobName) async {
+    final auth = context.read<AuthProvider>();
+    final accessToken = auth.lastToken;
+    if (accessToken == null) return null;
 
-    final blobName = _currentUser!.photoBlobName;
-    final hasBlob = (blobName != null && blobName.isNotEmpty);
-    final hasViewUrl =
-        (_currentUser!.photoUrl != null && _currentUser!.photoUrl!.isNotEmpty);
+    final resp = await http.get(
+      Uri.parse(
+          '${ApiConstants.baseUrl}/blob/read-sas?blobName=${Uri.encodeComponent(blobName)}'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
 
-    if (!hasBlob || hasViewUrl) return;
-
-    try {
-      _refreshingAvatar = true;
-      final auth = context.read<AuthProvider>();
-      final accessToken = auth.lastToken;
-      if (accessToken == null) return;
-
-      final resp = await http.get(
-        Uri.parse(
-            '${ApiConstants.baseUrl}/blob/read-sas?blobName=${Uri.encodeComponent(blobName)}'),
-        headers: {'Authorization': 'Bearer $accessToken'},
-      );
-      if (resp.statusCode == 200) {
-        final viewUrl =
-            (jsonDecode(resp.body) as Map<String, dynamic>)['url'] as String;
-        if (!mounted) return;
-        setState(() {
-          _currentUser = _currentUser!.copyWith(photoUrl: viewUrl);
-        });
-        _userManagement.setCurrentUser(_currentUser!);
-      } else {
-        debugPrint(
-            '⚠️ Failed to refresh read SAS: ${resp.statusCode} ${resp.body}');
-      }
-    } catch (e) {
-      debugPrint('❌ Error refreshing avatar: $e');
-    } finally {
-      _refreshingAvatar = false;
+    if (resp.statusCode != 200) {
+      debugPrint('⚠️ Failed to get read SAS: ${resp.statusCode} ${resp.body}');
+      return null;
     }
+    return (jsonDecode(resp.body) as Map<String, dynamic>)['url'] as String;
   }
 
+  /// Pick an image and start upload
   Future<void> _pickImage() async {
-    final imagePicker = ImagePicker();
-    final picked = await imagePicker.pickImage(source: ImageSource.gallery);
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked == null) return;
 
     _selectedImage = picked;
     await _uploadProfileImageToBackend(File(picked.path));
   }
 
+  /// Upload using the shared helper + PATCH the user
   Future<void> _uploadProfileImageToBackend(File file) async {
+    if (!mounted) return;
     try {
       final auth = context.read<AuthProvider>();
       final accessToken = auth.lastToken;
       if (accessToken == null || _currentUser == null) return;
 
-      const mimeType = 'image/jpeg';
-
-      // 1) Get upload SAS
-      final sasResp = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/blob/upload-sas'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'mimeType': mimeType}),
+      // 1) Upload to Azure (shared helper handles SAS + PUT + view URL)
+      final result = await uploadImageToAzure(
+        scope: 'users',
+        file: file,
+        accessToken: accessToken,
+        // mimeType defaults to image/jpeg; uses 'versioned' filenames
       );
-      if (sasResp.statusCode != 200) {
-        throw Exception('Failed to get SAS: ${sasResp.body}');
-      }
-      final sasData = jsonDecode(sasResp.body) as Map<String, dynamic>;
-      final uploadUrl = sasData['uploadUrl'] as String;
-      final blobName = sasData['blobName'] as String;
 
-      // 2) Upload bytes directly to Azure
-      final bytes = await file.readAsBytes();
-      final putResp = await http.put(
-        Uri.parse(uploadUrl),
-        headers: {
-          'x-ms-blob-type': 'BlockBlob',
-          'Content-Type': mimeType,
-        },
-        body: bytes,
-      );
-      if (putResp.statusCode != 201 && putResp.statusCode != 200) {
-        throw Exception('Upload failed: ${putResp.statusCode} ${putResp.body}');
-      }
-
-      // 3) Get a short-lived READ SAS to display
-      final readResp = await http.get(
-        Uri.parse(
-            '${ApiConstants.baseUrl}/blob/read-sas?blobName=${Uri.encodeComponent(blobName)}'),
-        headers: {'Authorization': 'Bearer $accessToken'},
-      );
-      if (readResp.statusCode != 200) {
-        throw Exception('Failed to get read SAS: ${readResp.body}');
-      }
-      final viewUrl =
-          (jsonDecode(readResp.body) as Map<String, dynamic>)['url'] as String;
-
-      // 4) Persist both on backend (photoUrl is temporary; blobName is permanent)
-      final updateResp = await http.put(
+      // 2) Persist to backend
+      final updateResp = await http.patch(
         Uri.parse('${ApiConstants.baseUrl}/users/${_currentUser!.id}'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'photoUrl': viewUrl,
-          'photoBlobName': blobName,
+          'photoUrl': result.photoUrl,
+          'photoBlobName': result.blobName,
         }),
       );
       if (updateResp.statusCode != 200) {
@@ -152,18 +94,18 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
             '⚠️ User update warning: ${updateResp.statusCode} ${updateResp.body}');
       }
 
-      // 5) Update local state
+      // 3) Update UI immediately
       if (!mounted) return;
       setState(() {
         _currentUser = _currentUser?.copyWith(
-          photoUrl: viewUrl,
-          photoBlobName: blobName,
+          photoUrl: result.photoUrl,
+          photoBlobName: result.blobName,
         );
       });
       _userManagement.setCurrentUser(_currentUser!);
     } catch (e) {
-      debugPrint('❌ Error uploading image: $e');
       if (!mounted) return;
+      debugPrint('❌ Error uploading image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
       );
@@ -182,8 +124,6 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     final emailTextColor =
         isDarkMode ? AppDarkColors.textSecondary : AppColors.textSecondary;
 
-    final hasPhoto = (_currentUser?.photoUrl?.isNotEmpty ?? false);
-
     return Container(
       color: headerBackgroundColor,
       width: double.infinity,
@@ -194,13 +134,15 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
         children: [
           GestureDetector(
             onTap: _pickImage,
-            child: CircleAvatar(
-              radius: 30,
-              backgroundImage: hasPhoto
-                  ? NetworkImage(_currentUser!.photoUrl!)
-                  : const AssetImage('assets/images/default_profile.png')
-                      as ImageProvider,
-            ),
+            child: (_currentUser != null)
+                ? UserAvatar(
+                    user: _currentUser!,
+                    // If avatarsArePublic == true, UserAvatar will just use the public URL in user.photoUrl.
+                    // If false, it will call this to fetch a short-lived SAS.
+                    fetchReadSas: _fetchReadSas,
+                    radius: 30,
+                  )
+                : const CircleAvatar(radius: 30, child: Icon(Icons.person)),
           ),
           const SizedBox(height: 5),
           Text(

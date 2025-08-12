@@ -9,7 +9,11 @@ class Group {
   List<String> userIds;
   DateTime createdTime;
   String description;
-  String photo;
+
+  // ✅ Updated: match backend
+  String photoUrl; // Temporary read URL (SAS or public link)
+  String? photoBlobName; // Permanent Azure blob path
+
   Map<String, UserInviteStatus>? invitedUsers;
   final Calendar calendar; // Single calendar for the group
 
@@ -21,7 +25,8 @@ class Group {
     required this.userIds,
     required this.createdTime,
     required this.description,
-    required this.photo,
+    required this.photoUrl,
+    this.photoBlobName,
     required this.calendar,
     Map<String, UserInviteStatus>? invitedUsers,
   }) : invitedUsers = invitedUsers ?? {};
@@ -35,7 +40,7 @@ class Group {
     );
 
     return Group(
-      id: json['id'] ?? json['_id'] ?? '', // ✅ fallback for legacy `_id`
+      id: json['id'] ?? json['_id'] ?? '',
       name: json['name'] ?? '',
       ownerId: json['ownerId'] ?? '',
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
@@ -44,23 +49,24 @@ class Group {
           ? DateTime.parse(json['createdTime'])
           : DateTime.now(),
       description: json['description'] ?? '',
-      photo: json['photo'] ?? '',
+      photoUrl: json['photoUrl'] ?? '',
+      photoBlobName: json['photoBlobName'],
       calendar: Calendar.fromJson(json['calendar']),
       invitedUsers: invitedUsers,
     );
   }
 
-  // 🔁 For reading/updating (includes ID)
   Map<String, dynamic> toJson() {
     return {
-      '_id': id, // include _id here
+      '_id': id,
       'name': name,
       'ownerId': ownerId,
       'userRoles': userRoles,
       'userIds': userIds,
       'createdTime': createdTime.toIso8601String(),
       'description': description,
-      'photo': photo,
+      'photoUrl': photoUrl,
+      'photoBlobName': photoBlobName,
       'calendar': calendar.toJson(),
       'invitedUsers': invitedUsers?.map(
         (key, value) => MapEntry(key, value.toJson()),
@@ -68,7 +74,6 @@ class Group {
     };
   }
 
-  // 🆕 For creating new groups (without ID)
   Map<String, dynamic> toJsonForCreation() {
     return {
       'name': name,
@@ -77,12 +82,41 @@ class Group {
       'userIds': userIds,
       'createdTime': createdTime.toIso8601String(),
       'description': description,
-      'photo': photo,
+      'photoUrl': photoUrl,
+      'photoBlobName': photoBlobName,
       'calendar': calendar.toJson(),
       'invitedUsers': invitedUsers?.map(
         (key, value) => MapEntry(key, value.toJson()),
       ),
     };
+  }
+
+  Group copyWith({
+    String? id,
+    String? name,
+    String? ownerId,
+    Map<String, String>? userRoles,
+    List<String>? userIds,
+    DateTime? createdTime,
+    String? description,
+    String? photoUrl,
+    String? photoBlobName,
+    Map<String, UserInviteStatus>? invitedUsers,
+    Calendar? calendar,
+  }) {
+    return Group(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      ownerId: ownerId ?? this.ownerId,
+      userRoles: userRoles ?? Map<String, String>.from(this.userRoles),
+      userIds: userIds ?? List<String>.from(this.userIds),
+      createdTime: createdTime ?? this.createdTime,
+      description: description ?? this.description,
+      photoUrl: photoUrl ?? this.photoUrl,
+      photoBlobName: photoBlobName ?? this.photoBlobName,
+      calendar: calendar ?? this.calendar,
+      invitedUsers: invitedUsers ?? this.invitedUsers,
+    );
   }
 
   bool isEqual(Group other) {
@@ -93,7 +127,8 @@ class Group {
         userIds == other.userIds &&
         createdTime == other.createdTime &&
         description == other.description &&
-        photo == other.photo &&
+        photoUrl == other.photoUrl &&
+        photoBlobName == other.photoBlobName &&
         calendar.toJson().toString() == other.calendar.toJson().toString() &&
         _areInvitedUsersEqual(invitedUsers, other.invitedUsers);
   }
@@ -106,8 +141,9 @@ class Group {
     if (map1 == null || map2 == null) return false;
     if (map1.length != map2.length) return false;
     for (var key in map1.keys) {
-      if (!map2.containsKey(key) || !map1[key]!.isEqual(map2[key]!))
+      if (!map2.containsKey(key) || !map1[key]!.isEqual(map2[key]!)) {
         return false;
+      }
     }
     return true;
   }
@@ -121,7 +157,8 @@ class Group {
       userIds: [],
       createdTime: DateTime.now(),
       description: 'Default Description',
-      photo: 'default_photo_url',
+      photoUrl: '',
+      photoBlobName: null,
       calendar: Calendar.defaultCalendar(),
       invitedUsers: {},
     );
@@ -129,6 +166,6 @@ class Group {
 
   @override
   String toString() {
-    return 'Group{id: $id, name: $name, ownerId: $ownerId, userRoles: $userRoles, userIds: $userIds, createdTime: $createdTime, description: $description, photo: $photo, calendar: $calendar, invitedUsers: $invitedUsers}';
+    return 'Group{id: $id, name: $name, ownerId: $ownerId, userRoles: $userRoles, userIds: $userIds, createdTime: $createdTime, description: $description, photoUrl: $photoUrl, photoBlobName: $photoBlobName, calendar: $calendar, invitedUsers: $invitedUsers}';
   }
 }

@@ -559,7 +559,7 @@
 //               CircleAvatar(
 //                 radius: 30, // Adjust the size as needed
 //                 backgroundImage:
-//                     Utilities.buildProfileImage(group.photo.toString()),
+//                     Utilities.buildProfileImage(group.photoUrl.toString()),
 //               ),
 //               SizedBox(height: 8), // Add some spacing
 //               //** GROUP NAME */

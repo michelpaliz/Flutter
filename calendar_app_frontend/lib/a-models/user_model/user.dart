@@ -1,9 +1,60 @@
+// user.dart
+
+// ===== Helpers =====
+String requireString(Map<String, dynamic> j, String key) {
+  final v = j[key];
+  if (v is String && v.isNotEmpty) return v;
+  throw FormatException("Expected non-empty string for '$key', got: $v");
+}
+
+String requireStringAny(Map<String, dynamic> j, List<String> keys) {
+  for (final k in keys) {
+    final v = j[k];
+    if (v is String && v.isNotEmpty) return v;
+  }
+  throw FormatException(
+      "Expected non-empty string for one of ${keys.join(', ')}, got: ${keys.map((k) => j[k]).toList()}");
+}
+
+String? optString(Map<String, dynamic> j, String key) {
+  final v = j[key];
+  return v is String ? v : null;
+}
+
+List<String> optStringList(Map<String, dynamic> j, String key) {
+  final v = j[key];
+  if (v is List) {
+    return v.map((e) => e.toString()).toList();
+  }
+  return <String>[];
+}
+
+// Add this helper with your other helpers:
+String? optStringAny(Map<String, dynamic> j, List<String> keys) {
+  for (final k in keys) {
+    final v = j[k];
+    if (v is String && v.isNotEmpty) return v;
+  }
+  return null;
+}
+
+Map<String, dynamic> unwrapUser(Map<String, dynamic> raw) {
+  // Try common wrapper keys in order
+  for (final key in ['user', 'data', 'profile', 'result']) {
+    final v = raw[key];
+    if (v is Map) return v.cast<String, dynamic>();
+  }
+  // If nothing matched, assume the whole object is the user
+  return raw;
+}
+
+// ===== User class =====
 class User {
   String _id;
   String _name;
   final String _email;
   String? _photoUrl;
-  String? _photoBlobName; // 👈 new field
+  String? _photoBlobName;
   String _userName;
   List<String> _eventsIds;
   List<String> _groupIds;
@@ -18,7 +69,7 @@ class User {
     required List<String> events,
     required List<String> groupIds,
     String? photoUrl,
-    String? photoBlobName, // 👈 new field in constructor
+    String? photoBlobName,
     List<String>? sharedCalendars,
     List<String>? notifications,
   })  : _id = id,
@@ -32,7 +83,7 @@ class User {
         _calendarsIds = sharedCalendars ?? [],
         _notificationsIds = notifications ?? [];
 
-  // Getters & Setters
+  // Getters & setters
   String get id => _id;
   String get name => _name;
   set name(String name) => _name = name;
@@ -48,8 +99,8 @@ class User {
   String? get photoUrl => _photoUrl;
   set photoUrl(String? photoUrl) => _photoUrl = photoUrl;
 
-  String? get photoBlobName => _photoBlobName; // 👈 getter
-  set photoBlobName(String? blobName) => _photoBlobName = blobName; // 👈 setter
+  String? get photoBlobName => _photoBlobName;
+  set photoBlobName(String? blobName) => _photoBlobName = blobName;
 
   List<String> get sharedCalendars => _calendarsIds;
   set sharedCalendars(List<String>? sharedCalendars) =>
@@ -70,7 +121,7 @@ class User {
       'userName': _userName,
       'email': _email,
       'photoUrl': _photoUrl,
-      'photoBlobName': _photoBlobName, // 👈 include in JSON
+      'photoBlobName': _photoBlobName,
       'events': _eventsIds,
       'groupIds': _groupIds,
       'sharedCalendars': _calendarsIds,
@@ -78,41 +129,39 @@ class User {
     };
   }
 
-  // Create from JSON
-  factory User.fromJson(Map<String, dynamic> json) {
+  // Create from JSON (SAFE)
+
+// Replace your factory with this version:
+  factory User.fromJson(Map<String, dynamic> raw, {String? fallbackId}) {
+    final Map<String, dynamic> json = unwrapUser(raw);
+
+    final id = optStringAny(json, ['id', '_id', 'userId']) ?? fallbackId;
+    if (id == null || id.isEmpty) {
+      throw FormatException(
+          "Expected non-empty string for one of id/_id/userId, and no fallbackId was provided.");
+    }
+
     return User(
-      id: json['id'] ?? json['_id'] ?? '',
-      name: json['name'] as String,
-      email: json['email'] as String,
-      userName: json['userName'] as String,
-      events: (json['events'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      groupIds: (json['groupIds'] as List<dynamic>?)
-              ?.map((g) => g.toString())
-              .toList() ??
-          [],
-      photoUrl: json['photoUrl'] as String?,
-      photoBlobName: json['photoBlobName'] as String?, // 👈 parse here
-      sharedCalendars: (json['sharedCalendars'] as List<dynamic>?)
-              ?.map((c) => c.toString())
-              .toList() ??
-          [],
-      notifications: (json['notifications'] as List<dynamic>?)
-              ?.map((n) => n.toString())
-              .toList() ??
-          [],
+      id: id,
+      name: requireStringAny(json, ['name', 'fullName', 'displayName']),
+      email: requireString(json, 'email'),
+      userName: requireStringAny(json, ['userName', 'username']),
+      events: optStringList(json, 'events'),
+      groupIds: optStringList(json, 'groupIds'),
+      photoUrl: optString(json, 'photoUrl'),
+      photoBlobName: optString(json, 'photoBlobName'),
+      sharedCalendars: optStringList(json, 'sharedCalendars'),
+      notifications: optStringList(json, 'notifications'),
     );
   }
 
-  // ✅ Add copyWith
+  // copyWith
   User copyWith({
     String? id,
     String? name,
     String? email,
     String? photoUrl,
-    String? photoBlobName, // 👈 new
+    String? photoBlobName,
     String? userName,
     List<String>? events,
     List<String>? groupIds,
@@ -125,7 +174,7 @@ class User {
       email: email ?? _email,
       userName: userName ?? _userName,
       photoUrl: photoUrl ?? _photoUrl,
-      photoBlobName: photoBlobName ?? _photoBlobName, // 👈 keep it
+      photoBlobName: photoBlobName ?? _photoBlobName,
       events: events ?? _eventsIds,
       groupIds: groupIds ?? _groupIds,
       sharedCalendars: sharedCalendars ?? _calendarsIds,
@@ -133,7 +182,7 @@ class User {
     );
   }
 
-  // ✅ Add empty factory
+  // empty factory
   factory User.empty() {
     return User(
       id: '',
@@ -141,7 +190,7 @@ class User {
       email: '',
       userName: '',
       photoUrl: '',
-      photoBlobName: '', // 👈 empty by default
+      photoBlobName: '',
       events: [],
       groupIds: [],
       sharedCalendars: [],

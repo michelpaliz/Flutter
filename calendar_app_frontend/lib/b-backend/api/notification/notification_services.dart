@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/exception.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../a-models/notification_model/notification_user.dart'; // Update this import based on your file structure

@@ -12,8 +12,8 @@ import 'package:calendar_app_frontend/d-stateManagement/group/group_management.d
 import 'package:flutter/material.dart';
 
 /// Manages the event cache for a single group.
-/// Stores only base events (no pre‑expanded recurrences).
-/// Expands recurring events on‑demand for a visible date range.
+/// Stores only base events (no pre-expanded recurrences).
+/// Expands recurring events on-demand for a visible date range.
 class EventDataManager {
   // Core data and dependencies
   List<Event> _baseEvents = [];
@@ -23,11 +23,17 @@ class EventDataManager {
   final GroupEventResolver _resolver;
 
   // Reactive mechanisms
-  final ValueNotifier<List<Event>> eventsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<Event>> eventsNotifier =
+      ValueNotifier<List<Event>>([]);
   final StreamController<List<Event>> _eventsController =
-      StreamController<List<Event>>.broadcast(); 
+      StreamController<List<Event>>.broadcast();
 
   void Function()? onExternalEventUpdate;
+
+  // Internal guards
+  bool _disposed = false;
+  bool _isRefreshing = false;
+  bool _notifyScheduled = false;
 
   /// Constructor
   EventDataManager(
@@ -46,32 +52,72 @@ class EventDataManager {
   }
 
   /// Initializes the manager with base events and fresh sync from backend.
-  Future<void> _initialize(BuildContext context, List<Event> initial) async {
-    _baseEvents = _deduplicate(initial);
-    await _refreshFromBackend(context);
+Future<void> _initialize(BuildContext context, List<Event> initial) async {
+  _baseEvents = _deduplicate(initial);
+
+  // Prevent loop: don't immediately refresh on init if UI will do it anyway
+  if (!_isRefreshing) {
+    await _refreshFromBackend(context, triggerExternalUpdate: false);
   }
+}
+
+Future<void> _refreshFromBackend(BuildContext context, {bool triggerExternalUpdate = true}) async {
+  if (_disposed) return;
+  if (_group.id == Group.createDefaultGroup().id) return;
+  if (_isRefreshing) {
+    debugPrint('[EventDataManager] Skipping refresh: already in progress');
+    return;
+  }
+
+  _isRefreshing = true;
+  try {
+    final fetchedEvents = await _resolver.getEventsForGroup(_group);
+    _baseEvents = _deduplicate(fetchedEvents);
+
+    await Future.wait(_baseEvents.map((e) async {
+      try { await syncReminderFor(context, e); } catch (_) {}
+    }));
+
+    _notifyChanges();
+
+    if (triggerExternalUpdate) {
+      onExternalEventUpdate?.call();
+    }
+  } finally {
+    _isRefreshing = false;
+  }
+}
+
 
   /// Subscribes to socket events (create/update/delete) and applies changes locally.
   void _setupSocketListeners() {
     final socketManager = SocketManager();
 
+    void safeNotify() {
+      if (_disposed) return;
+      _notifyChanges();
+    }
+
     socketManager.on(SocketEvents.created, (data) {
+      if (_disposed) return;
       final created = Event.fromJson(data);
       _baseEvents = _deduplicate([..._baseEvents, created]);
-      _notifyChanges();
+      safeNotify();
     });
 
     socketManager.on(SocketEvents.updated, (data) {
+      if (_disposed) return;
       final updated = Event.fromJson(data);
       _baseEvents =
           _baseEvents.map((e) => e.id == updated.id ? updated : e).toList();
-      _notifyChanges();
+      safeNotify();
     });
 
     socketManager.on(SocketEvents.deleted, (data) {
+      if (_disposed) return;
       final deletedId = data['id'];
       _baseEvents.removeWhere((e) => e.id == deletedId);
-      _notifyChanges();
+      safeNotify();
     });
   }
 
@@ -86,19 +132,6 @@ class EventDataManager {
   /// Manually re-syncs data from backend.
   Future<void> manualRefresh(BuildContext context) async {
     await _refreshFromBackend(context);
-  }
-
-  Future<void> _refreshFromBackend(BuildContext context) async {
-    if (_group.id == Group.createDefaultGroup().id) return;
-
-    final fetchedEvents = await _resolver.getEventsForGroup(_group);
-    _baseEvents = _deduplicate(fetchedEvents);
-
-    for (final event in _baseEvents) {
-      await syncReminderFor(context, event);
-    }
-
-    _notifyChanges();
   }
 
   /// CRUD operations
@@ -127,17 +160,20 @@ class EventDataManager {
     await _eventService.deleteEvent(mongoId);
 
     final toRemove = _baseEvents
-        .where(
-          (e) =>
-              e.id == id ||
-              e.id == mongoId ||
-              e.rawRuleId == mongoId ||
-              e.rawRuleId == id,
-        )
+        .where((e) =>
+            e.id == id ||
+            e.id == mongoId ||
+            e.rawRuleId == mongoId ||
+            e.rawRuleId == id)
         .toList();
 
     for (final event in toRemove) {
-      await cancelReminderFor(event);
+      try {
+        await cancelReminderFor(event);
+      } catch (e) {
+        debugPrint(
+            '[EventDataManager] Cancel reminder failed for ${event.id}: $e');
+      }
     }
 
     _baseEvents.removeWhere((e) => toRemove.contains(e));
@@ -164,8 +200,7 @@ class EventDataManager {
 
     return _baseEvents
         .where(
-          (e) => e.startDate.isBefore(dayEnd) && e.endDate.isAfter(dayStart),
-        )
+            (e) => e.startDate.isBefore(dayEnd) && e.endDate.isAfter(dayStart))
         .toList();
   }
 
@@ -190,36 +225,48 @@ class EventDataManager {
   List<Event> getExpandedEvents(DateTimeRange range) =>
       getEventsForRange(range);
 
-  /// Emits new values to listeners when the event list changes
+  /// Emits new values to listeners when the event list changes (debounced).
   void _notifyChanges() {
-    if (_eventsController.isClosed) {
-      debugPrint("⚠️ Tried to notify changes after controller was closed");
+    if (_disposed || _eventsController.isClosed) {
+      if (!_disposed) {
+        debugPrint('⚠️ Tried to notify changes after controller was closed');
+      }
       return;
     }
-
-    _groupManagement.currentGroup = _group;
-
-    final now = DateTime.now();
-    final visibleRange = DateTimeRange(
-      start: now.subtract(const Duration(days: 30)),
-      end: now.add(const Duration(days: 365)),
-    );
-
-    final expanded = getExpandedEvents(visibleRange);
-
-    // Debug recurring expansion
-    for (final e in _baseEvents) {
-      if (e.recurrenceRule != null) {
-        final instances = expandRecurringEventForRange(e, visibleRange);
-        // debugPrint('🔁 ${e.title} → ${instances.length} occurrences');
-      }
+    if (_notifyScheduled) {
+      // Coalesce multiple rapid updates into one tick
+      return;
     }
+    _notifyScheduled = true;
 
-    _eventsController.add(expanded); // ✅ Now only called if not closed
-    eventsNotifier.value = List.unmodifiable(expanded);
+    scheduleMicrotask(() {
+      _notifyScheduled = false;
+      if (_disposed || _eventsController.isClosed) return;
 
-    onExternalEventUpdate?.call();
-    _resolver.updateCache(_group.id, _baseEvents);
+      _groupManagement.currentGroup = _group;
+
+      final now = DateTime.now();
+      final visibleRange = DateTimeRange(
+        start: now.subtract(const Duration(days: 30)),
+        end: now.add(const Duration(days: 365)),
+      );
+
+      final expanded = getExpandedEvents(visibleRange);
+
+      // Debug recurring expansion (optional)
+      // for (final e in _baseEvents) {
+      //   if (e.recurrenceRule != null) {
+      //     final instances = expandRecurringEventForRange(e, visibleRange);
+      //     debugPrint('🔁 ${e.title} → ${instances.length} occurrences');
+      //   }
+      // }
+
+      _eventsController.add(expanded);
+      eventsNotifier.value = List.unmodifiable(expanded);
+
+      // Do NOT call onExternalEventUpdate() here to avoid UI ↔︎ backend loops.
+      _resolver.updateCache(_group.id, _baseEvents);
+    });
   }
 
   /// Helpers
@@ -231,6 +278,8 @@ class EventDataManager {
 
   /// Clean up resources and unsubscribe from socket events
   void dispose() {
+    _disposed = true;
+
     final socketManager = SocketManager();
     socketManager.off(SocketEvents.created);
     socketManager.off(SocketEvents.updated);

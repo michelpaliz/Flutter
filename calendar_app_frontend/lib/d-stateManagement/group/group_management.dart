@@ -40,11 +40,11 @@ class GroupManagement extends ChangeNotifier {
       usersRolesStreamController.stream;
 
   StreamController<Map<String, UserInviteStatus>?>?
-  _usersInvitationStatusStreamController;
+      _usersInvitationStatusStreamController;
   StreamController<Map<String, UserInviteStatus>?>
-  get usersInvitationStatusStreamController =>
-      _usersInvitationStatusStreamController ??=
-          StreamController<Map<String, UserInviteStatus>?>.broadcast();
+      get usersInvitationStatusStreamController =>
+          _usersInvitationStatusStreamController ??=
+              StreamController<Map<String, UserInviteStatus>?>.broadcast();
   Stream<Map<String, UserInviteStatus>?> get usersInvitationStatusStream =>
       usersInvitationStatusStreamController.stream;
 
@@ -57,11 +57,11 @@ class GroupManagement extends ChangeNotifier {
   //     setCurrentUser(user);
   //   }
   // }
-  
+
   GroupManagement({
     required this.groupEventResolver,
     required User? user,
-  }){
+  }) {
     _groupController = StreamController<List<Group>>.broadcast();
     if (user != null) setCurrentUser(user);
   }
@@ -237,6 +237,35 @@ class GroupManagement extends ChangeNotifier {
       );
       return false;
     }
+  }
+
+  // inside class GroupManagement extends ChangeNotifier
+  void updateGroupPhoto({
+    required String groupId,
+    required String photoUrl,
+    required String photoBlobName,
+  }) {
+    final idx = _lastFetchedGroups.indexWhere((g) => g.id == groupId);
+    if (idx == -1) {
+      devtools.log('⚠️ updateGroupPhoto: group not found: $groupId');
+      return;
+    }
+
+    final updated = _lastFetchedGroups[idx].copyWith(
+      photoUrl: photoUrl,
+      photoBlobName: photoBlobName,
+    );
+
+    _lastFetchedGroups[idx] = updated;
+
+    // keep currentGroup in sync if it's the one being edited
+    if (_currentGroup?.id == groupId) {
+      _currentGroup = updated;
+    }
+
+    // push to stream listeners and notify widgets
+    groupController.add(List<Group>.from(_lastFetchedGroups));
+    notifyListeners();
   }
 
   @override

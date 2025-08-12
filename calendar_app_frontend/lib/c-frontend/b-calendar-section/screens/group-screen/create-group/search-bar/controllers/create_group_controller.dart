@@ -1,14 +1,22 @@
+import 'dart:convert'; // ✅ NEW
 import 'dart:developer' as devtools show log;
+import 'dart:io'; // ✅ NEW
 
+import 'package:calendar_app_frontend/b-backend/api/blobUploader/blob_uploader.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; // ✅ NEW
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart'; // ✅ NEW
 import 'package:uuid/uuid.dart';
 
 import '../../../../../../../a-models/group_model/calendar/calendar.dart';
 import '../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../a-models/notification_model/userInvitation_status.dart';
 import '../../../../../../../a-models/user_model/user.dart';
+import '../../../../../../../b-backend/api/auth/auth_database/auth_provider.dart'; // ✅ NEW
+
+import '../../../../../../../b-backend/api/config/api_constants.dart'; // ✅ NEW
 import '../../../../../../../b-backend/api/user/user_services.dart';
 import '../../../../../../../d-stateManagement/group/group_management.dart';
 import '../../../../../../../d-stateManagement/notification/notification_management.dart';
@@ -53,63 +61,51 @@ class GroupController extends ChangeNotifier {
     this.currentUser = user;
 
     usersInGroup = [user]; // Set the current user as the initial member
-    userRoles = {
-      user.userName: 'Administrator'
-    }; // Set the current user as admin
+    userRoles = {user.userName: 'Administrator'};
 
-    // ✅ FIX: Ensure groupManagement gets the user too
+    // Ensure GroupManagement has the current user
     groupManagement.setCurrentUser(user);
   }
 
-  // This method adds a new user to the group without replacing the existing list
   void addUser(User newUser) {
-    if (!usersInGroup.any((user) => user.userName == newUser.userName)) {
-      usersInGroup.add(newUser); // Add the new user
-      userRoles[newUser.userName] = 'Member'; // Default role for new users
-      notifyListeners(); // Notify listeners to update the UI
+    if (!usersInGroup.any((u) => u.userName == newUser.userName)) {
+      usersInGroup.add(newUser);
+      userRoles[newUser.userName] = 'Member';
+      notifyListeners();
     }
   }
 
-  // Update the user roles when they are changed
   void onRolesUpdated(Map<String, String> updatedUserRoles) {
     userRoles = updatedUserRoles;
-    notifyListeners(); // Notify listeners to update the UI
+    notifyListeners();
   }
 
-  // Remove a user from the group
   void removeUser(String username) {
     if (username == currentUser?.userName) {
       _showSnackBar(AppLocalizations.of(context!)!.cannotRemoveYourself);
       return;
     }
-
     usersInGroup.removeWhere((u) => u.userName == username);
     userRoles.remove(username);
-    notifyListeners(); // Notify listeners to update the UI
+    notifyListeners();
   }
 
-  // Pick an image for the group
   Future<void> pickImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image != null) selectedImage = image;
+    notifyListeners();
   }
 
-  // Display a snackbar message
   void _showSnackBar(String message) {
     if (context != null) {
-      ScaffoldMessenger.of(context!).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(context!)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
+  bool hasAtLeastOneUser() => userRoles.isNotEmpty;
 
-  bool hasAtLeastOneUser() {
-    // Make sure the current user is still there and that there's at least one user (typically more than 0)
-    return userRoles.isNotEmpty;
-  }
-
-  // Save the group data
+  // Public entry from UI
   Future<void> submitGroupFromUI() async {
     groupName = nameController.text.trim();
     groupDescription = descriptionController.text.trim();
@@ -125,81 +121,128 @@ class GroupController extends ChangeNotifier {
       builder: (ctx) => const Center(child: CircularProgressIndicator()),
     );
 
-    bool result = await _createGroup();
+    final ok = await _createGroupAndMaybeUploadPhoto(); // ✅ UPDATED
 
     if (context!.mounted) {
-      Navigator.of(context!).pop(); // Remove the loading dialog
-      if (result) {
+      Navigator.of(context!).pop(); // close loading
+      if (ok) {
         _showSnackBar(AppLocalizations.of(context!)!.groupCreated);
-        Navigator.of(context!).pop(); // Go back
+        Navigator.of(context!).pop(); // back
       } else {
         _showSnackBar(AppLocalizations.of(context!)!.failedToCreateGroup);
       }
     }
   }
 
-  // Creating the group and saving it to the database
-  Future<bool> _createGroup() async {
+  // ✅ UPDATED: create first, then upload image (if any), then PATCH group
+  Future<bool> _createGroupAndMaybeUploadPhoto() async {
     try {
-      String groupId = const Uuid().v4().substring(0, 10);
-      String calendarId = const Uuid().v4().substring(0, 10);
+      // Prefer letting server assign IDs; keep local UUIDs if your API requires.
+      final calendarId = const Uuid().v4().substring(0, 10);
 
-      User serverUser =
+      // Ensure we have the server-side user (you already do this)
+      final serverUser =
           await _userService.getUserByUsername(currentUser!.userName);
-      List<User> allUsers = [serverUser];
-      String imageURL = ""; // Add image URL if necessary
 
-      // Prepare admin roles
-      Map<String, String> adminRoles = {currentUser!.userName: 'Administrator'};
+      // Owner/admin role (align keying with your backend; using username here like before)
+      final adminRoles = {currentUser!.userName: 'Administrator'};
 
-      Group newGroup = Group(
-        id: groupId,
+      // Create group WITHOUT photo first
+      final newGroup = Group(
+        id: '', // let backend assign Mongo _id
         name: groupName,
         ownerId: currentUser!.id,
         userRoles: adminRoles,
-        calendar: Calendar(calendarId, groupName),
         userIds: [currentUser!.id],
-        invitedUsers: null,
         createdTime: DateTime.now(),
         description: groupDescription,
-        photo: imageURL,
+        photoUrl: '', // no photo yet
+        photoBlobName: null,
+        calendar: Calendar(calendarId, groupName),
+        invitedUsers:
+            _buildInvites(), // from userRoles (excluding current user)
       );
 
-      // Prepare invitations (skip admin user)
-      Map<String, UserInviteStatus> invites = {};
-      userRoles.forEach((username, role) {
-        if (username != currentUser!.userName) {
-          invites[username] = UserInviteStatus(
-              id: groupId,
-              role: role,
-              invitationAnswer: null,
-              sendingDate: DateTime.now(),
-              attempts: 1,
-              informationStatus: 'Pending',
-              status: 'Unresolved');
-        }
-      });
+      final createdOk =
+          await groupManagement.createGroup(newGroup, userManagement);
+      if (!createdOk) return false;
 
-      newGroup.invitedUsers = invites;
+      // Get the created group (you can refine this lookup per your app logic)
+      final created = groupManagement.groups.lastWhere(
+        (g) => g.name == newGroup.name && g.ownerId == newGroup.ownerId,
+        orElse: () => groupManagement.groups.last,
+      );
 
-      bool result = await groupManagement.createGroup(newGroup, userManagement);
+      // If no image selected, we are done
+      if (selectedImage == null) return true;
 
-      devtools.log("Group creation result: $result");
+      // Upload image now that we have groupId
+      final token = context!.read<AuthProvider>().lastToken;
+      if (token == null) throw Exception('Not authenticated');
 
-      return result;
+      final uploadResult = await uploadImageToAzure(
+        scope: 'groups',
+        resourceId: created.id,
+        file: File(selectedImage!.path),
+        accessToken: token,
+      );
+
+      // PATCH group with photo fields
+      final resp = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/groups/${created.id}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'photoUrl': uploadResult.photoUrl,
+          'photoBlobName': uploadResult.blobName,
+        }),
+      );
+      if (resp.statusCode != 200) {
+        devtools.log(
+            '⚠️ Failed to update group photo: ${resp.statusCode} ${resp.body}');
+        // not fatal for creation
+      } else {
+        // Update local state immediately for snappy UI (requires manager method)
+        groupManagement.updateGroupPhoto(
+          groupId: created.id,
+          photoUrl: uploadResult.photoUrl,
+          photoBlobName: uploadResult.blobName,
+        );
+      }
+
+      return true;
     } catch (e) {
-      devtools.log("Error in _createGroup: $e");
+      devtools.log("Error in _createGroupAndMaybeUploadPhoto: $e");
       return false;
     }
   }
 
-  // Show an error dialog if something goes wrong
+  Map<String, UserInviteStatus> _buildInvites() {
+    final Map<String, UserInviteStatus> invites = {};
+    userRoles.forEach((username, role) {
+      if (username != currentUser!.userName) {
+        invites[username] = UserInviteStatus(
+          id: const Uuid().v4().substring(0, 10),
+          role: role,
+          invitationAnswer: null,
+          sendingDate: DateTime.now(),
+          attempts: 1,
+          informationStatus: 'Pending',
+          status: 'Unresolved',
+        );
+      }
+    });
+    return invites;
+  }
+
   void _showErrorDialog(String message) {
     showDialog(
       context: context!,
       builder: (context) {
         return AlertDialog(
-          title: Text('Error'),
+          title: const Text('Error'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
@@ -212,18 +255,15 @@ class GroupController extends ChangeNotifier {
     );
   }
 
-  // Update the data when users or roles change
   void onDataChanged(List<User> newUsers, Map<String, String> newRoles) {
     for (final user in newUsers) {
       if (!usersInGroup.any((u) => u.userName == user.userName)) {
         usersInGroup.add(user);
       }
     }
-
     newRoles.forEach((username, role) {
-      userRoles[username] = role; // Updates role if exists, adds if new
+      userRoles[username] = role;
     });
-
     notifyListeners();
   }
 }

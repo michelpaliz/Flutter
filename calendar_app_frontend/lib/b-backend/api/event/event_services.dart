@@ -3,7 +3,7 @@ import 'dart:developer' as devtools show log;
 
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/string_utils.dart';
 import 'package:calendar_app_frontend/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
 import 'package:flutter/material.dart';

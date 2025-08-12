@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketManager {

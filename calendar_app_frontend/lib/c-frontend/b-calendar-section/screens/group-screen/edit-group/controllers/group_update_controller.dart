@@ -64,7 +64,7 @@ class GroupUpdateController {
         userIds: originalGroup.userIds,
         createdTime: DateTime.now(),
         description: groupDescription,
-        photo: imageUrl,
+        photoUrl: imageUrl,
       );
 
       Map<String, UserInviteStatus> newInvitations = {};

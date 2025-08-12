@@ -2,7 +2,7 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/create-group/search-bar/controllers/create_group_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/admin_filter_sections.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/functions/admin_filter_sections.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/utils/shared/add_user_button.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
@@ -10,7 +10,7 @@ import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dar
 import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 
-import '../user_list_section.dart';
+import '../../user_list_section.dart';
 
 class EditGroupPeople extends StatefulWidget {
   final Group group;

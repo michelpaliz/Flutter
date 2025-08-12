@@ -23,7 +23,7 @@ class GroupInitializationService {
   void _initialize() {
     groupName = group.name;
     groupDescription = group.description;
-    imageURL = group.photo;
+    imageURL = group.photoUrl;
     usersRoles = Map<String, String>.from(group.userRoles);
 
     // Handle invited users (deep copy)

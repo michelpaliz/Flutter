@@ -1,17 +1,26 @@
+// lib/.../edit-group/widgets/edit_group_body/edit_group_body.dart
+
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:calendar_app_frontend/b-backend/api/blobUploader/blob_uploader.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/controllers/group_update_controller.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/controllers/image_picker_controller.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/services/group_init_service.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/edit_group_bottom_nav.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/edit_group_header.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/edit_group_ppl.dart';
-
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/functions/edit_group_bottom_nav.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/functions/edit_group_header.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class EditGroupBody extends StatefulWidget {
   final Group group;
@@ -38,7 +47,10 @@ class _EditGroupBodyState extends State<EditGroupBody> {
   late TextEditingController _descriptionController;
   late String _imageURL;
   late User? _currentUser;
+
   XFile? _selectedImage;
+  bool _isUploading = false;
+  String? _photoBlobName;
 
   @override
   void initState() {
@@ -60,13 +72,68 @@ class _EditGroupBodyState extends State<EditGroupBody> {
     setState(() => _groupName = name);
   }
 
+  /// Pick from gallery, upload to Azure, PATCH group, update state.
   Future<void> _pickImage() async {
     final picker = ImagePickerController();
     final pickedImage = await picker.pickImageFromGallery();
-    if (pickedImage != null) {
+    if (pickedImage == null) return;
+
+    setState(() {
+      _selectedImage = pickedImage; // instant local preview
+      _isUploading = true;
+    });
+
+    try {
+      final auth = context.read<AuthProvider>();
+      final token = auth.lastToken;
+      if (token == null) throw Exception('Not authenticated');
+
+      // 1) Upload to Azure via shared helper (scope: groups)
+      final result = await uploadImageToAzure(
+        scope: 'groups',
+        resourceId: widget.group.id,
+        file: File(pickedImage.path),
+        accessToken: token,
+        // mimeType defaults to 'image/jpeg'
+        // uses strategy 'versioned' inside helper for CDN friendliness
+      );
+
+      // 2) Persist changes to backend
+      final resp = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/groups/${widget.group.id}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'photoUrl': result.photoUrl,
+          'photoBlobName': result.blobName,
+        }),
+      );
+      if (resp.statusCode != 200) {
+        throw Exception('Update group failed: ${resp.statusCode} ${resp.body}');
+      }
+
+      // 3) Update local state + manager so other screens refresh
+      if (!mounted) return;
       setState(() {
-        _selectedImage = pickedImage;
+        _imageURL = result.photoUrl;
+        _photoBlobName = result.blobName;
       });
+
+      widget.groupManagement.updateGroupPhoto(
+        groupId: widget.group.id,
+        photoUrl: result.photoUrl,
+        photoBlobName: result.blobName,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload group photo: $e')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() => _isUploading = false);
     }
   }
 
@@ -76,10 +143,10 @@ class _EditGroupBodyState extends State<EditGroupBody> {
       originalGroup: widget.group,
       groupName: _groupName,
       groupDescription: _descriptionController.text,
-      imageUrl: _imageURL,
+      imageUrl: _imageURL, // already updated by _pickImage flow
       currentUser: _currentUser!,
-      userRoles: {}, // You can pass updated roles here if needed
-      usersInvitations: {}, // Same for invitations
+      userRoles: {}, // pass updated roles if needed
+      usersInvitations: {},
       usersInvitationAtFirst: {},
       addingNewUser: false,
       userManagement: widget.userManagement,
@@ -97,13 +164,25 @@ class _EditGroupBodyState extends State<EditGroupBody> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            EditGroupHeader(
-              imageURL: _imageURL,
-              selectedImage: _selectedImage,
-              onPickImage: _pickImage,
-              groupName: _groupName,
-              onNameChange: _onNameChanged,
-              descriptionController: _descriptionController,
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                EditGroupHeader(
+                  imageURL: _imageURL,
+                  selectedImage: _selectedImage,
+                  onPickImage: _pickImage, // ← wired
+                  groupName: _groupName,
+                  onNameChange: _onNameChanged,
+                  descriptionController: _descriptionController,
+                ),
+                if (_isUploading)
+                  const Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: true,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             EditGroupPeople(

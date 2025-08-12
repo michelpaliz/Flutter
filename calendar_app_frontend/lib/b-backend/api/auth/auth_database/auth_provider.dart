@@ -4,7 +4,7 @@ import 'dart:math';
 
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/auth_exceptions.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -85,6 +85,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   }
 
   @override
+  @override
   Future<User?> logIn({required String email, required String password}) async {
     try {
       final response = await http.post(
@@ -93,23 +94,74 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
+      // 🔍 Debug logs
+      debugPrint('🔐 /auth/login → ${response.statusCode}');
+      debugPrint('🔐 body: ${response.body}');
+
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
-        _authToken = data['accessToken'];
-        await TokenStorage.saveTokens(
-          accessToken: data['accessToken'],
-          refreshToken: data['refreshToken'],
-        );
+      String _mask(String? v) => v == null
+          ? 'null'
+          : (v.length <= 8
+              ? v
+              : '${v.substring(0, 4)}…${v.substring(v.length - 4)}');
 
-        final userId = data['userId'];
-        currentUser = await _userService.getUserById(userId);
-        return _user;
-      } else {
-        throw Exception(data['message'] ?? 'Login failed');
+      if (response.statusCode != 200) {
+        final msg = (data is Map<String, dynamic>)
+            ? (data['message']?.toString() ?? 'Login failed')
+            : 'Login failed';
+        throw Exception(msg);
       }
-    } catch (e) {
-      throw Exception('Login error: $e');
+
+      // ✅ Validate required fields
+      final accessToken = (data is Map<String, dynamic>)
+          ? data['accessToken'] as String?
+          : null;
+      final refreshToken = (data is Map<String, dynamic>)
+          ? data['refreshToken'] as String?
+          : null;
+      final userId =
+          (data is Map<String, dynamic>) ? data['userId'] as String? : null;
+
+      debugPrint('🔐 parsed login: {'
+          'userId: $userId, '
+          'accessToken: ${_mask(accessToken)}, '
+          'refreshToken: ${_mask(refreshToken)} }');
+
+      if (accessToken == null || refreshToken == null || userId == null) {
+        throw FormatException("Missing required fields in login response: "
+            "accessToken=${accessToken != null}, "
+            "refreshToken=${refreshToken != null}, "
+            "userId=${userId != null}");
+      }
+
+      // ✅ Save tokens after validation
+      _authToken = accessToken;
+      await TokenStorage.saveTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
+
+      // ✅ Fetch the user; if something crashes in parsing, we’ll see the real line
+      debugPrint('👤 fetching user by id: $userId');
+      final user = await _userService.getUserById(userId);
+      debugPrint('👤 getUserById returned: ${user != null ? 'OK' : 'null'}');
+
+      currentUser = user;
+      return _user;
+    } on TypeError catch (e, st) {
+      // 🧯 Keep the original stack (so you see the exact file:line that failed)
+      debugPrint('🧨 TypeError during login flow: $e');
+      debugPrintStack(stackTrace: st);
+      Error.throwWithStackTrace(Exception('Login error: $e'), st);
+    } on FormatException catch (e, st) {
+      debugPrint('🧨 FormatException during login flow: $e');
+      debugPrintStack(stackTrace: st);
+      Error.throwWithStackTrace(Exception('Login error: $e'), st);
+    } catch (e, st) {
+      debugPrint('🧨 Unknown login error: $e');
+      debugPrintStack(stackTrace: st);
+      Error.throwWithStackTrace(Exception('Login error: $e'), st);
     }
   }
 
@@ -117,7 +169,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
   Future<void> logOut() async {
     _user = null;
     _authToken = null;
-    await TokenStorage.clearTokens(); // Clear both tokens
+    await TokenStorage.clearTokens();
     _authStateController.add(null);
     notifyListeners();
   }
@@ -143,8 +195,19 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         headers: {'Authorization': 'Bearer $_authToken'},
       );
 
+      // 🔍 Debug logs
+      debugPrint('👤 GET /profile → ${response.statusCode}');
+      debugPrint('👤 body: ${response.body}');
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
+
+        if (json is Map) {
+          debugPrint('👤 profile keys: ${json.keys.toList()}');
+        } else {
+          debugPrint('👤 profile is not a Map, got: ${json.runtimeType}');
+        }
+
         _user = User.fromJson(json);
         _authStateController.add(_user);
         debugPrint('✅ User fetched successfully on app launch.');
@@ -154,7 +217,6 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         if (!refreshed) {
           debugPrint(
               '❌ Token refresh failed — but NOT logging out automatically.');
-          // 👇 Optional: notify UI to show login screen
           _authStateController.add(null);
         }
       } else {
@@ -163,8 +225,6 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       }
     } catch (e) {
       debugPrint('📡 Network error during profile fetch: $e');
-      // DO NOT log out. Let user retry when network is restored.
-      // You can show an offline screen, fallback view, or toast.
     }
 
     notifyListeners();
@@ -244,6 +304,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         Uri.parse('${ApiConstants.baseUrl}/profile'),
         headers: {'Authorization': 'Bearer $_authToken'},
       );
+
+      debugPrint('👤 (refresh) GET /profile → ${profileResponse.statusCode}');
+      debugPrint('👤 (refresh) body: ${profileResponse.body}');
 
       if (profileResponse.statusCode == 200) {
         final json = jsonDecode(profileResponse.body);

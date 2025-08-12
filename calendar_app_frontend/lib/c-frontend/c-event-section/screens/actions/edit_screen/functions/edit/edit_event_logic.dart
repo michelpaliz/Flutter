@@ -58,7 +58,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
     for (var id in _group.userIds) {
       try {
         final user = await _userService.getUserById(id);
-        fetchedUsers.add(user);
+        fetchedUsers.add(user!);
       } catch (_) {}
     }
 

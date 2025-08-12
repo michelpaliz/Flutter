@@ -1,15 +1,43 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/b-backend/api/config/api_rotues.dart';
-import 'package:dio/dio.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
- final String baseUrl = '${ApiConstants.baseUrl}/users';
+  final String baseUrl = '${ApiConstants.baseUrl}/users';
 
+  Future<String> getFreshAvatarUrl({
+    required String blobName,
+    required String authToken,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiConstants.baseUrl}/blobs/read-sas?blobName=${Uri.encodeComponent(blobName)}',
+      ),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data is Map && data.containsKey('url')) {
+        return data['url'] as String;
+      } else {
+        throw Exception('Unexpected response format: $data');
+      }
+    } else {
+      throw Exception(
+        'Failed to refresh avatar URL: ${response.reasonPhrase}',
+      );
+    }
+  }
 
   // Modify createUser to accept a User object and return User
   Future<User> createUser(User user) async {
@@ -50,18 +78,26 @@ class UserService {
     }
   }
 
-  Future<User> getUserById(String id) async {
-    final response = await http.get(Uri.parse('$baseUrl/$id'));
+// user_services.dart
+  Future<User> getUserById(String userId) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/$userId'),
+      headers: {
+        'Authorization': 'Bearer ${await TokenStorage.loadToken()}',
+      },
+    );
 
-    if (response.statusCode == 200) {
-      return User.fromJson(
-        jsonDecode(response.body),
-      ); // Directly use User's fromJson method
-    } else if (response.statusCode == 404) {
-      throw Exception('User not found');
-    } else {
-      throw Exception('Failed to get user: ${response.reasonPhrase}');
+    debugPrint('👤 GET /users/$userId → ${res.statusCode}');
+    debugPrint('👤 body: ${res.body}');
+
+    if (res.statusCode != 200) {
+      throw Exception('Failed to fetch user with id: $userId');
     }
+
+    final decoded = jsonDecode(res.body);
+
+    // ✅ Pass the known ID as a fallback
+    return User.fromJson(decoded, fallbackId: userId);
   }
 
   Future<User> getUserByEmail(String email) async {

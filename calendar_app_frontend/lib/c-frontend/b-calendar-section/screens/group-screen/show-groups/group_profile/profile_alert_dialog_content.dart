@@ -24,7 +24,7 @@ Widget buildProfileDialogContent(BuildContext context, Group group) {
       // 🖼️ Group image
       CircleAvatar(
         radius: 30,
-        backgroundImage: Utilities.buildProfileImage(group.photo),
+        backgroundImage: Utilities.buildProfileImage(group.photoUrl),
       ),
       const SizedBox(height: 8),
 

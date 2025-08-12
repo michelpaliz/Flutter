@@ -108,25 +108,38 @@ class _LoginViewState extends State<LoginView> {
                 debugPrint("🔘 Login button pressed");
                 final email = _email.text.trim();
                 final password = _password.text.trim();
+
                 try {
                   await _loginInitializer.initializeUserAndServices(
-                    email,
-                    password,
-                  );
+                      email, password);
 
                   SocketManager().on('presence:update', (data) {
-                    debugPrint("📥 Received presence:update with data: $data");
-                    _presenceManager.updatePresenceList(data);
+                    debugPrint("📥 presence:update data: $data");
+                    _presenceManager
+                        .updatePresenceList(data); // <-- could also throw
                   });
 
+                  if (!mounted) return;
                   Navigator.pushNamed(context, AppRoutes.homePage);
                 } on UserNotFoundAuthException {
                   _showSnackBar(AppLocalizations.of(context)!.userNotFound);
                 } on WrongPasswordAuthException {
                   _showSnackBar(AppLocalizations.of(context)!.wrongCredentials);
-                } on GenericAuthException {
-                  _showSnackBar(AppLocalizations.of(context)!.authError);
-                } catch (e) {
+                } on TypeError catch (e, st) {
+                  // <-- add this
+                  debugPrint('🧨 TypeError: $e');
+                  debugPrintStack(stackTrace: st);
+                  _showSnackBar(
+                      'Login failed: a value I expected wasn\'t there.');
+                } on FormatException catch (e, st) {
+                  // JSON shape surprises
+                  debugPrint('🧨 FormatException: $e');
+                  debugPrintStack(stackTrace: st);
+                  _showSnackBar(
+                      'Login failed: server response had an unexpected format.');
+                } catch (e, st) {
+                  debugPrint('🧨 Unknown error: $e');
+                  debugPrintStack(stackTrace: st);
                   _showSnackBar('Login failed: $e');
                 }
               },
