@@ -61,15 +61,16 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
     await _uploadProfileImageToBackend(File(picked.path));
   }
 
-  /// Upload using the shared helper + PATCH the user
+  /// Upload using the shared helper + commit the avatar on the backend
   Future<void> _uploadProfileImageToBackend(File file) async {
     if (!mounted) return;
+
     try {
       final auth = context.read<AuthProvider>();
       final accessToken = auth.lastToken;
       if (accessToken == null || _currentUser == null) return;
 
-      // 1) Upload to Azure (shared helper handles SAS + PUT + view URL)
+      // 1) Upload to Azure (shared helper handles SAS + PUT + public/read URL)
       final result = await uploadImageToAzure(
         scope: 'users',
         file: file,
@@ -77,29 +78,39 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
         // mimeType defaults to image/jpeg; uses 'versioned' filenames
       );
 
-      // 2) Persist to backend
-      final updateResp = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/users/${_currentUser!.id}'),
+      // 2) Commit the blobName to backend (server saves photoBlobName and sets photoUrl if public)
+      final commitResp = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/users/me/photo'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'photoUrl': result.photoUrl,
-          'photoBlobName': result.blobName,
+          'blobName': result.blobName,
         }),
       );
-      if (updateResp.statusCode != 200) {
+
+      if (commitResp.statusCode != 200) {
         debugPrint(
-            '⚠️ User update warning: ${updateResp.statusCode} ${updateResp.body}');
+          '⚠️ Commit avatar failed: ${commitResp.statusCode} ${commitResp.body}',
+        );
       }
 
-      // 3) Update UI immediately
+      // 3) Use the updated user from the server (preferred) or fall back to our local result
+      final updatedUserJson = (commitResp.statusCode == 200)
+          ? jsonDecode(commitResp.body) as Map<String, dynamic>
+          : null;
+
+      final committedPhotoUrl = updatedUserJson?['photoUrl'] ?? result.photoUrl;
+      final committedBlobName =
+          updatedUserJson?['photoBlobName'] ?? result.blobName;
+
       if (!mounted) return;
+
       setState(() {
         _currentUser = _currentUser?.copyWith(
-          photoUrl: result.photoUrl,
-          photoBlobName: result.blobName,
+          photoUrl: committedPhotoUrl,
+          photoBlobName: committedBlobName,
         );
       });
       _userManagement.setCurrentUser(_currentUser!);
