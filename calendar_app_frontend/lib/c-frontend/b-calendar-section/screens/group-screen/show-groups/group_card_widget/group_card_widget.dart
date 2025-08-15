@@ -9,15 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Renders a tappable group card with theme-aware styling.
-///
-/// ✅ Features:
-/// - Displays group name and creation date
-/// - Opens a profile dialog when tapped
-/// - Applies hover styling with color overlay
-/// - Uses the app's light/dark theme colors
-///
-/// Note: This widget does not use a StatefulWidget directly but achieves
-/// reactivity through `StatefulBuilder` for hover interactivity.
 Widget buildGroupCard(
   BuildContext context,
   Group group,
@@ -36,7 +27,6 @@ Widget buildGroupCard(
 
       return InkWell(
         onTap: () async {
-          // Fetch group owner info and open profile dialog
           User groupOwner =
               await userManagement.userService.getUserById(group.ownerId);
           showProfileAlertDialog(
@@ -62,72 +52,118 @@ Widget buildGroupCard(
 }
 
 /// Builds the visual layout for the group card.
-///
-/// Applies hover background, theming, and proper typography.
 Widget buildCard(Group group, BuildContext context, bool isHovered) {
   final formattedDate = DateFormat('yyyy-MM-dd').format(group.createdTime);
 
-  // Theme-based colors
   final theme = Theme.of(context);
   final textColor = theme.colorScheme.onSurface;
   final cardColor =
       ThemeColors.getCardBackgroundColor(context).withOpacity(0.95);
-  final hoverOverlay = theme.hoverColor.withOpacity(0.1);
+  final hoverOverlay = theme.hoverColor.withOpacity(0.08);
   final effectiveBackgroundColor = isHovered ? hoverOverlay : cardColor;
 
+  final participantCount = group.userIds?.length ?? 0;
+
   return Card(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    elevation: 2,
+    elevation: isHovered ? 6 : 2,
     color: effectiveBackgroundColor,
-    child: SizedBox(
-      width: 150,
-      child: Row(
-        children: [
-          // Group icon
-          Padding(
-            padding: const EdgeInsets.only(right: 3, left: 4),
-            child: Icon(
-              Icons.group,
-              size: 32,
-              color: theme.colorScheme.primary, // Themed icon color
-            ),
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Group image or fallback icon
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: (group.photoUrl != null && group.photoUrl!.isNotEmpty)
+                    ? Image.network(
+                        group.photoUrl!,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.group,
+                          size: 48,
+                          color: theme.colorScheme.primary,
+                        ),
+                      )
+                    : Icon(
+                        Icons.group,
+                        size: 48,
+                        color: theme.colorScheme.primary,
+                      ),
+              ),
+              const SizedBox(width: 12),
+
+              // Group info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Group name
+                    Text(
+                      group.name,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                        fontFamily: 'lato',
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    // Created date
+                    Text(
+                      "Created: $formattedDate",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: textColor.withOpacity(0.7),
+                        fontFamily: 'lato',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
+        ),
 
-          // Group name and date
-          Expanded(
+        // Floating participant badge
+        Positioned(
+          top: -6,
+          right: -6,
+          child: Material(
+            elevation: 3,
+            borderRadius: BorderRadius.circular(16),
+            color: theme.colorScheme.primary,
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Group creation date
+                  const Icon(Icons.person, size: 14, color: Colors.white),
+                  const SizedBox(width: 4),
                   Text(
-                    formattedDate,
-                    style: TextStyle(
-                      fontFamily: 'lato',
-                      color: textColor.withOpacity(0.7), // De-emphasized
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Group name
-                  Text(
-                    group.name.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: theme.colorScheme.onSurface,
+                    '$participantCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'lato',
                     ),
                   ),
-                  const SizedBox(height: 10),
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     ),
   );
 }

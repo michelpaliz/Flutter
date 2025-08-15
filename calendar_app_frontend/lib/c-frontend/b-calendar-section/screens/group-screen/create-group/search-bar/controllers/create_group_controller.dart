@@ -15,7 +15,6 @@ import '../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../a-models/notification_model/userInvitation_status.dart';
 import '../../../../../../../a-models/user_model/user.dart';
 import '../../../../../../../b-backend/api/auth/auth_database/auth_provider.dart'; // ✅ NEW
-
 import '../../../../../../../b-backend/api/config/api_constants.dart'; // ✅ NEW
 import '../../../../../../../b-backend/api/user/user_services.dart';
 import '../../../../../../../d-stateManagement/group/group_management.dart';
@@ -134,49 +133,42 @@ class GroupController extends ChangeNotifier {
     }
   }
 
-  // ✅ UPDATED: create first, then upload image (if any), then PATCH group
+  // ✅ Create group first, then (optionally) upload image and commit { blobName }.
   Future<bool> _createGroupAndMaybeUploadPhoto() async {
     try {
-      // Prefer letting server assign IDs; keep local UUIDs if your API requires.
-      final calendarId = const Uuid().v4().substring(0, 10);
+      // 1) Build payload and create the group (without photo)
 
-      // Ensure we have the server-side user (you already do this)
-      final serverUser =
-          await _userService.getUserByUsername(currentUser!.userName);
-
-      // Owner/admin role (align keying with your backend; using username here like before)
       final adminRoles = {currentUser!.userName: 'Administrator'};
 
-      // Create group WITHOUT photo first
       final newGroup = Group(
-        id: '', // let backend assign Mongo _id
+        id: '', // let backend assign _id
         name: groupName,
         ownerId: currentUser!.id,
         userRoles: adminRoles,
         userIds: [currentUser!.id],
         createdTime: DateTime.now(),
         description: groupDescription,
-        photoUrl: '', // no photo yet
+        photoUrl: '',
         photoBlobName: null,
-        calendar: Calendar(calendarId, groupName),
-        invitedUsers:
-            _buildInvites(), // from userRoles (excluding current user)
+        calendar: Calendar('', groupName), // or null for id
+
+        invitedUsers: _buildInvites(),
       );
 
       final createdOk =
           await groupManagement.createGroup(newGroup, userManagement);
       if (!createdOk) return false;
 
-      // Get the created group (you can refine this lookup per your app logic)
+      // Retrieve the created group (adjust per your app’s logic if needed)
       final created = groupManagement.groups.lastWhere(
         (g) => g.name == newGroup.name && g.ownerId == newGroup.ownerId,
         orElse: () => groupManagement.groups.last,
       );
 
-      // If no image selected, we are done
+      // 2) If no image was picked, we're done
       if (selectedImage == null) return true;
 
-      // Upload image now that we have groupId
+      // 3) Upload image to Azure (scope: groups, resourceId = created.id)
       final token = context!.read<AuthProvider>().lastToken;
       if (token == null) throw Exception('Not authenticated');
 
@@ -185,34 +177,34 @@ class GroupController extends ChangeNotifier {
         resourceId: created.id,
         file: File(selectedImage!.path),
         accessToken: token,
+        // mimeType defaults to 'image/jpeg'; helper uses 'versioned'
       );
 
-      // PATCH group with photo fields
+      // 4) Commit photo to backend with only blobName
       final resp = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/groups/${created.id}'),
+        Uri.parse('${ApiConstants.baseUrl}/groups/${created.id}/photo'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'photoUrl': uploadResult.photoUrl,
-          'photoBlobName': uploadResult.blobName,
-        }),
+        body: jsonEncode({'blobName': uploadResult.blobName}),
       );
-      if (resp.statusCode != 200) {
-        devtools.log(
-            '⚠️ Failed to update group photo: ${resp.statusCode} ${resp.body}');
-        // not fatal for creation
-      } else {
-        // Update local state immediately for snappy UI (requires manager method)
+
+      if (resp.statusCode == 200) {
+        // 5) Update local state / managers for immediate UI refresh
         groupManagement.updateGroupPhoto(
           groupId: created.id,
-          photoUrl: uploadResult.photoUrl,
+          photoUrl: uploadResult.photoUrl, // CDN (public) or read-SAS (private)
           photoBlobName: uploadResult.blobName,
         );
+        return true;
+      } else {
+        devtools.log(
+          '⚠️ Failed to commit group photo: ${resp.statusCode} ${resp.body}',
+        );
+        // Not fatal to group creation; return true so UX proceeds
+        return true;
       }
-
-      return true;
     } catch (e) {
       devtools.log("Error in _createGroupAndMaybeUploadPhoto: $e");
       return false;

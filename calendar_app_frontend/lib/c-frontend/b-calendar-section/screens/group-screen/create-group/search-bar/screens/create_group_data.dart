@@ -71,7 +71,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
               child: Column(
                 children: [
                   const SizedBox(height: 20), // space below header curve
-                  GroupImagePicker(controller: _controller),
+                  GroupImagePicker(),
                   GroupTextFields(controller: _controller),
                   const SizedBox(height: 10),
                   AddUserButtonDialog(

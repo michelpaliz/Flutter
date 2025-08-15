@@ -6,14 +6,13 @@ import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:http/http.dart' as http;
 
 class UploadResult {
-  final String photoUrl; // what you show in UI
-  final String blobName; // save to photoBlobName in DB
+  final String photoUrl; // URL to display in UI
+  final String blobName; // Store in DB as photoBlobName
   UploadResult({required this.photoUrl, required this.blobName});
 }
 
-/// scope: 'users' or 'groups'
-/// resourceId: groupId when scope == 'groups'; ignored for users
-/// avatarsArePublic: if true, we build URL from CDN; else we request read-SAS
+/// scope: 'users' | 'groups'
+/// resourceId: required when scope == 'groups' (the groupId)
 Future<UploadResult> uploadImageToAzure({
   required String scope, // 'users' | 'groups'
   String? resourceId, // groupId when scope == 'groups'
@@ -22,20 +21,25 @@ Future<UploadResult> uploadImageToAzure({
   String mimeType = 'image/jpeg',
   bool avatarsArePublic = ApiConstants.avatarsArePublic,
 }) async {
-  // 1) get upload SAS
-  final String endpoint = (scope == 'users')
+  if (scope == 'groups' && (resourceId == null || resourceId.isEmpty)) {
+    throw ArgumentError(
+        'resourceId (groupId) is required when scope == "groups"');
+  }
+
+  // --- 1) Get upload SAS ---
+  final String sasEndpoint = (scope == 'users')
       ? '${ApiConstants.baseUrl}/blob/users/me/upload-sas'
       : '${ApiConstants.baseUrl}/blob/groups/$resourceId/upload-sas';
 
   final sasResp = await http.post(
-    Uri.parse(endpoint),
+    Uri.parse(sasEndpoint),
     headers: {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
     },
     body: jsonEncode({
       'mimeType': mimeType,
-      'strategy': 'versioned', // avoids CDN cache issues
+      'strategy': 'versioned',
     }),
   );
   if (sasResp.statusCode != 200) {
@@ -46,7 +50,7 @@ Future<UploadResult> uploadImageToAzure({
   final uploadUrl = sasData['uploadUrl'] as String;
   final blobName = sasData['blobName'] as String;
 
-  // 2) PUT bytes to Azure
+  // --- 2) Upload to Azure ---
   final bytes = await file.readAsBytes();
   final putResp = await http.put(
     Uri.parse(uploadUrl),
@@ -61,22 +65,35 @@ Future<UploadResult> uploadImageToAzure({
         'Azure upload failed: ${putResp.statusCode} ${putResp.body}');
   }
 
-  // 3) Get display URL
+  // --- 3) Get display URL ---
   String viewUrl;
   if (avatarsArePublic) {
-    viewUrl = '${ApiConstants.cdnBaseUrl}/$blobName';
+    // ✅ Use blobUrl from backend if provided
+    final fromBackend = sasData['blobUrl'] as String?;
+    if (fromBackend != null && fromBackend.isNotEmpty) {
+      viewUrl = fromBackend;
+    } else {
+      // Fallback if backend didn't send it (unlikely)
+      viewUrl = '${ApiConstants.cdnBaseUrl}/$blobName';
+    }
   } else {
+    final String readEndpoint = (scope == 'users')
+        ? '${ApiConstants.baseUrl}/blob/users/me/read-sas?blobName=${Uri.encodeComponent(blobName)}'
+        : '${ApiConstants.baseUrl}/blob/groups/$resourceId/read-sas?blobName=${Uri.encodeComponent(blobName)}';
+
     final readResp = await http.get(
-      Uri.parse(
-          '${ApiConstants.baseUrl}/blob/read-sas?blobName=${Uri.encodeComponent(blobName)}'),
+      Uri.parse(readEndpoint),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
     if (readResp.statusCode != 200) {
       throw Exception(
           'Failed to get read-SAS: ${readResp.statusCode} ${readResp.body}');
     }
-    viewUrl =
-        (jsonDecode(readResp.body) as Map<String, dynamic>)['url'] as String;
+    final readData = jsonDecode(readResp.body) as Map<String, dynamic>;
+    viewUrl = (readData['url'] as String?) ?? '';
+    if (viewUrl.isEmpty) {
+      throw Exception('Read-SAS response missing URL');
+    }
   }
 
   return UploadResult(photoUrl: viewUrl, blobName: blobName);

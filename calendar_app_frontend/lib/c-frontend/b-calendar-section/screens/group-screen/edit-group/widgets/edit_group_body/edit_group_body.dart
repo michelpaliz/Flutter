@@ -71,71 +71,65 @@ class _EditGroupBodyState extends State<EditGroupBody> {
   void _onNameChanged(String name) {
     setState(() => _groupName = name);
   }
+Future<void> _pickImage() async {
+  final picker = ImagePickerController();
+  final pickedImage = await picker.pickImageFromGallery();
+  if (pickedImage == null) return;
 
-  /// Pick from gallery, upload to Azure, PATCH group, update state.
-  Future<void> _pickImage() async {
-    final picker = ImagePickerController();
-    final pickedImage = await picker.pickImageFromGallery();
-    if (pickedImage == null) return;
+  setState(() {
+    _selectedImage = pickedImage; // instant local preview
+    _isUploading = true;
+  });
 
+  try {
+    final auth = context.read<AuthProvider>();
+    final token = auth.lastToken;
+    if (token == null) throw Exception('Not authenticated');
+
+    // 1) Upload to Azure
+    final result = await uploadImageToAzure(
+      scope: 'groups',
+      resourceId: widget.group.id,
+      file: File(pickedImage.path),
+      accessToken: token,
+    );
+
+    // 2) Commit only blobName to backend
+    final resp = await http.patch(
+      Uri.parse('${ApiConstants.baseUrl}/groups/${widget.group.id}/photo'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'blobName': result.blobName}),
+    );
+    if (resp.statusCode != 200) {
+      throw Exception(
+          'Commit group photo failed: ${resp.statusCode} ${resp.body}');
+    }
+
+    // 3) Update local state and managers
+    if (!mounted) return;
     setState(() {
-      _selectedImage = pickedImage; // instant local preview
-      _isUploading = true;
+      _imageURL = result.photoUrl; // ✅ now uses blobUrl from backend in public mode
+      _photoBlobName = result.blobName;
     });
 
-    try {
-      final auth = context.read<AuthProvider>();
-      final token = auth.lastToken;
-      if (token == null) throw Exception('Not authenticated');
-
-      // 1) Upload to Azure via shared helper (scope: groups)
-      final result = await uploadImageToAzure(
-        scope: 'groups',
-        resourceId: widget.group.id,
-        file: File(pickedImage.path),
-        accessToken: token,
-        // mimeType defaults to 'image/jpeg'
-        // uses strategy 'versioned' inside helper for CDN friendliness
-      );
-
-      // 2) Persist changes to backend
-      final resp = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/groups/${widget.group.id}'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'photoUrl': result.photoUrl,
-          'photoBlobName': result.blobName,
-        }),
-      );
-      if (resp.statusCode != 200) {
-        throw Exception('Update group failed: ${resp.statusCode} ${resp.body}');
-      }
-
-      // 3) Update local state + manager so other screens refresh
-      if (!mounted) return;
-      setState(() {
-        _imageURL = result.photoUrl;
-        _photoBlobName = result.blobName;
-      });
-
-      widget.groupManagement.updateGroupPhoto(
-        groupId: widget.group.id,
-        photoUrl: result.photoUrl,
-        photoBlobName: result.blobName,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload group photo: $e')),
-      );
-    } finally {
-      if (!mounted) return;
-      setState(() => _isUploading = false);
-    }
+    widget.groupManagement.updateGroupPhoto(
+      groupId: widget.group.id,
+      photoUrl: _imageURL,
+      photoBlobName: result.blobName,
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to upload group photo: $e')),
+    );
+  } finally {
+    if (!mounted) return;
+    setState(() => _isUploading = false);
   }
+}
 
   void _handleUpdate() async {
     final controller = GroupUpdateController(
