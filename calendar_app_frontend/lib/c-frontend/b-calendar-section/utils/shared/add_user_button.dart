@@ -8,6 +8,7 @@ import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import '../../../../../../a-models/group_model/group/group.dart';
 import '../../../../a-models/user_model/user.dart';
 
+// add_user_button.dart
 class AddUserButtonDialog extends StatelessWidget {
   final User? currentUser;
   final Group? group;
@@ -19,7 +20,7 @@ class AddUserButtonDialog extends StatelessWidget {
     required this.currentUser,
     required this.group,
     required this.controller,
-    this.onUserAdded, // 👈 optional
+    this.onUserAdded,
   }) : super(key: key);
 
   void _openDialog(BuildContext context) {
@@ -50,6 +51,12 @@ class AddUserButtonDialog extends StatelessWidget {
                   group: group,
                   user: currentUser,
                   controller: controller,
+
+                  // 👇 NEW: wire result back to parent
+                  onUserPicked: (User picked) {
+                    onUserAdded?.call(picked);
+                    Navigator.of(context).pop(); // close dialog after picking
+                  },
                 ),
               ),
               TextButton(
@@ -77,11 +84,10 @@ class AddUserButtonDialog extends StatelessWidget {
           label: AppLocalizations.of(context)!.addUser,
           style: ButtonStyles.saucyButtonStyle(
             defaultBackgroundColor: backgroundColor,
-            pressedBackgroundColor: ThemeColors.getContainerBackgroundColor(
-              context,
-            ),
-            textColor: contrastTextColor, // ✅ text color with contrast
-            borderColor: contrastTextColor, // ✅ border with same contrast
+            pressedBackgroundColor:
+                ThemeColors.getContainerBackgroundColor(context),
+            textColor: contrastTextColor,
+            borderColor: contrastTextColor,
           ),
           onPressed: () => _openDialog(context),
         ),

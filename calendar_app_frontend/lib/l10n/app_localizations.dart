@@ -1760,6 +1760,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please select at least one user'**
   String get pleaseSelectAtLeastOneUser;
+
+  /// No description provided for @groupMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Group Members'**
+  String get groupMembers;
+
+  /// No description provided for @noInvitedUsersToDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'No invited users to display.'**
+  String get noInvitedUsersToDisplay;
+
+  /// Snackbar after removing an invited/new user
+  ///
+  /// In en, this message translates to:
+  /// **'User {userName} removed successfully.'**
+  String userRemovedSuccessfully(String userName);
+
+  /// Snackbar when removal fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove user {userName}.'**
+  String failedToRemoveUser(String userName);
+
+  /// No description provided for @groupDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group Description'**
+  String get groupDescriptionLabel;
 }
 
 class _AppLocalizationsDelegate

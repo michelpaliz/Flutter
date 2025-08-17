@@ -1,9 +1,8 @@
-// lib/.../edit-group/widgets/edit_group_body/edit_group_body.dart
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
+import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:calendar_app_frontend/b-backend/api/blobUploader/blob_uploader.dart';
@@ -52,6 +51,9 @@ class _EditGroupBodyState extends State<EditGroupBody> {
   bool _isUploading = false;
   String? _photoBlobName;
 
+  final GlobalKey<EditGroupPeopleState> _peopleKey =
+      GlobalKey<EditGroupPeopleState>();
+
   @override
   void initState() {
     super.initState();
@@ -71,81 +73,89 @@ class _EditGroupBodyState extends State<EditGroupBody> {
   void _onNameChanged(String name) {
     setState(() => _groupName = name);
   }
-Future<void> _pickImage() async {
-  final picker = ImagePickerController();
-  final pickedImage = await picker.pickImageFromGallery();
-  if (pickedImage == null) return;
 
-  setState(() {
-    _selectedImage = pickedImage; // instant local preview
-    _isUploading = true;
-  });
+  Future<void> _pickImage() async {
+    final picker = ImagePickerController();
+    final pickedImage = await picker.pickImageFromGallery();
+    if (pickedImage == null) return;
 
-  try {
-    final auth = context.read<AuthProvider>();
-    final token = auth.lastToken;
-    if (token == null) throw Exception('Not authenticated');
-
-    // 1) Upload to Azure
-    final result = await uploadImageToAzure(
-      scope: 'groups',
-      resourceId: widget.group.id,
-      file: File(pickedImage.path),
-      accessToken: token,
-    );
-
-    // 2) Commit only blobName to backend
-    final resp = await http.patch(
-      Uri.parse('${ApiConstants.baseUrl}/groups/${widget.group.id}/photo'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'blobName': result.blobName}),
-    );
-    if (resp.statusCode != 200) {
-      throw Exception(
-          'Commit group photo failed: ${resp.statusCode} ${resp.body}');
-    }
-
-    // 3) Update local state and managers
-    if (!mounted) return;
     setState(() {
-      _imageURL = result.photoUrl; // ✅ now uses blobUrl from backend in public mode
-      _photoBlobName = result.blobName;
+      _selectedImage = pickedImage;
+      _isUploading = true;
     });
 
-    widget.groupManagement.updateGroupPhoto(
-      groupId: widget.group.id,
-      photoUrl: _imageURL,
-      photoBlobName: result.blobName,
-    );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to upload group photo: $e')),
-    );
-  } finally {
-    if (!mounted) return;
-    setState(() => _isUploading = false);
-  }
-}
+    try {
+      final auth = context.read<AuthProvider>();
+      final token = auth.lastToken;
+      if (token == null) throw Exception('Not authenticated');
 
-  void _handleUpdate() async {
+      final result = await uploadImageToAzure(
+        scope: 'groups',
+        resourceId: widget.group.id,
+        file: File(pickedImage.path),
+        accessToken: token,
+      );
+
+      final resp = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/groups/${widget.group.id}/photo'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'blobName': result.blobName}),
+      );
+      if (resp.statusCode != 200) {
+        throw Exception(
+            'Commit group photo failed: ${resp.statusCode} ${resp.body}');
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _imageURL = result.photoUrl;
+        _photoBlobName = result.blobName;
+      });
+
+      widget.groupManagement.updateGroupPhoto(
+        groupId: widget.group.id,
+        photoUrl: _imageURL,
+        photoBlobName: result.blobName,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload group photo: $e')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() => _isUploading = false);
+    }
+  }
+
+  Future<void> _handleUpdate() async {
+    final peopleState = _peopleKey.currentState;
+    if (peopleState == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please wait, people list not ready.')),
+      );
+      return;
+    }
+
+    final Map<String, String> finalRoles = peopleState.getFinalRoles();
+    final Map<String, UserInviteStatus> finalInvites =
+        peopleState.getFinalInvites();
+
     final controller = GroupUpdateController(
       context: context,
       originalGroup: widget.group,
       groupName: _groupName,
       groupDescription: _descriptionController.text,
-      imageUrl: _imageURL, // already updated by _pickImage flow
+      imageUrl: _imageURL,
       currentUser: _currentUser!,
-      userRoles: {}, // pass updated roles if needed
-      usersInvitations: {},
-      usersInvitationAtFirst: {},
-      addingNewUser: false,
+      userRoles: finalRoles,
+      usersInvitations: finalInvites,
+      // removed: usersInvitationAtFirst / addingNewUser / notificationManagement
       userManagement: widget.userManagement,
       groupManagement: widget.groupManagement,
-      notificationManagement: widget.notificationManagement,
     );
 
     await controller.performGroupUpdate();
@@ -164,7 +174,7 @@ Future<void> _pickImage() async {
                 EditGroupHeader(
                   imageURL: _imageURL,
                   selectedImage: _selectedImage,
-                  onPickImage: _pickImage, // ← wired
+                  onPickImage: _pickImage,
                   groupName: _groupName,
                   onNameChange: _onNameChanged,
                   descriptionController: _descriptionController,
@@ -180,6 +190,7 @@ Future<void> _pickImage() async {
             ),
             const SizedBox(height: 16),
             EditGroupPeople(
+              key: _peopleKey,
               group: widget.group,
               initialUsers: widget.users,
               userManagement: widget.userManagement,

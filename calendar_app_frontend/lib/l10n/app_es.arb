@@ -514,5 +514,26 @@
   "passwordRecoveryEmptyField": "Por favor, introduce tu correo electrónico o nombre de usuario.",
   "passwordRecoverySuccess": "Se ha recibido una solicitud para restablecer la contraseña. Contacta con soporte o revisa la configuración de tu cuenta.",
   "endDateMustBeAfterStartDate": "La fecha de finalización debe ser posterior a la fecha de inicio",
-  "pleaseSelectAtLeastOneUser": "Por favor, selecciona al menos un usuario"
+  "pleaseSelectAtLeastOneUser": "Por favor, selecciona al menos un usuario",
+  "groupMembers": "Miembros del grupo",
+  "noInvitedUsersToDisplay": "No hay usuarios invitados para mostrar.",
+  "userRemovedSuccessfully": "Usuario {userName} eliminado correctamente.",
+  "@userRemovedSuccessfully": {
+    "description": "Snackbar tras eliminar a un usuario invitado/nuevo",
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToRemoveUser": "No se pudo eliminar al usuario {userName}.",
+  "@failedToRemoveUser": {
+    "description": "Snackbar cuando la eliminación falla",
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "groupDescriptionLabel": "Descripción del grupo"
 }

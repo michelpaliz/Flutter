@@ -968,4 +968,24 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get pleaseSelectAtLeastOneUser =>
       'Por favor, selecciona al menos un usuario';
+
+  @override
+  String get groupMembers => 'Miembros del grupo';
+
+  @override
+  String get noInvitedUsersToDisplay =>
+      'No hay usuarios invitados para mostrar.';
+
+  @override
+  String userRemovedSuccessfully(String userName) {
+    return 'Usuario $userName eliminado correctamente.';
+  }
+
+  @override
+  String failedToRemoveUser(String userName) {
+    return 'No se pudo eliminar al usuario $userName.';
+  }
+
+  @override
+  String get groupDescriptionLabel => 'Descripción del grupo';
 }

@@ -516,5 +516,29 @@
     "passwordRecoveryEmptyField": "Please enter your email or username.",
     "passwordRecoverySuccess": "A password reset request has been noted. Please contact support or check your account settings.",
     "endDateMustBeAfterStartDate": "End date must be after the start date",
-    "pleaseSelectAtLeastOneUser": "Please select at least one user"
+    "pleaseSelectAtLeastOneUser": "Please select at least one user",
+    "groupMembers": "Group Members",
+    "noInvitedUsersToDisplay": "No invited users to display.",
+    "userRemovedSuccessfully": "User {userName} removed successfully.",
+    "@userRemovedSuccessfully": {
+        "description": "Snackbar after removing an invited/new user",
+        "placeholders": {
+            "userName": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToRemoveUser": "Failed to remove user {userName}.",
+    "@failedToRemoveUser": {
+        "description": "Snackbar when removal fails",
+        "placeholders": {
+            "userName": {
+                "type": "String"
+            }
+        }
+    },
+  "groupDescriptionLabel": "Group Description"
+
+
+
 }

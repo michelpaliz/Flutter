@@ -8,6 +8,7 @@ import 'package:calendar_app_frontend/d-stateManagement/group/group_management.d
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/f-themes/shape/rounded/rounded_section_card.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class UserListSection extends StatelessWidget {
@@ -50,10 +51,11 @@ class UserListSection extends StatelessWidget {
 
   bool _isDuplicate(String userName) {
     final isNew = newUsers.containsKey(userName);
-    final isInGroup = usersInGroup.any((user) => user.name == userName);
+    final isInGroup = usersInGroup.any((user) => user.userName == userName);
     final isInvited = usersInvitations.containsKey(userName);
 
-    final isDuplicate = isNew || (isInGroup && !isInvited);
+    // Only hide if already a member and not invited
+    final isDuplicate = (isInGroup && !isInvited);
 
     print(
       '🧪 _isDuplicate → $userName: '
@@ -66,33 +68,46 @@ class UserListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('👥 usersInGroup: ${usersInGroup.map((u) => u.name).toList()}');
+    final loc = AppLocalizations.of(context)!;
+
+    print('👥 usersInGroup: ${usersInGroup.map((u) => u.userName).toList()}');
     print('📩 invitedUsers: ${usersInvitations.keys.toList()}');
 
-    // 2. Filtered list of invited users based on toggle states
     final filteredInvitedUsers = usersInvitations.entries.where((entry) {
-      final status = entry.value.informationStatus;
       final userName = entry.key;
-
-      print('🔎 Checking invited user $userName with raw status: "$status"');
-
       if (_isDuplicate(userName)) return false;
 
-      final normalizedStatus = status.trim().toLowerCase();
+      final rawStatus = entry.value.informationStatus;
+      final normalizedStatus =
+          rawStatus.trim().toLowerCase().replaceAll(RegExp(r'[\s_\-]'), '');
 
-      if (normalizedStatus == 'pending' && showPending) return true;
-      if (normalizedStatus == 'accepted' && showAccepted) return true;
-      if (normalizedStatus == 'notaccepted' && showNotWantedToJoin) return true;
-      if (normalizedStatus == 'expired' && showExpired) return true;
+      final bool? answer = entry.value.invitationAnswer;
+
+      final isAccepted = normalizedStatus == 'accepted' || answer == true;
+      final isDeclined = normalizedStatus == 'notaccepted' ||
+          normalizedStatus == 'declined' ||
+          answer == false;
+      final isExpired = normalizedStatus == 'expired';
+      final isPending = normalizedStatus == 'pending' ||
+          (answer == null && !isAccepted && !isDeclined && !isExpired);
+
+      print('🔎 $userName → status="$rawStatus" (→ $normalizedStatus), '
+          'answer=$answer → '
+          'pending:$isPending accepted:$isAccepted declined:$isDeclined expired:$isExpired');
+
+      if (isPending && showPending) return true;
+      if (isAccepted && showAccepted) return true;
+      if (isDeclined && showNotWantedToJoin) return true;
+      if (isExpired && showExpired) return true;
 
       return false;
     }).toList();
 
     return RoundedSectionCard(
-      title: 'Group Members',
+      title: loc.groupMembers, // 🔤 localized
       child: Column(
         children: [
-          // 1. Newly added users (only if showNewUsers)
+          // 1) Newly added users
           if (showNewUsers)
             ...newUsers.entries.map((entry) {
               final userName = entry.key;
@@ -101,33 +116,30 @@ class UserListSection extends StatelessWidget {
 
               return GroupUserCard(
                 userName: userName,
-                role: selectedRole ?? 'Member',
+                role: selectedRole ?? loc.member, // 🔤 localized fallback
                 photoUrl: user.photoUrl,
-                isAdmin: selectedRole == 'Administrator',
+                isAdmin: (selectedRole == 'Administrator' ||
+                    selectedRole == loc.administrator),
                 onRemove: () => _showDismissDialog(context, userName),
               );
             }).toList(),
 
-          // 2. Invited users (filtered by status dynamically)
+          // 2) Invited users (filtered)
           if (filteredInvitedUsers.isEmpty) ...[
-            // Custom message when there are no invited users matching the filters
-            const Padding(
-              padding: EdgeInsets.all(16.0),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Text(
-                'No invited users to display.',
-                style: TextStyle(color: Colors.grey),
+                loc.noInvitedUsersToDisplay, // 🔤 localized empty state
+                style: const TextStyle(color: Colors.grey),
               ),
             ),
           ] else ...[
-            // Render filtered invited users
             ...filteredInvitedUsers.map((entry) {
               final userName = entry.key;
               final inviteStatus = entry.value;
 
               print(
-                '📦 Rendering GroupUserCard for invited user: '
-                '$userName → ${inviteStatus.informationStatus}',
-              );
+                  '📦 Rendering card: $userName → ${inviteStatus.informationStatus}');
 
               return GroupUserCard(
                 userName: userName,
@@ -146,6 +158,8 @@ class UserListSection extends StatelessWidget {
   }
 
   void _showDismissDialog(BuildContext context, String userName) {
+    final loc = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (ctx) => DismissUserDialog(
@@ -164,12 +178,8 @@ class UserListSection extends StatelessWidget {
             notificationManagement: notificationManagement,
           );
 
-          final status = usersInvitations[userName]?.invitationAnswer;
-          final invitationStatus = status == 'accepted'
-              ? true
-              : status == 'declined'
-              ? false
-              : null;
+          final bool? invitationStatus =
+              usersInvitations[userName]?.invitationAnswer;
 
           final success = await removalService.performUserRemoval(
             userName,
@@ -182,8 +192,8 @@ class UserListSection extends StatelessWidget {
           final snackBar = SnackBar(
             content: Text(
               success
-                  ? 'User $userName removed successfully.'
-                  : 'Failed to remove user $userName.',
+                  ? loc.userRemovedSuccessfully(userName) // 🔤 localized
+                  : loc.failedToRemoveUser(userName), // 🔤 localized
             ),
             duration: const Duration(seconds: 5),
           );

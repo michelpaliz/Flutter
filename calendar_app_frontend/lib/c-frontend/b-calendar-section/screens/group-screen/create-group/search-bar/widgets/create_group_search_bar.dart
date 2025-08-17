@@ -13,11 +13,15 @@ class CreateGroupSearchBar extends StatefulWidget {
   final Group? group;
   final GroupController controller;
 
+  /// NEW: called as soon as a user gets picked (for instant preview in parent)
+  final void Function(User)? onUserPicked;
+
   const CreateGroupSearchBar({
     super.key,
     required this.user,
     required this.group,
     required this.controller,
+    this.onUserPicked,
   });
 
   @override
@@ -37,14 +41,12 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
     );
   }
 
-  // Function to handle confirmation (without sending to the backend for now)
+  // Local-only confirm (does not hit backend)
   void _onConfirmChanges() {
-    // Simply update the state with selected users and roles
     widget.controller.onDataChanged(
       _controller.usersInGroup,
       _controller.userRoles,
     );
-    // Show a message or do something locally here
     _showSnackBar("Changes confirmed (not sent to backend yet).");
   }
 
@@ -77,38 +79,54 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                 },
               ),
               const SizedBox(height: 10),
+
+              // Results list
               ...ctrl.searchResults.map((username) {
                 return ListTile(
                   title: Text(username),
                   trailing: IconButton(
                     icon: const Icon(Icons.add, color: Colors.green),
-                    onPressed: () {
-                      ctrl.addUser(username, context);
+                    onPressed: () async {
+                      // Add to the local controller (search controller)
+                      final addResult = await ctrl.addUser(username, context);
+                      // Clear search box and notify
                       _searchController.clear();
                       _showSnackBar('User added: $username');
+
+                      // Try to find the concrete User we just added
+                      User? picked;
+                      try {
+                        picked = ctrl.usersInGroup
+                            .firstWhere((u) => u.userName == username);
+                      } catch (_) {
+                        picked = null;
+                      }
+
+                      // Bubble up to parent (EditGroupPeople) for instant preview
+                      if (picked != null) {
+                        widget.onUserPicked?.call(picked);
+                      }
                     },
                   ),
                 );
               }),
+
               const SizedBox(height: 10),
+
+              // Local selected users list (still local until saved)
               GroupSelectedUsersList(
                 currentUser: widget.user!,
                 usersInGroup: ctrl.usersInGroup,
                 userRoles: ctrl.userRoles,
                 onRemoveUser: (username) {
                   ctrl.removeUser(username);
-                  _showSnackBar(
-                    'User removed: $username',
-                  ); // ✅ Add feedback here
+                  _showSnackBar('User removed: $username');
                 },
                 onRoleChanged: (username, newRole) {
                   ctrl.changeRole(username, newRole);
-                  _showSnackBar(
-                    'Role updated: $username is now $newRole',
-                  ); // ✅ Feedback here
+                  _showSnackBar('Role updated: $username is now $newRole');
                 },
-                onConfirmChanges:
-                    _onConfirmChanges, // Confirm changes without backend
+                onConfirmChanges: _onConfirmChanges, // local confirm only
               ),
             ],
           );
@@ -118,8 +136,8 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 }

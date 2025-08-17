@@ -1,35 +1,32 @@
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class GroupDescriptionField extends StatelessWidget {
   final TextEditingController descriptionController;
 
-  const GroupDescriptionField({required this.descriptionController});
+  const GroupDescriptionField({required this.descriptionController, super.key});
+
   @override
   Widget build(BuildContext context) {
-    // Use our ThemeColors utilities for background & text
+    final loc = AppLocalizations.of(context)!;
+
     final Color backgroundColor = ThemeColors.getLighterInputFillColor(context);
-    final Color contrastTextColor = ThemeColors.getContrastTextColor(
-      context,
-      backgroundColor,
-    );
-    // Icon can follow the same contrast logic
-    final Color iconColor = ThemeColors.getContrastTextColor(
-      context,
-      backgroundColor,
-    );
+    final Color contrastTextColor =
+        ThemeColors.getContrastTextColor(context, backgroundColor);
+    final Color iconColor = contrastTextColor;
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: CustomEditableTextField(
         controller: descriptionController,
-        labelText: 'Group Description'.toUpperCase(),
+        labelText: loc.groupDescriptionLabel.toUpperCase(), // 🔤 localized
         maxLength: 100,
         isMultiline: true,
         prefixIcon: Icons.description,
-        backgroundColor: backgroundColor, // from ThemeColors
-        iconColor: iconColor, // contrast against bg
+        backgroundColor: backgroundColor,
+        iconColor: iconColor,
         labelStyle: TextStyle(
           color: contrastTextColor,
           fontSize: 16,

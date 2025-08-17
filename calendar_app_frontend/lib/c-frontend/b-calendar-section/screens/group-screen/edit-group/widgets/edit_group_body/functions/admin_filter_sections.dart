@@ -1,6 +1,7 @@
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class AdminWithFiltersSection extends StatelessWidget {
@@ -10,7 +11,9 @@ class AdminWithFiltersSection extends StatelessWidget {
   final bool showNotWantedToJoin;
   final bool showNewUsers;
   final bool showExpired;
-  final Function(String filter, bool isSelected) onFilterChange;
+
+  /// Accepts either a localized label String or any key/enum (parent resolves).
+  final void Function(dynamic filter, bool isSelected) onFilterChange;
 
   const AdminWithFiltersSection({
     super.key,
@@ -25,6 +28,8 @@ class AdminWithFiltersSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     // Get dynamic background for the container
     final Color containerBg = ThemeColors.getContainerBackgroundColor(context);
     // Contrast text/icon color based on that bg
@@ -55,15 +60,16 @@ class AdminWithFiltersSection extends StatelessWidget {
                   children: [
                     Text(
                       currentUser.userName,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium?.copyWith(color: contrastText),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(color: contrastText),
                     ),
                     Text(
-                      'Administrator',
+                      loc.administrator, // ✅ localized
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: contrastText.withOpacity(0.7),
-                      ),
+                            color: contrastText.withOpacity(0.7),
+                          ),
                     ),
                   ],
                 ),
@@ -75,11 +81,36 @@ class AdminWithFiltersSection extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildFilterChip(context, "New Users", showNewUsers),
-                _buildFilterChip(context, "Pending", showPending),
-                _buildFilterChip(context, "Accepted", showAccepted),
-                _buildFilterChip(context, "NotAccepted", showNotWantedToJoin),
-                _buildFilterChip(context, "Expired", showExpired),
+                _buildFilterChip(
+                  context,
+                  keyId: 'newUsers',
+                  label: loc.newUsers, // ✅ localized
+                  selected: showNewUsers,
+                ),
+                _buildFilterChip(
+                  context,
+                  keyId: 'pending',
+                  label: loc.pending, // ✅ localized
+                  selected: showPending,
+                ),
+                _buildFilterChip(
+                  context,
+                  keyId: 'accepted',
+                  label: loc.accepted, // ✅ localized
+                  selected: showAccepted,
+                ),
+                _buildFilterChip(
+                  context,
+                  keyId: 'notAccepted',
+                  label: loc.notAccepted, // ✅ localized
+                  selected: showNotWantedToJoin,
+                ),
+                _buildFilterChip(
+                  context,
+                  keyId: 'expired',
+                  label: loc.expired, // ✅ localized
+                  selected: showExpired,
+                ),
               ],
             ),
           ],
@@ -88,36 +119,41 @@ class AdminWithFiltersSection extends StatelessWidget {
     );
   }
 
-  // FilterChip builder aligned to blue-centric palette
-  Widget _buildFilterChip(BuildContext context, String label, bool selected) {
+  // FilterChip builder: use a stable keyId for icon/colors, and a localized label for display.
+  Widget _buildFilterChip(
+    BuildContext context, {
+    required String keyId,
+    required String label,
+    required bool selected,
+  }) {
     IconData icon;
     Color activeColor;
     Color inactiveColor;
 
-    switch (label) {
-      case 'Accepted':
+    switch (keyId) {
+      case 'accepted':
         icon = Icons.check_circle;
-        activeColor = AppColors.primaryDark;
+        activeColor = const Color.fromARGB(255, 34, 210, 25);
         inactiveColor = AppColors.primary.withOpacity(0.2);
         break;
-      case 'Pending':
+      case 'pending':
         icon = Icons.hourglass_empty;
-        activeColor = AppColors.secondaryDark;
+        activeColor = const Color.fromARGB(255, 33, 106, 146);
         inactiveColor = AppColors.secondary.withOpacity(0.2);
         break;
-      case 'NotAccepted':
+      case 'notAccepted':
         icon = Icons.cancel;
         activeColor = AppDarkColors.error;
         inactiveColor = AppDarkColors.error.withOpacity(0.2);
         break;
-      case 'New Users':
+      case 'newUsers':
         icon = Icons.group_add;
-        activeColor = AppColors.primary;
+        activeColor = const Color.fromARGB(255, 136, 150, 11);
         inactiveColor = AppColors.primaryLight.withOpacity(0.2);
         break;
-      case 'Expired':
+      case 'expired':
         icon = Icons.schedule;
-        activeColor = AppColors.surface;
+        activeColor = const Color.fromARGB(255, 188, 30, 212);
         inactiveColor = AppColors.surface.withOpacity(0.2);
         break;
       default:
@@ -133,6 +169,7 @@ class AdminWithFiltersSection extends StatelessWidget {
       backgroundColor: inactiveColor,
       selectedColor: activeColor,
       onSelected: (bool isSelected) {
+        // Pass the localized label (parent resolves), or swap to keyId/enum if you prefer.
         onFilterChange(label, isSelected);
       },
     );

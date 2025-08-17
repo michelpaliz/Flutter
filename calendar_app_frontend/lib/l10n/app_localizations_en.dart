@@ -959,4 +959,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseSelectAtLeastOneUser => 'Please select at least one user';
+
+  @override
+  String get groupMembers => 'Group Members';
+
+  @override
+  String get noInvitedUsersToDisplay => 'No invited users to display.';
+
+  @override
+  String userRemovedSuccessfully(String userName) {
+    return 'User $userName removed successfully.';
+  }
+
+  @override
+  String failedToRemoveUser(String userName) {
+    return 'Failed to remove user $userName.';
+  }
+
+  @override
+  String get groupDescriptionLabel => 'Group Description';
 }

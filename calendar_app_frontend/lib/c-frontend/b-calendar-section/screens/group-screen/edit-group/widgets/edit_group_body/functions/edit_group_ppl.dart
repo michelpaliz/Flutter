@@ -1,3 +1,4 @@
+// lib/.../edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
@@ -7,14 +8,18 @@ import 'package:calendar_app_frontend/c-frontend/b-calendar-section/utils/shared
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 
 import '../../user_list_section.dart';
 
+/// Stable keys for the filter chips. AdminWithFiltersSection can later emit these directly.
+/// For now we also adapt from localized String labels → enum in _resolveFilter().
+enum InviteFilter { accepted, pending, notAccepted, newUsers, expired }
+
 class EditGroupPeople extends StatefulWidget {
   final Group group;
-  final List<User> initialUsers;
+  final List<User> initialUsers; // incoming snapshot
   final UserManagement userManagement;
   final GroupManagement groupManagement;
   final NotificationManagement notificationManagement;
@@ -29,31 +34,43 @@ class EditGroupPeople extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<EditGroupPeople> createState() => _EditGroupPeopleState();
+  EditGroupPeopleState createState() => EditGroupPeopleState();
 }
 
-class _EditGroupPeopleState extends State<EditGroupPeople> {
-  late GroupController controller;
-  late Map<String, UserInviteStatus> invitedUsers;
-  Map<String, User> newUsers = {};
+class EditGroupPeopleState extends State<EditGroupPeople> {
+  // Controller only for AddUser dialog search/flow
+  late GroupController _controller;
 
+  // Local, temporary state (NOT persisted until Save)
+  late List<User> _localUsers; // working members
+  late Map<String, String> _localRoles; // username -> role
+  late Map<String, UserInviteStatus> _localInvitedUsers; // working invites
+  final Map<String, User> _newUsers = {}; // added in this session
+
+  // Filters
   bool showAccepted = true;
   bool showPending = true;
   bool showNotWantedToJoin = true;
   bool showNewUsers = true;
   bool showExpired = true;
+
   late User? _currentUser;
   late String _currentUserRoleValue;
 
   @override
   void initState() {
     super.initState();
-    controller = GroupController();
+    _controller = GroupController();
 
     _currentUser = widget.userManagement.user;
-    invitedUsers = widget.group.invitedUsers ?? {};
 
-    controller.initialize(
+    // Clone incoming data into local working copies
+    _localUsers = List<User>.from(widget.initialUsers);
+    _localRoles = Map<String, String>.from(widget.group.userRoles);
+    _localInvitedUsers =
+        Map<String, UserInviteStatus>.from(widget.group.invitedUsers ?? {});
+
+    _controller.initialize(
       user: _currentUser!,
       userManagement: widget.userManagement,
       groupManagement: widget.groupManagement,
@@ -65,40 +82,89 @@ class _EditGroupPeopleState extends State<EditGroupPeople> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     final loc = AppLocalizations.of(context)!;
-
     _currentUserRoleValue = _currentUser!.id == widget.group.ownerId
         ? loc.administrator
         : widget.group.userRoles[_currentUser!.userName] ?? loc.member;
   }
 
-  void onNewUserAdded(User user) {
+  // Called by AddUser dialog
+  void _onNewUserAdded(User user) {
     setState(() {
-      newUsers[user.name] = user;
+      final uname = user.userName;
+      final existsInMembers = _localUsers.any((u) => u.userName == uname);
+      final existsInInvites = _localInvitedUsers.containsKey(uname);
+      if (existsInMembers || existsInInvites) return;
+
+      // Generate a stable local id. Use your backend id if you have one.
+      final inviteId =
+          'grp:${widget.group.id}|user:$uname|ts:${DateTime.now().millisecondsSinceEpoch}';
+
+      _localInvitedUsers[uname] = UserInviteStatus(
+        id: inviteId,
+        invitationAnswer: null, // no answer yet
+        role: 'Member',
+        sendingDate: DateTime.now(), // must be DateTime
+        informationStatus: 'pending', // normalized for filtering
+        attempts: 0, // first attempt
+        status: 'Unresolved', // initial business status
+      );
+
+      // Optional: if you also want a “New users” chip/card, uncomment:
+      // _newUsers[uname] = user;
+
+      // Do NOT add to _localUsers — not a member until accepted.
+      // Do NOT touch _localRoles here.
     });
   }
 
-  Map<String, User> get filteredNewUsers {
-    if (!showNewUsers) return {};
-    return newUsers;
+  Map<String, User> get _filteredNewUsers => showNewUsers ? _newUsers : {};
+
+  // ✅ Expose final values to parent (EditGroupBody reads these on Save)
+  List<User> getFinalUsers() => List<User>.from(_localUsers);
+  Map<String, String> getFinalRoles() => Map<String, String>.from(_localRoles);
+  Map<String, UserInviteStatus> getFinalInvites() =>
+      Map<String, UserInviteStatus>.from(_localInvitedUsers);
+
+  /// Accept either an InviteFilter enum OR a localized label String and resolve to the enum.
+  InviteFilter? _resolveFilter(dynamic filter) {
+    if (filter is InviteFilter) return filter;
+    if (filter is! String) return null;
+
+    final loc = AppLocalizations.of(context)!;
+    String norm(String s) =>
+        s.trim().toLowerCase().replaceAll(RegExp(r'[\s_\-]'), '');
+
+    final f = norm(filter);
+
+    if (f == norm(loc.accepted) || f == 'accepted') return InviteFilter.accepted;
+    if (f == norm(loc.pending) || f == 'pending') return InviteFilter.pending;
+    if (f == norm(loc.notAccepted) || f == 'notaccepted' || f == 'declined') {
+      return InviteFilter.notAccepted;
+    }
+    if (f == norm(loc.newUsers) || f == 'newusers') return InviteFilter.newUsers;
+    if (f == norm(loc.expired) || f == 'expired') return InviteFilter.expired;
+
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final isAdmin = _currentUser!.id == widget.group.ownerId ||
+        _currentUserRoleValue == loc.administrator;
 
     return Column(
       children: [
         AddUserButtonDialog(
           currentUser: widget.userManagement.user,
           group: widget.group,
-          controller: controller,
-          onUserAdded: onNewUserAdded,
+          controller: _controller,
+          onUserAdded: _onNewUserAdded,
         ),
         const SizedBox(height: 12),
-        if (_currentUserRoleValue ==
-            "Administrator") // No localization key for this role
+
+        if (isAdmin)
           AdminWithFiltersSection(
             currentUser: _currentUser!,
             showAccepted: showAccepted,
@@ -106,36 +172,47 @@ class _EditGroupPeopleState extends State<EditGroupPeople> {
             showNotWantedToJoin: showNotWantedToJoin,
             showNewUsers: showNewUsers,
             showExpired: showExpired,
+            // Accepts either InviteFilter (preferred) or String label (legacy)
             onFilterChange: (filter, isSelected) {
+              final resolved = _resolveFilter(filter);
+              if (resolved == null) {
+                // print('⚠️ Unknown filter: $filter');
+                return;
+              }
               setState(() {
-                switch (filter) {
-                  case var f when f == loc.accepted:
+                switch (resolved) {
+                  case InviteFilter.accepted:
                     showAccepted = isSelected;
                     break;
-                  case var f when f == loc.pending:
+                  case InviteFilter.pending:
                     showPending = isSelected;
                     break;
-                  case var f when f == loc.notAccepted:
+                  case InviteFilter.notAccepted:
                     showNotWantedToJoin = isSelected;
                     break;
-                  case var f when f == loc.newUsers:
+                  case InviteFilter.newUsers:
                     showNewUsers = isSelected;
                     break;
-                  case var f when f == loc.expired:
+                  case InviteFilter.expired:
                     showExpired = isSelected;
                     break;
                 }
               });
+              // Debug:
+              // print('🎛 Filters → A:$showAccepted P:$showPending D:$showNotWantedToJoin N:$showNewUsers X:$showExpired');
             },
           ),
+
         const SizedBox(height: 12),
+
+        // Render from LOCAL working copies
         UserListSection(
-          newUsers: filteredNewUsers,
-          usersRoles: controller.userRoles,
-          usersInvitations: invitedUsers,
-          usersInvitationAtFirst: invitedUsers,
+          newUsers: _filteredNewUsers,
+          usersRoles: _localRoles,
+          usersInvitations: _localInvitedUsers,
+          usersInvitationAtFirst: widget.group.invitedUsers ?? {},
           group: widget.group,
-          usersInGroup: widget.initialUsers,
+          usersInGroup: _localUsers,
           userManagement: widget.userManagement,
           groupManagement: widget.groupManagement,
           notificationManagement: widget.notificationManagement,
@@ -145,12 +222,14 @@ class _EditGroupPeopleState extends State<EditGroupPeople> {
           showNewUsers: showNewUsers,
           showExpired: showExpired,
           onChangeRole: (userName, newRole) {
-            controller.onRolesUpdated({userName: newRole});
+            setState(() => _localRoles[userName] = newRole);
           },
           onUserRemoved: (userName) {
-            controller.removeUser(userName);
             setState(() {
-              newUsers.remove(userName);
+              _newUsers.remove(userName);
+              _localUsers.removeWhere((u) => u.userName == userName);
+              _localRoles.remove(userName);
+              _localInvitedUsers.remove(userName);
             });
           },
         ),
