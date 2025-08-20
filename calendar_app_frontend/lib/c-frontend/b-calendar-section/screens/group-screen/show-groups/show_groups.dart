@@ -1,3 +1,4 @@
+import 'package:calendar_app_frontend/c-frontend/utils/user_avatar.dart';
 import 'package:calendar_app_frontend/e-drawer-style-menu/main_scaffold.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -5,25 +6,10 @@ import 'package:provider/provider.dart';
 
 import '../../../../../a-models/user_model/user.dart';
 import '../../../../../d-stateManagement/group/group_management.dart';
-import '../../../../../d-stateManagement/notification/notification_management.dart';
 import '../../../../../d-stateManagement/user/user_management.dart';
 import '../../../../routes/appRoutes.dart';
 import 'controller/list_group_controller.dart';
 import 'group_body_builder/group_body_builder.dart';
-import 'utils/notification_icon.dart';
-
-/// The `ShowGroups` screen displays a list of groups that the current user belongs to.
-///
-/// 📌 Features:
-/// - Fetches and displays user’s groups (using `GroupController`)
-/// - Allows toggling between vertical and horizontal scroll layouts
-/// - Provides a Floating Action Button (FAB) to create a new group
-/// - Includes a refresh button to manually reload group data
-/// - Shows a notification icon in the app bar
-///
-/// Note:
-/// - Navigation to group details or calendar view likely happens within the `buildBody()`
-/// - Edit group functionality is not directly handled here
 
 class ShowGroups extends StatefulWidget {
   const ShowGroups({super.key});
@@ -43,8 +29,6 @@ class _ShowGroupsState extends State<ShowGroups> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Initialize only once when dependencies become available
     if (_initialized) return;
     _initialized = true;
 
@@ -52,12 +36,6 @@ class _ShowGroupsState extends State<ShowGroups> {
     _groupManagement = Provider.of<GroupManagement>(context, listen: false);
   }
 
-  /// Navigates to the Create Group screen
-  void _createGroup() {
-    Navigator.pushNamed(context, AppRoutes.createGroupData); // ✅ FAB target
-  }
-
-  /// Toggles list scroll direction (vertical/horizontal)
   void _toggleScrollDirection() {
     setState(() {
       _scrollDirection =
@@ -67,9 +45,8 @@ class _ShowGroupsState extends State<ShowGroups> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserNotifier = Provider.of<UserManagement>(
-      context,
-    ).currentUserNotifier;
+    final currentUserNotifier =
+        Provider.of<UserManagement>(context).currentUserNotifier;
 
     return ValueListenableBuilder<User?>(
       valueListenable: currentUserNotifier,
@@ -78,7 +55,6 @@ class _ShowGroupsState extends State<ShowGroups> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // ✅ Fetch group data once after first frame
         if (!_hasFetchedGroups) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             GroupController.fetchGroups(user, _groupManagement);
@@ -86,32 +62,30 @@ class _ShowGroupsState extends State<ShowGroups> {
           _hasFetchedGroups = true;
         }
 
+        final loc = AppLocalizations.of(context)!;
+
         return MainScaffold(
-          title: AppLocalizations.of(context)!.groups,
+          title: '',
+          titleWidget: _AppBarUserTitle(user: user),
           actions: [
-            // 🔄 Refresh button to manually refetch groups
+            // 🔄 Refresh
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: AppLocalizations.of(context)!.refresh,
+              tooltip: loc.refresh,
               onPressed: () {
                 GroupController.fetchGroups(user, _groupManagement);
-                setState(() {}); // Trigger UI refresh
+                setState(() {});
               },
             ),
-
-            // 🔔 Notification bell icon
-            buildNotificationIcon(
-              context: context,
-              userManagement: _userManagement,
-              notificationManagement: Provider.of<NotificationManagement>(
-                context,
-                listen: false,
-              ),
+            // ⚙️ Settings (moved here; removed duplicate notifications bell)
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: loc.settings,
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.settings);
+              },
             ),
           ],
-
-          // 🧱 Main body: Displays group list (cards or tiles likely)
-          // Might contain navigation to calendar when a group is tapped
           body: buildBody(
             context,
             _scrollDirection,
@@ -119,16 +93,53 @@ class _ShowGroupsState extends State<ShowGroups> {
             user,
             _userManagement,
             _groupManagement,
-            (String? role) {}, // Optional role update callback
+            (String? role) {},
           ),
-
-          // ➕ Floating Action Button to create a new group
-          fab: FloatingActionButton(
-            onPressed: _createGroup,
-            child: const Icon(Icons.group_add_rounded), // ✅ Create group
-          ),
+          // No per-screen FAB: ContextualFab handles it globally
         );
       },
+    );
+  }
+}
+
+class _AppBarUserTitle extends StatelessWidget {
+  final User user;
+  const _AppBarUserTitle({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (user.name.isNotEmpty ? user.name : user.userName);
+
+    final nameStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          fontSize: 22,
+          color: Theme.of(context).colorScheme.onSurface,
+        );
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          UserAvatar(
+            user: user,
+            fetchReadSas: (_) async => null, // public avatars
+            radius: 22,
+          ),
+          const SizedBox(width: 16),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.55,
+            ),
+            child: Text(
+              name,
+              style: nameStyle,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

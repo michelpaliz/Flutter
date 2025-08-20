@@ -13,6 +13,7 @@ dependencies:
 
   # Runtime dependencies
   flutter_local_notifications: ^19.3.0
+  material_symbols_icons: ^4.2719.0
   timezone: ^0.10.0
   uuid: ^4.2.1
   google_fonts: ^6.1.0
@@ -50,6 +51,8 @@ dependencies:
   build_runner: ^2.4.15
   rrule: 0.2.17
   flutter_secure_storage: ^9.2.4
+  iconsax: ^0.0.8
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:

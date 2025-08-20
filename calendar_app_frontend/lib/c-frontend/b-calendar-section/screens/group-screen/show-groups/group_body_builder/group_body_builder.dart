@@ -3,6 +3,7 @@ import 'dart:developer' as devtools show log;
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/show-groups/group_card_widget/group_card_widget.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/show-groups/motivational_phrase/motivation_banner.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
@@ -79,14 +80,33 @@ Widget _buildGroupListBody(
   GroupManagement groupManagement,
   void Function(String?) updateRole,
 ) {
+  final loc = AppLocalizations.of(context)!;
+
   return SingleChildScrollView(
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // (Optional for now) keep your welcome card as the placeholder content
         _buildWelcomeContainer(context, currentUser),
+
+        const SizedBox(height: 8),
+
+        // 📣 Section 1: Motivation (title already shown above)
+        _sectionHeader(context, loc.motivationSectionTitle),
+        const SizedBox(height: 8),
+        const MotivationBanner(dailyRotate: true), // 👈 add banner here
+        const SizedBox(height: 24),
+
+        // 👥 Section 2: Groups
+        _sectionHeader(context, loc.groupSectionTitle),
+
+        const SizedBox(height: 24),
+
+        // View toggle + list
         _buildChangeViewRow(toggleScrollDirection, context),
         const SizedBox(height: 20),
+
         _buildGroupListView(
           context,
           groups,
@@ -127,6 +147,36 @@ Widget _buildWelcomeContainer(BuildContext context, User? currentUser) {
           fontFamily: 'lato',
         ),
       ),
+    ),
+  );
+}
+
+Widget _sectionHeader(BuildContext context, String title) {
+  final primary = Theme.of(context).colorScheme.primary;
+  final onSurface = Theme.of(context).colorScheme.onSurface;
+
+  return Padding(
+    padding: const EdgeInsets.only(top: 8, bottom: 12),
+    child: Row(
+      children: [
+        Container(
+          width: 6,
+          height: 24,
+          decoration: BoxDecoration(
+            color: primary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: onSurface,
+              ),
+        ),
+      ],
     ),
   );
 }

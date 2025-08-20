@@ -6,8 +6,9 @@ import 'package:calendar_app_frontend/c-frontend/e-notification-section/enum/bro
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:flutter/material.dart';
+import 'package:calendar_app_frontend/e-drawer-style-menu/main_scaffold.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/notification_controller.dart';
@@ -54,33 +55,23 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!; // 👈 Localization reference
+    final loc = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.notifications), // 👈 From your translations
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete_forever),
-            onPressed: () async {
-              final confirmed = await _confirmClearAll(context, loc);
-              if (confirmed) {
-                await _notificationController.removeAllNotifications(
-                  widget.user,
-                );
-              }
-            },
-          ),
-        ],
+    return MainScaffold(
+      title: '', // we use titleWidget instead
+      titleWidget: Text(
+        loc.notifications,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
       ),
       body: StreamBuilder<List<NotificationUser>>(
         stream: _notificationsStream,
         builder: (context, snapshot) {
           final notifications = snapshot.data ?? [];
           if (notifications.isEmpty) {
-            return Center(child: Text(loc.zeroNotifications)); // 👈 Localized
+            return Center(child: Text(loc.zeroNotifications));
           }
 
           final filtered = _selectedCategory == null
@@ -109,7 +100,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                         padding: const EdgeInsets.all(16),
                         child: Text(
                           entry.key,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -136,29 +127,5 @@ class _ShowNotificationsState extends State<ShowNotifications> {
         },
       ),
     );
-  }
-
-  Future<bool> _confirmClearAll(
-    BuildContext context,
-    AppLocalizations loc,
-  ) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text(loc.confirmation), // "Confirmation"
-            content: Text(loc.removeConfirmation), // "Confirm to remove"
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(loc.confirm), // "Confirm"
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(loc.cancel), // "Cancel"
-              ),
-            ],
-          ),
-        ) ??
-        false;
   }
 }

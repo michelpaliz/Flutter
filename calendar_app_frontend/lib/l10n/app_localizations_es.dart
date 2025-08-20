@@ -988,4 +988,81 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get groupDescriptionLabel => 'Descripción del grupo';
+
+  @override
+  String get agenda => 'Agenda';
+
+  @override
+  String get today => 'Hoy';
+
+  @override
+  String get tomorrow => 'Mañana';
+
+  @override
+  String get noItems => 'Nada próximo';
+
+  @override
+  String get home => 'Inicio';
+
+  @override
+  String get profile => 'Perfil';
+
+  @override
+  String get displayName => 'Nombre para mostrar';
+
+  @override
+  String get username => 'Nombre de usuario';
+
+  @override
+  String get email => 'Correo electrónico';
+
+  @override
+  String get saving => 'Guardando...';
+
+  @override
+  String get photoUpdated => 'Foto actualizada';
+
+  @override
+  String get failedToSavePhoto => 'No se pudo guardar la foto';
+
+  @override
+  String get failedToUploadImage => 'No se pudo subir la imagen';
+
+  @override
+  String get profileSaved => 'Perfil guardado';
+
+  @override
+  String get failedToSaveProfile => 'No se pudo guardar el perfil';
+
+  @override
+  String get notAuthenticatedOrUserMissing =>
+      'No autenticado o falta el usuario';
+
+  @override
+  String get noUserLoaded => 'No se ha cargado ningún usuario';
+
+  @override
+  String get motivationSectionTitle => 'Frase del día';
+
+  @override
+  String get groupSectionTitle => 'Grupos';
+
+  @override
+  String get clearAllTooltip => 'Borrar todas las notificaciones';
+
+  @override
+  String get clearAll => 'Borrar todo';
+
+  @override
+  String get clearAllConfirmTitle => '¿Borrar todo?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      '¿Quieres eliminar todas las notificaciones? Esta acción no se puede deshacer.';
+
+  @override
+  String get clearedAllSuccess => 'Se borraron todas las notificaciones';
+
+  @override
+  String get all => 'Todos';
 }

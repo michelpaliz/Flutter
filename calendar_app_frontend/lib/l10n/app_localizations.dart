@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// No description provided for @zeroNotifications.
   ///
   /// In en, this message translates to:
-  /// **'No notifications available'**
+  /// **'You\'re all caught up'**
   String get zeroNotifications;
 
   /// No description provided for @goToCalendar.
@@ -1790,6 +1790,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Group Description'**
   String get groupDescriptionLabel;
+
+  /// No description provided for @agenda.
+  ///
+  /// In en, this message translates to:
+  /// **'Agenda'**
+  String get agenda;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tomorrow;
+
+  /// No description provided for @noItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing upcoming'**
+  String get noItems;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @displayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get displayName;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get username;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get saving;
+
+  /// No description provided for @photoUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo updated'**
+  String get photoUpdated;
+
+  /// No description provided for @failedToSavePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save photo'**
+  String get failedToSavePhoto;
+
+  /// No description provided for @failedToUploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload image'**
+  String get failedToUploadImage;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSaved;
+
+  /// No description provided for @failedToSaveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile'**
+  String get failedToSaveProfile;
+
+  /// No description provided for @notAuthenticatedOrUserMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not authenticated or user missing'**
+  String get notAuthenticatedOrUserMissing;
+
+  /// No description provided for @noUserLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'No user loaded'**
+  String get noUserLoaded;
+
+  /// No description provided for @motivationSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Motivation'**
+  String get motivationSectionTitle;
+
+  /// No description provided for @groupSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get groupSectionTitle;
+
+  /// No description provided for @clearAllTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications'**
+  String get clearAllTooltip;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAll;
+
+  /// No description provided for @clearAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all?'**
+  String get clearAllConfirmTitle;
+
+  /// No description provided for @clearAllConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all notifications? This action can\'t be undone.'**
+  String get clearAllConfirmMessage;
+
+  /// No description provided for @clearedAllSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications cleared'**
+  String get clearedAllSuccess;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
 }
 
 class _AppLocalizationsDelegate

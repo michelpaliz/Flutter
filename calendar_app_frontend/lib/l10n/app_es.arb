@@ -535,5 +535,31 @@
       }
     }
   },
-  "groupDescriptionLabel": "Descripción del grupo"
+  "groupDescriptionLabel": "Descripción del grupo",
+  "agenda": "Agenda",
+  "today": "Hoy",
+  "tomorrow": "Mañana",
+  "noItems": "Nada próximo",
+  "home": "Inicio",
+  "profile": "Perfil",
+  "displayName": "Nombre para mostrar",
+  "username": "Nombre de usuario",
+  "email": "Correo electrónico",
+  "saving": "Guardando...",
+  "photoUpdated": "Foto actualizada",
+  "failedToSavePhoto": "No se pudo guardar la foto",
+  "failedToUploadImage": "No se pudo subir la imagen",
+  "profileSaved": "Perfil guardado",
+  "failedToSaveProfile": "No se pudo guardar el perfil",
+  "notAuthenticatedOrUserMissing": "No autenticado o falta el usuario",
+  "noUserLoaded": "No se ha cargado ningún usuario",
+  "motivationSectionTitle": "Frase del día",
+  "groupSectionTitle": "Grupos",
+  "clearAllTooltip": "Borrar todas las notificaciones",
+  "@@locale": "es",
+  "clearAll": "Borrar todo",
+  "clearAllConfirmTitle": "¿Borrar todo?",
+  "clearAllConfirmMessage": "¿Quieres eliminar todas las notificaciones? Esta acción no se puede deshacer.",
+  "clearedAllSuccess": "Se borraron todas las notificaciones",
+  "all": "Todos"
 }

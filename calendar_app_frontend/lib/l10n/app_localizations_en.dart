@@ -50,7 +50,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get zeroNotifications => 'No notifications available';
+  String get zeroNotifications => 'You\'re all caught up';
 
   @override
   String get goToCalendar => 'Go to the calendar';
@@ -978,4 +978,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get groupDescriptionLabel => 'Group Description';
+
+  @override
+  String get agenda => 'Agenda';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get tomorrow => 'Tomorrow';
+
+  @override
+  String get noItems => 'Nothing upcoming';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get displayName => 'Display name';
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get saving => 'Saving...';
+
+  @override
+  String get photoUpdated => 'Photo updated';
+
+  @override
+  String get failedToSavePhoto => 'Failed to save photo';
+
+  @override
+  String get failedToUploadImage => 'Failed to upload image';
+
+  @override
+  String get profileSaved => 'Profile saved';
+
+  @override
+  String get failedToSaveProfile => 'Failed to save profile';
+
+  @override
+  String get notAuthenticatedOrUserMissing =>
+      'Not authenticated or user missing';
+
+  @override
+  String get noUserLoaded => 'No user loaded';
+
+  @override
+  String get motivationSectionTitle => 'Motivation';
+
+  @override
+  String get groupSectionTitle => 'Groups';
+
+  @override
+  String get clearAllTooltip => 'Clear all notifications';
+
+  @override
+  String get clearAll => 'Clear all';
+
+  @override
+  String get clearAllConfirmTitle => 'Clear all?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      'Remove all notifications? This action can\'t be undone.';
+
+  @override
+  String get clearedAllSuccess => 'All notifications cleared';
+
+  @override
+  String get all => 'All';
 }

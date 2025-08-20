@@ -5,7 +5,7 @@ import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:calendar_app_frontend/b-backend/api/blobUploader/blob_uploader.dart';
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/c-frontend/g-common/user_avatar.dart';
+import 'package:calendar_app_frontend/c-frontend/utils/user_avatar.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';

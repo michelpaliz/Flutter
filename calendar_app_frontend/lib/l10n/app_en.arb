@@ -26,7 +26,7 @@
             }
         }
     },
-    "zeroNotifications": "No notifications available",
+    "zeroNotifications": "You're all caught up",
     "goToCalendar": "Go to the calendar",
     "groupName": "Group name (max {maxChar} characters)  ",
     "@groupName": {
@@ -537,8 +537,31 @@
             }
         }
     },
-  "groupDescriptionLabel": "Group Description"
-
-
-
+    "groupDescriptionLabel": "Group Description",
+    "agenda": "Agenda",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "noItems": "Nothing upcoming",
+    "home": "Home",
+    "profile": "Profile",
+    "displayName": "Display name",
+    "username": "Username",
+    "email": "Email",
+    "saving": "Saving...",
+    "photoUpdated": "Photo updated",
+    "failedToSavePhoto": "Failed to save photo",
+    "failedToUploadImage": "Failed to upload image",
+    "profileSaved": "Profile saved",
+    "failedToSaveProfile": "Failed to save profile",
+    "notAuthenticatedOrUserMissing": "Not authenticated or user missing",
+    "noUserLoaded": "No user loaded",
+    "motivationSectionTitle": "Motivation",
+    "groupSectionTitle": "Groups",
+    "clearAllTooltip": "Clear all notifications",
+    "@@locale": "en",
+    "clearAll": "Clear all",
+    "clearAllConfirmTitle": "Clear all?",
+    "clearAllConfirmMessage": "Remove all notifications? This action can't be undone.",
+    "clearedAllSuccess": "All notifications cleared",
+    "all": "All"
 }
