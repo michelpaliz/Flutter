@@ -8,12 +8,10 @@ class AuthService implements AuthRepository {
 
   @override
   Future<String> createUser({
-    required String userName,
     required String name,
     required String email,
     required String password,
   }) => repository.createUser(
-    userName: userName,
     email: email,
     password: password,
     name: name,

@@ -563,5 +563,31 @@
     "clearAllConfirmTitle": "Clear all?",
     "clearAllConfirmMessage": "Remove all notifications? This action can't be undone.",
     "clearedAllSuccess": "All notifications cleared",
-    "all": "All"
+    "all": "All",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "termsAndPrivacy": "By signing up, you agree to our Terms & Privacy Policy",
+    "passwordRequired": "Password is required",
+    "welcomeTitle": "Welcome!",
+    "welcomeSubtitle": "Create an account to get started with our app.",
+    "passwordWeak": "Weak",
+    "passwordMedium": "Medium",
+    "passwordStrong": "Strong",
+    "terms": "Terms",
+    "privacyPolicy": "Privacy Policy",
+    "termsAndPrivacyPrefix": "By signing up, you agree to our ",
+    "andSeparator": " and ",
+  "alreadyHaveAccount": "Already have an account?",
+  "dontHaveAccount": "Don’t have an account?",
+  "loginWelcomeTitle": "Welcome back!",
+  "loginWelcomeSubtitle": "Please enter your credentials to continue.",
+  "forgotPasswordSubtitle": "Enter your email and we’ll send you a reset link.",
+  "sendResetLink": "Send Reset Link",
+  "resetLinkSent": "Password reset link sent!"
+
+
+
+  
+
+
 }

@@ -1940,6 +1940,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All'**
   String get all;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
+
+  /// No description provided for @termsAndPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing up, you agree to our Terms & Privacy Policy'**
+  String get termsAndPrivacy;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get passwordRequired;
+
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome!'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account to get started with our app.'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @passwordWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get passwordWeak;
+
+  /// No description provided for @passwordMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get passwordMedium;
+
+  /// No description provided for @passwordStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get passwordStrong;
+
+  /// No description provided for @terms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get terms;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @termsAndPrivacyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing up, you agree to our '**
+  String get termsAndPrivacyPrefix;
+
+  /// No description provided for @andSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get andSeparator;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don’t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @loginWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back!'**
+  String get loginWelcomeTitle;
+
+  /// No description provided for @loginWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your credentials to continue.'**
+  String get loginWelcomeSubtitle;
+
+  /// No description provided for @forgotPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we’ll send you a reset link.'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @sendResetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get sendResetLink;
+
+  /// No description provided for @resetLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset link sent!'**
+  String get resetLinkSent;
 }
 
 class _AppLocalizationsDelegate

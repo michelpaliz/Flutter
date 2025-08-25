@@ -10,6 +10,9 @@ class TextFieldWidget extends StatefulWidget {
   final String? Function(String?)? validator;
   final String? hintText;
 
+  // 👇 new (optional)
+  final ValueChanged<String>? onChanged;
+
   const TextFieldWidget({
     required this.controller,
     required this.decoration,
@@ -18,6 +21,7 @@ class TextFieldWidget extends StatefulWidget {
     this.inputFormatters,
     this.validator,
     this.hintText,
+    this.onChanged, // 👈 new
     Key? key,
   }) : super(key: key);
 
@@ -31,32 +35,36 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   @override
   Widget build(BuildContext context) {
     final baseDecoration = widget.decoration.copyWith(
+      // Keep provided labelText (for floating labels)
       hintText: widget.hintText ?? widget.decoration.hintText,
+      // Make labels float like Material fields (placeholder clarity)
+      floatingLabelBehavior: widget.decoration.floatingLabelBehavior ??
+          FloatingLabelBehavior.auto,
       errorText: showError
           ? (widget.validator != null
               ? widget.validator!(widget.controller.text)
               : null)
           : null,
+      isDense: true,
+      contentPadding:
+          widget.decoration.contentPadding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
     );
 
-    return Column(
-      children: [
-        TextField(
-          controller: widget.controller,
-          decoration: baseDecoration,
-          enableSuggestions: false,
-          autocorrect: false,
-          keyboardType: widget.keyboardType,
-          obscureText: widget.obscureText,
-          inputFormatters: widget.inputFormatters,
-          onChanged: (value) {
-            setState(() {
-              showError =
-                  widget.validator != null && widget.validator!(value) != null;
-            });
-          },
-        ),
-      ],
+    return TextField(
+      controller: widget.controller,
+      decoration: baseDecoration,
+      enableSuggestions: false,
+      autocorrect: false,
+      keyboardType: widget.keyboardType,
+      obscureText: widget.obscureText,
+      inputFormatters: widget.inputFormatters,
+      onChanged: (value) {
+        widget.onChanged?.call(value); // 👈 let parents react (e.g., strength)
+        setState(() {
+          showError =
+              widget.validator != null && widget.validator!(value) != null;
+        });
+      },
     );
   }
 }

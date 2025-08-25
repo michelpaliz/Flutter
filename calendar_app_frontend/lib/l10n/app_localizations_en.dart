@@ -1055,4 +1055,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get all => 'All';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get termsAndPrivacy =>
+      'By signing up, you agree to our Terms & Privacy Policy';
+
+  @override
+  String get passwordRequired => 'Password is required';
+
+  @override
+  String get welcomeTitle => 'Welcome!';
+
+  @override
+  String get welcomeSubtitle =>
+      'Create an account to get started with our app.';
+
+  @override
+  String get passwordWeak => 'Weak';
+
+  @override
+  String get passwordMedium => 'Medium';
+
+  @override
+  String get passwordStrong => 'Strong';
+
+  @override
+  String get terms => 'Terms';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsAndPrivacyPrefix => 'By signing up, you agree to our ';
+
+  @override
+  String get andSeparator => ' and ';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get dontHaveAccount => 'Don’t have an account?';
+
+  @override
+  String get loginWelcomeTitle => 'Welcome back!';
+
+  @override
+  String get loginWelcomeSubtitle =>
+      'Please enter your credentials to continue.';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Enter your email and we’ll send you a reset link.';
+
+  @override
+  String get sendResetLink => 'Send Reset Link';
+
+  @override
+  String get resetLinkSent => 'Password reset link sent!';
 }

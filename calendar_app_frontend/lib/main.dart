@@ -6,7 +6,7 @@ import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_prov
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
 import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
-import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/register_view.dart';
+import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/ui/register_view.dart';
 import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/routes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';

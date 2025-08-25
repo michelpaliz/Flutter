@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Background & surfaces
-  static const Color background = Color(0xFFF5F5F5); // Soft grey background
-  static const Color surface =
-      Color(0xFFFFFFFF); // Pure white for widgets & nav
+  static const Color background = Color(0xFFF5F5F5); // soft grey
+  static const Color surface = Color(0xFFFFFFFF); // pure white
 
   // Primary blue (for icons, highlights, actions)
   static const Color primary = Color(0xFF2196F3); // Blue500
@@ -30,8 +29,8 @@ class AppColors {
 
 class AppDarkColors {
   // Dark theme background & surfaces
-  static const Color background = Color(0xFF121212); // Standard dark background
-  static const Color surface = Color(0xFF1E1E1E); // Slightly lighter for cards
+  static const Color background = Color(0xFF121212); // deep black
+  static const Color surface = Color(0xFF1E1E1E); // lighter grey
 
   // Primary blue stays bright against dark background
   static const Color primary = Color(0xFF2196F3); // Blue500

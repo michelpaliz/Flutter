@@ -44,7 +44,6 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
   @override
   Future<String> createUser({
-    required String userName,
     required String name,
     required String email,
     required String password,
@@ -56,7 +55,6 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
         body: jsonEncode({
           'name': name,
           'email': email,
-          'userName': userName,
           'password': password,
         }),
       );

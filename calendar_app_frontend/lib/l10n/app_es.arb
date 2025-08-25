@@ -561,5 +561,27 @@
   "clearAllConfirmTitle": "¿Borrar todo?",
   "clearAllConfirmMessage": "¿Quieres eliminar todas las notificaciones? Esta acción no se puede deshacer.",
   "clearedAllSuccess": "Se borraron todas las notificaciones",
-  "all": "Todos"
+  "all": "Todos",
+  "showPassword": "Mostrar contraseña",
+  "hidePassword": "Ocultar contraseña",
+  "termsAndPrivacy": "Al registrarte, aceptas nuestros Términos y la Política de Privacidad",
+  "passwordRequired": "La contraseña es obligatoria",
+  "welcomeTitle": "¡Bienvenido!",
+  "welcomeSubtitle": "Crea una cuenta para comenzar a usar nuestra aplicación.",
+  "passwordWeak": "Débil",
+  "passwordMedium": "Media",
+  "passwordStrong": "Fuerte",
+  "terms": "Términos",
+  "privacyPolicy": "Política de Privacidad",
+  "termsAndPrivacyPrefix": "Al registrarte, aceptas nuestros ",
+  "andSeparator": " y ",
+  "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+  "dontHaveAccount": "¿No tienes una cuenta?",
+  "loginWelcomeTitle": "¡Bienvenido de nuevo!",
+  "loginWelcomeSubtitle": "Introduce tus credenciales para continuar.",
+  "forgotPasswordSubtitle": "Introduce tu correo y te enviaremos un enlace de restablecimiento.",
+  "sendResetLink": "Enviar enlace de restablecimiento",
+  "resetLinkSent": "¡Enlace de restablecimiento enviado!"
+
+
 }

@@ -38,17 +38,11 @@ class ThemeColors {
   }
 
   static Color getCardBackgroundColor(BuildContext context) {
-    final theme = Theme.of(context);
-    return theme.brightness == Brightness.dark
-        ? AppDarkColors.surface
-        : AppColors.surface;
+    return Theme.of(context).colorScheme.surface;
   }
 
   static Color getContainerBackgroundColor(BuildContext context) {
-    final theme = Theme.of(context);
-    return theme.brightness == Brightness.dark
-        ? AppDarkColors.background
-        : AppColors.background;
+    return Theme.of(context).colorScheme.background;
   }
 
   static Color getButtonTextColor(BuildContext context) {

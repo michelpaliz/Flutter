@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import 'register_controller.dart';
+import '../register_controller.dart';
 
 Widget buildUserFields(RegisterController controller, BuildContext context) {
   final loc = AppLocalizations.of(context)!;
@@ -88,7 +88,6 @@ Widget buildRegisterButton(
       onPressed: () async {
         if (!formKey.currentState!.validate()) return;
 
-        final userName = controller.userName.text.trim();
         final email = controller.email.text.trim();
         final password = controller.password.text;
         final confirmPassword = controller.confirmPassword.text;
@@ -104,7 +103,6 @@ Widget buildRegisterButton(
 
         try {
           final registrationStatus = await authService.createUser(
-            userName: userName,
             name: name,
             email: email,
             password: password,

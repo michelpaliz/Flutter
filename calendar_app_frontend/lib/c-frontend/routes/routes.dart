@@ -14,8 +14,8 @@ import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
 import 'package:calendar_app_frontend/c-frontend/d-log-user-section/login/login_view.dart';
-import 'package:calendar_app_frontend/c-frontend/d-log-user-section/recover_password.dart';
-import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/register_view.dart';
+import 'package:calendar_app_frontend/c-frontend/d-log-user-section/forgot_password.dart';
+import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/ui/register_view.dart';
 import 'package:calendar_app_frontend/c-frontend/d-log-user-section/verify_email_view.dart';
 import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/show_notifications.dart';
 import 'package:calendar_app_frontend/c-frontend/f-settings-section/settings.dart';
@@ -28,7 +28,7 @@ final Map<String, WidgetBuilder> routes = {
   AppRoutes.settings: (context) => const Settings(),
   AppRoutes.loginRoute: (context) => LoginView(),
   AppRoutes.registerRoute: (context) => const RegisterView(),
-  AppRoutes.passwordRecoveryRoute: (context) => PasswordRecoveryScreen(),
+  AppRoutes.passwordRecoveryRoute: (context) => ForgotPasswordForm(),
   AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
   AppRoutes.editEvent: (context) {
     final event = ModalRoute.of(context)?.settings.arguments as Event?;

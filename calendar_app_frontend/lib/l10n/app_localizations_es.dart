@@ -1065,4 +1065,68 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get all => 'Todos';
+
+  @override
+  String get showPassword => 'Mostrar contraseña';
+
+  @override
+  String get hidePassword => 'Ocultar contraseña';
+
+  @override
+  String get termsAndPrivacy =>
+      'Al registrarte, aceptas nuestros Términos y la Política de Privacidad';
+
+  @override
+  String get passwordRequired => 'La contraseña es obligatoria';
+
+  @override
+  String get welcomeTitle => '¡Bienvenido!';
+
+  @override
+  String get welcomeSubtitle =>
+      'Crea una cuenta para comenzar a usar nuestra aplicación.';
+
+  @override
+  String get passwordWeak => 'Débil';
+
+  @override
+  String get passwordMedium => 'Media';
+
+  @override
+  String get passwordStrong => 'Fuerte';
+
+  @override
+  String get terms => 'Términos';
+
+  @override
+  String get privacyPolicy => 'Política de Privacidad';
+
+  @override
+  String get termsAndPrivacyPrefix => 'Al registrarte, aceptas nuestros ';
+
+  @override
+  String get andSeparator => ' y ';
+
+  @override
+  String get alreadyHaveAccount => '¿Ya tienes una cuenta?';
+
+  @override
+  String get dontHaveAccount => '¿No tienes una cuenta?';
+
+  @override
+  String get loginWelcomeTitle => '¡Bienvenido de nuevo!';
+
+  @override
+  String get loginWelcomeSubtitle =>
+      'Introduce tus credenciales para continuar.';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Introduce tu correo y te enviaremos un enlace de restablecimiento.';
+
+  @override
+  String get sendResetLink => 'Enviar enlace de restablecimiento';
+
+  @override
+  String get resetLinkSent => '¡Enlace de restablecimiento enviado!';
 }
