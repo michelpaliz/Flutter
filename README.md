@@ -1,96 +1,179 @@
-# AUTHOR: Michael Paliz Morales
+# Palmor
 
 ## Introduction
-Introducing "Paliz's Calendar" – a personalized solution born from the heart of a family company striving for improved management and seamless collaboration. This unique calendar application was crafted with the specific purpose of addressing the challenges faced by our own family business.
-As the founder of Paliz's Calendar, I understood the importance of streamlining task management processes within a family company. Recognizing the need for a more asynchronous and efficient approach, I set out to create an application that not only met our organizational needs but also aimed to empower other family businesses like ours.
-Our journey began with the genuine desire to enhance self-management and foster smoother collaboration among our dedicated team members. Paliz's Calendar is not just a product; it's a reflection of the values we hold dear within our family company – efficiency, teamwork, and a commitment to achieving our collective goals.
-Every feature, every detail of this application is infused with the understanding of the unique dynamics that family businesses face. Whether it's coordinating schedules, managing tasks, or simply staying connected, Paliz's Calendar is designed to be a reliable companion on the journey to better management.
-Join us on this venture towards enhanced productivity, improved communication, and a more connected and harmonious work environment. Paliz's Calendar is more than just an app; it's a testament to the spirit of family businesses striving for excellence in every aspect of their operations.
 
-## Basic Usage
-In the realm of work, every project and task typically follows a specific schedule or routine. Consequently, organizations require a means for their employees to manage these schedules effectively. This is precisely where the "Calendar" application comes into play. It provides companies with a solution to enhance collaboration by utilizing a shared calendar, enabling teams to work asynchronously while adhering to their schedules.
+**Palmor** is more than just a calendar app — it’s about organizing work with care and collaboration.
+Born from the spirit of *pal* (friend) and *amor* (love), Palmor helps teams, families, and small businesses manage schedules, events, and communication in a simple, connected way.
 
-## Group Usage and Functionality
-Groups within the "Calendar" app are structured with an administrator, who serves as the group's owner. The administrator has the authority to add members by searching for their unique usernames. Additionally, the administrator can assign specific roles to each member, which are detailed further in the "Roles" section. Groups offer various functionalities, including event creation (explained in the "Events" section), settings management (detailed in its respective section), and displaying a horizontal list of group members along with their names.
+Whether you’re coordinating a family business, planning projects with your team, or just keeping track of daily life, Palmor combines **efficiency** with a touch of **human connection**.
 
-In summary, groups are collections of diverse users representing the organization, aiming to facilitate communication through a shared calendar.
+---
 
-## User Features
-Each user possesses their own set of events, which are used to construct their personalized calendar.
+## Features
 
-## Calendar Features
-The calendar showcases the events that users have created, providing an organized view of their schedules.
+### 🔐 Authentication
 
-## Key Features
-A user can associate multiple calendars but will receive notifications from a single calendar or multiple calendars simultaneously.
+* Register, log in, verify email, and recover passwords.
 
-## Events
-An event within the "Calendar" app comprises various attributes, including a title, start date, end date, location, description, notes, and event repetition.
+### 👥 Groups
 
-## Streamlined Event Management in the "Calendar" App
+* Create groups with custom names and images.
+* Add members by username.
+* Assign roles to members.
+* Manage group settings and membership.
+* View your group list easily.
 
-In the "Calendar" app, events are richly detailed with a range of attributes to enhance your scheduling experience. These attributes encompass:
+### 📅 Calendar
 
-1. **Title:** Give your event a meaningful name.
-2. **Start Date:** Set the event's commencement date.
-3. **End Date:** Specify when the event concludes.
-4. **Location:** Indicate the event's designated place.
-5. **Description:** Provide context or additional information about the event.
-6. **Notes:** Include any important reminders or notes.
-7. **Event Repetition:** Tailor how often the event recurs.
+* Personal and shared group calendars.
+* Monthly, weekly, and daily views.
+* Agenda-style view for quick browsing.
+* See group members at a glance.
 
-### Event Repetition Choices
+### 🗓️ Events
 
-You can customize the event's repetition using the following options:
+* Add, edit, or delete events.
+* Details: **title, start/end dates, location, description, notes**.
+* Flexible repetition options:
 
-**1. Daily:** Configure the interval and select the date until which the event repeats.
+  * Daily, Weekly, Monthly, Yearly (with intervals and end dates).
 
-**2. Weekly:** Determine the interval, choose specific days of the week, and set the end date for weekly repetitions.
+### 🔔 Notifications
 
-**3. Monthly:** Define the interval and the concluding date for monthly recurrence.
+* Real-time updates for group activity and events.
+* Invitations and reminders powered by live sockets.
 
-**4. Yearly:** Opt for the interval and until date for yearly repetitions.
+### 👤 Profile & Settings
 
-This refined event management system grants you precise control over your events and timetables within the "Calendar" app, ensuring your commitments are effortlessly organized and tracked.
+* Personal profile with avatar.
+* Theme customization (light/dark).
+* Multi-language support (**English & Spanish**).
+
+### 📤 File Uploads
+
+* Upload images for groups and events.
+
+### 🎨 Interface
+
+* Smooth drawer-style menu.
+* Floating action button (FAB) for quick actions.
+* Clean, modern design with flexible themes.
+
+---
+
+✨ With Palmor, planning isn’t just about dates and tasks — it’s about staying connected with the people who matter most.
+---
+
+# High-level structure (what each top folder does)
+
+* **lib/a-models/**
+
+  * **group\_model/**: `group.dart`, `calendar.dart`, `agenda.dart`
+  * **event/**: `event.dart`, `event_data_source.dart`, `event_group_resolver.dart`, `event_utils.dart`
+  * **recurrenceRule/**: custom recurrence (weekly/daily/monthly/yearly) logic, utils, and display helpers
+  * **notification\_model/**: user notifications (localization, invitation/update status)
+  * **user\_model/**: `user.dart`
+  * 👉 **Features:** typed models for events, groups, calendars, users; **rich recurrence rules**; notification data.
+
+* **lib/b-backend/api/**
+
+  * **auth/**: login, register, password flows + exceptions
+  * **event/**: event services + string utils
+  * **group/**: group services (create/edit/invite)
+  * **user/**: user services
+  * **notification/**: notification services
+  * **socket/**: `socket_manager.dart`, `socket_events.dart` (real-time updates)
+  * **recurrenceRule/**: server-side helpers
+  * **blobUploader/**: image/file upload
+  * **config/**: API client + constants
+  * 👉 **Features:** API client layer for **auth**, **events**, **groups**, **users**, **notifications**, **file upload**, **real-time (sockets)**.
+
+* **lib/c-frontend/**
+
+  * **a-home-section/**: `home_page.dart`
+  * **b-calendar-section/**
+
+    * **screens/calendar/**: calendar UI and app bar/screen managers; appointment widgets
+    * **screens/group-screen/**:
+
+      * **create-group/**: search bar UI, image picker, controllers
+      * **edit-group/**: update flows (image picker, init service)
+      * **group-settings/**, **invited-user/**, **show-groups/**
+    * **group\_functions/**: `group_manager.dart`, `group_service.dart`
+    * **utils/**: loading, network, search bar, selected users, shared
+  * **c-event-section/**
+
+    * **screens/actions/**: full **Add / Edit Event** flows (inputs for title, dates, location, description, notes)
+    * **screens/repetition\_dialog/**: dialogs for **Daily / Weekly / Monthly / Yearly** repetition (weekly day picker, intervals, until date)
+    * **event\_screen/**: `event_detail.dart`
+  * **d-log-user-section/**: login, register, splash, verify email, recover password
+  * **e-notification-section/**: controllers, enums, UI for notifications
+  * **f-settings-section/**: `settings.dart`
+  * **g-agenda-section/**: `agenda_screen.dart`
+  * **h-profile-section/**: `profile_screen.dart`
+  * **routes/**: `appRoutes.dart`, `routes.dart`
+  * **utils/**: `user_avatar.dart`
+  * 👉 **Features:** **Calendar UI**, **Group management (create/edit/settings/invite/show)**, **Event CRUD with repetition**, **Auth screens**, **Notifications UI**, **Agenda**, **Profile**, **Settings**, **Routing**.
+
+* **lib/d-stateManagement/**
+
+  * **event/**: event data manager, notification helper
+  * **group/**: group management
+  * **user/**: presence + user management
+  * **notification/**: base notifier + socket listener
+  * **local/**: `LocaleProvider.dart`
+  * **theme/**: theme management + preferences
+  * 👉 **Features:** central state for **events/groups/users**, **live notifications**, **i18n**, **theme switching**.
+
+* **lib/e-drawer-style-menu/**
+
+  * Main scaffold, drawer, horizontal nav, contextual FAB
+  * 👉 **Features:** app shell/navigation with drawer and FAB actions.
+
+* **lib/f-themes/**
+
+  * Palette, shape, themes, utilities
+  * 👉 **Features:** theming system (light/dark/custom).
+
+* **lib/l10n/**
+
+  * `app_en.arb`, `app_es.arb`, localization glue
+  * 👉 **Features:** **English & Spanish** localization.
+
+* **lib/g-docs/**: project docs (AI\_Implementation, guidelines)
+
+* **lib/utils/init\_main.dart** and **lib/main.dart**: app bootstrapping
+
+---
+
+# What the app can do (plain English)
+
+* **Auth**: register, login, verify email, recover password.
+* **Groups**: create groups, edit, set settings, invite members, assign roles, show group list, group profile dialogs.
+* **Calendar**: full calendar view with appointments; app bar/screen managers; group calendars.
+* **Events**: add/edit events with **title, start/end, location, description, notes**, plus **repetition** (daily/weekly/monthly/yearly with intervals, end dates, weekly day selection).
+* **Agenda**: agenda-style list view.
+* **Notifications**: user notifications + real-time updates via sockets; invitation/update status.
+* **Profile & Settings**: user profile screen and app settings.
+* **Uploads**: image/file uploads (e.g., group image).
+* **Theming & i18n**: theme management and **EN/ES** localization.
+* **Presence & State**: user presence tracking; centralized managers for events/groups/notifications.
+
+---
+
+# Quick pointers (where to look when coding)
+
+* **Entry point**: `lib/main.dart` → routing in `c-frontend/routes/`.
+* **Calendar UI**: `c-frontend/b-calendar-section/screens/calendar/`
+* **Event flows**: `c-frontend/c-event-section/screens/actions/` and `.../repetition_dialog/`
+* **Group flows**: `c-frontend/b-calendar-section/screens/group-screen/`
+* **API layer**: `b-backend/api/*`
+* **State mgmt**: `d-stateManagement/*`
+* **Localization**: `l10n/*`
+* **Drawer & Nav**: `e-drawer-style-menu/*`
+
+---
 
 
-## Photos of the application are not yet finished; some changes will be applied until I finish the application.
 
 
-
-### Register view image 
-<img src="Screenshot from 2023-11-14 22-34-40.png" alt="Alt text" height="300">
-
-### Login view image
-<img src="Screenshot from 2023-11-14 22-22-22.png" alt="Alt text" height="300">
-
-### Menu view image
-<img src="image.png" alt="Alt text" height="300">
-
-### Display group list view image
-<img src="Screenshot from 2023-11-14 22-28-55.png" alt="Alt text" height="300">
-
-### Calendar view image
-<img src="Screenshot from 2023-11-14 22-35-33.png" alt="Alt text" height="300">
-
-### Edit event view image 
-<img src="Screenshot from 2023-11-14 22-36-59.png" alt="Alt text" height="300">
-
-### Add event view image
-<img src="Screenshot from 2023-11-14 22-36-24.png" alt="Alt text" height="300">
-
-
-## Initial Version of the Calendar Application
-### 1. Introduction (Date: August 1, 2023, to August 23, 2023)
-The calendar application was developed using a Flutter library and incorporates Firestore to store calendar-related data, primarily focusing on events. Each event includes a timestamp corresponding to its creation time.
-
-### 2. Menu Features (Date: August 1, 2023, to August 23, 2023)
-The menu features have been integrated into the calendar application, featuring the following items: Dashboard, NotesView, Settings, and Log Out.
-
-- **Dashboard**: This section displays a list of user-created groups and offers the option to create new groups. A notifications icon in the top-right corner provides updates.
-- **NotesView**: This view presents the user's default calendar.
-- **Settings**: The settings view is under development and will offer various configuration options for the user.
-- **Log Out**: This view allows users to log out of the application.
-
-### 3. Functionality for Creating a Group (Date: August 1, 2023, to August 23, 2023)
-This view empowers users to create groups efficiently. To create a group, users must provide a name for the group, select members to include, and specify role types for the group members.
