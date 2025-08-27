@@ -9,12 +9,12 @@ import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/grou
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/edit_group_data.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/group-settings/group_settings.dart';
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/show-groups/show_groups.dart';
+import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/show-groups/group_screen/group_section.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/event_screen/event_detail.dart';
-import 'package:calendar_app_frontend/c-frontend/d-log-user-section/login/login_view.dart';
 import 'package:calendar_app_frontend/c-frontend/d-log-user-section/forgot_password.dart';
+import 'package:calendar_app_frontend/c-frontend/d-log-user-section/login/login_view.dart';
 import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/ui/register_view.dart';
 import 'package:calendar_app_frontend/c-frontend/d-log-user-section/verify_email_view.dart';
 import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/show_notifications.dart';
@@ -34,7 +34,7 @@ final Map<String, WidgetBuilder> routes = {
     final event = ModalRoute.of(context)?.settings.arguments as Event?;
     return event != null ? EditEventScreen(event: event) : SizedBox.shrink();
   },
-  AppRoutes.showGroups: (context) => ShowGroups(),
+  AppRoutes.showGroups: (context) => GroupListSection(),
   AppRoutes.createGroupData: (context) => CreateGroupData(),
   AppRoutes.showNotifications: (context) {
     final user = ModalRoute.of(context)?.settings.arguments as User?;

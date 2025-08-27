@@ -136,7 +136,6 @@ abstract class AddEventLogic<T extends StatefulWidget>
   }
 
   Future<void> _postCreationActions(Event createdEvent) async {
-    user.events.add(createdEvent.id);
     await userManagement.updateUser(user);
     devtools.log("👤 [addEvent] User updated");
 

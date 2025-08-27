@@ -1,69 +1,71 @@
-// lib/b-backend/auth/auth_service.dart
-import 'dart:convert';
-import 'package:calendar_app_frontend/b-backend/api/config/api_client.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:flutter/foundation.dart';
+import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_repository.dart';
 
-class AuthService {
-  final ApiClient _api = ApiClient();
+class AuthService with ChangeNotifier implements AuthRepository {
+  final AuthRepository repository;
 
-  Future<String> registerUser({
+  AuthService(this.repository);
+
+  User? _currentUser;
+  Future<void>? _initFuture;
+
+  @override
+  User? get currentUser => _currentUser;
+
+  @override
+  set currentUser(User? user) => _setUser(user);
+
+  void _setUser(User? next) {
+    if (_currentUser != next) { // uses User.== we added
+      _currentUser = next;
+      notifyListeners();
+    }
+  }
+
+  @override
+  Future<void> initialize() {
+    return _initFuture ??= _doInitialize();
+  }
+
+  Future<void> _doInitialize() async {
+    // Let errors bubble so AuthGate can show an error UI
+    await repository.initialize();
+    _setUser(repository.currentUser);
+  }
+
+  @override
+  Future<User?> logIn({required String email, required String password}) async {
+    final user = await repository.logIn(email: email, password: password);
+    _setUser(user);
+    return _currentUser;
+  }
+
+  @override
+  Future<void> logOut() async {
+    await repository.logOut();
+    _setUser(null);
+  }
+
+  @override
+  Future<String> createUser({
     required String name,
     required String email,
-    required String userName,
     required String password,
-  }) async {
-    final response = await _api.post('/auth/register', {
-      'name': name,
-      'email': email,
-      'userName': userName,
-      'password': password,
-    });
-
-    final json = jsonDecode(response.body);
-
-    switch (response.statusCode) {
-      case 201:
-        return json['message'];
-      case 400:
-        throw EmailAlreadyUseAuthException();
-      default:
-        throw GenericAuthException();
-    }
+  }) {
+    return repository.createUser(name: name, email: email, password: password);
   }
 
-  Future<String> logIn({
-    required String email,
-    required String password,
-  }) async {
-    final response = await _api.post('/auth/login', {
-      'email': email,
-      'password': password,
-    });
+  @override
+  Future<void> sendEmailVerification() => repository.sendEmailVerification();
 
-    final json = jsonDecode(response.body);
+  @override
+  Future<User?> getCurrentUserModel() => repository.getCurrentUserModel();
 
-    switch (response.statusCode) {
-      case 200:
-        return json['token'];
-      case 401:
-        throw WrongPasswordAuthException();
-      case 404:
-        throw UserNotFoundAuthException();
-      default:
-        throw GenericAuthException();
-    }
-  }
-
-  Future<Map<String, dynamic>> getProfile(String token) async {
-    final response = await _api.get(
-      '/profile',
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw GenericAuthException();
-    }
-  }
+  @override
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmPassword,
+  ) => repository.changePassword(currentPassword, newPassword, confirmPassword);
 }

@@ -26,6 +26,10 @@ class Event {
   List<UpdateInfo> updateHistory;
   final String? rawRuleId;
 
+  /// NEW: whether the owner should receive notifications for this event.
+  /// Defaults to true (matches backend default).
+  bool notifyOwner;
+
   Event({
     required this.id,
     required this.startDate,
@@ -46,6 +50,7 @@ class Event {
     List<String>? recipients,
     required this.ownerId,
     List<UpdateInfo>? updateHistory,
+    this.notifyOwner = true, // 👈 default consistent with backend
   })  : recipients = recipients ?? [],
         updateHistory = updateHistory ?? [];
 
@@ -53,6 +58,9 @@ class Event {
   void addUpdate(String userId) {
     updateHistory.add(UpdateInfo(userId: userId, updatedAt: DateTime.now()));
   }
+
+  /// Convenience: is the owner muted (i.e., opted out)?
+  bool get ownerMuted => notifyOwner == false;
 
   /// Creates a copy with optional new values.
   Event copyWith({
@@ -75,6 +83,7 @@ class Event {
     List<String>? recipients,
     String? ownerId,
     List<UpdateInfo>? updateHistory,
+    bool? notifyOwner, // 👈 new
   }) {
     return Event(
       id: id ?? this.id,
@@ -98,14 +107,15 @@ class Event {
       updateHistory: updateHistory != null
           ? List.from(updateHistory.map((u) => u.copyWith()))
           : List.from(this.updateHistory),
+      notifyOwner: notifyOwner ?? this.notifyOwner, // 👈 new
     );
   }
 
   /// Serializes to a Map.
   Map<String, dynamic> toMap() => {
         'id': id,
-        'startDate': startDate.toUtc().toIso8601String(), // 👈 convert to UTC
-        'endDate': endDate.toUtc().toIso8601String(), // 👈 convert to UTC
+        'startDate': startDate.toUtc().toIso8601String(), // 👈 UTC
+        'endDate': endDate.toUtc().toIso8601String(),     // 👈 UTC
         'title': title,
         'groupId': groupId,
         'calendarId': calendarId,
@@ -118,11 +128,11 @@ class Event {
         'allDay': allDay,
         'reminderTime': reminderTime,
         'isDone': isDone,
-        'completedAt':
-            completedAt?.toUtc().toIso8601String(), // ✅ optional, safe
+        'completedAt': completedAt?.toUtc().toIso8601String(),
         'recipients': recipients,
         'ownerId': ownerId,
         'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
+        'notifyOwner': notifyOwner, // 👈 new
       };
 
   /// Deserializes from a Map.
@@ -169,6 +179,7 @@ class Event {
               ?.map((e) => UpdateInfo.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
+      notifyOwner: map['notifyOwner'] as bool? ?? true, // 👈 new
     );
   }
 
@@ -178,6 +189,7 @@ class Event {
   factory Event.fromJson(Map<String, dynamic> json) => Event.fromMap(json);
   Map<String, dynamic> toJson() => toMap();
 
+  /// Payload to backend (create/update).
   Map<String, dynamic> toBackendJson() {
     final recurrenceRuleJson = recurrenceRule == null
         ? null
@@ -191,7 +203,7 @@ class Event {
       'title': title,
       'groupId': groupId,
       'calendarId': calendarId,
-      'recurrenceRule': recurrenceRuleJson, // 👈 fixed
+      'recurrenceRule': recurrenceRuleJson,
       'localization': localization,
       'note': note,
       'description': description,
@@ -203,6 +215,7 @@ class Event {
       'recipients': recipients,
       'ownerId': ownerId,
       'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
+      'notifyOwner': notifyOwner, // 👈 new
     };
   }
 
@@ -226,6 +239,7 @@ class Event {
         'completedAt: $completedAt, '
         'recipients: $recipients, '
         'ownerId: $ownerId, '
+        'notifyOwner: $notifyOwner, ' // 👈 new
         'updateHistory: $updateHistory'
         '}';
   }
@@ -238,7 +252,7 @@ class Event {
         other.endDate == endDate &&
         other.title == title &&
         other.calendarId == calendarId &&
-        other.eventColorIndex == eventColorIndex; // ← include
+        other.eventColorIndex == eventColorIndex;
   }
 
   @override
@@ -248,10 +262,9 @@ class Event {
       endDate.hashCode ^
       title.hashCode ^
       calendarId.hashCode ^
-      eventColorIndex.hashCode; // ← include
+      eventColorIndex.hashCode;
 
   /// Returns a human-readable recurrence summary string.
-  /// You might call .toString() to show "Thursday, June 27, 2025" to the user.
   String get recurrenceDescription {
     final rule = recurrenceRule;
     if (rule == null) return '';

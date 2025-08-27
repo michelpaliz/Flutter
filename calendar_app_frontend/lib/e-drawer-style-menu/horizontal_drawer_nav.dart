@@ -24,7 +24,7 @@ class _HorizontalDrawerNavState extends State<HorizontalDrawerNav> {
   final List<_NavItemData> _items = const [
     _NavItemData(
       icon: Iconsax.home_1, // Home
-      route: AppRoutes.showGroups,
+      route: AppRoutes.homePage,
       semanticLabel: 'Home',
     ),
     _NavItemData(

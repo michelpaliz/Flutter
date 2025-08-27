@@ -1,19 +1,16 @@
-import 'dart:developer' as devtools show log;
-
+// main.dart
 import 'package:calendar_app_frontend/a-models/group_model/event/event_group_resolver.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/helper/auht_gate.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
-import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
-import 'package:calendar_app_frontend/c-frontend/d-log-user-section/register/ui/register_view.dart';
+import 'package:calendar_app_frontend/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
 import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/routes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/local/LocaleProvider.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/notification/socket_notification_listener.dart';
 import 'package:calendar_app_frontend/d-stateManagement/theme/theme_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/theme/theme_preference_provider.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/presence_manager.dart';
@@ -27,90 +24,95 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await initializeAppServices();
   await setupLocalNotifications();
 
   runApp(
     MultiProvider(
       providers: [
-        // 1. Auth
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        Provider<AuthService>(
+        // 1) Auth repo FIRST (concrete ChangeNotifier)
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider(),
+        ),
+
+        // 2) AuthService depends on the repo
+        ChangeNotifierProvider<AuthService>(
           create: (ctx) => AuthService(ctx.read<AuthProvider>()),
         ),
-        Provider(create: (_) => GroupEventResolver()),
 
-        // 2. User + group
+        // 3) Shared API services (single instances for the whole app)
+        Provider<RecurrenceRuleService>(
+          create: (_) => RecurrenceRuleService(),
+        ),
+        Provider<EventService>(
+          create: (ctx) => EventService(
+            ruleService: ctx.read<RecurrenceRuleService>(),
+          ),
+        ),
+        Provider<GroupEventResolver>(
+          create: (ctx) => GroupEventResolver(
+            eventService: ctx.read<EventService>(),
+            ruleService: ctx.read<RecurrenceRuleService>(),
+          ),
+        ),
+
+        // 4) App state
         ChangeNotifierProvider(
           create: (_) => UserManagement(
             user: null,
             notificationManagement: NotificationManagement(),
           ),
         ),
-
-        // 2️⃣ Then inject that resolver into GroupManagement:
         ChangeNotifierProvider(
           create: (ctx) => GroupManagement(
             groupEventResolver: ctx.read<GroupEventResolver>(),
-            user: null, // or your initial user
+            user: null,
           ),
         ),
-
-        // 3. Notifications, theming, locale
         ChangeNotifierProvider(create: (_) => NotificationManagement()),
         ChangeNotifierProvider(create: (_) => ThemeManagement()),
         ChangeNotifierProvider(create: (_) => ThemePreferenceProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => PresenceManager()),
 
-        // 4. API services
-        Provider(create: (_) => EventService()),
-
+        // 5) EventDataManager (ensure currentGroup exists before creating)
         ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
             EventDataManager>(
           create: (ctx) {
             final groupMgmt = ctx.read<GroupManagement>();
             final currentGroup = groupMgmt.currentGroup;
-
             if (currentGroup == null) {
               throw UnimplementedError(
                 'EventDataManager should not be created until currentGroup is available.',
               );
             }
-
             final edm = EventDataManager(
               [],
-              context: ctx, // ✅ Pass context here
+              context: ctx,
               group: currentGroup,
               eventService: ctx.read<EventService>(),
               groupManagement: groupMgmt,
               resolver: ctx.read<GroupEventResolver>(),
             );
-
             edm.onExternalEventUpdate = () {
               debugPrint("⚠️ Default fallback: no calendar UI registered.");
             };
-
             return edm;
           },
           update: (ctx, groupMgmt, eventSvc, resolver, previous) {
             final current = groupMgmt.currentGroup;
             if (current == null) return previous!;
-
             final edm = EventDataManager(
               previous?.baseEvents ?? [],
-              context: ctx, // ✅ Also pass context here
+              context: ctx,
               group: current,
               eventService: eventSvc,
               groupManagement: groupMgmt,
               resolver: resolver,
             );
-
             edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??
                 () => debugPrint(
                     "⚠️ Default fallback: no calendar UI registered.");
-
             return edm;
           },
         ),
@@ -138,75 +140,9 @@ class MyMaterialApp extends StatelessWidget {
           ],
           supportedLocales: L10n.all,
           routes: routes,
-          home: const UserInitializer(),
+          home: const AuthGate(), // ✅ uses the UI AuthGate
         );
       },
     );
-  }
-}
-
-class UserInitializer extends StatefulWidget {
-  const UserInitializer({Key? key}) : super(key: key);
-
-  @override
-  _UserInitializerState createState() => _UserInitializerState();
-}
-
-class _UserInitializerState extends State<UserInitializer> {
-  User? user;
-  bool isLoading = true;
-  String? errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeUser();
-  }
-
-  Future<void> _initializeUser() async {
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      final fetchedUser = await authService.getCurrentUserModel();
-
-      devtools.log('Fetched user: $fetchedUser');
-
-      setState(() {
-        user = fetchedUser;
-        isLoading = false;
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<UserManagement>(context, listen: false)
-            .setCurrentUser(user);
-        Provider.of<GroupManagement>(context, listen: false)
-            .setCurrentUser(user);
-
-        // ✅ Add this (import your helper first)
-        if (user != null) {
-          initializeNotificationSocket(
-              user!.id); // <-- assuming `user.id` exists
-        }
-      });
-    } catch (e) {
-      devtools.log('Failed to initialize user: $e');
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Failed to load user data. Please try again later.';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (errorMessage != null) {
-      return Scaffold(body: Center(child: Text(errorMessage!)));
-    } else if (Provider.of<UserManagement>(context, listen: false).user !=
-        null) {
-      return const HomePage();
-    } else {
-      return const RegisterView();
-    }
   }
 }

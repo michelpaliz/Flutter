@@ -37,7 +37,7 @@ class ContextualFab extends StatelessWidget {
           Navigator.pushNamed(context, AppRoutes.addEvent, arguments: groupArg);
     }
     // 2) On Show Groups → Create Group
-    else if (name == AppRoutes.showGroups || name.isEmpty) {
+    else if (name == AppRoutes.homePage || name.isEmpty) {
       iconData = Iconsax.add_circle;
       onPressed = () => Navigator.pushNamed(context, AppRoutes.createGroupData);
     }

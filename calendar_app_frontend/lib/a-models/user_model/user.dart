@@ -1,6 +1,8 @@
 // user.dart
 
 // ===== Helpers =====
+import 'package:flutter/foundation.dart';
+
 String requireString(Map<String, dynamic> j, String key) {
   final v = j[key];
   if (v is String && v.isNotEmpty) return v;
@@ -56,7 +58,6 @@ class User {
   String? _photoUrl;
   String? _photoBlobName;
   String _userName;
-  List<String> _eventsIds;
   List<String> _groupIds;
   List<String> _calendarsIds;
   List<String> _notificationsIds;
@@ -66,7 +67,6 @@ class User {
     required String name,
     required String email,
     required String userName,
-    required List<String> events,
     required List<String> groupIds,
     String? photoUrl,
     String? photoBlobName,
@@ -76,7 +76,6 @@ class User {
         _name = name,
         _email = email,
         _userName = userName,
-        _eventsIds = events,
         _groupIds = groupIds,
         _photoUrl = photoUrl,
         _photoBlobName = photoBlobName,
@@ -89,9 +88,6 @@ class User {
   set name(String name) => _name = name;
 
   String get email => _email;
-
-  List<String> get events => _eventsIds;
-  set events(List<String> events) => _eventsIds = events;
 
   List<String> get groupIds => _groupIds;
   set groupIds(List<String> groupIds) => _groupIds = groupIds;
@@ -122,7 +118,6 @@ class User {
       'email': _email,
       'photoUrl': _photoUrl,
       'photoBlobName': _photoBlobName,
-      'events': _eventsIds,
       'groupIds': _groupIds,
       'sharedCalendars': _calendarsIds,
       'notifications': _notificationsIds,
@@ -130,8 +125,6 @@ class User {
   }
 
   // Create from JSON (SAFE)
-
-// Replace your factory with this version:
   factory User.fromJson(Map<String, dynamic> raw, {String? fallbackId}) {
     final Map<String, dynamic> json = unwrapUser(raw);
 
@@ -146,7 +139,6 @@ class User {
       name: requireStringAny(json, ['name', 'fullName', 'displayName']),
       email: requireString(json, 'email'),
       userName: requireStringAny(json, ['userName', 'username']),
-      events: optStringList(json, 'events'),
       groupIds: optStringList(json, 'groupIds'),
       photoUrl: optString(json, 'photoUrl'),
       photoBlobName: optString(json, 'photoBlobName'),
@@ -163,7 +155,6 @@ class User {
     String? photoUrl,
     String? photoBlobName,
     String? userName,
-    List<String>? events,
     List<String>? groupIds,
     List<String>? sharedCalendars,
     List<String>? notifications,
@@ -175,7 +166,6 @@ class User {
       userName: userName ?? _userName,
       photoUrl: photoUrl ?? _photoUrl,
       photoBlobName: photoBlobName ?? _photoBlobName,
-      events: events ?? _eventsIds,
       groupIds: groupIds ?? _groupIds,
       sharedCalendars: sharedCalendars ?? _calendarsIds,
       notifications: notifications ?? _notificationsIds,
@@ -191,10 +181,40 @@ class User {
       userName: '',
       photoUrl: '',
       photoBlobName: '',
-      events: [],
       groupIds: [],
       sharedCalendars: [],
       notifications: [],
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is User &&
+        other.id == id &&
+        other.email == email &&
+        other.userName == userName &&
+        other.name == name &&
+        // Lists: compare with listEquals from flutter/foundation.dart
+        listEquals(other.groupIds, groupIds) &&
+        listEquals(other.sharedCalendars, sharedCalendars) &&
+        listEquals(other.notifications, notifications) &&
+        other.photoUrl == photoUrl &&
+        other.photoBlobName == photoBlobName;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      id,
+      email,
+      userName,
+      name,
+      Object.hashAll(groupIds),
+      Object.hashAll(sharedCalendars),
+      Object.hashAll(notifications),
+      photoUrl,
+      photoBlobName,
     );
   }
 }

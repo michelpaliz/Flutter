@@ -1,3 +1,4 @@
+// event_services.dart
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
@@ -11,7 +12,6 @@ import 'package:http/http.dart' as http;
 
 class EventService {
   final String baseUrl = '${ApiConstants.baseUrl}/events';
-
   final RecurrenceRuleService _ruleService;
 
   Event? _event;
@@ -29,11 +29,12 @@ class EventService {
     };
   }
 
-  /// Ensure the recurrence rule exists on the backend, replacing the rule with its ObjectId
   Future<Event> _ensureRuleId(Event ev) async {
     if (ev.recurrenceRule == null) return ev;
 
-    final isObjectId = RegExp(r'^[a-f\d]{24}$').hasMatch(ev.recurrenceRule!.id);
+    // Case-insensitive hex check for 24-char Mongo ObjectId
+    final isObjectId = RegExp(r'^[a-f0-9]{24}$', caseSensitive: false)
+        .hasMatch(ev.recurrenceRule!.id);
     if (isObjectId) return ev;
 
     final created = await _ruleService.createRule(ev.recurrenceRule!);
@@ -42,7 +43,6 @@ class EventService {
 
   Future<Event> createEvent(Event eventData) async {
     try {
-      //here we check if the recurrence is created or not
       final readyEvent = await _ensureRuleId(eventData);
       final headers = await _authHeaders();
       final body = jsonEncode(readyEvent.toBackendJson());
@@ -51,11 +51,8 @@ class EventService {
       devtools.log("🧾 Headers: $headers");
       devtools.log("📝 Event body: $body");
 
-      final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: headers,
-        body: body,
-      );
+      final response =
+          await http.post(Uri.parse(baseUrl), headers: headers, body: body);
 
       if (response.statusCode == 201) {
         _event = Event.fromJson(jsonDecode(response.body));
@@ -72,9 +69,7 @@ class EventService {
   }
 
   Future<Event> getEventById(String eventId) async {
-    // final url = '$baseUrl/$eventId';
-    final url = '$baseUrl/${baseId(eventId)}'; // ✅ strip suffix
-
+    final url = '$baseUrl/${baseId(eventId)}';
     final headers = await _authHeaders();
 
     debugPrint("📡 GET $url");
@@ -85,18 +80,13 @@ class EventService {
     debugPrint("📥 Status Code: ${response.statusCode}");
     debugPrint("📥 Response Body: ${response.body}");
 
-    try {
-      final decoded = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        debugPrint("✅ Decoded Event JSON: $decoded");
-        return Event.fromJson(decoded);
-      } else {
-        throw Exception(
-            '❌ Failed to fetch event – code: ${response.statusCode}, body: ${response.body}');
-      }
-    } catch (e) {
-      debugPrint("❌ JSON parsing error or invalid event format: $e");
-      rethrow;
+    final decoded = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      debugPrint("✅ Decoded Event JSON: $decoded");
+      return Event.fromJson(decoded);
+    } else {
+      throw Exception(
+          '❌ Failed to fetch event – code: ${response.statusCode}, body: ${response.body}');
     }
   }
 
@@ -106,15 +96,14 @@ class EventService {
     final payload = jsonEncode(ready.toBackendJson());
 
     final res = await http.put(
-      // Uri.parse('$baseUrl/${ready.id.split('-').first}'),
       Uri.parse('$baseUrl/${baseId(ready.id)}'),
       headers: headers,
       body: payload,
     );
 
     if (res.statusCode != 200) {
-      print('🔴 Update failed: ${res.statusCode}');
-      print('📦 Payload sent: $payload');
+      debugPrint('🔴 Update failed: ${res.statusCode}');
+      debugPrint('📦 Payload sent: $payload');
       throw Exception('Failed to update event: ${res.body}');
     }
 
@@ -122,7 +111,7 @@ class EventService {
   }
 
   Future<void> deleteEvent(String eventId) async {
-    final id = baseId(eventId); // ensures we strip suffix
+    final id = baseId(eventId);
     final url = '$baseUrl/$id';
 
     debugPrint('🌐 [API] DELETE → $url');
@@ -145,9 +134,7 @@ class EventService {
 
   Future<Event> markEventAsDone(String eventId, {required bool isDone}) async {
     final response = await http.put(
-      // Uri.parse('$baseUrl/$eventId'),
       Uri.parse('$baseUrl/${baseId(eventId)}'),
-
       headers: await _authHeaders(),
       body: jsonEncode({
         'isDone': isDone,

@@ -1,8 +1,11 @@
+// user_management.dart
 import 'dart:async';
 import 'dart:math';
 
+import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/b-backend/api/agenda/agenda_services.dart'; // 👈 NEW
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
@@ -11,17 +14,20 @@ import 'package:flutter/material.dart';
 class UserManagement extends ChangeNotifier {
   User? _user;
   final UserService userService = UserService();
+  final AgendaService _agendaService; // 👈 NEW
   final NotificationManagement _notificationManagement;
   final ValueNotifier<User?> currentUserNotifier = ValueNotifier(null);
 
-  Timer? _avatarRefreshTimer; // ⬅️ NEW
+  Timer? _avatarRefreshTimer;
 
   User? get user => _user;
 
   UserManagement({
     required User? user,
     required NotificationManagement notificationManagement,
-  }) : _notificationManagement = notificationManagement {
+    AgendaService? agendaService, // 👈 allow DI (tests)
+  })  : _notificationManagement = notificationManagement,
+        _agendaService = agendaService ?? AgendaService() {
     if (user != null) {
       setCurrentUser(user);
     }
@@ -40,7 +46,6 @@ class UserManagement extends ChangeNotifier {
     if (user != null) {
       updateCurrentUser(user, authToken: authToken);
 
-      // Only start timer if avatars are private
       if (!ApiConstants.avatarsArePublic && authToken != null) {
         _startAvatarRefreshTimer(authToken);
       }
@@ -56,7 +61,6 @@ class UserManagement extends ChangeNotifier {
     currentUserNotifier.value = user;
     _initNotifications(user);
 
-    // Only refresh if private avatars
     if (!ApiConstants.avatarsArePublic && authToken != null) {
       refreshUserAvatarUrlIfNeeded(authToken);
     }
@@ -105,6 +109,9 @@ class UserManagement extends ChangeNotifier {
     }
   }
 
+  // --------------------------
+  // Avatar refresh (private)
+  // --------------------------
   Future<void> refreshUserAvatarUrlIfNeeded(String authToken) async {
     if (_user?.photoBlobName == null) return;
     final expiry = _extractExpiryTime(_user!.photoUrl ?? "");
@@ -135,9 +142,6 @@ class UserManagement extends ChangeNotifier {
         : null;
   }
 
-  // --------------------------
-  // Periodic refresh functions
-  // --------------------------
   void _startAvatarRefreshTimer(String authToken) {
     _avatarRefreshTimer = Timer.periodic(
       const Duration(minutes: 4),
@@ -150,6 +154,34 @@ class UserManagement extends ChangeNotifier {
     _avatarRefreshTimer?.cancel();
     _avatarRefreshTimer = null;
     debugPrint('🛑 Avatar refresh timer stopped');
+  }
+
+  // --------------------------
+  // ✅ Agenda convenience API
+  // --------------------------
+
+  /// Get upcoming agenda for the logged-in user (server-side union of events where user is owner/recipient).
+  Future<List<Event>> fetchAgendaUpcoming({
+    int days = 14,
+    int limit = 200,
+    String? tz,
+  }) async {
+    return _agendaService.fetchUpcoming(days: days, limit: limit, tz: tz);
+  }
+
+  /// Get agenda for a date range.
+  Future<List<Event>> fetchAgendaRange({
+    required DateTime from,
+    required DateTime to,
+    String? tz,
+    int? limit,
+  }) async {
+    return _agendaService.fetchRange(from: from, to: to, tz: tz, limit: limit);
+  }
+
+  /// Convenience: today + tomorrow.
+  Future<List<Event>> fetchAgendaTodayAndTomorrow({String? tz}) {
+    return _agendaService.fetchTodayAndTomorrow(tz: tz);
   }
 
   @override

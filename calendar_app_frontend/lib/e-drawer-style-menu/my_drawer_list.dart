@@ -58,7 +58,7 @@ Widget menuItem(
       onTap: () {
         switch (section) {
           case DrawerSections.calendar:
-            Navigator.pushNamed(context, AppRoutes.showGroups);
+            Navigator.pushNamed(context, AppRoutes.homePage);
             break;
           case DrawerSections.settings:
             Navigator.pushNamed(context, AppRoutes.settings);
