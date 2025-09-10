@@ -21,4 +21,5 @@ abstract class AuthRepository {
     String newPassword,
     String confirmPassword,
   );
+  Future<String?> getToken();
 }

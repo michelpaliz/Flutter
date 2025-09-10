@@ -1,7 +1,7 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/notification/notification_services.dart';
 import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
-import 'package:calendar_app_frontend/c-frontend/e-notification-section/controllers/notification_controller.dart';
+import 'package:calendar_app_frontend/c-frontend/f-notification-section/controllers/notification_controller.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';

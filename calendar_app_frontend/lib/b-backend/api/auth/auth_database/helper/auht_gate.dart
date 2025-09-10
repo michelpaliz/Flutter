@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
 import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
-import 'package:calendar_app_frontend/c-frontend/d-log-user-section/shared_utilities/auth_switcher_view.dart';
+import 'package:calendar_app_frontend/c-frontend/e-log-user-section/shared_utilities/auth_switcher_view.dart';
 
 /// Shows a splash while AuthService.initialize() runs,
 /// then listens to currentUser and switches between login/home.

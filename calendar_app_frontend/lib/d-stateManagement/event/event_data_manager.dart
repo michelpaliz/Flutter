@@ -6,7 +6,7 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_events.dart';
 import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-event-section/screens/repetition_dialog/utils/show_recurrence.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/repetition_dialog/utils/show_recurrence.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_notification_helper.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';

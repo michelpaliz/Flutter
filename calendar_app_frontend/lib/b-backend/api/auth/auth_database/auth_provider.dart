@@ -143,7 +143,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       // ✅ Fetch the user; if something crashes in parsing, we’ll see the real line
       debugPrint('👤 fetching user by id: $userId');
       final user = await _userService.getUserById(userId);
-      debugPrint('👤 getUserById returned: ${user != null ? 'OK' : 'null'}');
+      debugPrint('👤 getUserById returned: ${user}');
 
       currentUser = user;
       return _user;
@@ -316,5 +316,26 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     }
 
     return false;
+  }
+
+  @override
+  Future<String?> getToken() async {
+    // Return in-memory token if we have it
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      return _authToken;
+    }
+
+    // Fallback: try secure storage
+    final stored = await TokenStorage.loadToken();
+    if (stored != null && stored.isNotEmpty) {
+      _authToken = stored;
+      return stored;
+    }
+
+    // (Optional) Try refresh flow if you want to be fancy:
+    // final refreshed = await _tryRefreshToken();
+    // return refreshed ? _authToken : null;
+
+    return null;
   }
 }

@@ -5,8 +5,8 @@ class AppRoutes {
   static const passwordRecoveryRoute = '/password-recovery';
   static const verifyEmailRoute = '/verify-email';
   static const profile = '/profile';
-
   static const agenda = '/agenda';
+  static const groupDashboard = '/group-dashboard';
 
   static const homePage = '/home-page';
   static const userCalendar = '/user-calendar';

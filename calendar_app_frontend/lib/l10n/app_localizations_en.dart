@@ -1119,4 +1119,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetLinkSent => 'Password reset link sent!';
+
+  @override
+  String get noUpcomingHint => 'Try another category or extend the range.';
+
+  @override
+  String get hi => 'Hi';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get showFourteenDays => '14 days';
+
+  @override
+  String get showThirtyDays => '30 days';
+
+  @override
+  String get meetings => 'Meetings';
+
+  @override
+  String get tasks => 'Tasks';
+
+  @override
+  String get deadlines => 'Deadlines';
+
+  @override
+  String get personal => 'Personal';
+
+  @override
+  String get statusDone => 'Done';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get statusInProgress => 'In progress';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get statusOverdue => 'Overdue';
+
+  @override
+  String get statusFinished => 'Finished';
+
+  @override
+  String completedSummary(Object done, Object total, Object percent) {
+    return '$done of $total completed ($percent%)';
+  }
+
+  @override
+  String get notifyMe => 'Notify me';
+
+  @override
+  String get notifyMeOnSubtitle => 'You\'ll receive a reminder for this event';
+
+  @override
+  String get notifyMeOffSubtitle => 'No reminder will be sent';
+
+  @override
+  String get noInvitableUsers => 'No users available to invite';
 }

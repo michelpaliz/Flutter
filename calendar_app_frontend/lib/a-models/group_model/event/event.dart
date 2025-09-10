@@ -1,11 +1,11 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event_utils.dart'
-    as utils;
+import 'package:calendar_app_frontend/a-models/group_model/event/event_utils.dart' as utils;
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/updateInfo.dart';
 
 /// A simple mutable Event model without code generation.
 class Event {
+  // -------- Core (existing) --------
   String id;
   DateTime startDate;
   DateTime endDate;
@@ -25,9 +25,23 @@ class Event {
   String ownerId;
   List<UpdateInfo> updateHistory;
   final String? rawRuleId;
+  String? status; // pending | in_progress | done | cancelled | overdue
 
-  /// NEW: whether the owner should receive notifications for this event.
-  /// Defaults to true (matches backend default).
+  // -------- Legacy categorization (keep for SIMPLE events) --------
+  String? categoryId;    // parent category
+  String? subcategoryId; // child under categoryId
+
+  // -------- NEW: Work-visit modeling --------
+  /// Event form/validation type: 'simple' | 'work_visit'
+  String type;
+
+  /// For type='work_visit'
+  String? clientId;
+  String? primaryServiceId;     // must appear in visitServices
+  String? stopId;               // optional grouping of back-to-back events
+  List<VisitService> visitServices;
+
+  /// Whether the owner should receive notifications (default true).
   bool notifyOwner;
 
   Event({
@@ -50,19 +64,34 @@ class Event {
     List<String>? recipients,
     required this.ownerId,
     List<UpdateInfo>? updateHistory,
-    this.notifyOwner = true, // 👈 default consistent with backend
+    this.status,
+    this.categoryId,
+    this.subcategoryId,
+    this.notifyOwner = true,
+
+    // NEW
+    this.type = 'simple',
+    this.clientId,
+    this.primaryServiceId,
+    this.stopId,
+    List<VisitService>? visitServices,
   })  : recipients = recipients ?? [],
-        updateHistory = updateHistory ?? [];
+        updateHistory = updateHistory ?? [],
+        visitServices = visitServices ?? [];
+
+  // -------- Convenience --------
+  bool get ownerMuted => notifyOwner == false;
+  bool get isCompleted =>
+      isDone == true || completedAt != null || (status?.toLowerCase() == 'done');
+
+  bool get isWorkVisit => (type.toLowerCase() == 'work_visit');
 
   /// Adds an update record.
   void addUpdate(String userId) {
     updateHistory.add(UpdateInfo(userId: userId, updatedAt: DateTime.now()));
   }
 
-  /// Convenience: is the owner muted (i.e., opted out)?
-  bool get ownerMuted => notifyOwner == false;
-
-  /// Creates a copy with optional new values.
+  // -------- Copy --------
   Event copyWith({
     String? id,
     DateTime? startDate,
@@ -83,7 +112,17 @@ class Event {
     List<String>? recipients,
     String? ownerId,
     List<UpdateInfo>? updateHistory,
-    bool? notifyOwner, // 👈 new
+    String? status,
+    String? categoryId,
+    String? subcategoryId,
+    bool? notifyOwner,
+
+    // NEW
+    String? type,
+    String? clientId,
+    String? primaryServiceId,
+    String? stopId,
+    List<VisitService>? visitServices,
   }) {
     return Event(
       id: id ?? this.id,
@@ -102,20 +141,32 @@ class Event {
       reminderTime: reminderTime ?? this.reminderTime,
       isDone: isDone ?? this.isDone,
       completedAt: completedAt ?? this.completedAt,
-      recipients: recipients ?? List.from(this.recipients),
+      recipients: recipients ?? List<String>.from(this.recipients),
       ownerId: ownerId ?? this.ownerId,
       updateHistory: updateHistory != null
-          ? List.from(updateHistory.map((u) => u.copyWith()))
-          : List.from(this.updateHistory),
-      notifyOwner: notifyOwner ?? this.notifyOwner, // 👈 new
+          ? List<UpdateInfo>.from(updateHistory.map((u) => u.copyWith()))
+          : List<UpdateInfo>.from(this.updateHistory),
+      status: status ?? this.status,
+      categoryId: categoryId ?? this.categoryId,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
+      notifyOwner: notifyOwner ?? this.notifyOwner,
+
+      // NEW
+      type: type ?? this.type,
+      clientId: clientId ?? this.clientId,
+      primaryServiceId: primaryServiceId ?? this.primaryServiceId,
+      stopId: stopId ?? this.stopId,
+      visitServices: visitServices != null
+          ? List<VisitService>.from(visitServices.map((v) => v.copyWith()))
+          : List<VisitService>.from(this.visitServices),
     );
   }
 
-  /// Serializes to a Map.
+  // -------- Serialization (app map) --------
   Map<String, dynamic> toMap() => {
         'id': id,
-        'startDate': startDate.toUtc().toIso8601String(), // 👈 UTC
-        'endDate': endDate.toUtc().toIso8601String(),     // 👈 UTC
+        'startDate': startDate.toUtc().toIso8601String(),
+        'endDate': endDate.toUtc().toIso8601String(),
         'title': title,
         'groupId': groupId,
         'calendarId': calendarId,
@@ -132,16 +183,29 @@ class Event {
         'recipients': recipients,
         'ownerId': ownerId,
         'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
-        'notifyOwner': notifyOwner, // 👈 new
+        'notifyOwner': notifyOwner,
+        'status': status,
+
+        // Legacy (simple)
+        'categoryId': categoryId,
+        'subcategoryId': subcategoryId,
+
+        // NEW (work_visit)
+        'type': type,
+        'clientId': clientId,
+        'primaryServiceId': primaryServiceId,
+        'stopId': stopId,
+        'visitServices': visitServices.map((v) => v.toMap()).toList(),
       };
 
-  /// Deserializes from a Map.
+  /// Deserializes from an API map.
   factory Event.fromMap(Map<String, dynamic> map) {
     final rawId = map['id'] ?? map['_id'];
     if (rawId == null) {
       throw Exception("❌ Missing 'id' and '_id' in map: $map");
     }
 
+    // Recurrence
     final raw = map['recurrenceRule'];
     LegacyRecurrenceRule? rule;
     if (raw != null) {
@@ -149,10 +213,25 @@ class Event {
         rule = LegacyRecurrenceRule.fromJson(raw);
       } else if (raw is Map) {
         rule = LegacyRecurrenceRule.fromJson(raw.cast<String, dynamic>());
-      } else {
-        rule = null;
       }
     }
+
+    // Legacy categories
+    final String? catId = map['categoryId']?.toString();
+    final String? subId = map['subcategoryId']?.toString();
+
+    // NEW: work-visit fields
+    final String type = (map['type'] as String?)?.toLowerCase() ?? 'simple';
+    final String? clientId = map['clientId']?.toString();
+    final String? primaryServiceId = map['primaryServiceId']?.toString();
+    final String? stopId = map['stopId']?.toString();
+
+    final List<VisitService> visitServices = (map['visitServices'] as List?)
+            ?.map((e) => VisitService.fromMap(
+                  (e as Map).cast<String, dynamic>(),
+                ))
+            .toList() ??
+        <VisitService>[];
 
     return Event(
       id: rawId.toString(),
@@ -179,13 +258,25 @@ class Event {
               ?.map((e) => UpdateInfo.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
-      notifyOwner: map['notifyOwner'] as bool? ?? true, // 👈 new
+      notifyOwner: map['notifyOwner'] as bool? ?? true,
+      status: (map['status'] as String?)?.toLowerCase(),
+
+      // legacy
+      categoryId: catId,
+      subcategoryId: subId,
+
+      // NEW
+      type: type,
+      clientId: clientId,
+      primaryServiceId: primaryServiceId,
+      stopId: stopId,
+      visitServices: visitServices,
     );
   }
 
   String? get rule => recurrenceRule?.toRRuleString(startDate);
 
-  /// JSON serialization alias
+  // JSON helpers
   factory Event.fromJson(Map<String, dynamic> json) => Event.fromMap(json);
   Map<String, dynamic> toJson() => toMap();
 
@@ -215,7 +306,19 @@ class Event {
       'recipients': recipients,
       'ownerId': ownerId,
       'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
-      'notifyOwner': notifyOwner, // 👈 new
+      'notifyOwner': notifyOwner,
+      'status': status,
+
+      // legacy (only meaningful when type='simple')
+      'categoryId': categoryId,
+      'subcategoryId': subcategoryId,
+
+      // NEW
+      'type': type,
+      'clientId': clientId,
+      'primaryServiceId': primaryServiceId,
+      'stopId': stopId,
+      'visitServices': visitServices.map((v) => v.toMap()).toList(),
     };
   }
 
@@ -228,6 +331,10 @@ class Event {
         'title: $title, '
         'groupId: $groupId, '
         'calendarId: $calendarId, '
+        'type: $type, '
+        'clientId: $clientId, '
+        'primaryServiceId: $primaryServiceId, '
+        'stopId: $stopId, '
         'recurrenceRule: $recurrenceRule, '
         'localization: $localization, '
         'note: $note, '
@@ -239,7 +346,11 @@ class Event {
         'completedAt: $completedAt, '
         'recipients: $recipients, '
         'ownerId: $ownerId, '
-        'notifyOwner: $notifyOwner, ' // 👈 new
+        'notifyOwner: $notifyOwner, '
+        'status: $status, '
+        'categoryId: $categoryId, '
+        'subcategoryId: $subcategoryId, '
+        'visitServices: $visitServices, '
         'updateHistory: $updateHistory'
         '}';
   }
@@ -252,7 +363,9 @@ class Event {
         other.endDate == endDate &&
         other.title == title &&
         other.calendarId == calendarId &&
-        other.eventColorIndex == eventColorIndex;
+        other.eventColorIndex == eventColorIndex &&
+        other.type == type &&
+        other.clientId == clientId;
   }
 
   @override
@@ -262,15 +375,15 @@ class Event {
       endDate.hashCode ^
       title.hashCode ^
       calendarId.hashCode ^
-      eventColorIndex.hashCode;
+      eventColorIndex.hashCode ^
+      type.hashCode ^
+      (clientId?.hashCode ?? 0);
 
   /// Returns a human-readable recurrence summary string.
   String get recurrenceDescription {
     final rule = recurrenceRule;
     if (rule == null) return '';
-
     final buffer = StringBuffer('Repeats ');
-
     switch (rule.recurrenceType) {
       case RecurrenceType.Daily:
         buffer.write('every ${rule.repeatInterval ?? 1} day(s)');
@@ -297,13 +410,58 @@ class Event {
         }
         break;
     }
-
     if (rule.untilDate != null) {
-      final dateStr =
-          rule.untilDate!.toLocal().toIso8601String().split('T').first;
+      final dateStr = rule.untilDate!.toLocal().toIso8601String().split('T').first;
       buffer.write(' until $dateStr');
     }
-
     return buffer.toString();
   }
+}
+
+/// NEW: per-event service entry (ties an event to one Service)
+class VisitService {
+  final String serviceId;
+  final int? plannedMinutes;
+  final int? actualMinutes;
+  final String? notes;
+
+  const VisitService({
+    required this.serviceId,
+    this.plannedMinutes,
+    this.actualMinutes,
+    this.notes,
+  });
+
+  VisitService copyWith({
+    String? serviceId,
+    int? plannedMinutes,
+    int? actualMinutes,
+    String? notes,
+  }) {
+    return VisitService(
+      serviceId: serviceId ?? this.serviceId,
+      plannedMinutes: plannedMinutes ?? this.plannedMinutes,
+      actualMinutes: actualMinutes ?? this.actualMinutes,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+        'serviceId': serviceId,
+        'plannedMinutes': plannedMinutes,
+        'actualMinutes': actualMinutes,
+        'notes': notes,
+      };
+
+  factory VisitService.fromMap(Map<String, dynamic> map) {
+    return VisitService(
+      serviceId: map['serviceId']?.toString() ?? '',
+      plannedMinutes: map['plannedMinutes'] is num ? (map['plannedMinutes'] as num).toInt() : null,
+      actualMinutes: map['actualMinutes'] is num ? (map['actualMinutes'] as num).toInt() : null,
+      notes: map['notes'] as String?,
+    );
+  }
+
+  @override
+  String toString() => 'VisitService(serviceId: $serviceId, planned: $plannedMinutes, actual: $actualMinutes)';
 }

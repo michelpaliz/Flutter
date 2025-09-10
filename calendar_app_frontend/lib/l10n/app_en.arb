@@ -577,17 +577,39 @@
     "privacyPolicy": "Privacy Policy",
     "termsAndPrivacyPrefix": "By signing up, you agree to our ",
     "andSeparator": " and ",
-  "alreadyHaveAccount": "Already have an account?",
-  "dontHaveAccount": "Don’t have an account?",
-  "loginWelcomeTitle": "Welcome back!",
-  "loginWelcomeSubtitle": "Please enter your credentials to continue.",
-  "forgotPasswordSubtitle": "Enter your email and we’ll send you a reset link.",
-  "sendResetLink": "Send Reset Link",
-  "resetLinkSent": "Password reset link sent!"
-
-
-
-  
-
-
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don’t have an account?",
+    "loginWelcomeTitle": "Welcome back!",
+    "loginWelcomeSubtitle": "Please enter your credentials to continue.",
+    "forgotPasswordSubtitle": "Enter your email and we’ll send you a reset link.",
+    "sendResetLink": "Send Reset Link",
+    "resetLinkSent": "Password reset link sent!",
+    "noUpcomingHint": "Try another category or extend the range.",
+    "hi": "Hi",
+    "completed": "Completed",
+    "showFourteenDays": "14 days",
+    "showThirtyDays": "30 days",
+    "meetings": "Meetings",
+    "tasks": "Tasks",
+    "deadlines": "Deadlines",
+    "personal": "Personal",
+    "statusDone": "Done",
+    "statusCompleted": "Completed",
+    "statusInProgress": "In progress",
+    "statusPending": "Pending",
+    "statusCancelled": "Cancelled",
+    "statusOverdue": "Overdue",
+    "statusFinished": "Finished",
+    "completedSummary": "{done} of {total} completed ({percent}%)",
+    "@completedSummary": {
+        "placeholders": {
+            "done": {},
+            "total": {},
+            "percent": {}
+        }
+    },
+    "notifyMe": "Notify me",
+    "notifyMeOnSubtitle": "You'll receive a reminder for this event",
+    "notifyMeOffSubtitle": "No reminder will be sent",
+    "noInvitableUsers": "No users available to invite"
 }

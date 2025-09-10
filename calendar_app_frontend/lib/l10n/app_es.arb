@@ -581,7 +581,34 @@
   "loginWelcomeSubtitle": "Introduce tus credenciales para continuar.",
   "forgotPasswordSubtitle": "Introduce tu correo y te enviaremos un enlace de restablecimiento.",
   "sendResetLink": "Enviar enlace de restablecimiento",
-  "resetLinkSent": "¡Enlace de restablecimiento enviado!"
-
-
+  "resetLinkSent": "¡Enlace de restablecimiento enviado!",
+  "noUpcomingHint": "Prueba con otra categoría o amplía el rango.",
+  "hi": "Hola",
+  "completed": "Completados",
+  "showFourteenDays": "14 días",
+  "showThirtyDays": "30 días",
+  "meetings": "Reuniones",
+  "tasks": "Tareas",
+  "deadlines": "Plazos",
+  "personal": "Personal",
+  "statusDone": "Hecho",
+  "statusCompleted": "Completado",
+  "statusInProgress": "En progreso",
+  "statusPending": "Pendiente",
+  "statusCancelled": "Cancelado",
+  "statusOverdue": "Atrasado",
+  "statusFinished": "Finalizado",
+  "completedSummary": "{done} de {total} completados ({percent}%)",
+  "@completedSummary": {
+    "placeholders": {
+      "done": {},
+      "total": {},
+      "percent": {}
+    }
+  },
+  "notifyMe": "Notificarme",
+  "notifyMeOnSubtitle": "Recibirás un recordatorio de este evento",
+  "notifyMeOffSubtitle": "No se enviará ningún recordatorio",
+  "noInvitableUsers": "No hay usuarios disponibles para invitar",
+  "removeRecurrenceConfirm": "¿Deseas eliminar la repetición de este evento?"
 }

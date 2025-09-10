@@ -67,11 +67,11 @@ class Utilities {
   }
 
   /** Build profile image for CircleAvatar */
-  static ImageProvider buildProfileImage(String imageUrl) {
-    if (imageUrl.isNotEmpty) {
+  static ImageProvider buildProfileImage(String? imageUrl) {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
       return NetworkImage(imageUrl);
     } else {
-      return AssetImage('assets/images/default_profile.png');
+      return const AssetImage('assets/images/default_profile.png');
     }
   }
 

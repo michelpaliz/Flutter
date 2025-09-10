@@ -758,7 +758,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get removeRecurrenceConfirm =>
-      'Are you sure you want to remove the recurrence rule?';
+      '¿Deseas eliminar la repetición de este evento?';
 
   @override
   String get reminderLabel => 'Recordatorio';
@@ -1129,4 +1129,69 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resetLinkSent => '¡Enlace de restablecimiento enviado!';
+
+  @override
+  String get noUpcomingHint => 'Prueba con otra categoría o amplía el rango.';
+
+  @override
+  String get hi => 'Hola';
+
+  @override
+  String get completed => 'Completados';
+
+  @override
+  String get showFourteenDays => '14 días';
+
+  @override
+  String get showThirtyDays => '30 días';
+
+  @override
+  String get meetings => 'Reuniones';
+
+  @override
+  String get tasks => 'Tareas';
+
+  @override
+  String get deadlines => 'Plazos';
+
+  @override
+  String get personal => 'Personal';
+
+  @override
+  String get statusDone => 'Hecho';
+
+  @override
+  String get statusCompleted => 'Completado';
+
+  @override
+  String get statusInProgress => 'En progreso';
+
+  @override
+  String get statusPending => 'Pendiente';
+
+  @override
+  String get statusCancelled => 'Cancelado';
+
+  @override
+  String get statusOverdue => 'Atrasado';
+
+  @override
+  String get statusFinished => 'Finalizado';
+
+  @override
+  String completedSummary(Object done, Object total, Object percent) {
+    return '$done de $total completados ($percent%)';
+  }
+
+  @override
+  String get notifyMe => 'Notificarme';
+
+  @override
+  String get notifyMeOnSubtitle => 'Recibirás un recordatorio de este evento';
+
+  @override
+  String get notifyMeOffSubtitle => 'No se enviará ningún recordatorio';
+
+  @override
+  String get noInvitableUsers => 'No hay usuarios disponibles para invitar';
 }

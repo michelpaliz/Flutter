@@ -5,7 +5,7 @@ import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_serv
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/helper/auht_gate.dart';
 import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
 import 'package:calendar_app_frontend/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
-import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
+import 'package:calendar_app_frontend/c-frontend/f-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/routes.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';

@@ -1,5 +1,5 @@
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/c-frontend/e-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
+import 'package:calendar_app_frontend/c-frontend/f-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 late IO.Socket notificationSocket;

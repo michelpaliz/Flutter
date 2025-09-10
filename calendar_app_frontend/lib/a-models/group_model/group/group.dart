@@ -2,20 +2,26 @@ import 'package:calendar_app_frontend/a-models/group_model/calendar/calendar.dar
 import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 
 class Group {
+  // Core
   final String id;
   String name;
-  final String ownerId; // ID of the group owner
-  final Map<String, String> userRoles; // Map of user IDs to their roles
+  final String ownerId;
+  final Map<String, String> userRoles; // username -> role
   List<String> userIds;
   DateTime createdTime;
   String description;
 
-  // ✅ Updated: match backend
-  String photoUrl; // Temporary read URL (SAS or public link)
-  String? photoBlobName; // Permanent Azure blob path
+  // Images (match backend defaults: nullable)
+  String? photoUrl; // public/CDN url (if AVATARS_PUBLIC) – may be null
+  String? photoBlobName; // blob path
+  String? computedPhotoUrl; // backend virtual; may be present
 
+  // Invites
   Map<String, UserInviteStatus>? invitedUsers;
-  final Calendar calendar; // Single calendar for the group
+
+  // Calendar linkage (no embedded calendar doc)
+  String? defaultCalendarId; // set by backend
+  Calendar? defaultCalendar; // optional snapshot from GET /groups/:id
 
   Group({
     required this.id,
@@ -25,72 +31,91 @@ class Group {
     required this.userIds,
     required this.createdTime,
     required this.description,
-    required this.photoUrl,
+    this.photoUrl,
     this.photoBlobName,
-    required this.calendar,
-    Map<String, UserInviteStatus>? invitedUsers,
-  }) : invitedUsers = invitedUsers ?? {};
+    this.computedPhotoUrl,
+    this.invitedUsers,
+    this.defaultCalendarId,
+    this.defaultCalendar,
+  });
 
+  // ---------- JSON ----------
   factory Group.fromJson(Map<String, dynamic> json) {
-    List<String> userIds = List<String>.from(json['userIds'] ?? []);
-    Map<String, dynamic> invitedUsersJson = json['invitedUsers'] ?? {};
+    final userIds = (json['userIds'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        <String>[];
 
-    Map<String, UserInviteStatus> invitedUsers = invitedUsersJson.map(
-      (key, value) => MapEntry(key, UserInviteStatus.fromJson(value)),
+    // invitedUsers: username -> UserInviteStatus
+    final invitedUsersJson =
+        (json['invitedUsers'] as Map<String, dynamic>?) ?? {};
+    final invitedUsers = invitedUsersJson.map(
+      (k, v) => MapEntry(k, UserInviteStatus.fromJson(v)),
     );
 
+    // optional calendar snapshot
+    Calendar? defaultCal;
+    if (json['defaultCalendar'] != null &&
+        json['defaultCalendar'] is Map<String, dynamic>) {
+      defaultCal = Calendar.fromJson(json['defaultCalendar']);
+    }
+
     return Group(
-      id: json['id'] ?? json['_id'] ?? '',
-      name: json['name'] ?? '',
-      ownerId: json['ownerId'] ?? '',
+      id: (json['id'] ?? json['_id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      ownerId: (json['ownerId'] ?? '').toString(),
       userRoles: Map<String, String>.from(json['userRoles'] ?? {}),
       userIds: userIds,
       createdTime: json['createdTime'] != null
-          ? DateTime.parse(json['createdTime'])
+          ? DateTime.parse(json['createdTime'].toString())
           : DateTime.now(),
-      description: json['description'] ?? '',
-      photoUrl: json['photoUrl'] ?? '',
-      photoBlobName: json['photoBlobName'],
-      calendar: Calendar.fromJson(json['calendar']),
+      description: (json['description'] ?? '').toString(),
+      photoUrl: json['photoUrl']?.toString(),
+      photoBlobName: json['photoBlobName']?.toString(),
+      computedPhotoUrl: json['computedPhotoUrl']?.toString(),
       invitedUsers: invitedUsers,
+      defaultCalendarId: json['defaultCalendarId']?.toString(),
+      defaultCalendar: defaultCal,
     );
   }
 
+  /// For updates (match backend whitelist: name, description, photoBlobName,
+  /// photoUrl (legacy), userRoles, userIds, invitedUsers)
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
       'name': name,
-      'ownerId': ownerId,
+      'description': description,
+      if (photoUrl != null) 'photoUrl': photoUrl,
+      if (photoBlobName != null) 'photoBlobName': photoBlobName,
       'userRoles': userRoles,
       'userIds': userIds,
-      'createdTime': createdTime.toIso8601String(),
-      'description': description,
-      'photoUrl': photoUrl,
-      'photoBlobName': photoBlobName,
-      'calendar': calendar.toJson(),
-      'invitedUsers': invitedUsers?.map(
-        (key, value) => MapEntry(key, value.toJson()),
-      ),
+      if (invitedUsers != null)
+        'invitedUsers': invitedUsers!.map(
+          (k, v) => MapEntry(k, v.toJson()),
+        ),
     };
   }
 
+  /// For creation (no calendar fields; backend creates calendar & sets defaultCalendarId)
   Map<String, dynamic> toJsonForCreation() {
     return {
       'name': name,
       'ownerId': ownerId,
       'userRoles': userRoles,
       'userIds': userIds,
-      'createdTime': createdTime.toIso8601String(),
       'description': description,
-      'photoUrl': photoUrl,
-      'photoBlobName': photoBlobName,
-      'calendar': calendar.toJson(),
-      'invitedUsers': invitedUsers?.map(
-        (key, value) => MapEntry(key, value.toJson()),
-      ),
+      // createdTime is optional on backend, but safe to send if you want:
+      'createdTime': createdTime.toIso8601String(),
+      if (photoUrl != null) 'photoUrl': photoUrl,
+      if (photoBlobName != null) 'photoBlobName': photoBlobName,
+      if (invitedUsers != null)
+        'invitedUsers': invitedUsers!.map(
+          (k, v) => MapEntry(k, v.toJson()),
+        ),
     };
   }
 
+  // ---------- Copy ----------
   Group copyWith({
     String? id,
     String? name,
@@ -101,8 +126,10 @@ class Group {
     String? description,
     String? photoUrl,
     String? photoBlobName,
+    String? computedPhotoUrl,
     Map<String, UserInviteStatus>? invitedUsers,
-    Calendar? calendar,
+    String? defaultCalendarId,
+    Calendar? defaultCalendar,
   }) {
     return Group(
       id: id ?? this.id,
@@ -114,58 +141,93 @@ class Group {
       description: description ?? this.description,
       photoUrl: photoUrl ?? this.photoUrl,
       photoBlobName: photoBlobName ?? this.photoBlobName,
-      calendar: calendar ?? this.calendar,
+      computedPhotoUrl: computedPhotoUrl ?? this.computedPhotoUrl,
       invitedUsers: invitedUsers ?? this.invitedUsers,
+      defaultCalendarId: defaultCalendarId ?? this.defaultCalendarId,
+      defaultCalendar: defaultCalendar ?? this.defaultCalendar,
     );
   }
 
+  // ---------- Helpers ----------
   bool isEqual(Group other) {
+    final calEqual =
+        (defaultCalendar == null && other.defaultCalendar == null) ||
+            (defaultCalendar != null &&
+                other.defaultCalendar != null &&
+                defaultCalendar!.toJson().toString() ==
+                    other.defaultCalendar!.toJson().toString());
+
     return id == other.id &&
         name == other.name &&
         ownerId == other.ownerId &&
-        userRoles == other.userRoles &&
-        userIds == other.userIds &&
+        userRoles.toString() == other.userRoles.toString() &&
+        _listEq(userIds, other.userIds) &&
         createdTime == other.createdTime &&
         description == other.description &&
         photoUrl == other.photoUrl &&
         photoBlobName == other.photoBlobName &&
-        calendar.toJson().toString() == other.calendar.toJson().toString() &&
-        _areInvitedUsersEqual(invitedUsers, other.invitedUsers);
+        computedPhotoUrl == other.computedPhotoUrl &&
+        defaultCalendarId == other.defaultCalendarId &&
+        calEqual &&
+        _invitesEq(invitedUsers, other.invitedUsers);
   }
 
-  bool _areInvitedUsersEqual(
-    Map<String, UserInviteStatus>? map1,
-    Map<String, UserInviteStatus>? map2,
-  ) {
-    if (map1 == null && map2 == null) return true;
-    if (map1 == null || map2 == null) return false;
-    if (map1.length != map2.length) return false;
-    for (var key in map1.keys) {
-      if (!map2.containsKey(key) || !map1[key]!.isEqual(map2[key]!)) {
-        return false;
-      }
+  static bool _listEq(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
     }
     return true;
   }
 
+  static bool _invitesEq(
+    Map<String, UserInviteStatus>? m1,
+    Map<String, UserInviteStatus>? m2,
+  ) {
+    if (m1 == null && m2 == null) return true;
+    if (m1 == null || m2 == null) return false;
+    if (m1.length != m2.length) return false;
+    for (final k in m1.keys) {
+      if (!m2.containsKey(k) || !m1[k]!.isEqual(m2[k]!)) return false;
+    }
+    return true;
+  }
+
+  // ---------- Defaults ----------
   static Group createDefaultGroup() {
     return Group(
       id: 'default_id',
       name: 'Default Group Name',
       ownerId: 'default_owner_id',
-      userRoles: {},
-      userIds: [],
+      userRoles: const {},
+      userIds: const [],
       createdTime: DateTime.now(),
       description: 'Default Description',
-      photoUrl: '',
+      photoUrl: null,
       photoBlobName: null,
-      calendar: Calendar.defaultCalendar(),
+      computedPhotoUrl: null,
       invitedUsers: {},
+      defaultCalendarId: null,
+      defaultCalendar: null,
     );
   }
 
   @override
   String toString() {
-    return 'Group{id: $id, name: $name, ownerId: $ownerId, userRoles: $userRoles, userIds: $userIds, createdTime: $createdTime, description: $description, photoUrl: $photoUrl, photoBlobName: $photoBlobName, calendar: $calendar, invitedUsers: $invitedUsers}';
+    return 'Group{id: $id, name: $name, ownerId: $ownerId, userRoles: $userRoles, '
+        'userIds: $userIds, createdTime: $createdTime, description: $description, '
+        'photoUrl: $photoUrl, photoBlobName: $photoBlobName, computedPhotoUrl: $computedPhotoUrl, '
+        'defaultCalendarId: $defaultCalendarId, defaultCalendar: $defaultCalendar, '
+        'invitedUsers: $invitedUsers}';
   }
+}
+
+extension GroupCalendarX on Group {
+  /// Primary way to get the calendar id for this group.
+  String? get calendarId =>
+      (defaultCalendarId != null && defaultCalendarId!.isNotEmpty)
+          ? defaultCalendarId
+          : defaultCalendar?.id;
+
+  bool get hasCalendar => calendarId != null;
 }

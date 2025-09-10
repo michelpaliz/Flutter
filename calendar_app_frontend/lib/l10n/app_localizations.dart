@@ -2060,6 +2060,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password reset link sent!'**
   String get resetLinkSent;
+
+  /// No description provided for @noUpcomingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another category or extend the range.'**
+  String get noUpcomingHint;
+
+  /// No description provided for @hi.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi'**
+  String get hi;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @showFourteenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'14 days'**
+  String get showFourteenDays;
+
+  /// No description provided for @showThirtyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get showThirtyDays;
+
+  /// No description provided for @meetings.
+  ///
+  /// In en, this message translates to:
+  /// **'Meetings'**
+  String get meetings;
+
+  /// No description provided for @tasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get tasks;
+
+  /// No description provided for @deadlines.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines'**
+  String get deadlines;
+
+  /// No description provided for @personal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get personal;
+
+  /// No description provided for @statusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get statusDone;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @statusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get statusInProgress;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @statusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get statusOverdue;
+
+  /// No description provided for @statusFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get statusFinished;
+
+  /// No description provided for @completedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} completed ({percent}%)'**
+  String completedSummary(Object done, Object total, Object percent);
+
+  /// No description provided for @notifyMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me'**
+  String get notifyMe;
+
+  /// No description provided for @notifyMeOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll receive a reminder for this event'**
+  String get notifyMeOnSubtitle;
+
+  /// No description provided for @notifyMeOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder will be sent'**
+  String get notifyMeOffSubtitle;
+
+  /// No description provided for @noInvitableUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No users available to invite'**
+  String get noInvitableUsers;
 }
 
 class _AppLocalizationsDelegate
