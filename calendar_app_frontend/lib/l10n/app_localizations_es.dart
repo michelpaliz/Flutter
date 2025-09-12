@@ -1194,4 +1194,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noInvitableUsers => 'No hay usuarios disponibles para invitar';
+
+  @override
+  String get dashboard => 'Panel de control';
 }

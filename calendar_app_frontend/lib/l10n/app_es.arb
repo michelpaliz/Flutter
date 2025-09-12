@@ -610,5 +610,6 @@
   "notifyMeOnSubtitle": "Recibirás un recordatorio de este evento",
   "notifyMeOffSubtitle": "No se enviará ningún recordatorio",
   "noInvitableUsers": "No hay usuarios disponibles para invitar",
-  "removeRecurrenceConfirm": "¿Deseas eliminar la repetición de este evento?"
+  "removeRecurrenceConfirm": "¿Deseas eliminar la repetición de este evento?",
+  "dashboard": "Panel de control"
 }

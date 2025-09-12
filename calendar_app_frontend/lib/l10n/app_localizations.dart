@@ -2186,6 +2186,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No users available to invite'**
   String get noInvitableUsers;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
 }
 
 class _AppLocalizationsDelegate

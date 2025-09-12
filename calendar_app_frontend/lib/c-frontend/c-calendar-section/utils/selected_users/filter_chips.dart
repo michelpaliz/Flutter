@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class FilterChipsSection extends StatelessWidget {
+class FilterChips extends StatelessWidget {
   final bool showAccepted;
   final bool showPending;
   final bool showNotWantedToJoin;
   final Function(String, bool) onFilterChange;
 
-  const FilterChipsSection({
+  const FilterChips({
     required this.showAccepted,
     required this.showPending,
     required this.showNotWantedToJoin,

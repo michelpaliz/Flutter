@@ -237,4 +237,25 @@ class UserService {
       throw Exception('Failed to get notifications: ${response.reasonPhrase}');
     }
   }
+
+  Future<User> getUserBySelector(String selector) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/by/${Uri.encodeComponent(selector)}'),
+      // Add auth if your /by route is protected (it isn’t in your snippets, so header optional)
+      // headers: {'Authorization': 'Bearer ${await TokenStorage.loadToken()}'},
+    );
+
+    devtools.log('👤 GET /users/by/$selector → ${res.statusCode}');
+    devtools.log('👤 body: ${res.body}');
+
+    if (res.statusCode == 200) {
+      return User.fromJson(jsonDecode(res.body));
+    } else if (res.statusCode == 404) {
+      throw Exception('User not found');
+    } else if (res.statusCode == 400) {
+      throw Exception('Invalid selector');
+    } else {
+      throw Exception('Failed to fetch user: ${res.reasonPhrase}');
+    }
+  }
 }

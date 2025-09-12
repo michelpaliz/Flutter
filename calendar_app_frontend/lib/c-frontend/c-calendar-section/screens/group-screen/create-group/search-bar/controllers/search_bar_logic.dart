@@ -68,7 +68,7 @@ mixin SearchBarLogic<T extends StatefulWidget> on State<T> {
 
   void addUser(String username) async {
     try {
-      final user = await userService.getUserByUsername(username);
+      final user = await userService.getUserBySelector(username);
       if (!mounted || userRoles.containsKey(user.userName)) return;
 
       setState(() {

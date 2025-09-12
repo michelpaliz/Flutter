@@ -59,7 +59,7 @@ Widget buildProfileDialogContent(BuildContext context, Group group) {
 
           Navigator.pushNamed(
             context,
-            AppRoutes.groupCalendar,
+            AppRoutes.groupDashboard, // 👈 goes to dashboard now
             arguments: group,
           );
         },
@@ -78,7 +78,7 @@ Widget buildProfileDialogContent(BuildContext context, Group group) {
           children: [
             const Icon(Icons.calendar_month_rounded),
             const SizedBox(width: 8),
-            Text(AppLocalizations.of(context)!.goToCalendar),
+            Text(AppLocalizations.of(context)!.dashboard),
           ],
         ),
       ),

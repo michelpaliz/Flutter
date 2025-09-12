@@ -1184,4 +1184,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noInvitableUsers => 'No users available to invite';
+
+  @override
+  String get dashboard => 'Dashboard';
 }

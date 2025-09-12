@@ -7,6 +7,8 @@ class AppRoutes {
   static const profile = '/profile';
   static const agenda = '/agenda';
   static const groupDashboard = '/group-dashboard';
+  static const groupServicesClients = '/group-services-clients';
+  static const groupMembers = '/group-members';
 
   static const homePage = '/home-page';
   static const userCalendar = '/user-calendar';

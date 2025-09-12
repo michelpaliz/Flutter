@@ -88,7 +88,7 @@ class UserManagement extends ChangeNotifier {
   Future<User?> getUser() async {
     if (_user == null) return null;
     try {
-      return await userService.getUserByUsername(_user!.userName);
+      return await userService.getUserBySelector(_user!.userName);
     } catch (e) {
       debugPrint('❌ Failed to get user: $e');
       return null;

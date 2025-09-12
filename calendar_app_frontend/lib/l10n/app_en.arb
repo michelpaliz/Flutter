@@ -611,5 +611,8 @@
     "notifyMe": "Notify me",
     "notifyMeOnSubtitle": "You'll receive a reminder for this event",
     "notifyMeOffSubtitle": "No reminder will be sent",
-    "noInvitableUsers": "No users available to invite"
+    "noInvitableUsers": "No users available to invite",
+    "dashboard": "Dashboard"
+
+
 }

@@ -1,10 +1,10 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
+import 'package:calendar_app_frontend/c-frontend/b-group-section/sections/upcoming_events/group_upcoming_events.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:calendar_app_frontend/e-drawer-style-menu/contextual_fab.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-
 
 class GroupDashboard extends StatelessWidget {
   final Group group;
@@ -15,15 +15,16 @@ class GroupDashboard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(group.name, overflow: TextOverflow.ellipsis),
+        // 👇 Use a single, stable screen title
+        title: const Text('Dashboard'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // --- Single place where the group name appears ---
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -36,6 +37,7 @@ class GroupDashboard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 👇 Only here
                     Text(group.name,
                         style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
@@ -50,72 +52,86 @@ class GroupDashboard extends StatelessWidget {
                   ],
                 ),
               ),
+              // Optional: a small “chip” hinting the section
+              // const Chip(label: Text('Dashboard')),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Quick actions
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  // “Go to calendar” button inside the dashboard
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      icon: const Icon(Icons.calendar_month_rounded),
-                      label: Text(loc.goToCalendar),
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.groupCalendar,
-                          arguments: group,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (!group.hasCalendar)
-                    Text(
-                      'This group has no calendar linked yet.',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.error,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+          // --- NEW: Next upcoming events for THIS group only ---
+          GroupUpcomingEventsCard(groupId: group.id),
 
           const SizedBox(height: 16),
 
-          // Example sections you can expand later
+          // Quick tiles
           Card(
             child: ListTile(
               leading: const Icon(Icons.group_outlined),
               title: const Text('Members'),
               subtitle: Text('${group.userIds.length} total'),
               onTap: () {
-                // TODO: navigate to your members list page (if any)
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.groupMembers, // 👈 goes to the new screen
+                  arguments: group,
+                );
               },
             ),
           ),
           const SizedBox(height: 8),
           Card(
             child: ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Group settings'),
+              leading: const Icon(Icons.design_services_outlined),
+              title: const Text('Services & Clients'),
+              subtitle: const Text('Create and manage services/clients'),
               onTap: () {
-                Navigator.pushNamed(context, AppRoutes.groupSettings,
-                    arguments: group);
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.groupServicesClients,
+                  arguments: group,
+                );
               },
             ),
           ),
+          const SizedBox(height: 24),
+
+          if (!group.hasCalendar)
+            Card(
+              color: colorScheme.errorContainer.withOpacity(0.15),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  'This group has no calendar linked yet.',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(height: 96), // breathing room above bottom button
         ],
       ),
 
-      // Use your shared FAB; ContextualFab now routes to calendar on this page.
+      // Big, reachable primary action at the bottom
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SizedBox(
+          height: 56,
+          child: FilledButton.icon(
+            icon: const Icon(Icons.calendar_month_rounded),
+            label: Text(AppLocalizations.of(context)!.goToCalendar),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.groupCalendar,
+                arguments: group,
+              );
+            },
+          ),
+        ),
+      ),
+
+      // Optional: keep or remove this if you want only one entry point
       floatingActionButton: const ContextualFab(),
     );
   }

@@ -1,245 +1,80 @@
-Got it — you want a new **Group Dashboard** screen that you’ll open instead of “Go to calendar”, and inside that dashboard the **FAB** should take you to the group’s calendar. Here’s a clean drop-in set of changes to wire everything up.
+Great—your Flutter client is still calling the old, brittle path (`/users/username/<something>`). Since the backend now supports a neutral selector route (`/users/by/:selector`) that tries **username first** and then **ObjectId**, the cleanest client fix is:
 
----
+1. **Make sure your server route order is correct**
+   In `routes/userRoutes.js`, move this **above** `/:id`:
 
-### 1) Add a new route constant
-
-**`appRoutes.dart`**
-
-```dart
-class AppRoutes {
-  // ...
-  static const groupDashboard = '/group-dashboard'; // 👈 NEW
-  // ...
-}
+```js
+router.get("/by/:selector", userController.getUserBySelector);
 ```
 
----
+(If it’s below `/:id`, Express will match `/users/by/...` as `/:id` and you’ll get a 404/500.)
 
-### 2) Register the new route
-
-**`routes.dart`**
+2. **Add a single “selector” method in Flutter and use it everywhere you previously mixed id/username**
 
 ```dart
-import 'package:calendar_app_frontend/c-frontend/b-calendar-section/screens/group-screen/dashboard/group_dashboard.dart'; // 👈 NEW
+Future<User> getUserBySelector(String selector) async {
+  final res = await http.get(
+    Uri.parse('$baseUrl/by/${Uri.encodeComponent(selector)}'),
+    // Add auth if your /by route is protected (it isn’t in your snippets, so header optional)
+    // headers: {'Authorization': 'Bearer ${await TokenStorage.loadToken()}'},
+  );
 
-final Map<String, WidgetBuilder> routes = {
-  // ...
-  AppRoutes.groupDashboard: (context) { // 👈 NEW
-    final group = ModalRoute.of(context)?.settings.arguments as Group?;
-    if (group == null) return const SizedBox.shrink();
-    return GroupDashboard(group: group);
-  },
-  // ...
-};
-```
+  devtools.log('👤 GET /users/by/$selector → ${res.statusCode}');
+  devtools.log('👤 body: ${res.body}');
 
----
-
-### 3) Change the dialog button to open the dashboard (not the calendar)
-
-**Where you build the profile dialog** (`buildProfileDialogContent`)
-
-```dart
-// Old:
-Navigator.pushNamed(
-  context,
-  AppRoutes.groupCalendar,
-  arguments: group,
-);
-
-// New:
-Navigator.pushNamed(
-  context,
-  AppRoutes.groupDashboard, // 👈 goes to dashboard now
-  arguments: group,
-);
-```
-
----
-
-### 4) Make the FAB on the dashboard go to the calendar
-
-Tweak your **ContextualFab** so that when we’re on the dashboard route, the FAB jumps to the calendar for that group.
-
-**`ContextualFab`**
-
-```dart
-@override
-Widget build(BuildContext context) {
-  // ...existing code...
-  final name = settings?.name ?? '';
-  final args = settings?.arguments;
-  final groupArg = args is Group ? args : null;
-
-  IconData iconData = Iconsax.add;
-  VoidCallback? onPressed;
-
-  // 👇 NEW: On the group dashboard, FAB opens the group calendar
-  if (name == AppRoutes.groupDashboard && groupArg != null) {
-    iconData = Iconsax.calendar; // or Icons.calendar_month_rounded
-    onPressed = () => Navigator.pushNamed(
-      context,
-      AppRoutes.groupCalendar,
-      arguments: groupArg,
-    );
-  }
-  // 1) (existing) If we already have a Group on other pages → Add Event
-  else if (groupArg != null) {
-    iconData = Iconsax.calendar_add;
-    onPressed = () =>
-        Navigator.pushNamed(context, AppRoutes.addEvent, arguments: groupArg);
-  }
-  // 2) (existing) On Home → Create Group
-  else if (name == AppRoutes.homePage || name.isEmpty) {
-    iconData = Iconsax.add_circle;
-    onPressed = () => Navigator.pushNamed(context, AppRoutes.createGroupData);
-  }
-  // ...keep the rest unchanged...
-```
-
-> Note: The **dashboard check must come before** the generic `groupArg != null` branch so it overrides the default “Add Event” behavior.
-
----
-
-### 5) Create the new dashboard screen
-
-A simple, theme-aware screen with group info, a “Go to calendar” button (for users who prefer tapping the button), and it uses your **ContextualFab** so the FAB also goes to the calendar.
-
-**`c-frontend/b-calendar-section/screens/group-screen/dashboard/group_dashboard.dart`**
-
-```dart
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-
-// If ContextualFab lives elsewhere, adjust this import path:
-import 'package:calendar_app_frontend/c-frontend/routes/contextual_fab.dart';
-
-class GroupDashboard extends StatelessWidget {
-  final Group group;
-  const GroupDashboard({super.key, required this.group});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    final loc = AppLocalizations.of(context)!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(group.name, overflow: TextOverflow.ellipsis),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundImage: Utilities.buildProfileImage(group.photoUrl),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(group.name,
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        )),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${group.createdTime.year}-${group.createdTime.month.toString().padLeft(2, '0')}-${group.createdTime.day.toString().padLeft(2, '0')}',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Quick actions
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  // “Go to calendar” button inside the dashboard
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      icon: const Icon(Icons.calendar_month_rounded),
-                      label: Text(loc.goToCalendar),
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.groupCalendar,
-                          arguments: group,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (!group.hasCalendar)
-                    Text(
-                      'This group has no calendar linked yet.',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.error,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Example sections you can expand later
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.group_outlined),
-              title: const Text('Members'),
-              subtitle: Text('${group.userIds.length} total'),
-              onTap: () {
-                // TODO: navigate to your members list page (if any)
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Group settings'),
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.groupSettings,
-                    arguments: group);
-              },
-            ),
-          ),
-        ],
-      ),
-
-      // Use your shared FAB; ContextualFab now routes to calendar on this page.
-      floatingActionButton: const ContextualFab(),
-    );
+  if (res.statusCode == 200) {
+    return User.fromJson(jsonDecode(res.body));
+  } else if (res.statusCode == 404) {
+    throw Exception('User not found');
+  } else if (res.statusCode == 400) {
+    throw Exception('Invalid selector');
+  } else {
+    throw Exception('Failed to fetch user: ${res.reasonPhrase}');
   }
 }
 ```
 
----
+3. **Stop calling `/users/username/<id>` by accident**
+   Wherever you were doing:
 
-### That’s it
+```dart
+await userService.getUserByUsername(someIdString);
+```
 
-* The dialog now opens **GroupDashboard**.
-* On the dashboard, the **FAB** and the **button** both jump to **Group Calendar**.
-* Everything stays theme-aware and uses your existing patterns.
+switch to:
 
-If you want, I can also add a small “Recently added events” section to the dashboard that reads from `group.defaultCalendar` when present.
+```dart
+await userService.getUserBySelector(someIdOrUsername);
+```
+
+4. (Optional) **Smart wrapper** if you want one entry point:
+
+```dart
+bool _looksLikeObjectId(String s) => RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(s);
+
+Future<User> getUserSmart(String selector) async {
+  // Prefer the server’s /by logic (username first, then id)
+  // You can still short-circuit by email, if you sometimes pass emails:
+  if (selector.contains('@')) {
+    return getUserByEmail(selector);
+  }
+  return getUserBySelector(selector);
+}
+```
+
+### Small tidy-ups in your existing service
+
+* Your `getUserById` is fine; consider using `getUserBySelector` instead everywhere to reduce branching.
+* Keep `Uri.encodeComponent(...)` like you already do (good catch).
+* Your `getUserByUsername` stays useful for explicit username lookups (e.g., a search result click).
+
+### Quick sanity matrix (client side)
+
+```text
+getUserBySelector('jane_doe')      → GET /users/by/jane_doe      → 200
+getUserBySelector('680686...')     → GET /users/by/680686...     → 200 (id) or 404
+getUserByUsername('680686...')     → ❌ don’t do this anymore
+getUserById('680686...')           → still works, but /by is simpler
+```
+
+Do the two changes above (server route order + new Flutter method), swap your call sites to `getUserBySelector`, and that “username route with an id” bug goes away.

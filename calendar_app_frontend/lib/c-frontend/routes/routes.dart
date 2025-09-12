@@ -5,6 +5,8 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
 import 'package:calendar_app_frontend/c-frontend/b-group-section/group_dashboard.dart';
+import 'package:calendar_app_frontend/c-frontend/b-group-section/sections/members/group_members_screen.dart';
+import 'package:calendar_app_frontend/c-frontend/b-group-section/sections/services_clients/services_clients_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-calendar-section/screens/calendar/calendar_main_view/main_calendar_view.dart';
 import 'package:calendar_app_frontend/c-frontend/c-calendar-section/screens/group-screen/create-group/search-bar/screens/create_group_data.dart';
 import 'package:calendar_app_frontend/c-frontend/c-calendar-section/screens/group-screen/edit-group/edit_group_data.dart';
@@ -19,9 +21,9 @@ import 'package:calendar_app_frontend/c-frontend/e-log-user-section/login/login_
 import 'package:calendar_app_frontend/c-frontend/e-log-user-section/register/ui/register_view.dart';
 import 'package:calendar_app_frontend/c-frontend/e-log-user-section/verify_email_view.dart';
 import 'package:calendar_app_frontend/c-frontend/f-notification-section/show-notifications/show_notifications.dart';
-import 'package:calendar_app_frontend/c-frontend/i-settings-section/settings.dart';
 import 'package:calendar_app_frontend/c-frontend/g-agenda-section/agenda_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/h-profile-section/profile_screen.dart';
+import 'package:calendar_app_frontend/c-frontend/i-settings-section/settings.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 
@@ -31,13 +33,12 @@ final Map<String, WidgetBuilder> routes = {
   AppRoutes.registerRoute: (context) => const RegisterView(),
   AppRoutes.passwordRecoveryRoute: (context) => ForgotPasswordForm(),
   AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
-
-  AppRoutes.groupDashboard: (context) { // 👈 NEW
+  AppRoutes.groupDashboard: (context) {
+    // 👈 NEW
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
     if (group == null) return const SizedBox.shrink();
     return GroupDashboard(group: group);
   },
-  
   AppRoutes.editEvent: (context) {
     final event = ModalRoute.of(context)?.settings.arguments as Event?;
     return event != null ? EditEventScreen(event: event) : SizedBox.shrink();
@@ -72,6 +73,18 @@ final Map<String, WidgetBuilder> routes = {
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
     return group != null ? GroupSettings(group: group) : SizedBox.shrink();
   },
+  AppRoutes.groupServicesClients: (context) {
+    // 👈 NEW
+    final group = ModalRoute.of(context)?.settings.arguments as Group?;
+    if (group == null) return const SizedBox.shrink();
+    return ServicesClientsScreen(group: group);
+  },
   AppRoutes.agenda: (_) => const AgendaScreen(),
-  AppRoutes.profile: (_) => const ProfileScreen()
+  AppRoutes.profile: (_) => const ProfileScreen(),
+  AppRoutes.groupMembers: (context) {
+    // 👈 NEW
+    final group = ModalRoute.of(context)?.settings.arguments as Group?;
+    if (group == null) return const SizedBox.shrink();
+    return GroupMembersScreen(group: group);
+  }
 };
