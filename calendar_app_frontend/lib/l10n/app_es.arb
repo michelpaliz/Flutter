@@ -611,5 +611,252 @@
   "notifyMeOffSubtitle": "No se enviará ningún recordatorio",
   "noInvitableUsers": "No hay usuarios disponibles para invitar",
   "removeRecurrenceConfirm": "¿Deseas eliminar la repetición de este evento?",
-  "dashboard": "Panel de control"
+  "dashboard": "Panel de control",
+  "noClientsYet": "Aún no hay clientes",
+  "@noClientsYet": {
+    "description": "Título del estado vacío para la lista de clientes"
+  },
+  "addYourFirstClient": "Añade tu primer cliente a este grupo.",
+  "@addYourFirstClient": {
+    "description": "Subtítulo del estado vacío para la lista de clientes"
+  },
+  "addClient": "Añadir cliente",
+  "@addClient": {
+    "description": "Botón para añadir un cliente"
+  },
+  "active": "Activo",
+  "@active": {
+    "description": "Etiqueta de estado para cliente activo"
+  },
+  "inactive": "Inactivo",
+  "@inactive": {
+    "description": "Etiqueta de estado para cliente inactivo"
+  },
+  "noServicesYet": "Aún no hay servicios",
+  "@noServicesYet": {
+    "description": "Título del estado vacío para la lista de servicios"
+  },
+  "createServicesSubtitle": "Crea servicios que puedes asignar a las reservas.",
+  "@createServicesSubtitle": {
+    "description": "Subtítulo del estado vacío para la lista de servicios"
+  },
+  "addService": "Añadir servicio",
+  "@addService": {
+    "description": "Botón para añadir un nuevo servicio"
+  },
+  "noDefaultDuration": "Sin duración predeterminada",
+  "@noDefaultDuration": {
+    "description": "Se muestra cuando un servicio no tiene minutos predeterminados"
+  },
+  "minutesAbbrev": "min",
+  "@minutesAbbrev": {
+    "description": "Abreviatura de minutos, p. ej., '45 min'"
+  },
+  "editClient": "Editar cliente",
+  "@editClient": {
+    "description": "Título para editar un cliente existente"
+  },
+  "createClient": "Crear cliente",
+  "@createClient": {
+    "description": "Título para crear un nuevo cliente"
+  },
+  "nameLabel": "Nombre",
+  "@nameLabel": {
+    "description": "Etiqueta del campo de nombre"
+  },
+  "nameIsRequired": "El nombre es obligatorio",
+  "@nameIsRequired": {
+    "description": "Mensaje de validación cuando el nombre está vacío"
+  },
+  "phoneLabel": "Teléfono",
+  "@phoneLabel": {
+    "description": "Etiqueta del campo de teléfono"
+  },
+  "emailLabel": "Correo electrónico",
+  "@emailLabel": {
+    "description": "Etiqueta del campo de correo electrónico"
+  },
+  "@invalidEmail": {
+    "description": "Mensaje de validación para correo inválido"
+  },
+  "@saving": {
+    "description": "Etiqueta del botón mientras se guarda"
+  },
+  "saveChanges": "Guardar cambios",
+  "@saveChanges": {
+    "description": "Etiqueta del botón para guardar ediciones"
+  },
+  "saveClient": "Guardar cliente",
+  "@saveClient": {
+    "description": "Etiqueta del botón para crear un cliente"
+  },
+  "failedWithReason": "Error: {reason}",
+  "@failedWithReason": {
+    "description": "Mensaje de error en snackbar con motivo",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "editService": "Editar servicio",
+  "@editService": {
+    "description": "Título para editar un servicio existente"
+  },
+  "createService": "Crear servicio",
+  "@createService": {
+    "description": "Título para crear un nuevo servicio"
+  },
+  "defaultMinutesLabel": "Minutos predeterminados",
+  "@defaultMinutesLabel": {
+    "description": "Etiqueta del campo de minutos predeterminados"
+  },
+  "defaultMinutesHint": "p. ej., 45",
+  "@defaultMinutesHint": {
+    "description": "Texto de ayuda para los minutos predeterminados"
+  },
+  "colorLabel": "Color",
+  "@colorLabel": {
+    "description": "Etiqueta encima del selector de color"
+  },
+  "saveService": "Guardar servicio",
+  "@saveService": {
+    "description": "Etiqueta del botón para crear un servicio"
+  },
+  "screenServicesClientsTitle": "Servicios y clientes",
+  "@screenServicesClientsTitle": {
+    "description": "Título de la barra para la pantalla de Servicios y clientes"
+  },
+  "tabClients": "Clientes",
+  "@tabClients": {
+    "description": "Etiqueta de la pestaña Clientes"
+  },
+  "tabServices": "Servicios",
+  "@tabServices": {
+    "description": "Etiqueta de la pestaña Servicios"
+  },
+  "clientsSectionTitle": "Clientes de este grupo",
+  "@clientsSectionTitle": {
+    "description": "Encabezado encima de la lista de clientes"
+  },
+  "servicesSectionTitle": "Servicios de este grupo",
+  "@servicesSectionTitle": {
+    "description": "Encabezado encima de la lista de servicios"
+  },
+  "activeClientsSection": "Clientes activos",
+  "@activeClientsSection": {
+    "description": "Encabezado para clientes activos"
+  },
+  "inactiveClientsSection": "Clientes inactivos",
+  "@inactiveClientsSection": {
+    "description": "Encabezado para clientes inactivos"
+  },
+  "activeServicesSection": "Servicios activos",
+  "@activeServicesSection": {
+    "description": "Encabezado para servicios activos"
+  },
+  "inactiveServicesSection": "Servicios inactivos",
+  "@inactiveServicesSection": {
+    "description": "Encabezado para servicios inactivos"
+  },
+  "clientCreatedWithName": "Cliente creado: {name}",
+  "@clientCreatedWithName": {
+    "description": "Snackbar tras crear un cliente",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serviceCreatedWithName": "Servicio creado: {name}",
+  "@serviceCreatedWithName": {
+    "description": "Snackbar tras crear un servicio",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clientUpdatedWithName": "Cliente actualizado: {name}",
+  "@clientUpdatedWithName": {
+    "description": "Snackbar tras actualizar un cliente",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serviceUpdatedWithName": "Servicio actualizado: {name}",
+  "@serviceUpdatedWithName": {
+    "description": "Snackbar tras actualizar un servicio",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nClients": "{count, plural, one {# cliente} other {# clientes}}",
+  "@nClients": {
+    "description": "Etiqueta de conteo para número de clientes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nServices": "{count, plural, one {# servicio} other {# servicios}}",
+  "@nServices": {
+    "description": "Etiqueta de conteo para número de servicios",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardTitle": "Panel",
+  "sectionOverview": "Resumen",
+  "sectionUpcoming": "Próximos",
+  "sectionManage": "Administrar",
+  "sectionStatus": "Estado",
+  "createdOnDay": "Creado el {date}",
+  "@createdOnDay": {
+    "description": "Muestra la fecha de creación del grupo.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "membersTitle": "Miembros",
+  "membersSubtitle": "{count, plural, one {# en total} other {# en total}}",
+  "@membersSubtitle": {
+    "description": "Miembros totales del grupo",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "servicesClientsTitle": "Servicios y clientes",
+  "servicesClientsSubtitle": "Crea y administra servicios/clientes",
+  "noCalendarWarning": "Este grupo aún no tiene un calendario vinculado.",
+
+  "sectionFilters": "Filtros",
+  "noMembersTitle": "Sin miembros",
+  "noMembersMatchFilters": "Ningún miembro coincide con estos filtros.",
+  "tryAdjustingFilters": "Prueba ajustando los filtros de arriba.",
+  "statusAccepted": "Aceptado",
+  "statusNotAccepted": "No aceptado",
+  "errorLoadingUser": "Error al cargar el usuario: {error}",
+  "@errorLoadingUser": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "viewProfile": "Ver perfil",
+  "message": "Mensaje",
+  "changeRole": "Cambiar rol",
+  "removeFromGroup": "Eliminar del grupo",
+  "roleOwner": "Propietario",
+  "roleAdmin": "Administrador",
+  "roleMember": "Miembro"
+
 }

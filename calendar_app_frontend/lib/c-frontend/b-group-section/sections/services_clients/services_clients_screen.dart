@@ -4,6 +4,7 @@ import 'package:calendar_app_frontend/a-models/group_model/service/service.dart'
 import 'package:calendar_app_frontend/b-backend/api/client/client_api.dart';
 import 'package:calendar_app_frontend/b-backend/api/services/services_api.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import 'sheets/add_client_sheet.dart';
@@ -86,8 +87,9 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
     );
     if (created != null && mounted) {
       setState(() => _clients.insert(0, created));
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Client created: ${created.name}')),
+        SnackBar(content: Text(l.clientCreatedWithName(created.name))),
       );
     }
   }
@@ -102,8 +104,9 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
     );
     if (created != null && mounted) {
       setState(() => _services.insert(0, created));
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Service created: ${created.name}')),
+        SnackBar(content: Text(l.serviceCreatedWithName(created.name))),
       );
     }
   }
@@ -115,9 +118,9 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => AddClientSheet(
-        groupId: widget.group.id, // used only on create; harmless here
+        groupId: widget.group.id, // harmless on edit
         api: _clientsApi,
-        client: c, // tells the sheet it's edit mode
+        client: c,
       ),
     );
 
@@ -126,8 +129,9 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
         final i = _clients.indexWhere((x) => x.id == updated.id);
         if (i != -1) _clients[i] = updated;
       });
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Client updated: ${updated.name}')),
+        SnackBar(content: Text(l.clientUpdatedWithName(updated.name))),
       );
     }
   }
@@ -140,7 +144,7 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
       builder: (_) => AddServiceSheet(
         groupId: widget.group.id,
         api: _servicesApi,
-        service: s, // edit mode
+        service: s,
       ),
     );
 
@@ -149,8 +153,9 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
         final i = _services.indexWhere((x) => x.id == updated.id);
         if (i != -1) _services[i] = updated;
       });
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Service updated: ${updated.name}')),
+        SnackBar(content: Text(l.serviceUpdatedWithName(updated.name))),
       );
     }
   }
@@ -159,17 +164,21 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final l = AppLocalizations.of(context)!;
 
-    // Colors driven by your ThemeColors helpers
     final primary = cs.primary;
     final selectedText = ThemeColors.getContrastTextColor(context, primary);
     final unselectedText = ThemeColors.getTextColor(context).withOpacity(0.7);
-    final trackBg = ThemeColors.getCardBackgroundColor(context); // pill track
+    final trackBg = ThemeColors.getCardBackgroundColor(context);
+
+    // Optional: show counts in tab labels for quick context
+    final clientsTabLabel = '${l.tabClients} · ${_clients.length}';
+    final servicesTabLabel = '${l.tabServices} · ${_services.length}';
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: Navigator.of(context).canPop(),
-        title: const Text('Services & Clients'),
+        title: Text(l.screenServicesClientsTitle),
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
@@ -184,7 +193,10 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
               ),
               child: TabBar(
                 controller: _tab,
-                tabs: const [Tab(text: 'Clients'), Tab(text: 'Services')],
+                tabs: [
+                  Tab(text: clientsTabLabel),
+                  Tab(text: servicesTabLabel),
+                ],
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 labelColor: selectedText,
@@ -210,7 +222,7 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
             error: _errClients,
             onRefresh: _loadClients,
             showInlineCTA: false,
-            onEdit: _openEditClient, // 👈 wire tap-to-edit
+            onEdit: _openEditClient,
           ),
           ServicesTab(
             items: _services,
@@ -218,7 +230,7 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
             error: _errServices,
             onRefresh: _loadServices,
             showInlineCTA: false,
-            onEdit: _openEditService, // 👈 wire tap-to-edit
+            onEdit: _openEditService,
           ),
         ],
       ),
@@ -231,7 +243,7 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
             label: AnimatedBuilder(
               animation: _tab,
               builder: (_, __) =>
-                  Text(_tab.index == 0 ? 'Add Client' : 'Add Service'),
+                  Text(_tab.index == 0 ? l.addClient : l.addService),
             ),
             onPressed: () =>
                 _tab.index == 0 ? _openAddClient() : _openAddService(),

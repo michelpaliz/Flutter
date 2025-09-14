@@ -2,9 +2,11 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/c-frontend/b-group-section/sections/upcoming_events/group_upcoming_events.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:calendar_app_frontend/e-drawer-style-menu/contextual_fab.dart';
+import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class GroupDashboard extends StatelessWidget {
   final Group group;
@@ -13,18 +15,21 @@ class GroupDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final cs = theme.colorScheme;
+    final tt = theme.textTheme;
+    final l = AppLocalizations.of(context)!;
+
+    final createdStr = DateFormat.yMMMd(l.localeName).format(group.createdTime);
 
     return Scaffold(
       appBar: AppBar(
-        // 👇 Use a single, stable screen title
-        title: const Text('Dashboard'),
+        title: Text(l.dashboardTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // --- Single place where the group name appears ---
+          // ---- Overview ----
+          _SectionHeader(title: l.sectionOverview),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -37,42 +42,42 @@ class GroupDashboard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 👇 Only here
                     Text(group.name,
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        )),
+                        style: tt.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
-                      '${group.createdTime.year}-${group.createdTime.month.toString().padLeft(2, '0')}-${group.createdTime.day.toString().padLeft(2, '0')}',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
+                      l.createdOnDay(createdStr),
+                      style: tt.bodySmall?.copyWith(
+                        color: cs.onSurface.withOpacity(0.7),
                       ),
                     ),
                   ],
                 ),
               ),
-              // Optional: a small “chip” hinting the section
-              // const Chip(label: Text('Dashboard')),
             ],
           ),
-          const SizedBox(height: 16),
 
-          // --- NEW: Next upcoming events for THIS group only ---
+          const SizedBox(height: 20),
+
+          // ---- Upcoming ----
+          _SectionHeader(title: l.sectionUpcoming),
           GroupUpcomingEventsCard(groupId: group.id),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Quick tiles
+          // ---- Manage ----
+          _SectionHeader(title: l.sectionManage),
           Card(
+            color: ThemeColors.getListTileBackgroundColor(context),
             child: ListTile(
               leading: const Icon(Icons.group_outlined),
-              title: const Text('Members'),
-              subtitle: Text('${group.userIds.length} total'),
+              title: Text(l.membersTitle),
+              subtitle: Text(l.membersSubtitle(group.userIds.length)),
               onTap: () {
                 Navigator.pushNamed(
                   context,
-                  AppRoutes.groupMembers, // 👈 goes to the new screen
+                  AppRoutes.groupMembers,
                   arguments: group,
                 );
               },
@@ -80,10 +85,11 @@ class GroupDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Card(
+            color: ThemeColors.getListTileBackgroundColor(context),
             child: ListTile(
               leading: const Icon(Icons.design_services_outlined),
-              title: const Text('Services & Clients'),
-              subtitle: const Text('Create and manage services/clients'),
+              title: Text(l.servicesClientsTitle),
+              subtitle: Text(l.servicesClientsSubtitle),
               onTap: () {
                 Navigator.pushNamed(
                   context,
@@ -93,33 +99,34 @@ class GroupDashboard extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 24),
 
-          if (!group.hasCalendar)
+          const SizedBox(height: 20),
+
+          // ---- Status (only if missing calendar) ----
+          if (!group.hasCalendar) ...[
+            _SectionHeader(title: l.sectionStatus),
             Card(
-              color: colorScheme.errorContainer.withOpacity(0.15),
+              color: cs.errorContainer.withOpacity(0.15),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  'This group has no calendar linked yet.',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.error,
-                  ),
+                  l.noCalendarWarning,
+                  style: tt.bodyMedium?.copyWith(color: cs.error),
                 ),
               ),
             ),
-          const SizedBox(height: 96), // breathing room above bottom button
+          ],
+
+          const SizedBox(height: 96),
         ],
       ),
-
-      // Big, reachable primary action at the bottom
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: SizedBox(
           height: 56,
           child: FilledButton.icon(
             icon: const Icon(Icons.calendar_month_rounded),
-            label: Text(AppLocalizations.of(context)!.goToCalendar),
+            label: Text(l.goToCalendar),
             onPressed: () {
               Navigator.pushNamed(
                 context,
@@ -130,9 +137,35 @@ class GroupDashboard extends StatelessWidget {
           ),
         ),
       ),
-
-      // Optional: keep or remove this if you want only one entry point
       floatingActionButton: const ContextualFab(),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Text(title,
+              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: cs.onSurface.withOpacity(0.08),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

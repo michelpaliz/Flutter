@@ -1197,4 +1197,240 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dashboard => 'Panel de control';
+
+  @override
+  String get noClientsYet => 'Aún no hay clientes';
+
+  @override
+  String get addYourFirstClient => 'Añade tu primer cliente a este grupo.';
+
+  @override
+  String get addClient => 'Añadir cliente';
+
+  @override
+  String get active => 'Activo';
+
+  @override
+  String get inactive => 'Inactivo';
+
+  @override
+  String get noServicesYet => 'Aún no hay servicios';
+
+  @override
+  String get createServicesSubtitle =>
+      'Crea servicios que puedes asignar a las reservas.';
+
+  @override
+  String get addService => 'Añadir servicio';
+
+  @override
+  String get noDefaultDuration => 'Sin duración predeterminada';
+
+  @override
+  String get minutesAbbrev => 'min';
+
+  @override
+  String get editClient => 'Editar cliente';
+
+  @override
+  String get createClient => 'Crear cliente';
+
+  @override
+  String get nameLabel => 'Nombre';
+
+  @override
+  String get nameIsRequired => 'El nombre es obligatorio';
+
+  @override
+  String get phoneLabel => 'Teléfono';
+
+  @override
+  String get emailLabel => 'Correo electrónico';
+
+  @override
+  String get saveChanges => 'Guardar cambios';
+
+  @override
+  String get saveClient => 'Guardar cliente';
+
+  @override
+  String failedWithReason(String reason) {
+    return 'Error: $reason';
+  }
+
+  @override
+  String get editService => 'Editar servicio';
+
+  @override
+  String get createService => 'Crear servicio';
+
+  @override
+  String get defaultMinutesLabel => 'Minutos predeterminados';
+
+  @override
+  String get defaultMinutesHint => 'p. ej., 45';
+
+  @override
+  String get colorLabel => 'Color';
+
+  @override
+  String get saveService => 'Guardar servicio';
+
+  @override
+  String get screenServicesClientsTitle => 'Servicios y clientes';
+
+  @override
+  String get tabClients => 'Clientes';
+
+  @override
+  String get tabServices => 'Servicios';
+
+  @override
+  String get clientsSectionTitle => 'Clientes de este grupo';
+
+  @override
+  String get servicesSectionTitle => 'Servicios de este grupo';
+
+  @override
+  String get activeClientsSection => 'Clientes activos';
+
+  @override
+  String get inactiveClientsSection => 'Clientes inactivos';
+
+  @override
+  String get activeServicesSection => 'Servicios activos';
+
+  @override
+  String get inactiveServicesSection => 'Servicios inactivos';
+
+  @override
+  String clientCreatedWithName(String name) {
+    return 'Cliente creado: $name';
+  }
+
+  @override
+  String serviceCreatedWithName(String name) {
+    return 'Servicio creado: $name';
+  }
+
+  @override
+  String clientUpdatedWithName(String name) {
+    return 'Cliente actualizado: $name';
+  }
+
+  @override
+  String serviceUpdatedWithName(String name) {
+    return 'Servicio actualizado: $name';
+  }
+
+  @override
+  String nClients(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# clientes',
+      one: '# cliente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nServices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# servicios',
+      one: '# servicio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboardTitle => 'Panel';
+
+  @override
+  String get sectionOverview => 'Resumen';
+
+  @override
+  String get sectionUpcoming => 'Próximos';
+
+  @override
+  String get sectionManage => 'Administrar';
+
+  @override
+  String get sectionStatus => 'Estado';
+
+  @override
+  String createdOnDay(String date) {
+    return 'Creado el $date';
+  }
+
+  @override
+  String get membersTitle => 'Miembros';
+
+  @override
+  String membersSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# en total',
+      one: '# en total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get servicesClientsTitle => 'Servicios y clientes';
+
+  @override
+  String get servicesClientsSubtitle => 'Crea y administra servicios/clientes';
+
+  @override
+  String get noCalendarWarning =>
+      'Este grupo aún no tiene un calendario vinculado.';
+
+  @override
+  String get sectionFilters => 'Filtros';
+
+  @override
+  String get noMembersTitle => 'Sin miembros';
+
+  @override
+  String get noMembersMatchFilters =>
+      'Ningún miembro coincide con estos filtros.';
+
+  @override
+  String get tryAdjustingFilters => 'Prueba ajustando los filtros de arriba.';
+
+  @override
+  String get statusAccepted => 'Aceptado';
+
+  @override
+  String get statusNotAccepted => 'No aceptado';
+
+  @override
+  String errorLoadingUser(String error) {
+    return 'Error al cargar el usuario: $error';
+  }
+
+  @override
+  String get viewProfile => 'Ver perfil';
+
+  @override
+  String get message => 'Mensaje';
+
+  @override
+  String get changeRole => 'Cambiar rol';
+
+  @override
+  String get removeFromGroup => 'Eliminar del grupo';
+
+  @override
+  String get roleOwner => 'Propietario';
+
+  @override
+  String get roleAdmin => 'Administrador';
+
+  @override
+  String get roleMember => 'Miembro';
 }

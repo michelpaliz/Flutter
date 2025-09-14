@@ -4,7 +4,7 @@ import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
-import 'package:calendar_app_frontend/c-frontend/b-group-section/group_dashboard.dart';
+import 'package:calendar_app_frontend/c-frontend/b-group-section/main_class/group_dashboard.dart';
 import 'package:calendar_app_frontend/c-frontend/b-group-section/sections/members/group_members_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/b-group-section/sections/services_clients/services_clients_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-calendar-section/screens/calendar/calendar_main_view/main_calendar_view.dart';

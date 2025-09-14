@@ -2,6 +2,7 @@ import 'package:calendar_app_frontend/b-backend/api/services/services_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calendar_app_frontend/a-models/group_model/service/service.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 
 class AddServiceSheet extends StatefulWidget {
   final String groupId;       // used on create
@@ -64,6 +65,7 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
   }
 
   Future<void> _save() async {
+    final l = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
 
@@ -105,7 +107,7 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed: $e')));
+          .showSnackBar(SnackBar(content: Text(l.failedWithReason(e.toString()))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -113,25 +115,27 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final pad = MediaQuery.of(context).viewInsets.bottom + 16;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 12, 16, pad),
       child: Form(
         key: _formKey,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_isEdit ? 'Edit Service' : 'Create Service',
+          Text(_isEdit ? l.editService : l.createService,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
 
           TextFormField(
             controller: _name,
-            decoration: const InputDecoration(
-              labelText: 'Name *',
-              prefixIcon: Icon(Icons.design_services_outlined),
+            decoration: InputDecoration(
+              labelText: '${l.nameLabel} *',
+              prefixIcon: const Icon(Icons.design_services_outlined),
             ),
             textInputAction: TextInputAction.next,
             validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                (v == null || v.trim().isEmpty) ? l.nameIsRequired : null,
           ),
           const SizedBox(height: 12),
 
@@ -139,17 +143,17 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
             controller: _minutes,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(
-              labelText: 'Default minutes',
-              hintText: 'e.g., 45',
-              prefixIcon: Icon(Icons.timer_outlined),
+            decoration: InputDecoration(
+              labelText: l.defaultMinutesLabel,
+              hintText: l.defaultMinutesHint,
+              prefixIcon: const Icon(Icons.timer_outlined),
             ),
           ),
           const SizedBox(height: 16),
 
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('Color', style: Theme.of(context).textTheme.labelLarge),
+            child: Text(l.colorLabel, style: Theme.of(context).textTheme.labelLarge),
           ),
           const SizedBox(height: 8),
 
@@ -178,7 +182,7 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
 
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Active'),
+            title: Text(l.active),
             value: _active,
             onChanged: (v) => setState(() => _active = v),
           ),
@@ -191,9 +195,7 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
                   ? const SizedBox(
                       width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.save_outlined),
-              label: Text(_saving
-                  ? 'Saving...'
-                  : (_isEdit ? 'Save Changes' : 'Save Service')),
+              label: Text(_saving ? l.saving : (_isEdit ? l.saveChanges : l.saveService)),
               onPressed: _saving ? null : _save,
             ),
           ),

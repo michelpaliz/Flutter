@@ -1187,4 +1187,238 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard => 'Dashboard';
+
+  @override
+  String get noClientsYet => 'No clients yet';
+
+  @override
+  String get addYourFirstClient => 'Add your first client to this group.';
+
+  @override
+  String get addClient => 'Add Client';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get inactive => 'Inactive';
+
+  @override
+  String get noServicesYet => 'No services yet';
+
+  @override
+  String get createServicesSubtitle =>
+      'Create services you can assign to bookings.';
+
+  @override
+  String get addService => 'Add Service';
+
+  @override
+  String get noDefaultDuration => 'No default duration';
+
+  @override
+  String get minutesAbbrev => 'min';
+
+  @override
+  String get editClient => 'Edit Client';
+
+  @override
+  String get createClient => 'Create Client';
+
+  @override
+  String get nameLabel => 'Name';
+
+  @override
+  String get nameIsRequired => 'Name is required';
+
+  @override
+  String get phoneLabel => 'Phone';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get saveClient => 'Save Client';
+
+  @override
+  String failedWithReason(String reason) {
+    return 'Failed: $reason';
+  }
+
+  @override
+  String get editService => 'Edit Service';
+
+  @override
+  String get createService => 'Create Service';
+
+  @override
+  String get defaultMinutesLabel => 'Default minutes';
+
+  @override
+  String get defaultMinutesHint => 'e.g., 45';
+
+  @override
+  String get colorLabel => 'Color';
+
+  @override
+  String get saveService => 'Save Service';
+
+  @override
+  String get screenServicesClientsTitle => 'Services & Clients';
+
+  @override
+  String get tabClients => 'Clients';
+
+  @override
+  String get tabServices => 'Services';
+
+  @override
+  String get clientsSectionTitle => 'Clients in this group';
+
+  @override
+  String get servicesSectionTitle => 'Services in this group';
+
+  @override
+  String get activeClientsSection => 'Active clients';
+
+  @override
+  String get inactiveClientsSection => 'Inactive clients';
+
+  @override
+  String get activeServicesSection => 'Active services';
+
+  @override
+  String get inactiveServicesSection => 'Inactive services';
+
+  @override
+  String clientCreatedWithName(String name) {
+    return 'Client created: $name';
+  }
+
+  @override
+  String serviceCreatedWithName(String name) {
+    return 'Service created: $name';
+  }
+
+  @override
+  String clientUpdatedWithName(String name) {
+    return 'Client updated: $name';
+  }
+
+  @override
+  String serviceUpdatedWithName(String name) {
+    return 'Service updated: $name';
+  }
+
+  @override
+  String nClients(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# clients',
+      one: '# client',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nServices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# services',
+      one: '# service',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboardTitle => 'Dashboard';
+
+  @override
+  String get sectionOverview => 'Overview';
+
+  @override
+  String get sectionUpcoming => 'Upcoming';
+
+  @override
+  String get sectionManage => 'Manage';
+
+  @override
+  String get sectionStatus => 'Status';
+
+  @override
+  String createdOnDay(String date) {
+    return 'Created on $date';
+  }
+
+  @override
+  String get membersTitle => 'Members';
+
+  @override
+  String membersSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# total',
+      one: '# total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get servicesClientsTitle => 'Services & Clients';
+
+  @override
+  String get servicesClientsSubtitle => 'Create and manage services/clients';
+
+  @override
+  String get noCalendarWarning => 'This group has no calendar linked yet.';
+
+  @override
+  String get sectionFilters => 'Filters';
+
+  @override
+  String get noMembersTitle => 'No members';
+
+  @override
+  String get noMembersMatchFilters => 'No members match these filters.';
+
+  @override
+  String get tryAdjustingFilters => 'Try adjusting the filters above.';
+
+  @override
+  String get statusAccepted => 'Accepted';
+
+  @override
+  String get statusNotAccepted => 'Not accepted';
+
+  @override
+  String errorLoadingUser(String error) {
+    return 'Error loading user: $error';
+  }
+
+  @override
+  String get viewProfile => 'View profile';
+
+  @override
+  String get message => 'Message';
+
+  @override
+  String get changeRole => 'Change role';
+
+  @override
+  String get removeFromGroup => 'Remove from group';
+
+  @override
+  String get roleOwner => 'Owner';
+
+  @override
+  String get roleAdmin => 'Admin';
+
+  @override
+  String get roleMember => 'Member';
 }

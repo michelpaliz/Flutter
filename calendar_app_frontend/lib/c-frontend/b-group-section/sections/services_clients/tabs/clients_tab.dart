@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/a-models/group_model/client/client.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 
 import '../widgets/common_views.dart';
 
@@ -26,15 +27,17 @@ class ClientsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     if (loading) return const Center(child: CircularProgressIndicator());
     if (error != null) return ErrorView(message: error!, onRetry: onRefresh);
 
     if (items.isEmpty) {
       return EmptyView(
         icon: Icons.person_outline,
-        title: 'No clients yet',
-        subtitle: 'Add your first client to this group.',
-        cta: showInlineCTA ? 'Add Client' : null,
+        title: l.noClientsYet,
+        subtitle: l.addYourFirstClient,
+        cta: showInlineCTA ? l.addClient : null,
         onPressed: showInlineCTA ? onAddTap : null,
       );
     }
@@ -59,7 +62,6 @@ class ClientsTab extends StatelessWidget {
                   if ((c.email ?? '').isNotEmpty) Text(c.email!),
                 ],
               ),
-              // 🔁 No Switch here anymore — show a status pill + chevron
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -83,10 +85,10 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tailwind-ish colors: green-600 / red-600, with automatic text contrast
+    final l = AppLocalizations.of(context)!;
     final Color bg = active ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
     final Color fg = ThemeColors.getContrastTextColorForBackground(bg);
-    final String label = active ? 'Active' : 'Inactive';
+    final String label = active ? l.active : l.inactive;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

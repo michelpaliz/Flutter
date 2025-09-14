@@ -2192,6 +2192,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dashboard'**
   String get dashboard;
+
+  /// Empty-state title for clients list
+  ///
+  /// In en, this message translates to:
+  /// **'No clients yet'**
+  String get noClientsYet;
+
+  /// Empty-state subtitle for clients list
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first client to this group.'**
+  String get addYourFirstClient;
+
+  /// CTA to add a client
+  ///
+  /// In en, this message translates to:
+  /// **'Add Client'**
+  String get addClient;
+
+  /// Status label for active client
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// Status label for inactive client
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
+  /// Empty state title for services list
+  ///
+  /// In en, this message translates to:
+  /// **'No services yet'**
+  String get noServicesYet;
+
+  /// Empty state subtitle for services list
+  ///
+  /// In en, this message translates to:
+  /// **'Create services you can assign to bookings.'**
+  String get createServicesSubtitle;
+
+  /// CTA button to add a new service
+  ///
+  /// In en, this message translates to:
+  /// **'Add Service'**
+  String get addService;
+
+  /// Shown when a service has no default minutes set
+  ///
+  /// In en, this message translates to:
+  /// **'No default duration'**
+  String get noDefaultDuration;
+
+  /// Abbreviation for minutes, used like '45 min'
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get minutesAbbrev;
+
+  /// Title for editing an existing client
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Client'**
+  String get editClient;
+
+  /// Title for creating a new client
+  ///
+  /// In en, this message translates to:
+  /// **'Create Client'**
+  String get createClient;
+
+  /// Label for name text field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
+  /// Validation message when name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get nameIsRequired;
+
+  /// Label for phone text field
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phoneLabel;
+
+  /// Label for email text field
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// Button label for saving edits
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// Button label for creating a client
+  ///
+  /// In en, this message translates to:
+  /// **'Save Client'**
+  String get saveClient;
+
+  /// Snackbar error message with reason
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {reason}'**
+  String failedWithReason(String reason);
+
+  /// Title for editing an existing service
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Service'**
+  String get editService;
+
+  /// Title for creating a new service
+  ///
+  /// In en, this message translates to:
+  /// **'Create Service'**
+  String get createService;
+
+  /// Label for default minutes field
+  ///
+  /// In en, this message translates to:
+  /// **'Default minutes'**
+  String get defaultMinutesLabel;
+
+  /// Hint text for default minutes field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 45'**
+  String get defaultMinutesHint;
+
+  /// Label above the color picker
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get colorLabel;
+
+  /// Button label for creating a service
+  ///
+  /// In en, this message translates to:
+  /// **'Save Service'**
+  String get saveService;
+
+  /// App bar title for the Services & Clients screen
+  ///
+  /// In en, this message translates to:
+  /// **'Services & Clients'**
+  String get screenServicesClientsTitle;
+
+  /// Tab label for Clients
+  ///
+  /// In en, this message translates to:
+  /// **'Clients'**
+  String get tabClients;
+
+  /// Tab label for Services
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get tabServices;
+
+  /// Header shown above the clients list
+  ///
+  /// In en, this message translates to:
+  /// **'Clients in this group'**
+  String get clientsSectionTitle;
+
+  /// Header shown above the services list
+  ///
+  /// In en, this message translates to:
+  /// **'Services in this group'**
+  String get servicesSectionTitle;
+
+  /// Header for active clients subsection
+  ///
+  /// In en, this message translates to:
+  /// **'Active clients'**
+  String get activeClientsSection;
+
+  /// Header for inactive clients subsection
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive clients'**
+  String get inactiveClientsSection;
+
+  /// Header for active services subsection
+  ///
+  /// In en, this message translates to:
+  /// **'Active services'**
+  String get activeServicesSection;
+
+  /// Header for inactive services subsection
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive services'**
+  String get inactiveServicesSection;
+
+  /// Snackbar after creating a client
+  ///
+  /// In en, this message translates to:
+  /// **'Client created: {name}'**
+  String clientCreatedWithName(String name);
+
+  /// Snackbar after creating a service
+  ///
+  /// In en, this message translates to:
+  /// **'Service created: {name}'**
+  String serviceCreatedWithName(String name);
+
+  /// Snackbar after updating a client
+  ///
+  /// In en, this message translates to:
+  /// **'Client updated: {name}'**
+  String clientUpdatedWithName(String name);
+
+  /// Snackbar after updating a service
+  ///
+  /// In en, this message translates to:
+  /// **'Service updated: {name}'**
+  String serviceUpdatedWithName(String name);
+
+  /// Count label for number of clients
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {# client} other {# clients}}'**
+  String nClients(int count);
+
+  /// Count label for number of services
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {# service} other {# services}}'**
+  String nServices(int count);
+
+  /// No description provided for @dashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboardTitle;
+
+  /// No description provided for @sectionOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get sectionOverview;
+
+  /// No description provided for @sectionUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get sectionUpcoming;
+
+  /// No description provided for @sectionManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get sectionManage;
+
+  /// No description provided for @sectionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get sectionStatus;
+
+  /// Shows the date the group was created.
+  ///
+  /// In en, this message translates to:
+  /// **'Created on {date}'**
+  String createdOnDay(String date);
+
+  /// No description provided for @membersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get membersTitle;
+
+  /// Total members in group
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {# total} other {# total}}'**
+  String membersSubtitle(int count);
+
+  /// No description provided for @servicesClientsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Services & Clients'**
+  String get servicesClientsTitle;
+
+  /// No description provided for @servicesClientsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and manage services/clients'**
+  String get servicesClientsSubtitle;
+
+  /// No description provided for @noCalendarWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This group has no calendar linked yet.'**
+  String get noCalendarWarning;
+
+  /// No description provided for @sectionFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get sectionFilters;
+
+  /// No description provided for @noMembersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No members'**
+  String get noMembersTitle;
+
+  /// No description provided for @noMembersMatchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No members match these filters.'**
+  String get noMembersMatchFilters;
+
+  /// No description provided for @tryAdjustingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting the filters above.'**
+  String get tryAdjustingFilters;
+
+  /// No description provided for @statusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get statusAccepted;
+
+  /// No description provided for @statusNotAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accepted'**
+  String get statusNotAccepted;
+
+  /// No description provided for @errorLoadingUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading user: {error}'**
+  String errorLoadingUser(String error);
+
+  /// No description provided for @viewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get viewProfile;
+
+  /// No description provided for @message.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get message;
+
+  /// No description provided for @changeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role'**
+  String get changeRole;
+
+  /// No description provided for @removeFromGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from group'**
+  String get removeFromGroup;
+
+  /// No description provided for @roleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get roleOwner;
+
+  /// No description provided for @roleAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get roleAdmin;
+
+  /// No description provided for @roleMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get roleMember;
 }
 
 class _AppLocalizationsDelegate

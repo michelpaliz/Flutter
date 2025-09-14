@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/a-models/group_model/service/service.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import '../widgets/common_views.dart';
 
 class ServicesTab extends StatelessWidget {
@@ -9,7 +10,7 @@ class ServicesTab extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final bool showInlineCTA;
   final VoidCallback? onAddTap;
-  final void Function(Service service)? onEdit;   // 👈 NEW (optional)
+  final void Function(Service service)? onEdit; // optional
 
   const ServicesTab({
     super.key,
@@ -19,20 +20,22 @@ class ServicesTab extends StatelessWidget {
     required this.onRefresh,
     this.showInlineCTA = false,
     this.onAddTap,
-    this.onEdit,                                   // 👈 NEW
+    this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     if (loading) return const Center(child: CircularProgressIndicator());
     if (error != null) return ErrorView(message: error!, onRetry: onRefresh);
 
     if (items.isEmpty) {
       return EmptyView(
         icon: Icons.design_services_outlined,
-        title: 'No services yet',
-        subtitle: 'Create services you can assign to bookings.',
-        cta: showInlineCTA ? 'Add Service' : null,
+        title: l.noServicesYet,
+        subtitle: l.createServicesSubtitle,
+        cta: showInlineCTA ? l.addService : null,
         onPressed: showInlineCTA ? onAddTap : null,
       );
     }
@@ -51,13 +54,15 @@ class ServicesTab extends StatelessWidget {
               leading: _ServiceDot(colorHex: s.color),
               title: Text(s.name),
               subtitle: Text(
-                s.defaultMinutes != null ? '${s.defaultMinutes} min' : 'No default duration',
+                s.defaultMinutes != null
+                    ? '${s.defaultMinutes} ${l.minutesAbbrev}' // e.g. "45 min"
+                    : l.noDefaultDuration,
               ),
               trailing: Switch(
                 value: s.isActive,
-                onChanged: null, // wire to PATCH when ready
+                onChanged: null, // wire to PATCH when ready (kept read-only)
               ),
-              onTap: onEdit == null ? null : () => onEdit!(s),   // 👈 NEW
+              onTap: onEdit == null ? null : () => onEdit!(s),
             ),
           );
         },

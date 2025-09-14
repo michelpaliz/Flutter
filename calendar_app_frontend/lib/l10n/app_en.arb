@@ -612,7 +612,245 @@
     "notifyMeOnSubtitle": "You'll receive a reminder for this event",
     "notifyMeOffSubtitle": "No reminder will be sent",
     "noInvitableUsers": "No users available to invite",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "noClientsYet": "No clients yet",
+    "@noClientsYet": {
+        "description": "Empty-state title for clients list"
+    },
+    "addYourFirstClient": "Add your first client to this group.",
+    "@addYourFirstClient": {
+        "description": "Empty-state subtitle for clients list"
+    },
+    "addClient": "Add Client",
+    "@addClient": {
+        "description": "CTA to add a client"
+    },
+    "active": "Active",
+    "@active": {
+        "description": "Status label for active client"
+    },
+    "inactive": "Inactive",
+    "@inactive": {
+        "description": "Status label for inactive client"
+    },
+    "noServicesYet": "No services yet",
+    "@noServicesYet": {
+        "description": "Empty state title for services list"
+    },
+    "createServicesSubtitle": "Create services you can assign to bookings.",
+    "@createServicesSubtitle": {
+        "description": "Empty state subtitle for services list"
+    },
+    "addService": "Add Service",
+    "@addService": {
+        "description": "CTA button to add a new service"
+    },
+    "noDefaultDuration": "No default duration",
+    "@noDefaultDuration": {
+        "description": "Shown when a service has no default minutes set"
+    },
+    "minutesAbbrev": "min",
+    "@minutesAbbrev": {
+        "description": "Abbreviation for minutes, used like '45 min'"
+    },
+    "editClient": "Edit Client",
+    "@editClient": {
+        "description": "Title for editing an existing client"
+    },
+    "createClient": "Create Client",
+    "@createClient": {
+        "description": "Title for creating a new client"
+    },
+    "nameLabel": "Name",
+    "@nameLabel": {
+        "description": "Label for name text field"
+    },
+    "nameIsRequired": "Name is required",
+    "@nameIsRequired": {
+        "description": "Validation message when name is empty"
+    },
+    "phoneLabel": "Phone",
+    "@phoneLabel": {
+        "description": "Label for phone text field"
+    },
+    "emailLabel": "Email",
+    "@emailLabel": {
+        "description": "Label for email text field"
+    },
+    "saveChanges": "Save Changes",
+    "@saveChanges": {
+        "description": "Button label for saving edits"
+    },
+    "saveClient": "Save Client",
+    "@saveClient": {
+        "description": "Button label for creating a client"
+    },
+    "failedWithReason": "Failed: {reason}",
+    "@failedWithReason": {
+        "description": "Snackbar error message with reason",
+        "placeholders": {
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
+    "editService": "Edit Service",
+    "@editService": {
+        "description": "Title for editing an existing service"
+    },
+    "createService": "Create Service",
+    "@createService": {
+        "description": "Title for creating a new service"
+    },
+    "defaultMinutesLabel": "Default minutes",
+    "@defaultMinutesLabel": {
+        "description": "Label for default minutes field"
+    },
+    "defaultMinutesHint": "e.g., 45",
+    "@defaultMinutesHint": {
+        "description": "Hint text for default minutes field"
+    },
+    "colorLabel": "Color",
+    "@colorLabel": {
+        "description": "Label above the color picker"
+    },
+    "saveService": "Save Service",
+    "@saveService": {
+        "description": "Button label for creating a service"
+    },
+    "screenServicesClientsTitle": "Services & Clients",
+    "@screenServicesClientsTitle": {
+        "description": "App bar title for the Services & Clients screen"
+    },
+    "tabClients": "Clients",
+    "@tabClients": {
+        "description": "Tab label for Clients"
+    },
+    "tabServices": "Services",
+    "@tabServices": {
+        "description": "Tab label for Services"
+    },
+    "clientsSectionTitle": "Clients in this group",
+    "@clientsSectionTitle": {
+        "description": "Header shown above the clients list"
+    },
+    "servicesSectionTitle": "Services in this group",
+    "@servicesSectionTitle": {
+        "description": "Header shown above the services list"
+    },
+    "activeClientsSection": "Active clients",
+    "@activeClientsSection": {
+        "description": "Header for active clients subsection"
+    },
+    "inactiveClientsSection": "Inactive clients",
+    "@inactiveClientsSection": {
+        "description": "Header for inactive clients subsection"
+    },
+    "activeServicesSection": "Active services",
+    "@activeServicesSection": {
+        "description": "Header for active services subsection"
+    },
+    "inactiveServicesSection": "Inactive services",
+    "@inactiveServicesSection": {
+        "description": "Header for inactive services subsection"
+    },
+    "clientCreatedWithName": "Client created: {name}",
+    "@clientCreatedWithName": {
+        "description": "Snackbar after creating a client",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "serviceCreatedWithName": "Service created: {name}",
+    "@serviceCreatedWithName": {
+        "description": "Snackbar after creating a service",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "clientUpdatedWithName": "Client updated: {name}",
+    "@clientUpdatedWithName": {
+        "description": "Snackbar after updating a client",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "serviceUpdatedWithName": "Service updated: {name}",
+    "@serviceUpdatedWithName": {
+        "description": "Snackbar after updating a service",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "nClients": "{count, plural, one {# client} other {# clients}}",
+    "@nClients": {
+        "description": "Count label for number of clients",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "nServices": "{count, plural, one {# service} other {# services}}",
+    "@nServices": {
+        "description": "Count label for number of services",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "dashboardTitle": "Dashboard",
+    "sectionOverview": "Overview",
+    "sectionUpcoming": "Upcoming",
+    "sectionManage": "Manage",
+    "sectionStatus": "Status",
+    "createdOnDay": "Created on {date}",
+    "@createdOnDay": {
+        "description": "Shows the date the group was created.",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "membersTitle": "Members",
+    "membersSubtitle": "{count, plural, one {# total} other {# total}}",
+    "@membersSubtitle": {
+        "description": "Total members in group",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "servicesClientsTitle": "Services & Clients",
+    "servicesClientsSubtitle": "Create and manage services/clients",
+    "noCalendarWarning": "This group has no calendar linked yet.",
+  "sectionFilters": "Filters",
+  "noMembersTitle": "No members",
+  "noMembersMatchFilters": "No members match these filters.",
+  "tryAdjustingFilters": "Try adjusting the filters above.",
+  "statusAccepted": "Accepted",
 
-
+  "statusNotAccepted": "Not accepted",
+  "errorLoadingUser": "Error loading user: {error}",
+  "@errorLoadingUser": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "viewProfile": "View profile",
+  "message": "Message",
+  "changeRole": "Change role",
+  "removeFromGroup": "Remove from group",
+  "roleOwner": "Owner",
+  "roleAdmin": "Admin",
+  "roleMember": "Member"
 }
