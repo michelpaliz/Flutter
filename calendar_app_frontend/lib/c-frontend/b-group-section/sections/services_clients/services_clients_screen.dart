@@ -2,7 +2,7 @@ import 'package:calendar_app_frontend/a-models/group_model/client/client.dart';
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/group_model/service/service.dart';
 import 'package:calendar_app_frontend/b-backend/api/client/client_api.dart';
-import 'package:calendar_app_frontend/b-backend/api/services/services_api.dart';
+import 'package:calendar_app_frontend/b-backend/api/service/service_api.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,7 @@ class _ServicesClientsScreenState extends State<ServicesClientsScreen>
   late final TabController _tab;
 
   final _clientsApi = ClientsApi();
-  final _servicesApi = ServicesApi();
+  final _servicesApi = ServiceApi();
 
   List<Client> _clients = [];
   List<Service> _services = [];

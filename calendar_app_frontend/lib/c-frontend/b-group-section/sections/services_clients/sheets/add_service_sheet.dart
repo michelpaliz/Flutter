@@ -1,13 +1,13 @@
-import 'package:calendar_app_frontend/b-backend/api/services/services_api.dart';
+import 'package:calendar_app_frontend/a-models/group_model/service/service.dart';
+import 'package:calendar_app_frontend/b-backend/api/service/service_api.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:calendar_app_frontend/a-models/group_model/service/service.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 
 class AddServiceSheet extends StatefulWidget {
-  final String groupId;       // used on create
-  final ServicesApi api;
-  final Service? service;     // null = create, non-null = edit
+  final String groupId; // used on create
+  final ServiceApi api;
+  final Service? service; // null = create, non-null = edit
 
   const AddServiceSheet({
     super.key,
@@ -28,9 +28,15 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
   bool _saving = false;
 
   static const _palette = <String>[
-    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4',
+    '#3b82f6',
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#06b6d4',
   ];
-  late List<String> _swatches;   // allows injecting current color if not in palette
+  late List<String>
+      _swatches; // allows injecting current color if not in palette
   late String _color;
 
   bool get _isEdit => widget.service != null;
@@ -83,7 +89,8 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
           'isActive': _active,
         };
 
-        final updated = await widget.api.updateFields(widget.service!.id, patch);
+        final updated =
+            await widget.api.updateFields(widget.service!.id, patch);
         if (!mounted) return;
         Navigator.of(context).pop<Service>(updated);
       } else {
@@ -106,8 +113,8 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l.failedWithReason(e.toString()))));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.failedWithReason(e.toString()))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -126,7 +133,6 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
           Text(_isEdit ? l.editService : l.createService,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
-
           TextFormField(
             controller: _name,
             decoration: InputDecoration(
@@ -138,7 +144,6 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
                 (v == null || v.trim().isEmpty) ? l.nameIsRequired : null,
           ),
           const SizedBox(height: 12),
-
           TextFormField(
             controller: _minutes,
             keyboardType: TextInputType.number,
@@ -150,13 +155,12 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
             ),
           ),
           const SizedBox(height: 16),
-
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(l.colorLabel, style: Theme.of(context).textTheme.labelLarge),
+            child: Text(l.colorLabel,
+                style: Theme.of(context).textTheme.labelLarge),
           ),
           const SizedBox(height: 8),
-
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -165,7 +169,8 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
               return GestureDetector(
                 onTap: () => setState(() => _color = hex),
                 child: Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: _hexToColor(hex),
                     shape: BoxShape.circle,
@@ -179,7 +184,6 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
             }).toList(),
           ),
           const SizedBox(height: 8),
-
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l.active),
@@ -187,15 +191,18 @@ class _AddServiceSheetState extends State<AddServiceSheet> {
             onChanged: (v) => setState(() => _active = v),
           ),
           const SizedBox(height: 12),
-
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
               icon: _saving
                   ? const SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.save_outlined),
-              label: Text(_saving ? l.saving : (_isEdit ? l.saveChanges : l.saveService)),
+              label: Text(_saving
+                  ? l.saving
+                  : (_isEdit ? l.saveChanges : l.saveService)),
               onPressed: _saving ? null : _save,
             ),
           ),
