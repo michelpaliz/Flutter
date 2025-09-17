@@ -9,9 +9,12 @@ Future<void> setupLocalNotifications() async {
   tz.initializeTimeZones();
 
   const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const darwin = DarwinInitializationSettings(); // used for both iOS & macOS
+
   const settings = InitializationSettings(
     android: android,
-    iOS: DarwinInitializationSettings(),
+    iOS: darwin,
+    macOS: darwin, 
   );
 
   await flutterLocalNotificationsPlugin.initialize(settings);
@@ -20,20 +23,26 @@ Future<void> setupLocalNotifications() async {
 }
 
 Future<void> _requestPermissions() async {
-  // ✅ Request permission on Android (if needed)
+  // Android (Android 13+ runtime notifications permission)
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.requestNotificationsPermission();
 
-  // ✅ Request permissions on iOS
+  // iOS
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin>()
       ?.requestPermissions(alert: true, badge: true, sound: true);
+
+  // macOS
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin>()
+      ?.requestPermissions(alert: true, badge: true, sound: true);
 }
 
-/// 👉 Manual trigger for iOS permission dialog (used on fresh install)
+/// Optional: manual iOS permission trigger
 Future<void> requestIOSNotificationPermissionsManually() async {
   final iosPlugin =
       flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
@@ -68,6 +77,11 @@ Future<void> scheduleLocalNotification({
         priority: Priority.high,
       ),
       iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+      macOS: DarwinNotificationDetails( // 👈 Add macOS details
         presentAlert: true,
         presentBadge: true,
         presentSound: true,

@@ -1421,4 +1421,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleMember => 'Member';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get addToContacts => 'Add to contact';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get copiedToClipboard => 'Copied!';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get team => 'Team';
+
+  @override
+  String get teams => 'Teams';
+
+  @override
+  String get calendars => 'Calendars';
+
+  @override
+  String teamsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# teams',
+      one: '# team',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# calendars',
+      one: '# calendar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notificationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# notifications',
+      one: '# notification',
+    );
+    return '$_temp0';
+  }
 }

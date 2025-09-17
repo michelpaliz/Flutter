@@ -22,7 +22,8 @@ import 'package:calendar_app_frontend/c-frontend/e-log-user-section/register/ui/
 import 'package:calendar_app_frontend/c-frontend/e-log-user-section/verify_email_view.dart';
 import 'package:calendar_app_frontend/c-frontend/f-notification-section/show-notifications/show_notifications.dart';
 import 'package:calendar_app_frontend/c-frontend/g-agenda-section/agenda_screen.dart';
-import 'package:calendar_app_frontend/c-frontend/h-profile-section/profile_screen.dart';
+import 'package:calendar_app_frontend/c-frontend/h-profile-section/edit/profile_edit_screen.dart';
+import 'package:calendar_app_frontend/c-frontend/h-profile-section/view/profile_view_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/i-settings-section/settings.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,6 @@ final Map<String, WidgetBuilder> routes = {
   AppRoutes.passwordRecoveryRoute: (context) => ForgotPasswordForm(),
   AppRoutes.verifyEmailRoute: (context) => const VerifyEmailView(),
   AppRoutes.groupDashboard: (context) {
-    // 👈 NEW
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
     if (group == null) return const SizedBox.shrink();
     return GroupDashboard(group: group);
@@ -74,15 +74,19 @@ final Map<String, WidgetBuilder> routes = {
     return group != null ? GroupSettings(group: group) : SizedBox.shrink();
   },
   AppRoutes.groupServicesClients: (context) {
-    // 👈 NEW
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
     if (group == null) return const SizedBox.shrink();
     return ServicesClientsScreen(group: group);
   },
   AppRoutes.agenda: (_) => const AgendaScreen(),
-  AppRoutes.profile: (_) => const ProfileScreen(),
+
+  // NEW: Profile details (read-only / pretty view)
+  AppRoutes.profileDetails: (_) => const ProfileViewScreen(),
+
+  // Existing edit profile screen
+  AppRoutes.profile: (_) => const ProfileEditScreen(),
+
   AppRoutes.groupMembers: (context) {
-    // 👈 NEW
     final group = ModalRoute.of(context)?.settings.arguments as Group?;
     if (group == null) return const SizedBox.shrink();
     return GroupMembersScreen(group: group);

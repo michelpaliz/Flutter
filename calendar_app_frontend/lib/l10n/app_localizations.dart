@@ -2582,6 +2582,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Member'**
   String get roleMember;
+
+  /// No description provided for @details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get details;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @addToContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to contact'**
+  String get addToContacts;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied!'**
+  String get copiedToClipboard;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
+  /// No description provided for @team.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get team;
+
+  /// No description provided for @teams.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get teams;
+
+  /// No description provided for @calendars.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendars'**
+  String get calendars;
+
+  /// No description provided for @teamsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {# team} other {# teams}}'**
+  String teamsCount(int count);
+
+  /// No description provided for @calendarsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {# calendar} other {# calendars}}'**
+  String calendarsCount(int count);
+
+  /// No description provided for @notificationsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {# notification} other {# notifications}}'**
+  String notificationsCount(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -122,7 +122,7 @@ class _AppBarUserTitle extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(24),
-      onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
+      onTap: () => Navigator.pushNamed(context, AppRoutes.profileDetails),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

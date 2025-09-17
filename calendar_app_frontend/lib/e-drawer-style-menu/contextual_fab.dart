@@ -52,7 +52,7 @@ class ContextualFab extends StatelessWidget {
       onPressed = () => _confirmAndClearAllNotifications(context);
     }
     // 5) Hide on Profile
-    else if (name == AppRoutes.profile) {
+    else if (name == AppRoutes.profileDetails) {
       onPressed = null;
     }
     // 6) Fallback → go to Create Group

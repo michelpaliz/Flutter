@@ -852,5 +852,33 @@
   "removeFromGroup": "Remove from group",
   "roleOwner": "Owner",
   "roleAdmin": "Admin",
-  "roleMember": "Member"
+  "roleMember": "Member",
+
+  "details": "Details",
+  "edit": "Edit",
+  "addToContacts": "Add to contact",
+  "share": "Share",
+  "copiedToClipboard": "Copied!",
+  "comingSoon": "Coming soon",
+
+  "team": "Team",
+  "teams": "Teams",
+
+  "calendars": "Calendars",
+
+  "teamsCount": "{count, plural, one {# team} other {# teams}}",
+  "@teamsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "calendarsCount": "{count, plural, one {# calendar} other {# calendars}}",
+  "@calendarsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "notificationsCount": "{count, plural, one {# notification} other {# notifications}}",
+  "@notificationsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  }
+
 }

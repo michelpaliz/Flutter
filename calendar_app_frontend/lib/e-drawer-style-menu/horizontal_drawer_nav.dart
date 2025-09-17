@@ -39,7 +39,7 @@ class _HorizontalDrawerNavState extends State<HorizontalDrawerNav> {
     ),
     _NavItemData(
       icon: Iconsax.user, // Profile (fallback if no avatar)
-      route: AppRoutes.profile,
+      route: AppRoutes.profileDetails,
       semanticLabel: 'Profile',
       isProfile: true,
     ),
@@ -49,7 +49,7 @@ class _HorizontalDrawerNavState extends State<HorizontalDrawerNav> {
     AppRoutes.showGroups: 0,
     AppRoutes.agenda: 1,
     AppRoutes.showNotifications: 2,
-    AppRoutes.profile: 3,
+    AppRoutes.profileDetails: 3,
   };
 
   @override

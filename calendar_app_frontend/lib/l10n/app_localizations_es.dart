@@ -1433,4 +1433,64 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get roleMember => 'Miembro';
+
+  @override
+  String get details => 'Detalles';
+
+  @override
+  String get edit => 'Editar';
+
+  @override
+  String get addToContacts => 'Agregar a contactos';
+
+  @override
+  String get share => 'Compartir';
+
+  @override
+  String get copiedToClipboard => '¡Copiado!';
+
+  @override
+  String get comingSoon => 'Próximamente';
+
+  @override
+  String get team => 'Equipo';
+
+  @override
+  String get teams => 'Equipos';
+
+  @override
+  String get calendars => 'Calendarios';
+
+  @override
+  String teamsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# equipos',
+      one: '# equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# calendarios',
+      one: '# calendario',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notificationsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# notificaciones',
+      one: '# notificación',
+    );
+    return '$_temp0';
+  }
 }

@@ -4,11 +4,14 @@ class AppRoutes {
   static const registerRoute = '/register';
   static const passwordRecoveryRoute = '/password-recovery';
   static const verifyEmailRoute = '/verify-email';
-  static const profile = '/profile';
   static const agenda = '/agenda';
   static const groupDashboard = '/group-dashboard';
   static const groupServicesClients = '/group-services-clients';
   static const groupMembers = '/group-members';
+
+  // View (details) + Edit
+  static const profileDetails = '/profile-details';
+  static const profile = '/profile';
 
   static const homePage = '/home-page';
   static const userCalendar = '/user-calendar';

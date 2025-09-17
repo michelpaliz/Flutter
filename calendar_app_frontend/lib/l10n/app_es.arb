@@ -857,6 +857,31 @@
   "removeFromGroup": "Eliminar del grupo",
   "roleOwner": "Propietario",
   "roleAdmin": "Administrador",
-  "roleMember": "Miembro"
+  "roleMember": "Miembro",
+  "details": "Detalles",
+  "edit": "Editar",
+  "addToContacts": "Agregar a contactos",
+  "share": "Compartir",
+  "copiedToClipboard": "¡Copiado!",
+  "comingSoon": "Próximamente",
+  "team": "Equipo",
+  "teams": "Equipos",
+
+  "calendars": "Calendarios",
+  "teamsCount": "{count, plural, one {# equipo} other {# equipos}}",
+  "@teamsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "calendarsCount": "{count, plural, one {# calendario} other {# calendarios}}",
+  "@calendarsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "notificationsCount": "{count, plural, one {# notificación} other {# notificaciones}}",
+  "@notificationsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  }
+
 
 }
