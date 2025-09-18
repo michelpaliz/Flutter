@@ -120,15 +120,17 @@ class NotificationController {
     );
   }
 
-  /// ✅ Remove all notifications from the current user (local + DB)
+  /// Remove all notifications for the current user (DB + local)
   Future<void> removeAllNotifications(User user) async {
-    // ⚠️ Optional: loop through and delete each notification from backend
-    for (final notif in notificationManagement.notifications) {
-      await notificationService.deleteNotification(notif.id);
+    try {
+      await notificationService.deleteAllMine(); // <-- one backend call
+      notificationManagement.clearNotifications(); // local state
+      // No need to mutate user.notifications or push a user update here.
+      // If you want, you can refresh from backend:
+      await fetchAndUpdateNotifications(user);
+    } catch (e) {
+      devtools.log('❌ Error removing all notifications: $e');
+      rethrow;
     }
-
-    notificationManagement.clearNotifications(); // Local cleanup
-    user.notifications.clear(); // Clean user object
-    await userManagement.userService.updateUser(user); // Update DB
   }
 }

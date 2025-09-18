@@ -881,7 +881,19 @@
   "notificationsCount": "{count, plural, one {# notificación} other {# notificaciones}}",
   "@notificationsCount": {
     "placeholders": { "count": { "type": "int" } }
-  }
+  },
+  "clearAllConfirm": "¿Estás seguro de que deseas eliminar todas las notificaciones?",
+  "@clearAllConfirm": {
+    "description": "Mensaje de confirmación antes de eliminar todas las notificaciones."
+  },
 
+  "clearedAllNotifications": "Todas las notificaciones han sido eliminadas.",
+  "@clearedAllNotifications": {
+    "description": "Mensaje que se muestra después de borrar todas las notificaciones."
+  },
+  "error": "Error",
+  "@error": {
+    "description": "Etiqueta genérica para mostrar mensajes de error."
+  }
 
 }

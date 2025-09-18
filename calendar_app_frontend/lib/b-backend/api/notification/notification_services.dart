@@ -7,8 +7,7 @@ import 'package:http/http.dart' as http;
 import '../../../a-models/notification_model/notification_user.dart'; // Update this import based on your file structure
 
 class NotificationService {
-   final String baseUrl = '${ApiConstants.baseUrl}/notifications';
-
+  final String baseUrl = '${ApiConstants.baseUrl}/notifications';
 
   Future<List<NotificationUser>> getAllNotifications() async {
     final response = await http.get(Uri.parse('$baseUrl/'));
@@ -133,11 +132,23 @@ class NotificationService {
     }
   }
 
+  /// DELETE /notifications  -> removes all notifications for the authenticated user
+  Future<void> deleteAllMine() async {
+    final url = Uri.parse(baseUrl); // no trailing slash needed
+    final response = await http.delete(url);
+
+    // Backend returns 200 or 204; accept both.
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to remove all notifications '
+          '(status ${response.statusCode})');
+    }
+  }
+
   Future<bool> deleteNotification(String id) async {
     final response = await http.delete(Uri.parse('$baseUrl/$id'));
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete notification');
     }
-    return true; // Assuming success if status code is 200
+    return true;
   }
 }

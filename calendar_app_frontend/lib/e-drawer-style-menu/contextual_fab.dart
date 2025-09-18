@@ -9,6 +9,7 @@ import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dar
 import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
@@ -20,50 +21,39 @@ class ContextualFab extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark ? AppDarkColors.primary : AppColors.primary;
 
-    // Current route & args
     final settings = ModalRoute.of(context)?.settings;
     final name = settings?.name ?? '';
     final args = settings?.arguments;
     final groupArg = args is Group ? args : null;
 
-    // Pick icon + action by context (Iconsax)
     IconData iconData = Iconsax.add;
     VoidCallback? onPressed;
 
-    // 1) If we already have a Group (e.g., from group calendar) → Add Event
     if (groupArg != null) {
       iconData = Iconsax.calendar_add;
       onPressed = () =>
           Navigator.pushNamed(context, AppRoutes.addEvent, arguments: groupArg);
-    }
-    // 2) On Show Groups → Create Group
-    else if (name == AppRoutes.homePage || name.isEmpty) {
+    } else if (name == AppRoutes.homePage || name.isEmpty) {
       iconData = Iconsax.add_circle;
       onPressed = () => Navigator.pushNamed(context, AppRoutes.createGroupData);
-    }
-    // 3) On Agenda → pick a group then Add Event
-    else if (name == AppRoutes.agenda) {
+    } else if (name == AppRoutes.agenda) {
       iconData = Iconsax.calendar_add;
       onPressed = () => _pickGroupAndAddEvent(context);
-    }
-    // 4) On Notifications → Clear all
-    else if (name == AppRoutes.showNotifications) {
-      iconData = Iconsax.trash; // clear all
+    } else if (name == AppRoutes.showNotifications) {
+      iconData = Iconsax.trash;
       onPressed = () => _confirmAndClearAllNotifications(context);
     }
-    // 5) Hide on Profile
+    // ✅ Profile details → open action sheet (Edit / Share / Add to contacts)
     else if (name == AppRoutes.profileDetails) {
-      onPressed = null;
-    }
-    // 6) Fallback → go to Create Group
-    else {
+      iconData = Iconsax.edit; // or Iconsax.more_square
+      onPressed = () => _openProfileActions(context, baseColor);
+    } else {
       iconData = Iconsax.add_circle;
       onPressed = () => Navigator.pushNamed(context, AppRoutes.createGroupData);
     }
 
     if (onPressed == null) return const SizedBox.shrink();
 
-    // ---- Circular FAB with gradient ring + top-only glow ----
     return Container(
       width: 64,
       height: 64,
@@ -72,36 +62,87 @@ class ContextualFab extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.bottomLeft,
           end: Alignment.topRight,
-          colors: [
-            baseColor.withOpacity(0.65),
-            baseColor,
-          ],
+          colors: [baseColor.withOpacity(0.65), baseColor],
         ),
         boxShadow: [
-          // top-only glow: negative Y offset
           BoxShadow(
             color: Colors.black.withOpacity(0.25),
             blurRadius: 18,
-            spreadRadius: 0,
             offset: const Offset(0, -8),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(3), // ring thickness
+      padding: const EdgeInsets.all(3),
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
+        decoration:
+            const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
         child: FloatingActionButton(
           onPressed: onPressed,
-          elevation: 0, // no default downward shadow
-          shape: const CircleBorder(), // circular
+          elevation: 0,
+          shape: const CircleBorder(),
           backgroundColor: baseColor,
           foregroundColor: Colors.white,
           child: Icon(iconData, size: 26),
         ),
       ),
+    );
+  }
+
+  // --- NEW: Profile actions sheet ---
+  Future<void> _openProfileActions(BuildContext context, Color accent) async {
+    final loc = AppLocalizations.of(context)!;
+    final user = context.read<UserManagement>().user;
+    if (user == null) return;
+
+    void copyToClipboard(String text, String toast) {
+      Clipboard.setData(ClipboardData(text: text));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(toast)));
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (ctx) {
+        final onVar = Theme.of(ctx).colorScheme.onSurfaceVariant;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Iconsax.edit, color: accent),
+                title: Text(loc.edit),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(
+                      context, AppRoutes.profile); // edit profile route
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.ios_share_rounded, color: onVar),
+                title: Text(loc.share),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  final text =
+                      '${user.name} (@${user.userName}) • ${user.email}';
+                  copyToClipboard(text, loc.copiedToClipboard);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.person_add_alt_1_rounded, color: onVar),
+                title: Text(loc.addToContacts),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(loc.comingSoon)));
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 

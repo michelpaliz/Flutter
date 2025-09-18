@@ -1,5 +1,5 @@
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/c-calendar-section/utils/search_bar/selected_user_widget.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/dialog/user_animated_list_widget.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 

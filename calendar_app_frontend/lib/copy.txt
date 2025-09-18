@@ -1,5 +1,45 @@
-// BEFORE
-padding: const EdgeInsets.fromLTRB(16, 28, 16, 24),
+class NotificationService {
+  final String baseUrl = '${ApiConstants.baseUrl}/notifications';
 
-// AFTER (smaller)
-padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+  // ...existing methods
+
+  /// DELETE /notifications  -> removes all notifications for the authenticated user
+  Future<void> deleteAllMine() async {
+    final url = Uri.parse(baseUrl); // no trailing slash needed
+    final response = await http.delete(url);
+
+    // Backend returns 200 or 204; accept both.
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to remove all notifications '
+          '(status ${response.statusCode})');
+    }
+  }
+
+  /// Accept 204 as success for single delete too
+  Future<bool> deleteNotification(String id) async {
+    final response = await http.delete(Uri.parse('$baseUrl/$id'));
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete notification');
+    }
+    return true;
+  }
+}
+
+class NotificationController {
+  // ...ctor and other methods
+
+  /// Remove all notifications for the current user (DB + local)
+  Future<void> removeAllNotifications(User user) async {
+    try {
+      await notificationService.deleteAllMine();     // <-- one backend call
+      notificationManagement.clearNotifications();   // local state
+      // No need to mutate user.notifications or push a user update here.
+      // If you want, you can refresh from backend:
+      await fetchAndUpdateNotifications(user);
+    } catch (e) {
+      devtools.log('❌ Error removing all notifications: $e');
+      rethrow;
+    }
+  }
+}
+

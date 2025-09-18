@@ -29,15 +29,15 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   late Stream<List<NotificationUser>> _notificationsStream;
   BroadCategory? _selectedCategory;
 
+  bool _clearing = false; // prevent double taps while clearing
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final userMgmt = Provider.of<UserManagement>(context, listen: false);
     final groupMgmt = Provider.of<GroupManagement>(context, listen: false);
-    final notifMgmt = Provider.of<NotificationManagement>(
-      context,
-      listen: false,
-    );
+    final notifMgmt =
+        Provider.of<NotificationManagement>(context, listen: false);
 
     _notificationController = NotificationController(
       userManagement: userMgmt,
@@ -54,17 +54,74 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     });
   }
 
+  Future<void> _confirmAndClearAll(AppLocalizations loc) async {
+    if (_clearing) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(loc.clearAll),
+        content: Text(loc.clearAllConfirm), // “Remove all notifications?”
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(loc.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(loc.confirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _clearing = true);
+      try {
+        await _notificationController.removeAllNotifications(widget.user);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.clearedAllNotifications)),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${loc.error}: $e')),
+        );
+      } finally {
+        if (mounted) setState(() => _clearing = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     return MainScaffold(
       title: '', // we use titleWidget instead
-      titleWidget: Text(
-        loc.notifications,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
+      titleWidget: Row(
+        children: [
+          Text(
+            loc.notifications,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const Spacer(),
+          Tooltip(
+            message: loc.clearAll,
+            child: IconButton(
+              icon: _clearing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.clear_all),
+              onPressed: _clearing ? null : () => _confirmAndClearAll(loc),
             ),
+          ),
+        ],
       ),
       body: StreamBuilder<List<NotificationUser>>(
         stream: _notificationsStream,

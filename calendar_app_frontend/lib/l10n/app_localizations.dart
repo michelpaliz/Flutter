@@ -2654,6 +2654,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one {# notification} other {# notifications}}'**
   String notificationsCount(int count);
+
+  /// Confirmation message shown before removing all notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove all notifications?'**
+  String get clearAllConfirm;
+
+  /// Message shown after successfully clearing all notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications have been cleared.'**
+  String get clearedAllNotifications;
+
+  /// Generic label for displaying error messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
 }
 
 class _AppLocalizationsDelegate

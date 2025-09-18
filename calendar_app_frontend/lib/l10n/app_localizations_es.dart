@@ -1493,4 +1493,15 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get clearAllConfirm =>
+      '¿Estás seguro de que deseas eliminar todas las notificaciones?';
+
+  @override
+  String get clearedAllNotifications =>
+      'Todas las notificaciones han sido eliminadas.';
+
+  @override
+  String get error => 'Error';
 }

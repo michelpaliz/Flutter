@@ -1481,4 +1481,14 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get clearAllConfirm =>
+      'Are you sure you want to remove all notifications?';
+
+  @override
+  String get clearedAllNotifications => 'All notifications have been cleared.';
+
+  @override
+  String get error => 'Error';
 }
