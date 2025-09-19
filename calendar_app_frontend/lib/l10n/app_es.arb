@@ -840,7 +840,6 @@
   "servicesClientsTitle": "Servicios y clientes",
   "servicesClientsSubtitle": "Crea y administra servicios/clientes",
   "noCalendarWarning": "Este grupo aún no tiene un calendario vinculado.",
-
   "sectionFilters": "Filtros",
   "noMembersTitle": "Sin miembros",
   "noMembersMatchFilters": "Ningún miembro coincide con estos filtros.",
@@ -849,7 +848,11 @@
   "statusNotAccepted": "No aceptado",
   "errorLoadingUser": "Error al cargar el usuario: {error}",
   "@errorLoadingUser": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
   "viewProfile": "Ver perfil",
   "message": "Mensaje",
@@ -866,27 +869,35 @@
   "comingSoon": "Próximamente",
   "team": "Equipo",
   "teams": "Equipos",
-
   "calendars": "Calendarios",
   "teamsCount": "{count, plural, one {# equipo} other {# equipos}}",
   "@teamsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "calendarsCount": "{count, plural, one {# calendario} other {# calendarios}}",
   "@calendarsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "notificationsCount": "{count, plural, one {# notificación} other {# notificaciones}}",
   "@notificationsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "clearAllConfirm": "¿Estás seguro de que deseas eliminar todas las notificaciones?",
   "@clearAllConfirm": {
     "description": "Mensaje de confirmación antes de eliminar todas las notificaciones."
   },
-
   "clearedAllNotifications": "Todas las notificaciones han sido eliminadas.",
   "@clearedAllNotifications": {
     "description": "Mensaje que se muestra después de borrar todas las notificaciones."
@@ -894,6 +905,37 @@
   "error": "Error",
   "@error": {
     "description": "Etiqueta genérica para mostrar mensajes de error."
-  }
-
+  },
+  "typeNameOrEmail": "Escribe un nombre o correo electrónico",
+  "@typeNameOrEmail": {
+    "description": "Texto de marcador de posición para la barra de búsqueda al agregar personas a un grupo."
+  },
+  "noMatchesForX": "No se encontraron resultados para \"{query}\"",
+  "@noMatchesForX": {
+    "description": "Mensaje mostrado cuando no hay resultados para la búsqueda.",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "Juan Pérez"
+      }
+    }
+  },
+  "inviteByEmail": "Invitar por correo",
+  "@inviteByEmail": {
+    "description": "Texto del botón para invitar a alguien por correo electrónico cuando no hay resultados."
+  },
+  "noMatchesInvite": "No se encontraron resultados. ¿Quieres invitar por correo?",
+  "@noMatchesInvite": {
+    "description": "Mensaje mostrado cuando no se encuentran resultados y el usuario puede invitar por correo."
+  },
+  "addPeople": "Agregar personas",
+  "@addPeople": {
+    "description": "Etiqueta predeterminada para el botón cuando no hay usuarios seleccionados."
+  },
+  "add": "Agregar",
+  "@add": {
+    "description": "Etiqueta corta de acción para agregar a las personas seleccionadas al grupo."
+  },
+  "jobTitle": "Puesto de trabajo",
+  "addPhoto": "Añade una foto"
 }

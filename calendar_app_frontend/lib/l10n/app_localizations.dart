@@ -2672,6 +2672,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error'**
   String get error;
+
+  /// Placeholder text for the search bar when adding people to a group.
+  ///
+  /// In en, this message translates to:
+  /// **'Type name or email address'**
+  String get typeNameOrEmail;
+
+  /// Message shown when there are no search results for a given query.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found for \"{query}\"'**
+  String noMatchesForX(String query);
+
+  /// Button text to invite someone by email when no search results are found.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite by Email'**
+  String get inviteByEmail;
+
+  /// Message shown when no results are found and user may invite by email.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found. Would you like to invite them by email?'**
+  String get noMatchesInvite;
+
+  /// Default label for the button when no users are selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Add People'**
+  String get addPeople;
+
+  /// Short action label for adding selected people to the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @jobTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job title'**
+  String get jobTitle;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get addPhoto;
 }
 
 class _AppLocalizationsDelegate

@@ -28,6 +28,8 @@ class GroupController extends ChangeNotifier {
   late NotificationManagement notificationManagement;
   late UserManagement userManagement;
   late GroupManagement groupManagement;
+  // Cache full User models by userName so the UI doesn't need per-row HTTP calls
+  final Map<String, User> membersByUsername = {};
 
   // UI Values
   String groupName = '';
@@ -58,23 +60,24 @@ class GroupController extends ChangeNotifier {
     this.notificationManagement = notificationManagement;
     this.currentUser = user;
 
-    usersInGroup = [user]; // Set the current user as the initial member
+    usersInGroup = [user];
     userRoles = {user.userName: 'Administrator'};
 
-    // Ensure GroupManagement has the current user
+    // NEW: seed cache
+    membersByUsername[user.userName] = user;
+
     groupManagement.setCurrentUser(user);
+    // notifyListeners(); // optional if you want immediate rebuild
   }
 
-  void addUser(User newUser) {
+  void addMember(User newUser) {
     if (!usersInGroup.any((u) => u.userName == newUser.userName)) {
       usersInGroup.add(newUser);
-      userRoles[newUser.userName] = 'Member';
-      notifyListeners();
     }
-  }
+    userRoles[newUser.userName] ??= 'Member';
 
-  void onRolesUpdated(Map<String, String> updatedUserRoles) {
-    userRoles = updatedUserRoles;
+    // NEW: cache the model
+    membersByUsername[newUser.userName] = newUser;
     notifyListeners();
   }
 
@@ -85,6 +88,26 @@ class GroupController extends ChangeNotifier {
     }
     usersInGroup.removeWhere((u) => u.userName == username);
     userRoles.remove(username);
+
+    // NEW: remove from cache
+    membersByUsername.remove(username);
+    notifyListeners();
+  }
+
+  void onRolesUpdated(Map<String, String> updatedUserRoles) {
+    userRoles = updatedUserRoles;
+    notifyListeners();
+  }
+
+// Call controller.hydrateMembers(existingMembersFromApi); after you fetch the group details.
+  void hydrateMembers(List<User> users) {
+    for (final u in users) {
+      membersByUsername[u.userName] = u;
+      userRoles[u.userName] = userRoles[u.userName] ?? 'Member';
+      if (!usersInGroup.any((x) => x.userName == u.userName)) {
+        usersInGroup.add(u);
+      }
+    }
     notifyListeners();
   }
 
@@ -247,6 +270,106 @@ class GroupController extends ChangeNotifier {
         );
       },
     );
+  }
+
+  /// Search users by name, username, or email.
+  /// Backend is expected to expose: GET /users/search?q=...&limit=...
+  Future<List<User>> searchUsers(String query, {int limit = 20}) async {
+    final q = query.trim();
+    if (q.isEmpty) return [];
+
+    try {
+      // If you require auth, include the bearer token
+      final token = context?.read<AuthProvider>().lastToken;
+
+      final uri = Uri.parse(
+        '${ApiConstants.baseUrl}/users/search'
+        '?q=${Uri.encodeQueryComponent(q)}&limit=$limit',
+      );
+
+      final resp = await http.get(
+        uri,
+        headers: {
+          if (token != null) 'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (resp.statusCode == 200) {
+        final decoded = jsonDecode(resp.body);
+        if (decoded is List) {
+          return decoded.map<User>((e) => User.fromJson(e)).toList();
+        }
+        // if backend wraps the list: { items: [...] }
+        if (decoded is Map && decoded['items'] is List) {
+          final items = decoded['items'] as List;
+          return items.map<User>((e) => User.fromJson(e)).toList();
+        }
+        return [];
+      }
+
+      if (resp.statusCode == 404) {
+        // no matches
+        return [];
+      }
+
+      devtools.log('searchUsers failed: ${resp.statusCode} ${resp.body}');
+      throw Exception('Failed to search users');
+    } catch (e) {
+      devtools.log('searchUsers error: $e');
+      return [];
+    }
+  }
+
+  /// Fetch groups for the given user and return the up-to-date list.
+  /// Uses GroupManagement.fetchAndInitializeGroups internally.
+  static Future<List<Group>> fetchGroups(
+    User? user,
+    GroupManagement groupManager,
+  ) async {
+    if (user == null) {
+      devtools.log('⚠️ GroupController.fetchGroups: user is null, aborting.');
+      return const [];
+    }
+
+    try {
+      devtools.log(
+        '📥 GroupController.fetchGroups: user=${user.userName} (${user.id}) '
+        'groupIds=${user.groupIds}',
+      );
+
+      await groupManager.fetchAndInitializeGroups(user.groupIds);
+
+      // Return the manager’s canonical list
+      final groups = List<Group>.from(groupManager.groups);
+      devtools.log(
+          '✅ GroupController.fetchGroups: loaded ${groups.length} groups.');
+      return groups;
+    } catch (e) {
+      devtools.log('❌ GroupController.fetchGroups error: $e');
+      return const [];
+    }
+  }
+
+  // Available roles a creator can assign (you can localize labels in the UI)
+  final List<String> assignableRoles = const ['Member', 'Co-Administrator'];
+
+  bool _isCurrentUser(String username) => currentUser?.userName == username;
+
+  /// Can the role of this username be edited?
+  bool canEditRole(String username) {
+    // You can refine this (e.g., also lock the creator/owner or anyone with Administrator)
+    return !_isCurrentUser(username) &&
+        (userRoles[username] != 'Administrator');
+  }
+
+  /// Change a user's role and notify listeners.
+  void setRole(String username, String newRole) {
+    if (!userRoles.containsKey(username)) return;
+    if (!canEditRole(username)) return;
+    if (userRoles[username] == newRole) return;
+    userRoles[username] = newRole;
+    notifyListeners();
   }
 
   void onDataChanged(List<User> newUsers, Map<String, String> newRoles) {

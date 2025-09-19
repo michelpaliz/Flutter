@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 
 import '../../../../../../../a-models/user_model/user.dart';
-import '../controllers/create_group_controller.dart';
-import 'create_group_search_bar.dart';
+import '../controllers/group_controller.dart';
+import '../widgets/create_group_search_bar.dart';
 
 class GroupAddUserButton extends StatelessWidget {
   final GroupController controller;

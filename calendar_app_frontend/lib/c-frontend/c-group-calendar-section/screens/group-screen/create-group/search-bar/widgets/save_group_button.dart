@@ -3,7 +3,7 @@ import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button
 import 'package:flutter/material.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 
-import '../controllers/create_group_controller.dart';
+import '../controllers/group_controller.dart';
 
 class SaveGroupButton extends StatelessWidget {
   final GroupController controller;

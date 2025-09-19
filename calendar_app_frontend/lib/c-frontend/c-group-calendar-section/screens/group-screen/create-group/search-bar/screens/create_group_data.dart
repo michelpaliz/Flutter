@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/controllers/create_group_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/widgets/group_list.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/controllers/group_controller.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/screens/page_group_role_list.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/widgets/save_group_button.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
 import 'package:calendar_app_frontend/f-themes/shape/solid/solid_header.dart';
@@ -30,14 +30,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     super.didChangeDependencies();
 
     final userManagement = Provider.of<UserManagement>(context, listen: false);
-    final groupManagement = Provider.of<GroupManagement>(
-      context,
-      listen: false,
-    );
-    final notificationManagement = Provider.of<NotificationManagement>(
-      context,
-      listen: false,
-    );
+    final groupManagement =
+        Provider.of<GroupManagement>(context, listen: false);
+    final notificationManagement =
+        Provider.of<NotificationManagement>(context, listen: false);
     final currentUser = userManagement.user;
 
     if (currentUser != null) {
@@ -56,37 +52,57 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     return ChangeNotifierProvider<GroupController>.value(
       value: _controller,
       child: Scaffold(
-        backgroundColor:
-            Theme.of(context).colorScheme.surface, // or scaffoldBackgroundColor
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(title: Text(AppLocalizations.of(context)!.groupData)),
         body: Stack(
           children: [
-            const SolidHeader(height: 180), // ⬅️ background curved header
-
+            const SolidHeader(height: 180),
             SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 15.0,
-                vertical: 30.0,
-              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 15.0, vertical: 30.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 20), // space below header curve
+                  const SizedBox(height: 20),
                   GroupImagePicker(),
                   GroupTextFields(controller: _controller),
                   const SizedBox(height: 10),
-                  AddUserButtonDialog(
-                    currentUser: _controller.currentUser,
-                    group: null,
-                    controller: _controller,
+
+                  // ⬇️ Pass onUserAdded and update the controller
+                  // in CreateGroupData build()
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: AddUserButtonDialog(
+                      currentUser: _controller.currentUser,
+                      group: null,
+                      controller: _controller,
+                      onUserAdded: (picked) => _controller.addMember(picked),
+                    ),
                   ),
+
                   const SizedBox(height: 10),
-                  GroupRoleList(externalController: _controller),
+
+                  // ⬇️ Rebuild this section when the controller notifies
+                  Consumer<GroupController>(
+                    builder: (_, ctrl, __) => PagedGroupRoleList(
+                      userRoles: ctrl.userRoles,
+                      membersByUsername: ctrl
+                          .membersByUsername, // fill this when adding members
+                      assignableRoles: ctrl.assignableRoles,
+                      canEditRole: ctrl.canEditRole,
+                      setRole: ctrl.setRole,
+                      onRemoveUser: ctrl.removeUser,
+                    ),
+                  )
                 ],
               ),
             ),
           ],
         ),
-        bottomNavigationBar: SaveGroupButton(controller: _controller),
+        // in Scaffold
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.all(16),
+          child: SaveGroupButton(controller: _controller),
+        ),
       ),
     );
   }

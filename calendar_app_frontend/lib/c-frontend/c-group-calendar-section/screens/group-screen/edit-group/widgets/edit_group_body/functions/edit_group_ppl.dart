@@ -2,7 +2,8 @@
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/controllers/create_group_controller.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/controllers/group_controller.dart';
+
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/edit-group/widgets/edit_group_body/functions/admin_filter_sections.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';

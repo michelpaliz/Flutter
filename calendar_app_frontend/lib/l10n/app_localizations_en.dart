@@ -1491,4 +1491,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error => 'Error';
+
+  @override
+  String get typeNameOrEmail => 'Type name or email address';
+
+  @override
+  String noMatchesForX(String query) {
+    return 'No matches found for \"$query\"';
+  }
+
+  @override
+  String get inviteByEmail => 'Invite by Email';
+
+  @override
+  String get noMatchesInvite =>
+      'No matches found. Would you like to invite them by email?';
+
+  @override
+  String get addPeople => 'Add People';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get jobTitle => 'Job title';
+
+  @override
+  String get addPhoto => 'Add a photo';
 }
