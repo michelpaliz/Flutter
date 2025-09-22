@@ -9,7 +9,7 @@ import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/me
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/services_clients/services_clients_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/group-settings/group_settings.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/main_calendar_view.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/screen/main_calendar_view.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/screens/create_group_data.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/edit_group_data.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/show-groups/group_screen/group_section.dart';

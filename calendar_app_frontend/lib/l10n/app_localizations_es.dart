@@ -1531,4 +1531,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addPhoto => 'Añade una foto';
+
+  @override
+  String get client => 'Cliente';
+
+  @override
+  String get primaryService => 'Servicio principal';
+
+  @override
+  String get workVisit => 'Visita de trabajo';
+
+  @override
+  String get simpleEvent => 'Evento simple';
 }

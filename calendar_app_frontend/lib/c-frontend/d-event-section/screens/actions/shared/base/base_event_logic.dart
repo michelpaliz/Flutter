@@ -2,9 +2,24 @@ import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurr
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+/// Lightweight view models used by the work-visit form (no backend changes needed).
+class ClientLite {
+  final String id;
+  final String? name;
+  final String? displayName;
+  const ClientLite({required this.id, this.name, this.displayName});
+}
+
+class ServiceLite {
+  final String id;
+  final String? name;
+  const ServiceLite({required this.id, this.name});
+}
 
 abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
-  // Controllers
+  // ---------------- Controllers ----------------
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _noteController = TextEditingController();
@@ -13,12 +28,12 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   // Public reactive validity
   final ValueNotifier<bool> canSubmit = ValueNotifier<bool>(false);
 
-  // UI state
+  // ---------------- UI state ----------------
   late Color _selectedEventColor;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
 
-  bool _isDisposed = false; // 👈 guard flag
+  bool _isDisposed = false;
 
   // Recurrence
   LegacyRecurrenceRule? _recurrenceRule;
@@ -34,36 +49,98 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   @protected
   List<User> _selectedUsers = [];
 
-  // ── Category state ──  // NEW
-  String? _categoryId; // NEW
-  String? _subcategoryId; // NEW
+  // Categories (only for type='simple')
+  String? _categoryId;
+  String? _subcategoryId;
 
-  // ───── Lifecycle ─────
+  // ---------------- NEW: Event type & work-visit fields ----------------
+  /// 'simple' | 'work_visit' (default)
+  String _eventType = 'work_visit';
+
+  /// Work-visit selections
+  String? _clientId;
+  String? _primaryServiceId;
+
+  /// Data sources for pickers (optional; provide from your screen/controller)
+  @protected
+  List<ClientLite>? availableClients;
+  @protected
+  List<ServiceLite>? availableServices;
+
+  /// Optional hooks the UI may call (assign in your concrete logic if preferred).
+  /// If you don't override, we wire sensible defaults in initState.
+  void Function(String type)? setEventType;
+  void Function(String? clientId)? setClientId;
+  void Function(String? serviceId)? setPrimaryServiceId;
+
+  void _safeRebuild() {
+    if (!mounted) return;
+    // If we're in the build/layout phase, defer to after the frame.
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.idle ||
+        phase == SchedulerPhase.postFrameCallbacks) {
+      setState(() {});
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  /// Optional recurrence dialog hook (UI checks for null before using).
+  /// Renamed to avoid clashing with EventDialogs.showRepetitionDialog.
+  Future<List?> Function(
+    BuildContext context, {
+    required DateTime selectedStartDate,
+    required DateTime selectedEndDate,
+    LegacyRecurrenceRule? initialRule,
+  })? onShowRepetitionDialog;
+
+  // ---------------- Lifecycle ----------------
   @mustCallSuper
   @override
+
   void initState() {
     super.initState();
-    initializeBaseDefaults(); // NEW: ensure lates are set
+    initializeBaseDefaults();
     _attachFormListeners();
+
+    setEventType ??= (t) {
+      _eventType = (t.isEmpty ? 'work_visit' : t).toLowerCase();
+      _safeRebuild();
+      // If your validity depends on type, also defer validity:
+      WidgetsBinding.instance.addPostFrameCallback((_) => recomputeValidity());
+    };
+
+    setClientId ??= (v) {
+      _clientId = v;
+      _safeRebuild();
+      WidgetsBinding.instance.addPostFrameCallback((_) => recomputeValidity());
+    };
+
+    setPrimaryServiceId ??= (v) {
+      _primaryServiceId = v;
+      _safeRebuild();
+      WidgetsBinding.instance.addPostFrameCallback((_) => recomputeValidity());
+    };
+
     recomputeValidity();
   }
 
   @mustCallSuper
   @override
   void dispose() {
-    _isDisposed = true; // 👈 mark first so any late calls bail out
+    _isDisposed = true;
     _detachFormListeners();
     canSubmit.dispose();
 
-    // Keep the deferred disposal (safe for child teardown order)
+    // Defer actual controller disposal to avoid dispose-order issues on hot reload.
     final title = _titleController;
     final desc = _descriptionController;
     final note = _noteController;
     final loc = _locationController;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // If something (hot reload / double-dispose) already disposed one of them,
-      // swallow silently — TextEditingController.dispose() is idempotent in practice.
       try {
         title.dispose();
       } catch (_) {}
@@ -81,9 +158,7 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
     super.dispose();
   }
 
-
-
-  // ───── Initialization ─────
+  // ---------------- Initialization ----------------
   @mustCallSuper
   void initializeBaseDefaults() {
     _selectedEventColor = ColorManager.eventColors.last;
@@ -93,8 +168,14 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
     _isRepetitive = false;
     _users = [];
     _selectedUsers = [];
-    _categoryId = null; // NEW
-    _subcategoryId = null; // NEW
+    _categoryId = null;
+    _subcategoryId = null;
+
+    // sensible defaults for the new fields
+    _eventType = 'work_visit';
+    _clientId = null;
+    _primaryServiceId = null;
+
     recomputeValidity();
   }
 
@@ -106,20 +187,20 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   }
 
   void _detachFormListeners() {
-    // NEW
     _titleController.removeListener(recomputeValidity);
     _locationController.removeListener(recomputeValidity);
     _descriptionController.removeListener(recomputeValidity);
     _noteController.removeListener(recomputeValidity);
   }
 
-  // ───── Controller access ─────
+  // ---------------- Controller access ----------------
   TextEditingController get titleController => _titleController;
   TextEditingController get descriptionController => _descriptionController;
   TextEditingController get noteController => _noteController;
   TextEditingController get locationController => _locationController;
 
-  // ───── State access ─────
+  // ---------------- State access ----------------
+  /// Returns ARGB int color for widgets that expect an int
   int? get selectedEventColor => _selectedEventColor.value;
   List<int> get colorList =>
       ColorManager.eventColors.map((c) => c.value).toList();
@@ -135,11 +216,18 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   List<User> get users => _users;
   List<User> get selectedUsers => _selectedUsers;
 
-  // Category getters  // NEW
-  String? get categoryId => _categoryId; // NEW
-  String? get subcategoryId => _subcategoryId; // NEW
+  // Categories (simple)
+  String? get categoryId => _categoryId;
+  String? get subcategoryId => _subcategoryId;
 
-  // ───── Mutators ─────
+  // NEW: event type & work-visit getters used by the forms/router
+  String get eventType => _eventType;
+  String? get clientId => _clientId;
+  String? get primaryServiceId => _primaryServiceId;
+  List<ClientLite> get clients => availableClients ?? const [];
+  List<ServiceLite> get services => availableServices ?? const [];
+
+  // ---------------- Mutators ----------------
   void setSelectedColor(int colorValue) {
     _selectedEventColor = Color(colorValue);
     if (mounted) setState(() {});
@@ -166,16 +254,13 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
     recomputeValidity();
   }
 
-  // Category setters  // NEW
   set categoryId(String? v) {
-    // NEW
     _categoryId = v;
     if (mounted) setState(() {});
     recomputeValidity();
   }
 
   set subcategoryId(String? v) {
-    // NEW
     _subcategoryId = v;
     if (mounted) setState(() {});
     recomputeValidity();
@@ -230,9 +315,11 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
     _locationController.dispose();
   }
 
-  /// Implemented by subclasses (Add flow)
+  // ---------------- Abstracts ----------------
+  /// Implemented by concrete logic (Add flow)
   Future<bool> addEvent(BuildContext context);
 
+  // ---------------- Reminder ----------------
   void setReminderMinutes(int minutes) {
     _reminderMinutes = minutes;
     recomputeValidity();
@@ -240,42 +327,22 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
 
   int get reminderMinutes => _reminderMinutes;
 
-  // ───── Validation ─────
-  // @protected
-  // bool isFormValid() {
-  //   final titleOk = titleController.text.trim().isNotEmpty;
-  //   final datesOk = selectedStartDate.isBefore(selectedEndDate) ||
-  //       selectedStartDate.isAtSameMomentAs(selectedEndDate);
-
-  //   // If you want to make category mandatory, uncomment:
-  //   // final categoryOk = _categoryId != null;
-  //   // return titleOk && datesOk && categoryOk;
-
-  //   return titleOk && datesOk;
-  // }
-
-  // @protected
-  // @mustCallSuper
-  // void recomputeValidity() {
-  //   canSubmit.value = isFormValid();
-  // }
-
+  // ---------------- Validation ----------------
   @protected
   bool isFormValid() {
-    // 👉 If we’re tearing down, do NOT touch controllers.
     if (_isDisposed) return false;
-
     final titleOk = _titleController.text.trim().isNotEmpty;
     final datesOk = _selectedStartDate.isBefore(_selectedEndDate) ||
         _selectedStartDate.isAtSameMomentAs(_selectedEndDate);
 
+    // You can extend this to enforce client/service for work_visit, etc.
     return titleOk && datesOk;
   }
 
   @protected
   @mustCallSuper
   void recomputeValidity() {
-    if (_isDisposed) return; // 👈 bail if tearing down
+    if (_isDisposed) return;
     canSubmit.value = isFormValid();
   }
 

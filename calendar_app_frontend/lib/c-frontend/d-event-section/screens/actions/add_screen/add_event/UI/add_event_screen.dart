@@ -4,6 +4,7 @@ import 'package:calendar_app_frontend/b-backend/api/category/category_services.d
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -96,9 +97,8 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: EventForm(
+              child: EventFormRouter(
                 logic: this,
-                dialogs: this,
                 onSubmit: () async {
                   final ok = await withLoadingDialog<bool>(
                     context,
@@ -112,11 +112,11 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
                         context); // ✅ this state implements EventDialogs
                   }
                 },
-                categoryApi: categoryApi,
                 ownerUserId: context.read<UserManagement>().user!.id,
                 isEditing: false,
-              ),
-            ),
+                // pass only what each leaf form needs; router forwards to the right one
+                categoryApi: categoryApi,
+              )),
     );
   }
 

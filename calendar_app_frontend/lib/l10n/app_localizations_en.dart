@@ -1518,4 +1518,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addPhoto => 'Add a photo';
+
+  @override
+  String get client => 'Client';
+
+  @override
+  String get primaryService => 'Primary service';
+
+  @override
+  String get workVisit => 'Work visit';
+
+  @override
+  String get simpleEvent => 'Simple event';
 }

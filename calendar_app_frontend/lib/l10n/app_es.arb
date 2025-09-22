@@ -937,5 +937,10 @@
     "description": "Etiqueta corta de acción para agregar a las personas seleccionadas al grupo."
   },
   "jobTitle": "Puesto de trabajo",
-  "addPhoto": "Añade una foto"
+  "addPhoto": "Añade una foto",
+  "client": "Cliente",
+  "primaryService": "Servicio principal",
+  "workVisit": "Visita de trabajo",
+  "simpleEvent": "Evento simple"
+
 }

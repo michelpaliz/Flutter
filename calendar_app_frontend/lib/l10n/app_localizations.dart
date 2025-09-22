@@ -2720,6 +2720,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a photo'**
   String get addPhoto;
+
+  /// No description provided for @client.
+  ///
+  /// In en, this message translates to:
+  /// **'Client'**
+  String get client;
+
+  /// No description provided for @primaryService.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary service'**
+  String get primaryService;
+
+  /// No description provided for @workVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Work visit'**
+  String get workVisit;
+
+  /// No description provided for @simpleEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple event'**
+  String get simpleEvent;
 }
 
 class _AppLocalizationsDelegate

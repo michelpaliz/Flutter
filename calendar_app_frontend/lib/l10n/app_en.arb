@@ -930,5 +930,10 @@
     "description": "Short action label for adding selected people to the group."
   },
   "jobTitle": "Job title",
-  "addPhoto": "Add a photo"
+  "addPhoto": "Add a photo",
+  "client": "Client",
+  "primaryService": "Primary service",
+  "workVisit": "Work visit",
+  "simpleEvent": "Simple event"
+
 }
