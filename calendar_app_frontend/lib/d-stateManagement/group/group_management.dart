@@ -5,6 +5,7 @@ import 'package:calendar_app_frontend/a-models/group_model/event/event_group_res
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:calendar_app_frontend/b-backend/api/group/error_classes/error_classes.dart';
 import 'package:calendar_app_frontend/b-backend/api/group/group_services.dart';
 import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
 import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
@@ -134,38 +135,68 @@ class GroupManagement extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchAndInitializeGroups(List<String> groupIds) async {
+  /// Safer: fetch groups; optionally repair user.groupIds only for confirmed 404s.
+  /// No UI flicker; emits once.
+  Future<void> fetchAndInitializeGroups(
+    List<String> groupIds, {
+    bool repairUserGroupIds = false, // default: don't mutate user
+  }) async {
     try {
-      List<Group> groups = [];
-      List<String> validGroupIds = [];
+      final uniqueIds = groupIds.toSet().toList();
 
-      for (var id in groupIds) {
+      // Fetch in parallel with typed error handling
+      final results = await Future.wait(uniqueIds.map((id) async {
         try {
-          final group = await groupService.getGroupById(id);
-          groups.add(group);
-          validGroupIds.add(id); // only add if group is valid
+          final g = await groupService.getGroupById(id);
+          return (id: id, group: g, notFound: false);
         } catch (e) {
-          devtools.log('⚠️ Failed to fetch group by ID $id: $e');
+          final is404 = e is NotFoundException ||
+              (e is HttpFailure && e.statusCode == 404);
+          return (id: id, group: null as Group?, notFound: is404);
+        }
+      }), eagerError: false);
+
+      final groups = <Group>[];
+      final definitelyGone = <String>[]; // confirmed 404s only
+      final unknownFailures = <String>[]; // timeouts/5xx/etc.
+
+      for (final r in results) {
+        if (r.group != null) {
+          groups.add(r.group!);
+        } else {
+          if (r.notFound) {
+            definitelyGone.add(r.id);
+          } else {
+            unknownFailures.add(r.id);
+          }
         }
       }
 
-      // ✅ Save to internal state before pushing to the stream
+      // Cache & emit once (no flicker)
       _lastFetchedGroups = groups;
-
-      // ✅ Clear previous group data
-      groupController.add([]);
-
-      // ✅ Update the currentUser's group list in memory
-      currentUser.groupIds = validGroupIds;
-
-      // ✅ Update the user in the database to reflect valid groupIds only
-      await userService.updateUser(currentUser);
-
-      // ✅ Now add fresh data
       groupController.add(groups);
+
+      // Only prune IDs when explicitly allowed AND we have confirmed 404s
+      if (repairUserGroupIds && definitelyGone.isNotEmpty) {
+        final newIds =
+            uniqueIds.where((id) => !definitelyGone.contains(id)).toList();
+
+        final changed = currentUser.groupIds.length != newIds.length ||
+            !Set.of(currentUser.groupIds).containsAll(newIds);
+
+        if (changed) {
+          currentUser.groupIds = newIds;
+          await userService.updateUser(currentUser);
+        }
+      }
+
+      if (unknownFailures.isNotEmpty) {
+        devtools.log('⚠️ Skipped pruning (unknown failures): $unknownFailures');
+      }
     } catch (e) {
       devtools.log('❌ fetchAndInitializeGroups failed: $e');
-      groupController.add([]);
+      // Optional: keep previous list instead of nuking UI on global failure
+      groupController.add(_lastFetchedGroups);
     }
   }
 

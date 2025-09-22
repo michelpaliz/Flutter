@@ -5,6 +5,7 @@ import 'package:calendar_app_frontend/a-models/group_model/calendar/calendar.dar
 import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:calendar_app_frontend/b-backend/api/group/error_classes/error_classes.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
@@ -35,28 +36,25 @@ class GroupService {
     }
   }
 
-  // Get a group by its ID, and fetch the related calendar directly
   Future<Group> getGroupById(String id) async {
-    final response = await http.get(
+    final res = await http.get(
       Uri.parse('$baseUrl/$id'),
-      headers: await _authHeaders(), // ✅ This sends the token
+      headers: await _authHeaders(),
     );
 
-    // ✅ Log the response content for debugging
-    devtools.log(
-      '📥 [GroupService] GET /groups/$id → Status: ${response.statusCode}',
-    );
-    devtools.log('📦 [GroupService] Response body: ${response.body}');
+    devtools.log('📥 GET /groups/$id → ${res.statusCode}');
+    devtools.log('📦 Body: ${res.body}');
 
-    if (response.statusCode == 200 && response.body != 'null') {
-      final groupJson = jsonDecode(response.body);
-      devtools.log('✅ [GroupService] Parsed group JSON: $groupJson');
-      return Group.fromJson(groupJson);
-    } else if (response.statusCode == 404) {
-      throw Exception('Group not found');
-    } else {
-      throw Exception('Failed to get group: ${response.reasonPhrase}');
+    if (res.statusCode == 200 && res.body != 'null') {
+      return Group.fromJson(jsonDecode(res.body));
     }
+    if (res.statusCode == 404) {
+      throw NotFoundException('Group $id not found');
+    }
+    throw HttpFailure(
+      res.statusCode,
+      res.body.isEmpty ? 'Unknown error' : res.body,
+    );
   }
 
   Future<void> leaveGroup(String userId, String groupId) async {
@@ -138,6 +136,7 @@ class GroupService {
   }
 
   // Get a calendar by its ID
+
   Future<Calendar> getCalendarById(String calendarId) async {
     final String calendarUrl = '${ApiConstants.baseUrl}/calendars/$calendarId';
 

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/controllers/group_controller.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
 import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
 import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';

@@ -1,9 +1,9 @@
 // home_page.dart
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/create-group/search-bar/controllers/group_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/show-groups/group_screen/group_section.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group-screen/show-groups/motivational_phrase/motivation_banner.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/show-groups/group_screen/group_section.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/show-groups/motivational_phrase/motivation_banner.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
 import 'package:calendar_app_frontend/c-frontend/utils/user_avatar.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
