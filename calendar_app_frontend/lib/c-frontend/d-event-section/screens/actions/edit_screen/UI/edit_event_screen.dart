@@ -3,9 +3,13 @@ import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:calendar_app_frontend/b-backend/api/category/category_services.dart';
+import 'package:calendar_app_frontend/b-backend/api/client/client_api.dart';
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:calendar_app_frontend/b-backend/api/service/service_api.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/edit_screen/functions/edit/edit_event_logic.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
 import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
 import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
@@ -24,23 +28,50 @@ class EditEventScreen extends StatefulWidget {
 
 class _EditEventScreenState extends EditEventLogic<EditEventScreen>
     implements EventDialogs {
-  bool _isInitialized = false;
+  bool _initialized = false;
+
+  // APIs just for loading pickers in work-visit mode
+  final _clientsApi = ClientsApi();
+  final _servicesApi = ServiceApi();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_isInitialized) {
+    if (!_initialized) {
       _initializeLogic();
-      _isInitialized = true;
+      _initialized = true;
     }
   }
 
   Future<void> _initializeLogic() async {
+    // 1) hydrate base edit logic (fills controllers, dates, etc.)
     await initLogic(
       event: widget.event,
       gm: context.read<GroupManagement>(),
       um: context.read<UserManagement>(),
     );
+
+    // 2) populate clients/services for the work-visit form (safe even if type=simple)
+    final group = context.read<GroupManagement>().currentGroup;
+    if (group != null) {
+      try {
+        final clients = await _clientsApi.list(groupId: group.id);
+        setAvailableClients(
+          clients.map((c) => ClientLite(id: c.id, name: c.name)).toList(),
+        );
+      } catch (_) {
+        setAvailableClients(const []);
+      }
+      try {
+        final services = await _servicesApi.list(groupId: group.id);
+        setAvailableServices(
+          services.map((s) => ServiceLite(id: s.id, name: s.name)).toList(),
+        );
+      } catch (_) {
+        setAvailableServices(const []);
+      }
+    }
+
     if (mounted) setState(() {});
   }
 
@@ -52,14 +83,13 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context)!;
 
-    // inside _AddEventScreenState.build(...)
     final categoryApi = CategoryApi(
-      baseUrl: ApiConstants.baseUrl, // ✅ single source of truth
+      baseUrl: ApiConstants.baseUrl,
       headersProvider: () async {
         final auth = context.read<AuthProvider>();
-        final token = await auth.getToken(); // returns null if not logged in
+        final token = await auth.getToken();
         return {
           if (token != null && token.isNotEmpty)
             'Authorization': 'Bearer $token',
@@ -69,29 +99,32 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc.event)),
+      appBar: AppBar(title: Text(l.event)),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: EventForm(
-                logic: this,
+              child: EventFormRouter(
+                logic: this, // <- same state (EditEventLogic)
                 onSubmit: () =>
                     saveEditedEvent(context.read<EventDataManager>()),
-                isEditing: true,
                 ownerUserId: context.read<UserManagement>().user!.id,
-                dialogs: this, // enables repetition dialog in edit mode
                 categoryApi: categoryApi,
+                isEditing: true, dialogs: this,
+                // dialogs: this,                    // <- enables repetition dialog for simple type
               ),
             ),
     );
   }
 
-  // Not used by EventForm, but required by the interface.
+  // EventDialogs implementation (used by simple form only)
   @override
   Widget buildRepetitionDialog(BuildContext context) {
-    throw UnimplementedError(
-      'buildRepetitionDialog is not used in EditEventScreen.',
+    // Not used directly by router; keep to satisfy interface if you still reference it elsewhere
+    return RepetitionDialog(
+      selectedStartDate: selectedStartDate,
+      selectedEndDate: selectedEndDate,
+      initialRecurrenceRule: recurrenceRule,
     );
   }
 
@@ -114,7 +147,6 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
 
   @override
   Future<List<Object?>?> showRepetitionDialog(
-    // 👈 typed
     BuildContext context, {
     required DateTime selectedStartDate,
     required DateTime selectedEndDate,

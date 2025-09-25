@@ -8,8 +8,7 @@ import 'package:flutter/scheduler.dart';
 class ClientLite {
   final String id;
   final String? name;
-  final String? displayName;
-  const ClientLite({required this.id, this.name, this.displayName});
+  const ClientLite({required this.id, this.name});
 }
 
 class ServiceLite {
@@ -32,6 +31,10 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   late Color _selectedEventColor;
   late DateTime _selectedStartDate;
   late DateTime _selectedEndDate;
+
+  @protected
+  bool get requireAssignees => false;
+  // --- Config: should the form require at least one assigned user? ---
 
   bool _isDisposed = false;
 
@@ -73,6 +76,17 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   void Function(String? clientId)? setClientId;
   void Function(String? serviceId)? setPrimaryServiceId;
 
+  // setters to feed data
+  void setAvailableClients(List<ClientLite> items) {
+    availableClients = items;
+    _safeRebuild(); // use the safe rebuild helper you added earlier
+  }
+
+  void setAvailableServices(List<ServiceLite> items) {
+    availableServices = items;
+    _safeRebuild();
+  }
+
   void _safeRebuild() {
     if (!mounted) return;
     // If we're in the build/layout phase, defer to after the frame.
@@ -99,7 +113,6 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
   // ---------------- Lifecycle ----------------
   @mustCallSuper
   @override
-
   void initState() {
     super.initState();
     initializeBaseDefaults();
@@ -215,6 +228,8 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
 
   List<User> get users => _users;
   List<User> get selectedUsers => _selectedUsers;
+  List<User>? get selectedUsersOrNull =>
+      _selectedUsers.isEmpty ? null : _selectedUsers;
 
   // Categories (simple)
   String? get categoryId => _categoryId;
@@ -329,14 +344,33 @@ abstract class BaseEventLogic<T extends StatefulWidget> extends State<T> {
 
   // ---------------- Validation ----------------
   @protected
+  // bool isFormValid() {
+  //   if (_isDisposed) return false;
+  //   final titleOk = _titleController.text.trim().isNotEmpty;
+  //   final datesOk = _selectedStartDate.isBefore(_selectedEndDate) ||
+  //       _selectedStartDate.isAtSameMomentAs(_selectedEndDate);
+
+  //   // You can extend this to enforce client/service for work_visit, etc.
+  //   return titleOk && datesOk;
+  // }
+
+  @protected
   bool isFormValid() {
     if (_isDisposed) return false;
-    final titleOk = _titleController.text.trim().isNotEmpty;
+    // final titleOk = _titleController.text.trim().isNotEmpty;
     final datesOk = _selectedStartDate.isBefore(_selectedEndDate) ||
         _selectedStartDate.isAtSameMomentAs(_selectedEndDate);
+    // // Optional enforcement of assignees
+    // final assigneesOk = !requireAssignees || _selectedUsers.isNotEmpty;
+    // NEW: require client & primary service for work_visit
+    final isWorkVisit = _eventType == 'work_visit';
+    final clientOk =
+        !isWorkVisit || (_clientId != null && _clientId!.isNotEmpty);
+    final serviceOk = !isWorkVisit ||
+        (_primaryServiceId != null && _primaryServiceId!.isNotEmpty);
 
-    // You can extend this to enforce client/service for work_visit, etc.
-    return titleOk && datesOk;
+    // return titleOk && datesOk && assigneesOk && clientOk && serviceOk;
+    return datesOk && clientOk && serviceOk;
   }
 
   @protected

@@ -934,6 +934,24 @@
   "client": "Client",
   "primaryService": "Primary service",
   "workVisit": "Work visit",
-  "simpleEvent": "Simple event"
+  "simpleEvent": "Simple event",
+  "loadingUpcoming": "Loading upcoming…",
+  "noUpcomingEvents": "No upcoming events",
+  "nothingScheduledSoon": "Nothing scheduled soon for this group.",
+  "nextUp": "Next up",
+  "upcomingEventsSubtitle": "Upcoming events for this group",
+  "seeAll": "See all",
+  "untitledEvent": "(untitled)",
+  "userId": "User ID",
+  "teamCount": "{count, plural, =0 {No teams} =1 {1 team} other {{count} teams}}",
+  "@teamCount": {
+    "description": "Pluralized label for team count",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "calendarCount": "{count, plural, =0 {No calendars} =1 {1 calendar} other {{count} calendars}}",
+  "@calendarCount": {
+    "description": "Pluralized label for calendar count",
+    "placeholders": { "count": { "type": "int" } }
+  }
 
 }

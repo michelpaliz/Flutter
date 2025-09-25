@@ -941,6 +941,31 @@
   "client": "Cliente",
   "primaryService": "Servicio principal",
   "workVisit": "Visita de trabajo",
-  "simpleEvent": "Evento simple"
-
+  "simpleEvent": "Evento simple",
+  "loadingUpcoming": "Cargando próximos…",
+  "noUpcomingEvents": "No hay eventos próximos",
+  "nothingScheduledSoon": "No hay eventos programados pronto para este grupo.",
+  "nextUp": "Próximos",
+  "upcomingEventsSubtitle": "Eventos próximos para este grupo",
+  "seeAll": "Ver todos",
+  "untitledEvent": "(sin título)",
+  "userId": "ID de usuario",
+  "teamCount": "{count, plural, =0 {Sin equipos} =1 {1 equipo} other {{count} equipos}}",
+  "@teamCount": {
+    "description": "Etiqueta pluralizada para el número de equipos",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarCount": "{count, plural, =0 {Sin calendarios} =1 {1 calendario} other {{count} calendarios}}",
+  "@calendarCount": {
+    "description": "Etiqueta pluralizada para el número de calendarios",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

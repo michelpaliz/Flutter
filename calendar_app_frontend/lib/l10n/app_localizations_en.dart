@@ -1530,4 +1530,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get simpleEvent => 'Simple event';
+
+  @override
+  String get loadingUpcoming => 'Loading upcoming…';
+
+  @override
+  String get noUpcomingEvents => 'No upcoming events';
+
+  @override
+  String get nothingScheduledSoon => 'Nothing scheduled soon for this group.';
+
+  @override
+  String get nextUp => 'Next up';
+
+  @override
+  String get upcomingEventsSubtitle => 'Upcoming events for this group';
+
+  @override
+  String get seeAll => 'See all';
+
+  @override
+  String get untitledEvent => '(untitled)';
+
+  @override
+  String get userId => 'User ID';
+
+  @override
+  String teamCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count teams',
+      one: '1 team',
+      zero: 'No teams',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count calendars',
+      one: '1 calendar',
+      zero: 'No calendars',
+    );
+    return '$_temp0';
+  }
 }

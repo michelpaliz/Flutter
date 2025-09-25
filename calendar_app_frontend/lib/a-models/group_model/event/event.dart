@@ -1,4 +1,5 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event_utils.dart' as utils;
+import 'package:calendar_app_frontend/a-models/group_model/event/event_utils.dart'
+    as utils;
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:calendar_app_frontend/a-models/notification_model/updateInfo.dart';
@@ -28,7 +29,7 @@ class Event {
   String? status; // pending | in_progress | done | cancelled | overdue
 
   // -------- Legacy categorization (keep for SIMPLE events) --------
-  String? categoryId;    // parent category
+  String? categoryId; // parent category
   String? subcategoryId; // child under categoryId
 
   // -------- NEW: Work-visit modeling --------
@@ -37,8 +38,8 @@ class Event {
 
   /// For type='work_visit'
   String? clientId;
-  String? primaryServiceId;     // must appear in visitServices
-  String? stopId;               // optional grouping of back-to-back events
+  String? primaryServiceId; // must appear in visitServices
+  String? stopId; // optional grouping of back-to-back events
   List<VisitService> visitServices;
 
   /// Whether the owner should receive notifications (default true).
@@ -82,7 +83,9 @@ class Event {
   // -------- Convenience --------
   bool get ownerMuted => notifyOwner == false;
   bool get isCompleted =>
-      isDone == true || completedAt != null || (status?.toLowerCase() == 'done');
+      isDone == true ||
+      completedAt != null ||
+      (status?.toLowerCase() == 'done');
 
   bool get isWorkVisit => (type.toLowerCase() == 'work_visit');
 
@@ -288,7 +291,22 @@ class Event {
             ? recurrenceRule!.id
             : utils.mapRule(recurrenceRule);
 
-    return {
+    // Whitelist of valid statuses (backend accepts these)
+    const validStatuses = {
+      'pending',
+      'in_progress',
+      'done',
+      'cancelled',
+      'overdue'
+    };
+
+    String? cleanStatus;
+    if (status != null) {
+      final s = status!.trim().toLowerCase().replaceAll(' ', '_');
+      if (validStatuses.contains(s)) cleanStatus = s;
+    }
+
+    final map = <String, dynamic>{
       'startDate': startDate.toUtc().toIso8601String(),
       'endDate': endDate.toUtc().toIso8601String(),
       'title': title,
@@ -307,7 +325,6 @@ class Event {
       'ownerId': ownerId,
       'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
       'notifyOwner': notifyOwner,
-      'status': status,
 
       // legacy (only meaningful when type='simple')
       'categoryId': categoryId,
@@ -320,6 +337,13 @@ class Event {
       'stopId': stopId,
       'visitServices': visitServices.map((v) => v.toMap()).toList(),
     };
+
+    // Only include status if valid
+    if (cleanStatus != null) {
+      map['status'] = cleanStatus;
+    }
+
+    return map;
   }
 
   @override
@@ -411,7 +435,8 @@ class Event {
         break;
     }
     if (rule.untilDate != null) {
-      final dateStr = rule.untilDate!.toLocal().toIso8601String().split('T').first;
+      final dateStr =
+          rule.untilDate!.toLocal().toIso8601String().split('T').first;
       buffer.write(' until $dateStr');
     }
     return buffer.toString();
@@ -456,12 +481,17 @@ class VisitService {
   factory VisitService.fromMap(Map<String, dynamic> map) {
     return VisitService(
       serviceId: map['serviceId']?.toString() ?? '',
-      plannedMinutes: map['plannedMinutes'] is num ? (map['plannedMinutes'] as num).toInt() : null,
-      actualMinutes: map['actualMinutes'] is num ? (map['actualMinutes'] as num).toInt() : null,
+      plannedMinutes: map['plannedMinutes'] is num
+          ? (map['plannedMinutes'] as num).toInt()
+          : null,
+      actualMinutes: map['actualMinutes'] is num
+          ? (map['actualMinutes'] as num).toInt()
+          : null,
       notes: map['notes'] as String?,
     );
   }
 
   @override
-  String toString() => 'VisitService(serviceId: $serviceId, planned: $plannedMinutes, actual: $actualMinutes)';
+  String toString() =>
+      'VisitService(serviceId: $serviceId, planned: $plannedMinutes, actual: $actualMinutes)';
 }

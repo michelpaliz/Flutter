@@ -1,8 +1,9 @@
 import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:provider/provider.dart';
+import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class GroupUpcomingEventsCard extends StatefulWidget {
   final String groupId;
@@ -12,12 +13,13 @@ class GroupUpcomingEventsCard extends StatefulWidget {
   const GroupUpcomingEventsCard({
     super.key,
     required this.groupId,
-    this.daysRange = 14,   // same default window as agenda
-    this.limit = 5,        // show top N concise items
+    this.daysRange = 14, // same default window as agenda
+    this.limit = 5, // show top N concise items
   });
 
   @override
-  State<GroupUpcomingEventsCard> createState() => _GroupUpcomingEventsCardState();
+  State<GroupUpcomingEventsCard> createState() =>
+      _GroupUpcomingEventsCardState();
 }
 
 class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
@@ -51,6 +53,7 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final onSurfaceVar = theme.colorScheme.onSurfaceVariant;
+    final loc = AppLocalizations.of(context)!;
 
     return FutureBuilder<List<Event>>(
       future: _future,
@@ -62,9 +65,12 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
               child: Row(
                 children: [
                   const SizedBox(
-                      width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                   const SizedBox(width: 12),
-                  Text('Loading upcoming…', style: theme.textTheme.bodyMedium),
+                  Text(loc.loadingUpcoming, style: theme.textTheme.bodyMedium),
                 ],
               ),
             ),
@@ -76,7 +82,8 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
               padding: const EdgeInsets.all(16),
               child: Text(
                 snapshot.error.toString(),
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.error),
               ),
             ),
           );
@@ -87,9 +94,11 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
           return Card(
             child: ListTile(
               leading: const Icon(Icons.event_busy_rounded),
-              title: const Text('No upcoming events'),
-              subtitle: Text('Nothing scheduled soon for this group.',
-                  style: TextStyle(color: onSurfaceVar)),
+              title: Text(loc.noUpcomingEvents),
+              subtitle: Text(
+                loc.nothingScheduledSoon,
+                style: TextStyle(color: onSurfaceVar),
+              ),
               trailing: const SizedBox.shrink(),
             ),
           );
@@ -102,16 +111,21 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.upcoming_rounded),
-                  title: const Text('Next up'),
-                  subtitle: Text('Upcoming events for this group',
-                      style: TextStyle(color: onSurfaceVar)),
+                  title: Text(loc.nextUp),
+                  subtitle: Text(
+                    loc.upcomingEventsSubtitle,
+                    style: TextStyle(color: onSurfaceVar),
+                  ),
                   trailing: TextButton(
                     onPressed: () {
                       // “See all” → go to group calendar
-                      Navigator.pushNamed(context, AppRoutes.groupCalendar,
-                          arguments: _GroupStub(groupId: widget.groupId));
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.groupCalendar,
+                        arguments: widget.groupId, // pass the id only
+                      );
                     },
-                    child: const Text('See all'),
+                    child: Text(loc.seeAll),
                   ),
                 ),
                 const Divider(height: 1),
@@ -125,13 +139,6 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
   }
 }
 
-// Minimal stub so we can jump to the group calendar without the full Group object.
-// If you already have the Group in scope at call-site, pass it in the route instead.
-class _GroupStub {
-  final String id;
-  _GroupStub({required String groupId}) : id = groupId;
-}
-
 class _EventRow extends StatelessWidget {
   final Event event;
   const _EventRow({required this.event});
@@ -140,6 +147,8 @@ class _EventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ml = MaterialLocalizations.of(context);
+    final loc = AppLocalizations.of(context)!;
+
     final dateStr = ml.formatMediumDate(event.startDate);
     final timeStr =
         '${ml.formatTimeOfDay(TimeOfDay.fromDateTime(event.startDate))} – ${ml.formatTimeOfDay(TimeOfDay.fromDateTime(event.endDate))}';
@@ -147,11 +156,16 @@ class _EventRow extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.event_note_outlined),
       title: Text(
-        event.title.isEmpty ? '(untitled)' : event.title,
+        event.title.isEmpty ? loc.untitledEvent : event.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text('$dateStr · $timeStr', maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        '$dateStr · $timeStr',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.bodySmall,
+      ),
       onTap: () {
         Navigator.pushNamed(context, AppRoutes.eventDetail, arguments: event);
       },

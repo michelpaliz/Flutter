@@ -1,10 +1,13 @@
 // event_form_work_visit.dart
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/widgets/repetition_toggle_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/description_input_widget.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/reminder_options.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -14,12 +17,16 @@ class EventFormWorkVisit extends StatefulWidget {
   final String ownerUserId;
   final bool isEditing;
 
+  /// Optional: lets the parent/router provide a dialog implementation.
+  final EventDialogs? dialogs;
+
   const EventFormWorkVisit({
     super.key,
     required this.logic,
     required this.onSubmit,
     required this.ownerUserId,
     this.isEditing = false,
+    this.dialogs,
   });
 
   @override
@@ -43,8 +50,31 @@ class _EventFormWorkVisitState extends State<EventFormWorkVisit> {
     _reminder = widget.logic.reminderMinutes;
     _notifyMe = (_reminder ?? 0) > 0;
 
+    // ensure type and wire dialog hook after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.logic.setEventType?.call('work_visit');
+      if (!mounted) return;
+
+      widget.logic.setEventType?.call('work_visit');
+
+      // If a dialog provider is passed and logic hook is not set, wire it.
+      if (widget.dialogs != null &&
+          widget.logic.onShowRepetitionDialog == null) {
+        widget.logic.onShowRepetitionDialog = (
+          BuildContext _,
+          {
+            required DateTime selectedStartDate,
+            required DateTime selectedEndDate,
+            LegacyRecurrenceRule? initialRule,
+          }
+        ) {
+          return widget.dialogs!.showRepetitionDialog(
+            context,
+            selectedStartDate: selectedStartDate,
+            selectedEndDate: selectedEndDate,
+            initialRule: initialRule,
+          );
+        };
+      }
     });
 
     // Preselect if logic already has values
@@ -75,7 +105,7 @@ class _EventFormWorkVisitState extends State<EventFormWorkVisit> {
           items: clients
               .map((c) => DropdownMenuItem(
                     value: c.id,
-                    child: Text(c.displayName ?? c.name ?? 'Client'),
+                    child: Text( c.name ?? 'Client'),
                   ))
               .toList(),
           onChanged: (v) {
@@ -83,7 +113,7 @@ class _EventFormWorkVisitState extends State<EventFormWorkVisit> {
             widget.logic.setClientId?.call(v);
           },
           decoration: InputDecoration(
-            labelText: loc.client, // add "client" in ARB
+            labelText: loc.client,
           ),
         ),
         const SizedBox(height: 10),
@@ -102,13 +132,12 @@ class _EventFormWorkVisitState extends State<EventFormWorkVisit> {
             widget.logic.setPrimaryServiceId?.call(v);
           },
           decoration: InputDecoration(
-            labelText: loc.primaryService, // add "primaryService" in ARB
+            labelText: loc.primaryService,
           ),
         ),
         const SizedBox(height: 12),
 
         // Optional: visit services editor can be added later
-        // (e.g., list of VisitService rows with planned minutes)
 
         ColorPickerWidget(
           selectedEventColor: widget.logic.selectedEventColor == null
@@ -165,6 +194,54 @@ class _EventFormWorkVisitState extends State<EventFormWorkVisit> {
           onSelectedUsersChanged: (selected) {
             widget.logic.setSelectedUsers(selected);
             setState(() {});
+          },
+        ),
+
+        const SizedBox(height: 10),
+
+        RepetitionToggleWidget(
+          key: ValueKey(widget.logic.isRepetitive),
+          isRepetitive: widget.logic.isRepetitive,
+          toggleWidth: widget.logic.toggleWidth,
+          onTap: () async {
+            final wasRepeated = widget.logic.isRepetitive;
+
+            // If no dialog hook is provided, just toggle
+            if (widget.logic.onShowRepetitionDialog == null) {
+              setState(() {
+                widget.logic.toggleRepetition(
+                  !wasRepeated,
+                  wasRepeated ? null : widget.logic.recurrenceRule,
+                );
+              });
+              return;
+            }
+
+            final result = await widget.logic.onShowRepetitionDialog!(
+              context,
+              selectedStartDate: widget.logic.selectedStartDate,
+              selectedEndDate: widget.logic.selectedEndDate,
+              initialRule: widget.logic.recurrenceRule,
+            );
+
+            if (result == null || result.isEmpty) {
+              setState(() {
+                widget.logic.toggleRepetition(
+                  !wasRepeated,
+                  wasRepeated ? null : widget.logic.recurrenceRule,
+                );
+              });
+              return;
+            }
+
+            final LegacyRecurrenceRule? rule =
+                result[0] as LegacyRecurrenceRule?;
+            final bool isRepeated =
+                result.length > 1 ? result[1] as bool : true;
+
+            setState(() {
+              widget.logic.toggleRepetition(isRepeated, rule);
+            });
           },
         ),
 

@@ -2744,6 +2744,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Simple event'**
   String get simpleEvent;
+
+  /// No description provided for @loadingUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading upcoming…'**
+  String get loadingUpcoming;
+
+  /// No description provided for @noUpcomingEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming events'**
+  String get noUpcomingEvents;
+
+  /// No description provided for @nothingScheduledSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled soon for this group.'**
+  String get nothingScheduledSoon;
+
+  /// No description provided for @nextUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Next up'**
+  String get nextUp;
+
+  /// No description provided for @upcomingEventsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming events for this group'**
+  String get upcomingEventsSubtitle;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get seeAll;
+
+  /// No description provided for @untitledEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'(untitled)'**
+  String get untitledEvent;
+
+  /// No description provided for @userId.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get userId;
+
+  /// Pluralized label for team count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {No teams} =1 {1 team} other {{count} teams}}'**
+  String teamCount(int count);
+
+  /// Pluralized label for calendar count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {No calendars} =1 {1 calendar} other {{count} calendars}}'**
+  String calendarCount(int count);
 }
 
 class _AppLocalizationsDelegate

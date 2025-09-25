@@ -1,0 +1,13 @@
+int _initialLimit(BuildContext context) {
+  final w = MediaQuery.of(context).size.width;
+  if (w < 400) return 3;        // small phones
+  if (w < 700) return 5;        // typical phones
+  if (w < 1100) return 6;       // tablets
+  return 8;                     // wide/desktop
+}
+
+\
+GroupUpcomingEventsCard(
+  groupId: groupId,
+  limit: _initialLimit(context),
+)

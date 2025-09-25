@@ -67,6 +67,14 @@ Event buildNewEvent({
   required int eventColorIndex,
   required List<String> recipients,
   required String ownerId,
+
+  // NEW (all optional)
+  String? type, // 'simple' | 'work_visit'
+  String? clientId,
+  String? primaryServiceId,
+  String? categoryId,
+  String? subcategoryId,
+  List<VisitService>? visitServices,
 }) {
   return Event(
     id: id,
@@ -84,6 +92,14 @@ Event buildNewEvent({
     ownerId: ownerId,
     isDone: false,
     completedAt: null,
+
+    // pass through
+    type: type ?? 'work_visit',
+    clientId: clientId,
+    primaryServiceId: primaryServiceId,
+    categoryId: categoryId,
+    subcategoryId: subcategoryId,
+    visitServices: visitServices ?? const [],
   );
 }
 

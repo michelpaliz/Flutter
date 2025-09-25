@@ -56,7 +56,7 @@ class SocketManager {
     if (_socket != null) {
       _socket!.on(event, handler);
     } else {
-      print('ℹ️ Queued handler for "$event" until socket connects.');
+      // print('ℹ️ Queued handler for "$event" until socket connects.');
     }
   }
 

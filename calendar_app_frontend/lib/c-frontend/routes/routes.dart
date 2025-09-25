@@ -7,11 +7,11 @@ import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/dashboard_screen/group_dashboard.dart';
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/members/group_members_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/services_clients/services_clients_screen.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/utils/edit_group_arg.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/group-settings/group_settings.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/screen/main_calendar_view.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/screens/create_group_data.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/edit_group_data.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/utils/edit_group_arg.dart';
+import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/group-settings/group_settings.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/show-groups/group_screen/group_section.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
@@ -26,7 +26,10 @@ import 'package:calendar_app_frontend/c-frontend/h-profile-section/edit/profile_
 import 'package:calendar_app_frontend/c-frontend/h-profile-section/view/profile_view_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/i-settings-section/settings.dart';
 import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
+import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 
 final Map<String, WidgetBuilder> routes = {
   AppRoutes.settings: (context) => const Settings(),
@@ -50,10 +53,31 @@ final Map<String, WidgetBuilder> routes = {
     return user != null ? ShowNotifications(user: user) : SizedBox.shrink();
   },
   AppRoutes.groupCalendar: (context) {
-    final group = ModalRoute.of(context)?.settings.arguments as Group?;
-    if (group == null) return const SizedBox.shrink();
-    return MainCalendarView(group: group);
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    // If a full Group was passed, use it directly
+    if (args is Group) return MainCalendarView(group: args);
+
+    // If a groupId was passed, load it first
+    if (args is String && args.isNotEmpty) {
+      return FutureBuilder<Group>(
+        future: context.read<GroupManagement>().groupService.getGroupById(args),
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError || !snap.hasData) {
+            return const Center(child: Text('Could not load group'));
+          }
+          return MainCalendarView(group: snap.data!);
+        },
+      );
+    }
+
+    // Fallback for bad arguments
+    return const Center(child: Text('Invalid group argument'));
   },
+
   AppRoutes.addEvent: (context) {
     final group = ModalRoute.of(context)!.settings.arguments as Group?;
     if (group == null) return const SizedBox.shrink();

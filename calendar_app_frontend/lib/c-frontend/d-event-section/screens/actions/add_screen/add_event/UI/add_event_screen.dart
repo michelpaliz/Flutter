@@ -1,9 +1,10 @@
 // add_event_screen.dart
+import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart'; // ⬅️ needed for the hook signature
 import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
 import 'package:calendar_app_frontend/b-backend/api/category/category_services.dart';
 import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form.dart';
+import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
 import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
@@ -51,10 +52,25 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
     try {
       await initializeLogic(widget.group, context);
 
-      // Optional now that validation is reactive; harmless to keep.
+      // (Optional) keep reactive title validity update
       titleController.addListener(() {
         if (mounted) setState(() {});
       });
+
+      // 🔗 Wire the repetition dialog hook so forms can open it
+      onShowRepetitionDialog = (
+        BuildContext _, {
+        required DateTime selectedStartDate,
+        required DateTime selectedEndDate,
+        LegacyRecurrenceRule? initialRule,
+      }) {
+        return showRepetitionDialog(
+          context,
+          selectedStartDate: selectedStartDate,
+          selectedEndDate: selectedEndDate,
+          initialRule: initialRule,
+        );
+      };
     } catch (e, s) {
       debugPrint('AddEventScreen init failed: $e\n$s');
       if (mounted) {
@@ -77,12 +93,12 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    // inside _AddEventScreenState.build(...)
+    // single source of truth for CategoryApi
     final categoryApi = CategoryApi(
-      baseUrl: ApiConstants.baseUrl, // ✅ single source of truth
+      baseUrl: ApiConstants.baseUrl,
       headersProvider: () async {
         final auth = context.read<AuthProvider>();
-        final token = await auth.getToken(); // returns null if not logged in
+        final token = await auth.getToken();
         return {
           if (token != null && token.isNotEmpty)
             'Authorization': 'Bearer $token',
@@ -102,21 +118,21 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
                 onSubmit: () async {
                   final ok = await withLoadingDialog<bool>(
                     context,
-                    () => addEvent(context), // ✅ call method on this state
+                    () => addEvent(context),
                     message: AppLocalizations.of(context)!.createEventMessage,
                   );
                   if (ok == true && context.mounted) {
                     Navigator.pop(context, true);
                   } else {
-                    showErrorDialog(
-                        context); // ✅ this state implements EventDialogs
+                    showErrorDialog(context);
                   }
                 },
                 ownerUserId: context.read<UserManagement>().user!.id,
                 isEditing: false,
-                // pass only what each leaf form needs; router forwards to the right one
                 categoryApi: categoryApi,
-              )),
+                dialogs: this,
+              ),
+            ),
     );
   }
 

@@ -1543,4 +1543,53 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get simpleEvent => 'Evento simple';
+
+  @override
+  String get loadingUpcoming => 'Cargando próximos…';
+
+  @override
+  String get noUpcomingEvents => 'No hay eventos próximos';
+
+  @override
+  String get nothingScheduledSoon =>
+      'No hay eventos programados pronto para este grupo.';
+
+  @override
+  String get nextUp => 'Próximos';
+
+  @override
+  String get upcomingEventsSubtitle => 'Eventos próximos para este grupo';
+
+  @override
+  String get seeAll => 'Ver todos';
+
+  @override
+  String get untitledEvent => '(sin título)';
+
+  @override
+  String get userId => 'ID de usuario';
+
+  @override
+  String teamCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos',
+      one: '1 equipo',
+      zero: 'Sin equipos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count calendarios',
+      one: '1 calendario',
+      zero: 'Sin calendarios',
+    );
+    return '$_temp0';
+  }
 }
