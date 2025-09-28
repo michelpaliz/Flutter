@@ -99,6 +99,24 @@ class GroupDashboard extends StatelessWidget {
               },
             ),
           ),
+          const SizedBox(height: 8),
+          // ---- Insights / Graphs ----
+          _SectionHeader(title: l.sectionInsights),
+          Card(
+            color: ThemeColors.getListTileBackgroundColor(context),
+            child: ListTile(
+              leading: const Icon(Icons.insights_outlined),
+              title: Text(l.insightsTitle),
+              subtitle: Text(l.insightsSubtitle),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.groupInsights,
+                  arguments: group,
+                );
+              },
+            ),
+          ),
 
           const SizedBox(height: 20),
 

@@ -967,5 +967,32 @@
         "type": "int"
       }
     }
-  }
+  },
+  "nothingScheduledSoonForThisGroup": "No hay nada programado pronto para este grupo.",
+  "upcomingEventsForThisGroup": "Eventos próximos de este grupo",
+  "untitled": "(sin título)",
+  "allTypes": "Todos",
+  "simpleEvents": "Simple",
+  "workVisits": "Trabajo",
+  "byCategory": "por categoría",
+  "sectionInsights": "Gráficas",
+  "insightsTitle": "Gráficas e Informes",
+  "insightsSubtitle": "Tiempo invertido por cliente o servicio",
+  "timeByClient": "Tiempo por Cliente",
+  "timeByService": "Tiempo por Servicio",
+  "noDataRange": "No hay datos en este rango",
+  "dateRange7d": "7d",
+  "dateRange30d": "30d",
+  "dateRange3m": "3m",
+  "dateRange4m": "4m",
+  "dateRange6m": "6m",
+  "dateRange1y": "1a",
+  "dateRangeYTD": "Año en curso",
+  "dateRangeCustom": "Personalizado",
+  "filterDimensionClients": "Clientes",
+  "filterDimensionServices": "Servicios",
+  "filterTypeAll": "Todos",
+  "filterTypeSimple": "Simple",
+  "filterTypeWork": "Trabajo",
+  "insightsHintUpcomingOnly": "Mostrando solo datos futuros. Para rangos pasados, habilita la búsqueda por rango en el servidor."
 }

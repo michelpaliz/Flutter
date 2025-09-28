@@ -835,123 +835,159 @@
     "servicesClientsTitle": "Services & Clients",
     "servicesClientsSubtitle": "Create and manage services/clients",
     "noCalendarWarning": "This group has no calendar linked yet.",
-  "sectionFilters": "Filters",
-  "noMembersTitle": "No members",
-  "noMembersMatchFilters": "No members match these filters.",
-  "tryAdjustingFilters": "Try adjusting the filters above.",
-  "statusAccepted": "Accepted",
-
-  "statusNotAccepted": "Not accepted",
-  "errorLoadingUser": "Error loading user: {error}",
-  "@errorLoadingUser": {
-    "placeholders": { "error": { "type": "String" } }
-  },
-  "viewProfile": "View profile",
-  "message": "Message",
-  "changeRole": "Change role",
-  "removeFromGroup": "Remove from group",
-  "roleOwner": "Owner",
-  "roleAdmin": "Admin",
-  "roleMember": "Member",
-
-  "details": "Details",
-  "edit": "Edit",
-  "addToContacts": "Add to contact",
-  "share": "Share",
-  "copiedToClipboard": "Copied!",
-  "comingSoon": "Coming soon",
-
-  "team": "Team",
-  "teams": "Teams",
-
-  "calendars": "Calendars",
-
-  "teamsCount": "{count, plural, one {# team} other {# teams}}",
-  "@teamsCount": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-
-  "calendarsCount": "{count, plural, one {# calendar} other {# calendars}}",
-  "@calendarsCount": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-
-  "notificationsCount": "{count, plural, one {# notification} other {# notifications}}",
-  "@notificationsCount": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-
-  "clearAllConfirm": "Are you sure you want to remove all notifications?",
-  "@clearAllConfirm": {
-    "description": "Confirmation message shown before removing all notifications."
-  },
-
-  "clearedAllNotifications": "All notifications have been cleared.",
-  "@clearedAllNotifications": {
-    "description": "Message shown after successfully clearing all notifications."
-  },
-  "error": "Error",
-  "@error": {
-    "description": "Generic label for displaying error messages."
-  },
-  "typeNameOrEmail": "Type name or email address",
-  "@typeNameOrEmail": {
-    "description": "Placeholder text for the search bar when adding people to a group."
-  },
-
-  "noMatchesForX": "No matches found for \"{query}\"",
-  "@noMatchesForX": {
-    "description": "Message shown when there are no search results for a given query.",
-    "placeholders": {
-      "query": {
-        "type": "String",
-        "example": "John Doe"
-      }
-    }
-  },
-
-  "inviteByEmail": "Invite by Email",
-  "@inviteByEmail": {
-    "description": "Button text to invite someone by email when no search results are found."
-  },
-
-  "noMatchesInvite": "No matches found. Would you like to invite them by email?",
-  "@noMatchesInvite": {
-    "description": "Message shown when no results are found and user may invite by email."
-  },
-
-  "addPeople": "Add People",
-  "@addPeople": {
-    "description": "Default label for the button when no users are selected."
-  },
-
-  "add": "Add",
-  "@add": {
-    "description": "Short action label for adding selected people to the group."
-  },
-  "jobTitle": "Job title",
-  "addPhoto": "Add a photo",
-  "client": "Client",
-  "primaryService": "Primary service",
-  "workVisit": "Work visit",
-  "simpleEvent": "Simple event",
-  "loadingUpcoming": "Loading upcoming…",
-  "noUpcomingEvents": "No upcoming events",
-  "nothingScheduledSoon": "Nothing scheduled soon for this group.",
-  "nextUp": "Next up",
-  "upcomingEventsSubtitle": "Upcoming events for this group",
-  "seeAll": "See all",
-  "untitledEvent": "(untitled)",
-  "userId": "User ID",
-  "teamCount": "{count, plural, =0 {No teams} =1 {1 team} other {{count} teams}}",
-  "@teamCount": {
-    "description": "Pluralized label for team count",
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "calendarCount": "{count, plural, =0 {No calendars} =1 {1 calendar} other {{count} calendars}}",
-  "@calendarCount": {
-    "description": "Pluralized label for calendar count",
-    "placeholders": { "count": { "type": "int" } }
-  }
-
+    "sectionFilters": "Filters",
+    "noMembersTitle": "No members",
+    "noMembersMatchFilters": "No members match these filters.",
+    "tryAdjustingFilters": "Try adjusting the filters above.",
+    "statusAccepted": "Accepted",
+    "statusNotAccepted": "Not accepted",
+    "errorLoadingUser": "Error loading user: {error}",
+    "@errorLoadingUser": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "viewProfile": "View profile",
+    "message": "Message",
+    "changeRole": "Change role",
+    "removeFromGroup": "Remove from group",
+    "roleOwner": "Owner",
+    "roleAdmin": "Admin",
+    "roleMember": "Member",
+    "details": "Details",
+    "edit": "Edit",
+    "addToContacts": "Add to contact",
+    "share": "Share",
+    "copiedToClipboard": "Copied!",
+    "comingSoon": "Coming soon",
+    "team": "Team",
+    "teams": "Teams",
+    "calendars": "Calendars",
+    "teamsCount": "{count, plural, one {# team} other {# teams}}",
+    "@teamsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "calendarsCount": "{count, plural, one {# calendar} other {# calendars}}",
+    "@calendarsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "notificationsCount": "{count, plural, one {# notification} other {# notifications}}",
+    "@notificationsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "clearAllConfirm": "Are you sure you want to remove all notifications?",
+    "@clearAllConfirm": {
+        "description": "Confirmation message shown before removing all notifications."
+    },
+    "clearedAllNotifications": "All notifications have been cleared.",
+    "@clearedAllNotifications": {
+        "description": "Message shown after successfully clearing all notifications."
+    },
+    "error": "Error",
+    "@error": {
+        "description": "Generic label for displaying error messages."
+    },
+    "typeNameOrEmail": "Type name or email address",
+    "@typeNameOrEmail": {
+        "description": "Placeholder text for the search bar when adding people to a group."
+    },
+    "noMatchesForX": "No matches found for \"{query}\"",
+    "@noMatchesForX": {
+        "description": "Message shown when there are no search results for a given query.",
+        "placeholders": {
+            "query": {
+                "type": "String",
+                "example": "John Doe"
+            }
+        }
+    },
+    "inviteByEmail": "Invite by Email",
+    "@inviteByEmail": {
+        "description": "Button text to invite someone by email when no search results are found."
+    },
+    "noMatchesInvite": "No matches found. Would you like to invite them by email?",
+    "@noMatchesInvite": {
+        "description": "Message shown when no results are found and user may invite by email."
+    },
+    "addPeople": "Add People",
+    "@addPeople": {
+        "description": "Default label for the button when no users are selected."
+    },
+    "add": "Add",
+    "@add": {
+        "description": "Short action label for adding selected people to the group."
+    },
+    "jobTitle": "Job title",
+    "addPhoto": "Add a photo",
+    "client": "Client",
+    "primaryService": "Primary service",
+    "workVisit": "Work visit",
+    "simpleEvent": "Simple event",
+    "loadingUpcoming": "Loading upcoming…",
+    "noUpcomingEvents": "No upcoming events",
+    "nothingScheduledSoon": "Nothing scheduled soon for this group.",
+    "nextUp": "Next up",
+    "upcomingEventsSubtitle": "Upcoming events for this group",
+    "seeAll": "See all",
+    "untitledEvent": "(untitled)",
+    "userId": "User ID",
+    "teamCount": "{count, plural, =0 {No teams} =1 {1 team} other {{count} teams}}",
+    "@teamCount": {
+        "description": "Pluralized label for team count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "calendarCount": "{count, plural, =0 {No calendars} =1 {1 calendar} other {{count} calendars}}",
+    "@calendarCount": {
+        "description": "Pluralized label for calendar count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "nothingScheduledSoonForThisGroup": "Nothing scheduled soon for this group.",
+    "upcomingEventsForThisGroup": "Upcoming events for this group",
+    "untitled": "(untitled)",
+    "allTypes": "All",
+    "simpleEvents": "Simple",
+    "workVisits": "Work",
+    "byCategory": "by category",
+    "sectionInsights": "Insights",
+    "insightsTitle": "Insights & Graphs",
+    "insightsSubtitle": "Time spent by client or service",
+    "timeByClient": "Time by Client",
+    "timeByService": "Time by Service",
+    "noDataRange": "No data in this range",
+    "dateRange7d": "7d",
+    "dateRange30d": "30d",
+    "dateRange3m": "3m",
+    "dateRange4m": "4m",
+    "dateRange6m": "6m",
+    "dateRange1y": "1y",
+    "dateRangeYTD": "YTD",
+    "dateRangeCustom": "Custom",
+    "filterDimensionClients": "Clients",
+    "filterDimensionServices": "Services",
+    "filterTypeAll": "All",
+    "filterTypeSimple": "Simple",
+    "filterTypeWork": "Work",
+    "insightsHintUpcomingOnly": "Showing upcoming data only. For past ranges, please enable server-side range fetch."
 }

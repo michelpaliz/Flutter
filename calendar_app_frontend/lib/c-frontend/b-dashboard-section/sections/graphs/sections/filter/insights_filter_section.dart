@@ -1,7 +1,6 @@
-// lib/c-frontend/b-dashboard-section/sections/insights/insights_filters_section.dart
+import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/graphs/enum/insights_types.dart';
 import 'package:calendar_app_frontend/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'insights_types.dart';
 
 class InsightsFiltersSection extends StatelessWidget {
   final RangePreset preset;

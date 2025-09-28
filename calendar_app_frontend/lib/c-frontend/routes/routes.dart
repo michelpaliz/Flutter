@@ -5,6 +5,7 @@ import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
 import 'package:calendar_app_frontend/a-models/user_model/user.dart';
 import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/dashboard_screen/group_dashboard.dart';
+import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/graphs/group_insights_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/members/group_members_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/services_clients/services_clients_screen.dart';
 import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/screen/main_calendar_view.dart';
@@ -30,7 +31,6 @@ import 'package:calendar_app_frontend/d-stateManagement/group/group_management.d
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-
 final Map<String, WidgetBuilder> routes = {
   AppRoutes.settings: (context) => const Settings(),
   AppRoutes.loginRoute: (context) => LoginView(),
@@ -42,6 +42,13 @@ final Map<String, WidgetBuilder> routes = {
     if (group == null) return const SizedBox.shrink();
     return GroupDashboard(group: group);
   },
+
+  AppRoutes.groupInsights: (context) {
+    final group = ModalRoute.of(context)?.settings.arguments as Group?;
+    if (group == null) return const SizedBox.shrink();
+    return GroupInsightsScreen(group: group);
+  },
+
   AppRoutes.editEvent: (context) {
     final event = ModalRoute.of(context)?.settings.arguments as Event?;
     return event != null ? EditEventScreen(event: event) : SizedBox.shrink();

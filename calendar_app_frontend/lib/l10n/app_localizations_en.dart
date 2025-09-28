@@ -1578,4 +1578,87 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get nothingScheduledSoonForThisGroup =>
+      'Nothing scheduled soon for this group.';
+
+  @override
+  String get upcomingEventsForThisGroup => 'Upcoming events for this group';
+
+  @override
+  String get untitled => '(untitled)';
+
+  @override
+  String get allTypes => 'All';
+
+  @override
+  String get simpleEvents => 'Simple';
+
+  @override
+  String get workVisits => 'Work';
+
+  @override
+  String get byCategory => 'by category';
+
+  @override
+  String get sectionInsights => 'Insights';
+
+  @override
+  String get insightsTitle => 'Insights & Graphs';
+
+  @override
+  String get insightsSubtitle => 'Time spent by client or service';
+
+  @override
+  String get timeByClient => 'Time by Client';
+
+  @override
+  String get timeByService => 'Time by Service';
+
+  @override
+  String get noDataRange => 'No data in this range';
+
+  @override
+  String get dateRange7d => '7d';
+
+  @override
+  String get dateRange30d => '30d';
+
+  @override
+  String get dateRange3m => '3m';
+
+  @override
+  String get dateRange4m => '4m';
+
+  @override
+  String get dateRange6m => '6m';
+
+  @override
+  String get dateRange1y => '1y';
+
+  @override
+  String get dateRangeYTD => 'YTD';
+
+  @override
+  String get dateRangeCustom => 'Custom';
+
+  @override
+  String get filterDimensionClients => 'Clients';
+
+  @override
+  String get filterDimensionServices => 'Services';
+
+  @override
+  String get filterTypeAll => 'All';
+
+  @override
+  String get filterTypeSimple => 'Simple';
+
+  @override
+  String get filterTypeWork => 'Work';
+
+  @override
+  String get insightsHintUpcomingOnly =>
+      'Showing upcoming data only. For past ranges, please enable server-side range fetch.';
 }

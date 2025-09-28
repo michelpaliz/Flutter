@@ -31,4 +31,6 @@ class AppRoutes {
   static const createGroupSearchBar = '/create-group-search-bar';
 
   static const settings = '/settings';
+
+  static const groupInsights = '/group-insights';
 }

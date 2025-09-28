@@ -2804,6 +2804,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0 {No calendars} =1 {1 calendar} other {{count} calendars}}'**
   String calendarCount(int count);
+
+  /// No description provided for @nothingScheduledSoonForThisGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled soon for this group.'**
+  String get nothingScheduledSoonForThisGroup;
+
+  /// No description provided for @upcomingEventsForThisGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming events for this group'**
+  String get upcomingEventsForThisGroup;
+
+  /// No description provided for @untitled.
+  ///
+  /// In en, this message translates to:
+  /// **'(untitled)'**
+  String get untitled;
+
+  /// No description provided for @allTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allTypes;
+
+  /// No description provided for @simpleEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple'**
+  String get simpleEvents;
+
+  /// No description provided for @workVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get workVisits;
+
+  /// No description provided for @byCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'by category'**
+  String get byCategory;
+
+  /// No description provided for @sectionInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get sectionInsights;
+
+  /// No description provided for @insightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights & Graphs'**
+  String get insightsTitle;
+
+  /// No description provided for @insightsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time spent by client or service'**
+  String get insightsSubtitle;
+
+  /// No description provided for @timeByClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Time by Client'**
+  String get timeByClient;
+
+  /// No description provided for @timeByService.
+  ///
+  /// In en, this message translates to:
+  /// **'Time by Service'**
+  String get timeByService;
+
+  /// No description provided for @noDataRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No data in this range'**
+  String get noDataRange;
+
+  /// No description provided for @dateRange7d.
+  ///
+  /// In en, this message translates to:
+  /// **'7d'**
+  String get dateRange7d;
+
+  /// No description provided for @dateRange30d.
+  ///
+  /// In en, this message translates to:
+  /// **'30d'**
+  String get dateRange30d;
+
+  /// No description provided for @dateRange3m.
+  ///
+  /// In en, this message translates to:
+  /// **'3m'**
+  String get dateRange3m;
+
+  /// No description provided for @dateRange4m.
+  ///
+  /// In en, this message translates to:
+  /// **'4m'**
+  String get dateRange4m;
+
+  /// No description provided for @dateRange6m.
+  ///
+  /// In en, this message translates to:
+  /// **'6m'**
+  String get dateRange6m;
+
+  /// No description provided for @dateRange1y.
+  ///
+  /// In en, this message translates to:
+  /// **'1y'**
+  String get dateRange1y;
+
+  /// No description provided for @dateRangeYTD.
+  ///
+  /// In en, this message translates to:
+  /// **'YTD'**
+  String get dateRangeYTD;
+
+  /// No description provided for @dateRangeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get dateRangeCustom;
+
+  /// No description provided for @filterDimensionClients.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients'**
+  String get filterDimensionClients;
+
+  /// No description provided for @filterDimensionServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get filterDimensionServices;
+
+  /// No description provided for @filterTypeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterTypeAll;
+
+  /// No description provided for @filterTypeSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple'**
+  String get filterTypeSimple;
+
+  /// No description provided for @filterTypeWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get filterTypeWork;
+
+  /// No description provided for @insightsHintUpcomingOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing upcoming data only. For past ranges, please enable server-side range fetch.'**
+  String get insightsHintUpcomingOnly;
 }
 
 class _AppLocalizationsDelegate
