@@ -1,10 +1,11 @@
 import 'dart:math' as math;
-import 'package:hexora/l10n/app_localizations.dart';
+
 import 'package:flutter/material.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 class InsightsBarsCard extends StatelessWidget {
   final String title;
-  final Map<String, int> minutesByKey; // key = clientId/serviceId (or name)
+  final Map<String, int> minutesByKey;
 
   const InsightsBarsCard({
     super.key,
@@ -31,27 +32,57 @@ class InsightsBarsCard extends StatelessWidget {
       return '${h}h ${m}m';
     }
 
+    Widget emptyState() => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 8),
+              Icon(Icons.query_stats_rounded,
+                  size: 64, color: cs.onSurfaceVariant.withOpacity(.6)),
+              const SizedBox(height: 10),
+              Text(
+                // You can localize this pair later if you prefer
+                (l.localeName.startsWith('es'))
+                    ? 'No hay datos para este periodo'
+                    : 'No data for this period',
+                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                (l.localeName.startsWith('es'))
+                    ? 'Ajusta el rango o activa la búsqueda por rango en el servidor.'
+                    : 'Adjust the range or enable server-side range queries.',
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+            ],
+          ),
+        );
+
     return Card(
       elevation: 0,
-      color: cs.surfaceVariant,
+      color: cs.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(title,
+                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             if (top.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(l.noDataRange,
-                    style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
-              )
+              emptyState()
             else
               ...top.map((e) {
-                final label = e.key; // map IDs to human names upstream if desired
+                final label =
+                    e.key; // map ID -> display name upstream if available
                 final minutes = e.value;
                 final factor = maxVal == 0 ? 0.0 : minutes / maxVal;
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Row(
@@ -78,7 +109,8 @@ class InsightsBarsCard extends StatelessWidget {
                             ),
                             Positioned.fill(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
@@ -99,11 +131,8 @@ class InsightsBarsCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       SizedBox(
                         width: 64,
-                        child: Text(
-                          fmt(minutes),
-                          textAlign: TextAlign.right,
-                          style: tt.bodyMedium,
-                        ),
+                        child: Text(fmt(minutes),
+                            textAlign: TextAlign.right, style: tt.bodyMedium),
                       ),
                     ],
                   ),
