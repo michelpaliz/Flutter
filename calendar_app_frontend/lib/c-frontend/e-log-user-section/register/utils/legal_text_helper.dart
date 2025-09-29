@@ -1,7 +1,6 @@
-
-import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 /// Builds the Terms + Privacy Policy RichText
 Widget buildLegalText(BuildContext context) {
@@ -22,7 +21,7 @@ Widget buildLegalText(BuildContext context) {
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
               // TODO: implement navigation / url_launcher
-              // final uri = Uri.parse("https://example.com/terms");
+              // final uri = Uri.parse("https://fastezcodecom/terms");
               // if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {}
             },
         ),
@@ -33,7 +32,7 @@ Widget buildLegalText(BuildContext context) {
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
               // TODO: implement navigation / url_launcher
-              // final uri = Uri.parse("https://example.com/privacy");
+              // final uri = Uri.parse("https://fastezcodecom/privacy");
               // if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {}
             },
         ),

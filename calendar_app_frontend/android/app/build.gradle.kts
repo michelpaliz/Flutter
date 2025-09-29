@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.hexora.app"
+        applicationId = "com.fastezcode.hexora.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
