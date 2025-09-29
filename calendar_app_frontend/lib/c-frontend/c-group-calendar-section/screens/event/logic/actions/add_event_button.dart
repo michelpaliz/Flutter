@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/l10n/app_localizations.dart'; // ⬅️ Add this
+import 'package:hexora/l10n/app_localizations.dart'; // ⬅️ Add this
 import 'package:flutter/material.dart';
 
 /// A rounded, icon-topped button for adding a new calendar event.

@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/c-frontend/g-agenda-section/widgets/agenda_categories.dart';
-import 'package:calendar_app_frontend/c-frontend/g-agenda-section/widgets/type_chips.dart';
+import 'package:hexora/c-frontend/g-agenda-section/widgets/agenda_categories.dart';
+import 'package:hexora/c-frontend/g-agenda-section/widgets/type_chips.dart';
 import 'package:flutter/material.dart';
 
 

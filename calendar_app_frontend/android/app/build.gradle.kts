@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.calendar_app_rebuild"
+    namespace = "com.fastezcode.hexora"
     compileSdk = flutter.compileSdkVersion
 
     // ✅ Set required NDK version explicitly
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.calendar_app_rebuild"
+        applicationId = "com.hexora.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -1,13 +1,13 @@
 // add_event_screen.dart
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart'; // ⬅️ needed for the hook signature
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:calendar_app_frontend/b-backend/api/category/category_services.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart'; // ⬅️ needed for the hook signature
+import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/api/category/category_services.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

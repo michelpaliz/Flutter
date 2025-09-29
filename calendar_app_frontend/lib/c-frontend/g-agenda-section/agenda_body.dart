@@ -1,6 +1,6 @@
 // lib/c-frontend/b-calendar-section/screens/agenda/agenda_body.dart
-import 'package:calendar_app_frontend/a-models/group_model/agenda/agenda_model.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/agenda/agenda_model.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/a-models/group_model/agenda/agenda_model.dart';
-import 'package:calendar_app_frontend/c-frontend/g-agenda-section/widgets/agenda_sliver.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/agenda/agenda_model.dart';
+import 'package:hexora/c-frontend/g-agenda-section/widgets/agenda_sliver.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 class AgendaListSection extends StatelessWidget {
   final List<AgendaItem> filteredItems;

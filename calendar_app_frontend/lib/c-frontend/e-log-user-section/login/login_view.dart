@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/c-frontend/e-log-user-section/shared_utilities/auth_switcher_view.dart';
+import 'package:hexora/c-frontend/e-log-user-section/shared_utilities/auth_switcher_view.dart';
 import 'package:flutter/material.dart';
 
 class LoginView extends StatelessWidget {

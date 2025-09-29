@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
 import 'package:http/http.dart' as http;
 
 class UploadResult {

@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 
 
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_content_builder.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/async_loaders/event_future_content.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/event_compact_view.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/event_details_card.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/schedule_card_view.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/timeline_strip_widget.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_content_builder.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/async_loaders/event_future_content.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/event_compact_view.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/event_details_card.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/schedule_card_view.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/timeline_strip_widget.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 

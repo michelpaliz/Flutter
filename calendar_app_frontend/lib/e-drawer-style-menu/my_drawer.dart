@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/e-drawer-style-menu/horizontal_drawer_nav.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
+import 'package:hexora/e-drawer-style-menu/horizontal_drawer_nav.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class MyDrawer extends StatelessWidget {

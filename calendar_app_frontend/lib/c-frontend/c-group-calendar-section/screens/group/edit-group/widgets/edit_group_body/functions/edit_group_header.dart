@@ -1,8 +1,8 @@
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/form/group_description_field.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/form/group_image_section.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/form/group_name_field.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/form/group_description_field.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/form/group_image_section.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/form/group_name_field.dart';
 
-import 'package:calendar_app_frontend/f-themes/shape/solid/solid_header.dart';
+import 'package:hexora/f-themes/shape/solid/solid_header.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 

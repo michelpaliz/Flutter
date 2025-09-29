@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/a-models/group_model/event/event_group_resolver.dart';
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/b-backend/api/group/error_classes/error_classes.dart';
-import 'package:calendar_app_frontend/b-backend/api/group/group_services.dart';
-import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/group_model/event/event_group_resolver.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/api/group/error_classes/error_classes.dart';
+import 'package:hexora/b-backend/api/group/group_services.dart';
+import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 class GroupManagement extends ChangeNotifier {

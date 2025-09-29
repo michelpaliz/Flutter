@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
+import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class RepetitionResult {

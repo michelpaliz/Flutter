@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/f-themes/utilities/utilities.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 

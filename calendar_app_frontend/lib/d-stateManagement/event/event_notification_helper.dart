@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/c-frontend/f-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/c-frontend/f-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

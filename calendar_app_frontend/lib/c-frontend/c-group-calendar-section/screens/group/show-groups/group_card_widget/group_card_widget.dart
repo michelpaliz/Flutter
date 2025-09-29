@@ -1,10 +1,10 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/invited-user/group_role_extension.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/show-groups/group_profile/dialog_choosement/profile_alert_dialog.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/invited-user/group_role_extension.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_profile/dialog_choosement/profile_alert_dialog.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

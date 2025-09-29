@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/group_model/calendar/calendar.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/group_model/calendar/calendar.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 
 class Group {
   // Core

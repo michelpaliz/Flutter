@@ -1,14 +1,14 @@
 // lib/.../calendar/main_calendar_view.dart
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/logic/calendar_screen_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/add_event_cta.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/presence_status_strip.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/logic/calendar_screen_controller.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/add_event_cta.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/presence_status_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/group_permissions_helper.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/group_permissions_helper.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 
 
 class MainCalendarView extends StatefulWidget {

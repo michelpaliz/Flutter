@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:calendar_app_frontend/a-models/group_model/client/client.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:hexora/a-models/group_model/client/client.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
 import 'package:http/http.dart' as http;
 
 class ClientsApi {

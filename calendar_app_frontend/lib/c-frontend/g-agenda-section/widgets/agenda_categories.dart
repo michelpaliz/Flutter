@@ -1,6 +1,6 @@
 // lib/c-frontend/b-calendar-section/screens/agenda/widgets/agenda_categories.dart
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 class AgendaCategories extends StatelessWidget {
   final String selected;

@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
-import 'package:calendar_app_frontend/c-frontend/f-notification-section/enum/broad_category.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/notification_model/notification_user.dart';
+import 'package:hexora/c-frontend/f-notification-section/enum/broad_category.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class NotificationFilterBar extends StatelessWidget {

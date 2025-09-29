@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/user_model/user.dart';
 
 /// Extension to resolve the user's role in a group
 extension GroupRoleExtension on Group {

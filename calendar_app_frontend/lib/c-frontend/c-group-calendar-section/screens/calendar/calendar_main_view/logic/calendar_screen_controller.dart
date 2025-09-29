@@ -1,21 +1,21 @@
 // lib/.../calendar/controller/calendar_screen_controller.dart
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/app_screen_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_ui_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_content_builder.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/presence_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/api/socket/socket_manager.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/app_screen_manager.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_ui_controller.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_content_builder.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/notification/notification_management.dart';
+import 'package:hexora/d-stateManagement/user/presence_manager.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

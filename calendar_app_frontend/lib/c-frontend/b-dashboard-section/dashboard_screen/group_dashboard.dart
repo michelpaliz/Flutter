@@ -1,10 +1,10 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/upcoming_events/group_upcoming_events.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/e-drawer-style-menu/contextual_fab.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/upcoming_events/group_upcoming_events.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/e-drawer-style-menu/contextual_fab.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/utilities/utilities.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-        android:label="calendar_app_rebuild"
+        android:label="Hexora"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         

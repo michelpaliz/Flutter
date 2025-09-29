@@ -1,8 +1,8 @@
-// import 'package:calendar_app_frontend/models/user.dart';
-// import 'package:calendar_app_frontend/services/firestore_database/logic_backend/firestore_service.dart';
-// import 'package:calendar_app_frontend/utilities/utilities.dart';
+// import 'package:hexora/models/user.dart';
+// import 'package:hexora/services/firestore_database/logic_backend/firestore_service.dart';
+// import 'package:hexora/utilities/utilities.dart';
 // import 'package:flutter/material.dart';
-// import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+// import 'package:hexora/l10n/app_localizations.dart';
 // import 'dart:developer' as devtools show log;
 
 // //** REMOVE AN USER */

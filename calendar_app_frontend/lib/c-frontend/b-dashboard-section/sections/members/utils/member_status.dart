@@ -1,5 +1,5 @@
 // c-frontend/b-calendar-section/screens/group-screen/members/utils/member_status.dart
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 
 String statusFor(
   String username,

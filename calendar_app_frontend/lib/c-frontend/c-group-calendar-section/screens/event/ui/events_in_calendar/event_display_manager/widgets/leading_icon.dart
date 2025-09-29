@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
 
 /// Re-usable round badge icon for every event card / strip.
 Widget buildLeadingIcon(Color cardColor, Event event, {double size = 36}) {

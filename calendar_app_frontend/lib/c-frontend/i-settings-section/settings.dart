@@ -1,11 +1,11 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/password_exceptions.dart';
-import 'package:calendar_app_frontend/d-stateManagement/local/LocaleProvider.dart';
-import 'package:calendar_app_frontend/d-stateManagement/theme/theme_preference_provider.dart';
-import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
-import 'package:calendar_app_frontend/f-themes/themes/define_colors/theme_data.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/api/auth/exceptions/password_exceptions.dart';
+import 'package:hexora/d-stateManagement/local/LocaleProvider.dart';
+import 'package:hexora/d-stateManagement/theme/theme_preference_provider.dart';
+import 'package:hexora/f-themes/palette/app_colors.dart';
+import 'package:hexora/f-themes/themes/define_colors/theme_data.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

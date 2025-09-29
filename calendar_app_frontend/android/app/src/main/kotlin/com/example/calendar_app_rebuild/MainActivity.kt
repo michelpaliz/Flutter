@@ -1,4 +1,4 @@
-package com.example.calendar_app_rebuild
+package com.example.hexora
 
 import io.flutter.embedding.android.FlutterActivity
 

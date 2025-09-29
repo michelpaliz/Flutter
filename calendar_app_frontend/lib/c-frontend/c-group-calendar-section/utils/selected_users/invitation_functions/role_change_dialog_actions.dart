@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:flutter/material.dart';
 
 class RoleChangeDialogActions {

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "calendar_app_rebuild" "\0"
+            VALUE "FileDescription", "hexora" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "calendar_app_rebuild" "\0"
+            VALUE "InternalName", "hexora" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "calendar_app_rebuild.exe" "\0"
-            VALUE "ProductName", "calendar_app_rebuild" "\0"
+            VALUE "OriginalFilename", "hexora.exe" "\0"
+            VALUE "ProductName", "hexora" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

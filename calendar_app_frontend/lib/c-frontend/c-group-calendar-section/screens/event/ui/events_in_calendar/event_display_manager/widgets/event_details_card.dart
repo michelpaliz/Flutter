@@ -1,11 +1,11 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/utils/action_sheet_helpers.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/utils/role_utils.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/leading_icon.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_date_time.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_title_row.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/utils/action_sheet_helpers.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/utils/role_utils.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/widgets/leading_icon.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_date_time.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_title_row.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 
 class EventDetailsCard extends StatelessWidget {

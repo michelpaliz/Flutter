@@ -1,7 +1,7 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class AppBarManager {

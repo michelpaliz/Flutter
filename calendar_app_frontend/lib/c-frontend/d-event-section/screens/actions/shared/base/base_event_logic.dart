@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 

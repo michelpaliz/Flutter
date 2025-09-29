@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/a-models/group_model/calendar/calendar.dart';
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/b-backend/api/group/error_classes/error_classes.dart';
+import 'package:hexora/a-models/group_model/calendar/calendar.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/api/group/error_classes/error_classes.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {

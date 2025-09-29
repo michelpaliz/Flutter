@@ -1,15 +1,15 @@
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart'; // ✅ New import
-import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/auth_exceptions.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/show_error_dialog.dart';
-import 'package:calendar_app_frontend/c-frontend/e-log-user-section/login/login_init.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/f-themes/palette/color_properties.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
+import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart'; // ✅ New import
+import 'package:hexora/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/show_error_dialog.dart';
+import 'package:hexora/c-frontend/e-log-user-section/login/login_init.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/f-themes/palette/color_properties.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
     show TextFieldStyles;
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';

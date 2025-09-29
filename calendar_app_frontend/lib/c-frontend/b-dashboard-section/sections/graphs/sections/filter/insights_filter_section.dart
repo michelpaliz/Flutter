@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/graphs/enum/insights_types.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/enum/insights_types.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class InsightsFiltersSection extends StatelessWidget {

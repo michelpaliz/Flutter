@@ -1,10 +1,10 @@
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:calendar_app_frontend/c-frontend/a-home-section/home_page.dart';
-import 'package:calendar_app_frontend/c-frontend/e-log-user-section/register/form/button_style_helper.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
+import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:hexora/c-frontend/a-home-section/home_page.dart';
+import 'package:hexora/c-frontend/e-log-user-section/register/form/button_style_helper.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
     show TextFieldStyles;
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

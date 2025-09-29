@@ -1,8 +1,8 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/group_selected_user_list.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/search_bar/custome_search_bar.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/group_selected_user_list.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/utils/search_bar/custome_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

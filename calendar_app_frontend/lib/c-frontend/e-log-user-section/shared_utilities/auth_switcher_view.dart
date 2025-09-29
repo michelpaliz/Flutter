@@ -1,9 +1,9 @@
-import 'package:calendar_app_frontend/c-frontend/e-log-user-section/forgot_password.dart';
-import 'package:calendar_app_frontend/c-frontend/e-log-user-section/login/form/login_form.dart';
-import 'package:calendar_app_frontend/c-frontend/e-log-user-section/register/form/register_form.dart';
-import 'package:calendar_app_frontend/f-themes/shape/solid/auth_header.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/logo/logo_widget.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/c-frontend/e-log-user-section/forgot_password.dart';
+import 'package:hexora/c-frontend/e-log-user-section/login/form/login_form.dart';
+import 'package:hexora/c-frontend/e-log-user-section/register/form/register_form.dart';
+import 'package:hexora/f-themes/shape/solid/auth_header.dart';
+import 'package:hexora/f-themes/utilities/logo/logo_widget.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 

@@ -2,15 +2,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:calendar_app_frontend/b-backend/api/blobUploader/blob_uploader.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/c-frontend/utils/user_avatar.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/e-drawer-style-menu/main_scaffold.dart';
-import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/api/blobUploader/blob_uploader.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/c-frontend/utils/user_avatar.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
+import 'package:hexora/f-themes/palette/app_colors.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';

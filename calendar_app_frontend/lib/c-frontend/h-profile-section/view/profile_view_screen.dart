@@ -1,8 +1,8 @@
 // lib/c-frontend/b-calendar-section/screens/profile/profile_view_screen.dart
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/e-drawer-style-menu/main_scaffold.dart';
-import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
+import 'package:hexora/f-themes/palette/app_colors.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';

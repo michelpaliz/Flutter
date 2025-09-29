@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 class UserList extends StatelessWidget {

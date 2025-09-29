@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/f-themes/themes/define_colors/theme_data.dart';
+import 'package:hexora/f-themes/themes/define_colors/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,14 +1,14 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
-import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/api/event/event_services.dart';
+import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 abstract class EditEventLogic<T extends StatefulWidget>

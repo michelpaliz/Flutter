@@ -2,13 +2,13 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/b-backend/api/agenda/agenda_services.dart'; // 👈 NEW
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
-import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/api/agenda/agenda_services.dart'; // 👈 NEW
+import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/d-stateManagement/notification/notification_management.dart';
 import 'package:flutter/material.dart';
 
 class UserManagement extends ChangeNotifier {

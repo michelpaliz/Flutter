@@ -1,15 +1,15 @@
 // lib/.../edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
 
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/admin_filter_sections.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/admin_filter_sections.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/notification/notification_management.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../../user_list_section.dart';

@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/a-models/group_model/event/event_data_source.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/cells_widgets/calendar_mont_cell.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/month_schedule_img/calendar_styles.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/event_data_source.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/cells_widgets/calendar_mont_cell.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/month_schedule_img/calendar_styles.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
 
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';

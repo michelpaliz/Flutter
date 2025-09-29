@@ -1,9 +1,9 @@
 // lib/c-frontend/b-calendar-section/screens/agenda/widgets/agenda_header.dart
-import 'package:calendar_app_frontend/a-models/group_model/agenda/agenda_model.dart';
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/utils/user_avatar.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/agenda/agenda_model.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/utils/user_avatar.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

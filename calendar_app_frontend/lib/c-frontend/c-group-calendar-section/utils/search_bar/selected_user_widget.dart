@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class AnimatedUsersList extends StatefulWidget {

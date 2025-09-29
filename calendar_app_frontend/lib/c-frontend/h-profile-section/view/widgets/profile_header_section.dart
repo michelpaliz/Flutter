@@ -1,6 +1,6 @@
 // lib/c-frontend/b-calendar-section/screens/profile/widgets/profile_header_section.dart
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/utils/user_avatar.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/utils/user_avatar.dart';
 import 'package:flutter/material.dart';
 
 class ProfileHeaderSection extends StatelessWidget {

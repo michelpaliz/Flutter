@@ -1,7 +1,7 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
-import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/f-themes/palette/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';

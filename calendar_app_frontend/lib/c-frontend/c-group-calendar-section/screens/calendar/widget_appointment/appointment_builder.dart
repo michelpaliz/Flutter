@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 

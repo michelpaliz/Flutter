@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 
 class GroupUserCard extends StatelessWidget {

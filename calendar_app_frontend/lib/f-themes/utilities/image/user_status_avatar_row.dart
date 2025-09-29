@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/d-stateManagement/user/presence_manager.dart';
+import 'package:hexora/d-stateManagement/user/presence_manager.dart';
 import 'package:flutter/material.dart';
 
 class UserStatusRow extends StatelessWidget {

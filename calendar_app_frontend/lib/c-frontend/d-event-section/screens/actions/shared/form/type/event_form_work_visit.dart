@@ -1,14 +1,14 @@
 // event_form_work_visit.dart
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/widgets/repetition_toggle_widget.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/description_input_widget.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/utils/form/reminder_options.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/widgets/repetition_toggle_widget.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/form/date_picker_widget.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/form/description_input_widget.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/form/reminder_options.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class EventFormWorkVisit extends StatefulWidget {

@@ -1,6 +1,6 @@
 // lib/c-frontend/b-calendar-section/screens/agenda/widgets/agenda_header_section.dart
-import 'package:calendar_app_frontend/a-models/group_model/agenda/agenda_model.dart';
-import 'package:calendar_app_frontend/c-frontend/g-agenda-section/widgets/agenda_header.dart';
+import 'package:hexora/a-models/group_model/agenda/agenda_model.dart';
+import 'package:hexora/c-frontend/g-agenda-section/widgets/agenda_header.dart';
 import 'package:flutter/material.dart';
 
 class AgendaHeaderSection extends StatelessWidget {

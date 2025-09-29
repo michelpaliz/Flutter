@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class DescriptionInputWidget extends StatelessWidget {

@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
+import 'package:hexora/a-models/user_model/user.dart';
 import 'package:flutter/material.dart';
 
 /// Enum for user roles

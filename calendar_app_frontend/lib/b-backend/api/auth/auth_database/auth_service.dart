@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_repository.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_repository.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService with ChangeNotifier implements AuthRepository {

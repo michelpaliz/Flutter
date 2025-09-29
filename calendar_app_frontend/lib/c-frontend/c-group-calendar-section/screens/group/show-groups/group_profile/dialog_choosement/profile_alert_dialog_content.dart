@@ -1,9 +1,9 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/utilities.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/button_styles.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/f-themes/utilities/utilities.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/button/button_styles.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

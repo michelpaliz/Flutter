@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/l10n/AppLocalitationMethod.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/l10n/AppLocalitationMethod.dart';
 import 'package:flutter/material.dart';
 
 class EventTimeRow extends StatelessWidget {

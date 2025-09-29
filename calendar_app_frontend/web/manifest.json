@@ -1,6 +1,6 @@
 {
-    "name": "calendar_app_rebuild",
-    "short_name": "calendar_app_rebuild",
+    "name": "hexora",
+    "short_name": "hexora",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

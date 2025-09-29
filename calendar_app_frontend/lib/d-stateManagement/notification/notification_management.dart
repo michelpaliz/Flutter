@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
-import 'package:calendar_app_frontend/b-backend/api/notification/notification_services.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/notification_model/notification_user.dart';
+import 'package:hexora/b-backend/api/notification/notification_services.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 class NotificationManagement extends ChangeNotifier {

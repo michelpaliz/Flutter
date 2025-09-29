@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/exceptions/auth_exceptions.dart';
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
-import 'package:calendar_app_frontend/b-backend/api/user/user_services.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/api/user/user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 

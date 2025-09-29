@@ -1,8 +1,8 @@
 // group_event_resolver.dart
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/b-backend/api/event/event_services.dart';
-import 'package:calendar_app_frontend/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/api/event/event_services.dart';
+import 'package:hexora/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
 import 'package:flutter/material.dart';
 
 class GroupEventResolver {

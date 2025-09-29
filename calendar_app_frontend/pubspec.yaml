@@ -1,8 +1,8 @@
-name: calendar_app_frontend
-description: A new Flutter project.
+name: hexora
+description: A modern calendar and scheduling app with groups, events, and insights.
 publish_to: "none"
-
 version: 1.0.0+1
+
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -61,11 +61,14 @@ dev_dependencies:
   # Code generators
   freezed: ^3.0.0
   flutter_launcher_icons: ^0.13.1
+  # (no change needed above)
 
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo.png"
+  image_path: assets/images/logo.png
+  adaptive_icon_foreground: assets/images/logo.png   # Android 8.0+ foreground
+  adaptive_icon_background: "#0F172A"                # deep blue background
 
 flutter:
   generate: true
@@ -74,7 +77,7 @@ flutter:
   assets:
     - assets/images/login_image.png
     - assets/images/beach_image.png
-    - assets/images/person_profile.png
+    - assets/images/person_profile.png 
     - assets/images/profile.jpg
     - assets/images/default_profile.png
     - assets/images/months/january.png

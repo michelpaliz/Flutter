@@ -1,8 +1,8 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/event_screen/event_detail.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/event_screen/event_detail.dart';
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 class EventActionsSheet extends StatelessWidget {
   final Event event;

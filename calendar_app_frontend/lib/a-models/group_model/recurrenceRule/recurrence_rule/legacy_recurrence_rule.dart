@@ -1,7 +1,7 @@
 // lib/a-models/group_model/event_appointment/recurrence_rule/legacy_recurrence_rule.dart
 
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
-import 'package:calendar_app_frontend/a-models/group_model/recurrenceRule/utils_recurrence_rule/recurrence_rule_utils.dart'
+import 'package:hexora/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
+import 'package:hexora/a-models/group_model/recurrenceRule/utils_recurrence_rule/recurrence_rule_utils.dart'
     as utils;
 import 'package:uuid/uuid.dart';
 

@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart'; // import your palette
+import 'package:hexora/f-themes/palette/app_colors.dart'; // import your palette
 import 'package:flutter/material.dart';
 
 class AppBarStyles {

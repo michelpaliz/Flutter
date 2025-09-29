@@ -1,11 +1,11 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/token_storage.dart';
-import 'package:calendar_app_frontend/b-backend/api/socket/socket_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/notification/socket_notification_listener.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/api/socket/socket_manager.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/notification/socket_notification_listener.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 
 // Import or replace with your actual constants location

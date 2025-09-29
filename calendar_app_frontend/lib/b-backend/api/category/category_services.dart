@@ -1,7 +1,7 @@
 // lib/b-services/categories/category_api.dart  (use this single source of truth)
 import 'dart:convert';
 
-import 'package:calendar_app_frontend/a-models/group_model/category/event_category.dart';
+import 'package:hexora/a-models/group_model/category/event_category.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 

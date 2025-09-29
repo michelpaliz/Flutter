@@ -1,7 +1,7 @@
 // lib/.../calendar/widgets/presence_status_strip.dart
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/logic/calendar_screen_controller.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/image/user_status_avatar_row.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/logic/calendar_screen_controller.dart';
+import 'package:hexora/f-themes/utilities/image/user_status_avatar_row.dart';
 import 'package:flutter/material.dart';
 
 class PresenceStatusStrip extends StatelessWidget {

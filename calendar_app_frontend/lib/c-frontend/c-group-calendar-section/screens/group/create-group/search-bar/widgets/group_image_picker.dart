@@ -1,7 +1,7 @@
 // lib/.../widgets/group_image_picker.dart
 import 'dart:io';
 
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

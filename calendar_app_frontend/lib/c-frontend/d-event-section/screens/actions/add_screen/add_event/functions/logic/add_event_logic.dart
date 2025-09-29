@@ -1,12 +1,12 @@
 import 'dart:developer' as devtools show log;
 
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/b-backend/api/client/client_api.dart';
-import 'package:calendar_app_frontend/b-backend/api/service/service_api.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/b-backend/api/client/client_api.dart';
+import 'package:hexora/b-backend/api/service/service_api.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

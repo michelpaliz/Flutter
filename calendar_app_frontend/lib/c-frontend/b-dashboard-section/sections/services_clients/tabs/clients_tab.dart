@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/a-models/group_model/client/client.dart';
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/client/client.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 import '../widgets/common_views.dart';
 

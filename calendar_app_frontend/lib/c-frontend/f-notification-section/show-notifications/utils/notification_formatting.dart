@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 // flutter gen-l10n == run this to update

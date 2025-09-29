@@ -1,10 +1,10 @@
 // event_form_router.dart
-import 'package:calendar_app_frontend/b-backend/api/category/category_services.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/type/event_form_simple.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/shared/form/type/event_form_work_visit.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/b-backend/api/category/category_services.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/type/event_form_simple.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/type/event_form_work_visit.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class EventFormRouter extends StatefulWidget {

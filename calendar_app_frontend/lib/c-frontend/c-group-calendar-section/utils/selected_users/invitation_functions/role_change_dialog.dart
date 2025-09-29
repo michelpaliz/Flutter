@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/selected_users/invitation_functions/role_change_dialog_actions.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/selected_users/invitation_functions/role_change_dialog_content.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/invitation_functions/role_change_dialog_actions.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/invitation_functions/role_change_dialog_content.dart';
 import 'package:flutter/material.dart';
 
 class RoleChangeDialog {

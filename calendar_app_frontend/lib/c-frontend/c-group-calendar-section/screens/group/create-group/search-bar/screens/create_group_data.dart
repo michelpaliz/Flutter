@@ -1,9 +1,9 @@
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/screens/page_group_role_list.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/save_group_button.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
-import 'package:calendar_app_frontend/f-themes/shape/solid/solid_header.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/screens/page_group_role_list.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/save_group_button.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
+import 'package:hexora/f-themes/shape/solid/solid_header.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';

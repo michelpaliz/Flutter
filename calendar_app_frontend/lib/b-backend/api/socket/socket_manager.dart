@@ -1,5 +1,5 @@
 // socket_manager.dart
-import 'package:calendar_app_frontend/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/api/config/api_constants.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketManager {

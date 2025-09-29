@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/f-themes/shape/solid/auth_header.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/logo/logo_widget.dart';
+import 'package:hexora/f-themes/shape/solid/auth_header.dart';
+import 'package:hexora/f-themes/utilities/logo/logo_widget.dart';
 import 'package:flutter/material.dart';
 
 /// Shared constants

@@ -1,9 +1,9 @@
-import 'package:calendar_app_frontend/a-models/notification_model/notification_localization.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/notification_user.dart';
-import 'package:calendar_app_frontend/c-frontend/f-notification-section/show-notifications/utils/notification_formatting.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/rounded_action_button.dart';
+import 'package:hexora/a-models/notification_model/notification_localization.dart';
+import 'package:hexora/a-models/notification_model/notification_user.dart';
+import 'package:hexora/c-frontend/f-notification-section/show-notifications/utils/notification_formatting.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/button/rounded_action_button.dart';
 import 'package:flutter/material.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
 class NotificationCard extends StatelessWidget {
   final NotificationUser notification;

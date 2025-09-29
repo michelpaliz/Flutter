@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

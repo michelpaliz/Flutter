@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 
 class UserFilterService {
   static Map<String, UserInviteStatus> filterUsers(

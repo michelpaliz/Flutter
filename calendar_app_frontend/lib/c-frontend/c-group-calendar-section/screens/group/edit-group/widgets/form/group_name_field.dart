@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/f-themes/themes/theme_colors.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class GroupNameField extends StatelessWidget {

@@ -1,4 +1,4 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For formatting date
 

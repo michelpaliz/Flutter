@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class ColorPickerWidget extends StatelessWidget {

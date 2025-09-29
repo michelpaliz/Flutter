@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/f-themes/palette/app_colors.dart';
-import 'package:calendar_app_frontend/f-themes/utilities/view-item-styles/button/button_styles.dart';
+import 'package:hexora/f-themes/palette/app_colors.dart';
+import 'package:hexora/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:flutter/material.dart';
 
 class ColorProperties {

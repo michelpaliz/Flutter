@@ -1,5 +1,5 @@
-import 'package:calendar_app_frontend/a-models/user_model/user.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart'; // ⬅️ Add this
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/l10n/app_localizations.dart'; // ⬅️ Add this
 import 'package:flutter/material.dart';
 
 class UserSelectionDialog extends StatefulWidget {

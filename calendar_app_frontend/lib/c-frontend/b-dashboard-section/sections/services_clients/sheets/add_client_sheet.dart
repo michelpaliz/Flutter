@@ -1,6 +1,6 @@
-import 'package:calendar_app_frontend/a-models/group_model/client/client.dart';
-import 'package:calendar_app_frontend/b-backend/api/client/client_api.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/client/client.dart';
+import 'package:hexora/b-backend/api/client/client_api.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class AddClientSheet extends StatefulWidget {

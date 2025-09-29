@@ -1,12 +1,12 @@
-import 'package:calendar_app_frontend/a-models/group_model/event/event.dart';
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
-import 'package:calendar_app_frontend/c-frontend/d-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
-import 'package:calendar_app_frontend/c-frontend/routes/appRoutes.dart';
-import 'package:calendar_app_frontend/d-stateManagement/event/event_data_manager.dart';
-import 'package:calendar_app_frontend/d-stateManagement/group/group_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/notification/notification_management.dart';
-import 'package:calendar_app_frontend/d-stateManagement/user/user_management.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
+import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/d-stateManagement/notification/notification_management.dart';
+import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

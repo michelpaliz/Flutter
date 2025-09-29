@@ -1,10 +1,10 @@
-import 'package:calendar_app_frontend/a-models/group_model/group/group.dart';
-import 'package:calendar_app_frontend/a-models/notification_model/userInvitation_status.dart';
-import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
-import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/members/widgets/empty_hint.dart';
-import 'package:calendar_app_frontend/c-frontend/b-dashboard-section/sections/members/widgets/members_row_widgets/parent/members_row.dart';
-import 'package:calendar_app_frontend/c-frontend/c-group-calendar-section/utils/selected_users/filter_chips.dart';
-import 'package:calendar_app_frontend/l10n/app_localizations.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/empty_hint.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/members_row_widgets/parent/members_row.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/filter_chips.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import 'utils/member_status.dart';
