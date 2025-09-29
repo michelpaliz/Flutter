@@ -1,4 +1,4 @@
-package com.fastezcodehexora
+package com.fastezcode.hexora
 
 import io.flutter.embedding.android.FlutterActivity
 
