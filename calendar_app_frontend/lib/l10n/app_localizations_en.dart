@@ -1661,4 +1661,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get insightsHintUpcomingOnly =>
       'Showing upcoming data only. For past ranges, please enable server-side range fetch.';
+
+  @override
+  String get logoutConfirmTitle => 'Log out';
+
+  @override
+  String get logoutConfirmMessage => 'Are you sure you want to log out?';
+
+  @override
+  String get accountSectionTitle => 'Account';
+
+  @override
+  String get preferencesSectionTitle => 'Preferences';
+
+  @override
+  String get appVersionLabel => 'App version';
 }

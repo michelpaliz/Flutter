@@ -989,5 +989,10 @@
     "filterTypeAll": "All",
     "filterTypeSimple": "Simple",
     "filterTypeWork": "Work",
-    "insightsHintUpcomingOnly": "Showing upcoming data only. For past ranges, please enable server-side range fetch."
+    "insightsHintUpcomingOnly": "Showing upcoming data only. For past ranges, please enable server-side range fetch.",
+    "logoutConfirmTitle": "Log out",
+    "logoutConfirmMessage": "Are you sure you want to log out?",
+    "accountSectionTitle": "Account",
+    "preferencesSectionTitle": "Preferences",
+    "appVersionLabel": "App version"
 }

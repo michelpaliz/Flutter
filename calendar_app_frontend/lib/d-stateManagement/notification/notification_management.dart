@@ -28,6 +28,8 @@ class NotificationManagement extends ChangeNotifier {
     notifyListeners();
   }
 
+
+  //TODO ERROR WHEN A NOTIFICATION IS ACCEPTED, NOTIFICATION NOT FOUND
   // Fetch full NotificationUser objects based on IDs
   Future<List<NotificationUser>> _fetchNotificationsByIds(
     List<String> ids,

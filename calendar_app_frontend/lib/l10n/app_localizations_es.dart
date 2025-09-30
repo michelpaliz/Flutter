@@ -1675,4 +1675,19 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get insightsHintUpcomingOnly =>
       'Mostrando solo datos futuros. Para rangos pasados, habilita la búsqueda por rango en el servidor.';
+
+  @override
+  String get logoutConfirmTitle => 'Cerrar sesión';
+
+  @override
+  String get logoutConfirmMessage => '¿Seguro que quieres cerrar sesión?';
+
+  @override
+  String get accountSectionTitle => 'Cuenta';
+
+  @override
+  String get preferencesSectionTitle => 'Preferencias';
+
+  @override
+  String get appVersionLabel => 'Versión de la app';
 }

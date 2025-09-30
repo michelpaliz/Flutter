@@ -25,7 +25,7 @@ import 'package:hexora/c-frontend/f-notification-section/show-notifications/show
 import 'package:hexora/c-frontend/g-agenda-section/agenda_screen.dart';
 import 'package:hexora/c-frontend/h-profile-section/edit/profile_edit_screen.dart';
 import 'package:hexora/c-frontend/h-profile-section/view/profile_view_screen.dart';
-import 'package:hexora/c-frontend/i-settings-section/settings.dart';
+import 'package:hexora/c-frontend/i-settings-section/screens/settings.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';

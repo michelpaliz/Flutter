@@ -994,5 +994,10 @@
   "filterTypeAll": "Todos",
   "filterTypeSimple": "Simple",
   "filterTypeWork": "Trabajo",
-  "insightsHintUpcomingOnly": "Mostrando solo datos futuros. Para rangos pasados, habilita la búsqueda por rango en el servidor."
+  "insightsHintUpcomingOnly": "Mostrando solo datos futuros. Para rangos pasados, habilita la búsqueda por rango en el servidor.",
+  "logoutConfirmTitle": "Cerrar sesión",
+  "logoutConfirmMessage": "¿Seguro que quieres cerrar sesión?",
+  "accountSectionTitle": "Cuenta",
+  "preferencesSectionTitle": "Preferencias",
+  "appVersionLabel": "Versión de la app"
 }
