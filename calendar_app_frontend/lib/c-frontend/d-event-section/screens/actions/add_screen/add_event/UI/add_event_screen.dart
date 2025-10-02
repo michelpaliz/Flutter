@@ -15,7 +15,7 @@ import '../../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../d-stateManagement/group/group_management.dart';
 import '../../../../../../../d-stateManagement/notification/notification_management.dart';
 import '../../../../../../../d-stateManagement/user/user_management.dart';
-import '../functions/add_event_dialogs.dart';
+import '../functions/addEvent/add_event_dialogs.dart';
 import '../functions/logic/add_event_logic.dart';
 
 class AddEventScreen extends StatefulWidget {

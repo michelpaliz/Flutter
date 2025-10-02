@@ -1,5 +1,6 @@
 import 'dart:developer' as devtools show log;
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/b-backend/api/client/client_api.dart';
 import 'package:hexora/b-backend/api/service/service_api.dart';
@@ -7,7 +8,6 @@ import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
 import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../../../a-models/group_model/group/group.dart';
@@ -110,75 +110,6 @@ abstract class AddEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
-  // @override
-  // Future<bool> addEvent(BuildContext context) async {
-  //   devtools.log("🚀 [addEvent] called");
-
-  //   if (!validateTitle(context, titleController)) return false;
-
-  //   if (!validateRecurrence(
-  //     recurrenceRule: recurrenceRule,
-  //     selectedStartDate: selectedStartDate,
-  //   )) return false;
-
-  //   // 🔓 Allow zero invitees
-  //   if (selectedUsers.isEmpty) {
-  //     devtools.log("ℹ️ [addEvent] No invitees selected (allowed)");
-  //   }
-
-  //   //Fetch the current calendar id from the server
-  //   final calId = _group.calendarId;
-  //   if (calId == null) {
-  //     // optional: refetch once as a fallback
-  //     final refreshed =
-  //         await groupManagement.groupService.getGroupById(_group.id);
-  //     final fallbackCalId =
-  //         refreshed.defaultCalendarId ?? refreshed.defaultCalendar?.id;
-  //     if (fallbackCalId == null) {
-  //       // show error to the user and bail out
-  //       // ...
-  //       return false;
-  //     }
-  //     // use fallbackCalId
-  //     // ...
-  //   }
-
-  //   final newEvent = buildNewEvent(
-  //     id: Utilities.generateRandomId(10),
-  //     startDate: selectedStartDate,
-  //     endDate: selectedEndDate,
-  //     title: titleController.text.trim(),
-  //     groupId: _group.id,
-  //     calendarId: calId!,
-  //     recurrenceRule: recurrenceRule,
-  //     location: locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
-  //     description: descriptionController.text,
-  //     eventColorIndex: ColorManager().getColorIndex(Color(selectedEventColor!)),
-  //     recipients: selectedUsers.map((u) => u.id).toList(), // ✅ [] when none
-  //     ownerId: user.id,
-  //   );
-
-  //   try {
-  //     final createdEvent =
-  //         await _eventDataManager.createEvent(context, newEvent);
-
-  //     await hydrateRecurrenceRuleIfNeeded(
-  //       groupManagement: groupManagement,
-  //       rawRuleId: createdEvent.rawRuleId,
-  //     );
-
-  //     await _postCreationActions(createdEvent);
-
-  //     devtools.log("🎉 [addEvent] Success");
-  //     return true;
-  //   } catch (e, stack) {
-  //     devtools.log('💥 [addEvent] Exception: $e\n$stack');
-  //     return false;
-  //   } finally {
-  //     devtools.log("🏁 [addEvent] Finished execution");
-  //   }
-  // }
-
   Future<void> _postCreationActions(Event createdEvent) async {
     await userManagement.updateUser(user);
     devtools.log("👤 [addEvent] User updated");
@@ -208,48 +139,28 @@ abstract class AddEventLogic<T extends StatefulWidget>
     devtools.log("🧹 Form cleared");
   }
 
-  // Future<String?> _resolveValidCalendarId() async {
-  //   // 1) try local fields in the widget group
-  //   String? id = _group.defaultCalendarId ??
-  //       _group.defaultCalendar?.id ??
-  //       _group.calendarId;
-
-  //   // 2) if still null, refresh group once
-  //   if (id == null || id.isEmpty) {
-  //     final refreshed =
-  //         await groupManagement.groupService.getGroupById(_group.id);
-  //     id = refreshed.defaultCalendarId ??
-  //         refreshed.defaultCalendar?.id ??
-  //         refreshed.calendarId;
-  //   }
-
-  //   // 3) validate ObjectId format (what Mongo expects)
-  //   final isValidObjectId =
-  //       id != null && RegExp(r'^[a-f0-9]{24}$').hasMatch(id);
-  //   return isValidObjectId ? id : null;
-  // }
-
+// AddEventLogic.addEvent(...)
   @override
   Future<bool> addEvent(BuildContext context) async {
     devtools.log("🚀 [addEvent] called");
 
-    final isWorkVisit = eventType == 'work_visit';
+    // ---- infer work visit from actual selections (robust) ----
+    final hasClient = (clientId != null && clientId!.isNotEmpty);
+    final hasPrimaryService =
+        (primaryServiceId != null && primaryServiceId!.isNotEmpty);
+    final isWorkVisit = hasClient || hasPrimaryService;
 
-    // ✅ Only require title for SIMPLE events
-    if (!isWorkVisit) {
-      if (!validateTitle(context, titleController)) return false;
-    }
-
-    // Recurrence validation (unchanged)
+    // ---- validate recurrence (unchanged) ----
     if (!validateRecurrence(
       recurrenceRule: recurrenceRule,
       selectedStartDate: selectedStartDate,
     )) return false;
 
-    // Optional: enforce client/service for work-visit
-    if (isWorkVisit) {
-      if ((clientId == null || clientId!.isEmpty) ||
-          (primaryServiceId == null || primaryServiceId!.isEmpty)) {
+    // ---- SIMPLE requires title; WORK_VISIT requires client+service ----
+    if (!isWorkVisit) {
+      if (!validateTitle(context, titleController)) return false;
+    } else {
+      if (!hasClient || !hasPrimaryService) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select client & service')),
         );
@@ -257,7 +168,22 @@ abstract class AddEventLogic<T extends StatefulWidget>
       }
     }
 
-    // 🔧 Auto-compose a title for work-visit if user left it empty
+    // ---- ensure calendarId (with refresh fallback) ----
+    String? calId = _group.calendarId;
+    if (calId == null) {
+      final refreshed =
+          await groupManagement.groupService.getGroupById(_group.id);
+      calId = refreshed.defaultCalendarId ?? refreshed.defaultCalendar?.id;
+      if (calId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('No calendar configured for this group')),
+        );
+        return false;
+      }
+    }
+
+    // ---- compose title if empty for work visits ----
     String title = titleController.text.trim();
     if (isWorkVisit && title.isEmpty) {
       final clientName = clients
@@ -280,66 +206,43 @@ abstract class AddEventLogic<T extends StatefulWidget>
       }
     }
 
-    // Ensure calendarId (with fallback)
-    String? calId = _group.calendarId;
-    if (calId == null) {
-      final refreshed =
-          await groupManagement.groupService.getGroupById(_group.id);
-      calId = refreshed.defaultCalendarId ?? refreshed.defaultCalendar?.id;
-      if (calId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No calendar configured for this group')),
-        );
-        return false;
-      }
-    }
-
-// hard-stop if the user didn’t pick both (your isFormValid already enforces this,
-// but keep this guard here too to be explicit)
-    if (isWorkVisit) {
-      if ((clientId == null || clientId!.isEmpty) ||
-          (primaryServiceId == null || primaryServiceId!.isEmpty)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select client & service')),
-        );
-        return false;
-      }
-    }
-
-// Build visitServices ONLY from user’s selected primaryServiceId
-    final vs = isWorkVisit
-        ? [
-            VisitService(serviceId: primaryServiceId!), // user-picked
-          ]
+    // ---- build visitServices (include primary selected service) ----
+    final List<VisitService> vs = isWorkVisit
+        ? [VisitService(serviceId: primaryServiceId!)]
         : const <VisitService>[];
 
-    // Build event with NEW fields
+    // ---- build the event payload (derive type from selections) ----
     final newEvent = buildNewEvent(
-        id: Utilities.generateRandomId(10),
-        startDate: selectedStartDate,
-        endDate: selectedEndDate,
-        title: title,
-        groupId: _group.id,
-        calendarId: calId,
-        recurrenceRule: recurrenceRule,
-        location: locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
-        description: descriptionController.text,
-        eventColorIndex:
-            ColorManager().getColorIndex(Color(selectedEventColor!)),
-        recipients: selectedUsers.map((u) => u.id).toList(),
-        ownerId: user.id,
+      id: Utilities.generateRandomId(10),
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
+      title: title,
+      groupId: _group.id,
+      calendarId: calId,
+      recurrenceRule: recurrenceRule,
+      location: locationController.text.replaceAll(RegExp(r'[┤├]'), ''),
+      description: descriptionController.text,
+      eventColorIndex: ColorManager().getColorIndex(Color(selectedEventColor!)),
+      recipients: selectedUsers.map((u) => u.id).toList(),
+      ownerId: user.id,
 
-        // NEW: send the right fields per type
-        type: isWorkVisit ? 'work_visit' : 'simple',
-        clientId: isWorkVisit ? clientId : null,
-        primaryServiceId: isWorkVisit ? primaryServiceId : null,
-        categoryId: !isWorkVisit ? categoryId : null,
-        subcategoryId: !isWorkVisit ? subcategoryId : null,
-        visitServices: vs // add when you implement the editor
-        );
+      // 🔑 derive type from actual selections
+      type: isWorkVisit ? 'work_visit' : 'simple',
+
+      // 🔑 include work fields if present
+      clientId: isWorkVisit ? clientId : null,
+      primaryServiceId: isWorkVisit ? primaryServiceId : null,
+      visitServices: vs,
+
+      // keep legacy only when simple
+      categoryId: isWorkVisit ? null : categoryId,
+      subcategoryId: isWorkVisit ? null : subcategoryId,
+    );
 
     try {
+      // optional: log the exact backend body
+      devtools.log('📤 [addEvent] toBackendJson: ${newEvent.toBackendJson()}');
+
       final created = await _eventDataManager.createEvent(context, newEvent);
 
       await hydrateRecurrenceRuleIfNeeded(

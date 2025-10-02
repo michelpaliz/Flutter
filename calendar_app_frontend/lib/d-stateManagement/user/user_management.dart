@@ -2,19 +2,21 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/agenda/agenda_services.dart'; // 👈 NEW
+import 'package:hexora/b-backend/api/agenda/agenda_services.dart' show AgendaService;
+import 'package:hexora/b-backend/api/agenda/query_knobs/client_rollup.dart';
+import 'package:hexora/b-backend/api/agenda/query_knobs/work_summary.dart';
 import 'package:hexora/b-backend/api/config/api_constants.dart';
 import 'package:hexora/b-backend/api/user/user_services.dart';
 import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:flutter/material.dart';
 
 class UserManagement extends ChangeNotifier {
   User? _user;
   final UserService userService = UserService();
-  final AgendaService _agendaService; // 👈 NEW
+  final AgendaService _agendaService;
   final NotificationManagement _notificationManagement;
   final ValueNotifier<User?> currentUserNotifier = ValueNotifier(null);
 
@@ -25,7 +27,7 @@ class UserManagement extends ChangeNotifier {
   UserManagement({
     required User? user,
     required NotificationManagement notificationManagement,
-    AgendaService? agendaService, // 👈 allow DI (tests)
+    AgendaService? agendaService, // allow DI (tests)
   })  : _notificationManagement = notificationManagement,
         _agendaService = agendaService ?? AgendaService() {
     if (user != null) {
@@ -157,31 +159,196 @@ class UserManagement extends ChangeNotifier {
   }
 
   // --------------------------
-  // ✅ Agenda convenience API
+  // ✅ Agenda convenience API (single /agenda/work)
   // --------------------------
 
-  /// Get upcoming agenda for the logged-in user (server-side union of events where user is owner/recipient).
+  /// Raw upcoming items for a group (now requires groupId).
   Future<List<Event>> fetchAgendaUpcoming({
+    required String groupId,
     int days = 14,
     int limit = 200,
     String? tz,
-  }) async {
-    return _agendaService.fetchUpcoming(days: days, limit: limit, tz: tz);
+  }) {
+    return _agendaService.fetchUpcoming(
+      groupId: groupId,
+      days: days,
+      limit: limit,
+      tz: tz,
+    );
   }
 
-  /// Get agenda for a date range.
+  /// Raw items in a date range for a group.
   Future<List<Event>> fetchAgendaRange({
+    required String groupId,
     required DateTime from,
     required DateTime to,
     String? tz,
     int? limit,
-  }) async {
-    return _agendaService.fetchRange(from: from, to: to, tz: tz, limit: limit);
+  }) {
+    return _agendaService.fetchRange(
+      groupId: groupId,
+      from: from,
+      to: to,
+      tz: tz,
+      limit: limit,
+    );
   }
 
-  /// Convenience: today + tomorrow.
-  Future<List<Event>> fetchAgendaTodayAndTomorrow({String? tz}) {
-    return _agendaService.fetchTodayAndTomorrow(tz: tz);
+  /// Today + tomorrow items for a group (re-implemented here).
+  Future<List<Event>> fetchAgendaTodayAndTomorrow({
+    required String groupId,
+    String? tz,
+  }) {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day); // local midnight
+    final end = start.add(const Duration(days: 2)); // end of tomorrow (exclusive)
+    return _agendaService.fetchWorkItems(
+      groupId: groupId,
+      from: start,
+      to: end,
+      tz: tz,
+    );
+  }
+
+  /// Raw work items (aggregate=none).
+  Future<List<Event>> fetchWorkItems({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+    List<String> types = const ['work_visit'],
+    List<String>? clientIds,
+    List<String>? serviceIds,
+    int? limit,
+    int? skip,
+    String? tz,
+  }) {
+    return _agendaService.fetchWorkItems(
+      groupId: groupId,
+      from: from,
+      to: to,
+      types: types,
+      clientIds: clientIds,
+      serviceIds: serviceIds,
+      limit: limit,
+      skip: skip,
+      tz: tz,
+    );
+  }
+
+  /// Summary (total events, minutes/hours) for any window.
+  /// minutesSource: 'auto' | 'planned' | 'actual'
+  Future<WorkSummary> fetchWorkSummary({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+    List<String> types = const ['work_visit'],
+    List<String>? clientIds,
+    List<String>? serviceIds,
+    String minutesSource = 'auto',
+    String? tz,
+  }) {
+    return _agendaService.fetchWorkSummary(
+      groupId: groupId,
+      from: from,
+      to: to,
+      types: types,
+      clientIds: clientIds,
+      serviceIds: serviceIds,
+      minutesSource: minutesSource,
+      tz: tz,
+    );
+  }
+
+  /// Rollup by client for any window.
+  Future<List<ClientRollup>> fetchWorkByClient({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+    List<String> types = const ['work_visit'],
+    List<String>? clientIds,
+    List<String>? serviceIds,
+    int? limit,
+    int? skip,
+    String minutesSource = 'auto',
+    String? tz,
+  }) {
+    return _agendaService.fetchWorkByClient(
+      groupId: groupId,
+      from: from,
+      to: to,
+      types: types,
+      clientIds: clientIds,
+      serviceIds: serviceIds,
+      limit: limit,
+      skip: skip,
+      minutesSource: minutesSource,
+      tz: tz,
+    );
+  }
+
+  /// Rollup by service for any window.
+  Future<List<ServiceRollup>> fetchWorkByService({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+    List<String> types = const ['work_visit'],
+    List<String>? clientIds,
+    List<String>? serviceIds,
+    int? limit,
+    int? skip,
+    String minutesSource = 'auto',
+    String? tz,
+  }) {
+    return _agendaService.fetchWorkByService(
+      groupId: groupId,
+      from: from,
+      to: to,
+      types: types,
+      clientIds: clientIds,
+      serviceIds: serviceIds,
+      limit: limit,
+      skip: skip,
+      minutesSource: minutesSource,
+      tz: tz,
+    );
+  }
+
+  /// Past hours summary (uses minutesSource='auto').
+  Future<WorkSummary> pastHours({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+    List<String> types = const ['work_visit'],
+    List<String>? clientIds,
+    List<String>? serviceIds,
+  }) {
+    return _agendaService.pastHours(
+      groupId: groupId,
+      from: from,
+      to: to,
+      types: types,
+      clientIds: clientIds,
+      serviceIds: serviceIds,
+    );
+  }
+
+  /// Future forecast summary (uses minutesSource='planned').
+  Future<WorkSummary> futureForecast({
+    required String groupId,
+    required DateTime from,
+    required DateTime to,
+    List<String> types = const ['work_visit'],
+    List<String>? clientIds,
+    List<String>? serviceIds,
+  }) {
+    return _agendaService.futureForecast(
+      groupId: groupId,
+      from: from,
+      to: to,
+      types: types,
+      clientIds: clientIds,
+      serviceIds: serviceIds,
+    );
   }
 
   @override

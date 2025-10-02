@@ -4,16 +4,15 @@ import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 mixin AddEventDialogs {
-  Future<List<Object?>?> showRepetitionDialog(
+  /// Shows the interactive RepetitionDialog for configuring recurrence logic.
+  Future<List?> showRepetitionDialog(
     BuildContext context, {
     required DateTime selectedStartDate,
     required DateTime selectedEndDate,
     LegacyRecurrenceRule? initialRule,
   }) {
-    return showDialog<List<Object?>?>(
+    return showDialog<List?>(
       context: context,
-      barrierDismissible: true, // tap outside = cancel -> returns null
-      useRootNavigator: true, // avoids nested navigator issues
       builder: (context) => RepetitionDialog(
         selectedStartDate: selectedStartDate,
         selectedEndDate: selectedEndDate,
@@ -22,24 +21,6 @@ mixin AddEventDialogs {
     );
   }
 
-//   /// Shows the interactive RepetitionDialog for configuring recurrence logic.
-//   Future<List?> showRepetitionDialog(
-//     BuildContext context, {
-//     required DateTime selectedStartDate,
-//     required DateTime selectedEndDate,
-//     LegacyRecurrenceRule? initialRule,
-//   }) {
-//     return showDialog(
-//       context: context,
-//       builder: (context) => RepetitionDialog(
-//         selectedStartDate: selectedStartDate,
-//         selectedEndDate: selectedEndDate,
-//         initialRecurrenceRule: initialRule,
-//       ),
-//     );
-//   }
-
-  /// Displays a simple error dialog for general event creation failure.
   void showErrorDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -58,7 +39,6 @@ mixin AddEventDialogs {
     );
   }
 
-  /// Displays an error dialog when fetching group data fails.
   void showGroupFetchErrorDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -79,7 +59,6 @@ mixin AddEventDialogs {
     );
   }
 
-  /// Optional: Shows a static info-only dialog about repetition (not interactive).
   void showRepetitionInfoDialog(BuildContext context) {
     showDialog(
       context: context,

@@ -21,7 +21,6 @@ class GroupUpcomingEventsCard extends StatefulWidget {
   State<GroupUpcomingEventsCard> createState() =>
       _GroupUpcomingEventsCardState();
 }
-
 class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
   late Future<List<Event>> _future;
 
@@ -33,7 +32,10 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
 
   Future<List<Event>> _load() async {
     final userMgmt = context.read<UserManagement>();
+
+    // 🔧 New AgendaService signature requires groupId
     final events = await userMgmt.fetchAgendaUpcoming(
+      groupId: widget.groupId,
       days: widget.daysRange,
       limit: 200, // fetch a buffer, we'll filter down
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
@@ -5,7 +6,6 @@ import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/e
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/members_row_widgets/parent/members_row.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/filter_chips.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 import 'utils/member_status.dart';
 import 'widgets/section_header.dart';
@@ -23,25 +23,50 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
   bool showPending = true;
   bool showNotAccepted = true;
 
+  String _norm(dynamic v) => v?.toString().toLowerCase().trim() ?? '';
+
+  bool _inviteIsAccepted(UserInviteStatus? inv) {
+    if (inv == null) return false;
+    final status = (inv.informationStatus ?? '').toLowerCase();
+    return inv.invitationAnswer == true || status == 'accepted';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
 
-    final invited =
+    // Raw
+    final invitedRaw =
         widget.group.invitedUsers ?? const <String, UserInviteStatus>{};
-    final roles = widget.group.userRoles; // username -> role
-    final acceptedSet = widget.group.userIds.toSet(); // usernames
+    final rolesRaw = widget.group.userRoles ?? const <String, String>{};
 
-    final usernames = <String>{}
-      ..addAll(acceptedSet)
-      ..addAll(invited.keys);
+    // Normalize
+    final invitedByUser = <String, UserInviteStatus>{
+      for (final e in invitedRaw.entries) _norm(e.key): e.value,
+    };
+    final rolesByKey = <String, String>{
+      for (final e in rolesRaw.entries) _norm(e.key): e.value,
+    };
 
-    final members = usernames.map((u) {
-      final inv = invited[u];
-      final statusToken =
-          statusFor(u, inv, acceptedSet); // Accepted | Pending | NotAccepted
-      final role = roles[u] ?? inv?.role ?? 'member';
-      return MemberRef(username: u, role: role, statusToken: statusToken);
+    // Accepted members (ids normalized to strings)
+    final acceptedKeys = widget.group.userIds.map((id) => _norm(id)).toSet();
+
+    // Keep ONLY truly pending invites; drop invites that are accepted
+    final pendingInvites = <String, UserInviteStatus>{
+      for (final e in invitedByUser.entries)
+        if (!_inviteIsAccepted(e.value)) e.key: e.value,
+    };
+
+    // Union of accepted + pending-invited keys (prevents duplicates)
+    final allKeys = <String>{}
+      ..addAll(acceptedKeys)
+      ..addAll(pendingInvites.keys);
+
+    final members = allKeys.map((key) {
+      final inv = pendingInvites[key]; // null for accepted entries
+      final statusToken = statusFor(key, inv, acceptedKeys);
+      final role = rolesByKey[key] ?? inv?.role ?? 'member';
+      return MemberRef(username: key, role: role, statusToken: statusToken);
     }).toList()
       ..sort((a, b) =>
           a.username.toLowerCase().compareTo(b.username.toLowerCase()));
@@ -136,8 +161,7 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
     return List.generate(refs.length * 2 - 1, (i) {
       if (i.isOdd) return const Divider(height: 1);
       final ref = refs[i ~/ 2];
-      return MemberRow(
-          ref: ref, ownerId: widget.group.ownerId); // 👈 pass ownerId
+      return MemberRow(ref: ref, ownerId: widget.group.ownerId);
     });
   }
 }

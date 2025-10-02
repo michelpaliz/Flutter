@@ -1,133 +1,41 @@
-// lib/c-frontend/b-dashboard-section/sections/insights/insights_filters_section.dart
-import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'insights_types.dart';
+You’re 95% there — you already fetch the catalogs and built `_applyLabels(...)`. You just aren’t using it in `build()`. Do this tiny change:
 
-class InsightsFiltersSection extends StatelessWidget {
-  final RangePreset preset;
-  final ValueChanged<RangePreset> onPresetChanged;
-  final VoidCallback onPickCustom;
-  final Dimension dimension;
-  final ValueChanged<Dimension> onDimensionChanged;
+### Replace this in `build()`
 
-  // Optional type segment (default hidden)
-  final bool showTypeFilter;
-  final EventTypeFilter? type;
-  final ValueChanged<EventTypeFilter>? onTypeChanged;
+```dart
+final minutesMap = _aggregateMinutes(_dimension, range);
+...
+InsightsBarsCard(
+  title: _dimension == Dimension.clients ? l.timeByClient : l.timeByService,
+  minutesByKey: minutesMap,
+),
+```
 
-  final String rangeText;
+### With this (apply labels before rendering)
 
-  const InsightsFiltersSection({
-    super.key,
-    required this.preset,
-    required this.onPresetChanged,
-    required this.onPickCustom,
-    required this.dimension,
-    required this.onDimensionChanged,
-    this.showTypeFilter = false,
-    this.type,
-    this.onTypeChanged,
-    required this.rangeText,
-  });
+```dart
+final minutesById = _aggregateMinutes(_dimension, range);
+final minutesLabeled = _applyLabels(minutesById);
+...
+InsightsBarsCard(
+  title: _dimension == Dimension.clients ? l.timeByClient : l.timeByService,
+  minutesByKey: minutesLabeled, // 👈 human-readable names now
+),
+```
 
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
+That’s it — your bars will show **client/service names** instead of IDs.
 
-    String labelForPreset(RangePreset p) {
-      switch (p) {
-        case RangePreset.d7:  return l.dateRange7d;
-        case RangePreset.d30: return l.dateRange30d;
-        case RangePreset.m3:  return l.dateRange3m;
-        case RangePreset.m4:  return l.dateRange4m;
-        case RangePreset.m6:  return l.dateRange6m;
-        case RangePreset.y1:  return l.dateRange1y;
-        case RangePreset.ytd: return l.dateRangeYTD;
-        case RangePreset.custom: return l.dateRangeCustom;
-      }
-    }
+#### (Optional niceties)
 
-    Widget chip(RangePreset p) => ChoiceChip(
-          label: Text(labelForPreset(p)),
-          selected: preset == p,
-          onSelected: (_) => onPresetChanged(p),
-        );
+* If you want stable ordering (e.g., highest first), sort before passing:
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Date presets
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            chip(RangePreset.d7),
-            chip(RangePreset.d30),
-            chip(RangePreset.m3),
-            chip(RangePreset.m4),
-            chip(RangePreset.m6),
-            chip(RangePreset.y1),
-            chip(RangePreset.ytd),
-            ActionChip(label: Text(l.dateRangeCustom), onPressed: onPickCustom),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Scrollable row to avoid overflow
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(bottom: 2),
-          child: Row(
-            children: [
-              SegmentedButton<Dimension>(
-                segments: [
-                  ButtonSegment(
-                    value: Dimension.clients,
-                    label: Text(l.filterDimensionClients),
-                    icon: const Icon(Icons.person_outline),
-                  ),
-                  ButtonSegment(
-                    value: Dimension.services,
-                    label: Text(l.filterDimensionServices),
-                    icon: const Icon(Icons.design_services_outlined),
-                  ),
-                ],
-                selected: {dimension},
-                onSelectionChanged: (s) => onDimensionChanged(s.first),
-              ),
-
-              if (showTypeFilter) ...[
-                const SizedBox(width: 12),
-                SegmentedButton<EventTypeFilter>(
-                  segments: [
-                    ButtonSegment(value: EventTypeFilter.all,    label: Text(l.filterTypeAll)),
-                    ButtonSegment(value: EventTypeFilter.simple, label: Text(l.filterTypeSimple)),
-                    ButtonSegment(value: EventTypeFilter.work,   label: Text(l.filterTypeWork)),
-                  ],
-                  selected: {type!},
-                  onSelectionChanged: (s) => onTypeChanged?.call(s.first),
-                ),
-              ],
-
-              const SizedBox(width: 12),
-
-              // Range label pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  rangeText,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-              const SizedBox(width: 4),
-            ],
-          ),
-        ),
-      ],
-    );
+  ```dart
+  Map<String, int> _sortDesc(Map<String, int> m) {
+    final entries = m.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return { for (final e in entries) e.key: e.value };
   }
-}
+  // then:
+  final minutesLabeled = _sortDesc(_applyLabels(minutesById));
+  ```
+* If some events reference deleted clients/services, your fallback `?? e.key` will keep the ID label, which is fine.

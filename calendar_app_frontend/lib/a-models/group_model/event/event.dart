@@ -1,5 +1,4 @@
-import 'package:hexora/a-models/group_model/event/event_utils.dart'
-    as utils;
+import 'package:hexora/a-models/group_model/event/event_utils.dart' as utils;
 import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:hexora/a-models/group_model/recurrenceRule/utils_recurrence_rule/custom_day_week.dart';
 import 'package:hexora/a-models/notification_model/updateInfo.dart';
@@ -285,13 +284,14 @@ class Event {
 
   /// Payload to backend (create/update).
   Map<String, dynamic> toBackendJson() {
+    // --- Recurrence: send as ObjectId when it looks like one; otherwise embed the rule object ---
     final recurrenceRuleJson = recurrenceRule == null
         ? null
         : RegExp(r'^[a-f0-9]{24}$').hasMatch(recurrenceRule!.id)
             ? recurrenceRule!.id
             : utils.mapRule(recurrenceRule);
 
-    // Whitelist of valid statuses (backend accepts these)
+    // --- Status normalization (server expects these tokens) ---
     const validStatuses = {
       'pending',
       'in_progress',
@@ -299,13 +299,38 @@ class Event {
       'cancelled',
       'overdue'
     };
-
     String? cleanStatus;
     if (status != null) {
       final s = status!.trim().toLowerCase().replaceAll(' ', '_');
       if (validStatuses.contains(s)) cleanStatus = s;
     }
 
+    // --- Detect work-visit intent from actual selections ---
+    final hasClient = (clientId != null && clientId!.isNotEmpty);
+    final hasPrimaryService =
+        (primaryServiceId != null && primaryServiceId!.isNotEmpty);
+    final hasVisitServices = visitServices.isNotEmpty;
+    final hasWork = hasClient || hasPrimaryService || hasVisitServices;
+
+    // --- Effective type: promote to work_visit if any work fields are present ---
+    final String effectiveType = hasWork
+        ? 'work_visit'
+        : (type.toLowerCase() == 'work_visit' ? 'work_visit' : 'simple');
+
+    // --- Ensure visitServices contains primaryServiceId if provided ---
+    List<VisitService> vsOut = visitServices;
+    if (hasPrimaryService) {
+      final containsPrimary =
+          visitServices.any((v) => v.serviceId == primaryServiceId);
+      if (!containsPrimary) {
+        vsOut = <VisitService>[
+          VisitService(serviceId: primaryServiceId!),
+          ...visitServices
+        ];
+      }
+    }
+
+    // --- Build base payload ---
     final map = <String, dynamic>{
       'startDate': startDate.toUtc().toIso8601String(),
       'endDate': endDate.toUtc().toIso8601String(),
@@ -326,19 +351,18 @@ class Event {
       'updateHistory': updateHistory.map((u) => u.toMap()).toList(),
       'notifyOwner': notifyOwner,
 
-      // legacy (only meaningful when type='simple')
-      'categoryId': categoryId,
-      'subcategoryId': subcategoryId,
-
-      // NEW
-      'type': type,
-      'clientId': clientId,
-      'primaryServiceId': primaryServiceId,
+      // Type + work-visit fields
+      'type': effectiveType,
+      'clientId': hasClient ? clientId : null,
+      'primaryServiceId': hasPrimaryService ? primaryServiceId : null,
       'stopId': stopId,
-      'visitServices': visitServices.map((v) => v.toMap()).toList(),
+      'visitServices': vsOut.map((v) => v.toMap()).toList(),
+
+      // Legacy categories only meaningful for simple events; null them otherwise
+      'categoryId': effectiveType == 'simple' ? categoryId : null,
+      'subcategoryId': effectiveType == 'simple' ? subcategoryId : null,
     };
 
-    // Only include status if valid
     if (cleanStatus != null) {
       map['status'] = cleanStatus;
     }

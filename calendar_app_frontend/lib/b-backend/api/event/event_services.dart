@@ -2,12 +2,12 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:hexora/b-backend/api/config/api_constants.dart';
 import 'package:hexora/b-backend/api/event/string_utils.dart';
 import 'package:hexora/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class EventService {
@@ -46,6 +46,8 @@ class EventService {
       final readyEvent = await _ensureRuleId(eventData);
       final headers = await _authHeaders();
       final body = jsonEncode(readyEvent.toBackendJson());
+
+      debugPrint('🌐 POST /events body: $body'); // must match #0
 
       devtools.log("📤 Sending event to $baseUrl");
       devtools.log("🧾 Headers: $headers");

@@ -52,8 +52,6 @@ class ContextualFab extends StatelessWidget {
       onPressed = () => Navigator.pushNamed(context, AppRoutes.createGroupData);
     }
 
-    if (onPressed == null) return const SizedBox.shrink();
-
     return Container(
       width: 64,
       height: 64,

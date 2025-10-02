@@ -1,11 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/agenda/agenda_model.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/c-frontend/g-agenda-section/sections/agenda_filters_section.dart';
 import 'package:hexora/c-frontend/g-agenda-section/sections/agenda_header_section.dart';
 import 'package:hexora/c-frontend/g-agenda-section/sections/agenda_list_section.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart'; // ⬅️ for navigation to groups
+import 'package:hexora/d-stateManagement/group/group_management.dart'; // ⬅️ for currentGroup fallback
 import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AgendaScreen extends StatefulWidget {
@@ -30,7 +32,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
   String _category = 'all';
 
   /// Type filter token from chips: 'all' | 'simple' | 'work_service'
-  /// (Backend may use 'work_visit'; we normalize below.)
+  /// (Backend stores 'work_visit'; we normalize below.)
   String _type = 'all';
 
   /// Show category filter UI only if type is "simple"
@@ -47,22 +49,59 @@ class _AgendaScreenState extends State<AgendaScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAgenda();
+    // Defer to next frame so Provider is available
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAgenda());
   }
 
-  /// Loads events from backend
-  Future<void> _loadAgenda() async {
+  /// Resolve the group id to use:
+  /// 1) explicit widget.groupId
+  /// 2) fallback to GroupManagement.currentGroup?.id
+  String? _resolveGroupId() {
+    final explicit = widget.groupId;
+    if (explicit != null && explicit.isNotEmpty) return explicit;
     try {
-      final userMgmt = context.read<UserManagement>();
-      final List<Event> events =
-          await userMgmt.fetchAgendaUpcoming(days: _daysRange, limit: 300);
+      final gm = context.read<GroupManagement>();
+      final fallback = gm.currentGroup?.id;
+      if (fallback != null && fallback.isNotEmpty) return fallback;
+    } catch (_) {}
+    return null;
+  }
 
+  /// Loads events from backend (if a group is available).
+  /// If no group is resolved, render UI without data and show a prompt.
+  Future<void> _loadAgenda() async {
+    final gid = _resolveGroupId();
+
+    if (!mounted) return;
+
+    if (gid == null || gid.isEmpty) {
+      setState(() {
+        _loading = false;
+        _error = null; // not an error — just no group yet
+        _items = const [];
+      });
+      return;
+    }
+
+    try {
+      setState(() => _loading = true);
+
+      final userMgmt = context.read<UserManagement>();
+
+      final List<Event> events = await userMgmt.fetchAgendaUpcoming(
+        groupId: gid,
+        days: _daysRange,
+        limit: 300,
+      );
+
+      if (!mounted) return;
       setState(() {
         _items = buildAgendaItems(events, Theme.of(context));
         _error = null;
         _loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -73,10 +112,11 @@ class _AgendaScreenState extends State<AgendaScreen> {
   /// Applies group, type, and category filters to agenda items
   List<AgendaItem> _applyAllFilters(List<AgendaItem> all) {
     Iterable<AgendaItem> out = all;
+    final gid = _resolveGroupId();
 
-    // 1) Optional group filter
-    if (widget.groupId?.isNotEmpty ?? false) {
-      out = out.where((it) => it.event.groupId == widget.groupId);
+    // 1) Group filter (only if we have one resolved)
+    if (gid != null && gid.isNotEmpty) {
+      out = out.where((it) => it.event.groupId == gid);
     }
 
     // 2) Category filter — ONLY applied when type == 'simple'
@@ -85,14 +125,12 @@ class _AgendaScreenState extends State<AgendaScreen> {
       if (token != 'all') {
         if (token.startsWith('cat:')) {
           final id = token.substring(4);
-          out = out.where(
-            (it) => (it.event.categoryId ?? '').toLowerCase() == id,
-          );
+          out = out
+              .where((it) => (it.event.categoryId ?? '').toLowerCase() == id);
         } else if (token.startsWith('sub:')) {
           final id = token.substring(4);
           out = out.where(
-            (it) => (it.event.subcategoryId ?? '').toLowerCase() == id,
-          );
+              (it) => (it.event.subcategoryId ?? '').toLowerCase() == id);
         } else {
           out = const <AgendaItem>[];
         }
@@ -112,53 +150,80 @@ class _AgendaScreenState extends State<AgendaScreen> {
   @override
   Widget build(BuildContext context) {
     final filtered = _applyAllFilters(_items);
+    final gid = _resolveGroupId();
+
+    Widget body;
+
+    if (_loading) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (_error != null) {
+      body = Center(child: Text(_error!));
+    } else {
+      body = RefreshIndicator(
+        onRefresh: _loadAgenda,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            /// HEADER SECTION (use filtered so it matches chips)
+            AgendaHeaderSection(
+              items: filtered,
+              daysRange: _daysRange,
+              onToggleDays: () {
+                setState(() {
+                  _daysRange = _daysRange >= 30 ? 14 : 30;
+                  _loading = true;
+                });
+                _loadAgenda();
+              },
+              onRefresh: () {
+                setState(() => _loading = true);
+                _loadAgenda();
+              },
+            ),
+
+            /// If no group resolved, show a small prompt card (UI still renders)
+            if (gid == null)
+              SliverToBoxAdapter(
+                child: Card(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    leading: const Icon(Icons.group_outlined),
+                    title: const Text('Select a group to load events'),
+                    trailing: TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.showGroups).then(
+                            (_) => _loadAgenda()); // reload after selection
+                      },
+                      child: const Text('Choose'),
+                    ),
+                  ),
+                ),
+              ),
+
+            /// FILTERS SECTION (tabs/chips are always visible)
+            AgendaFiltersSection(
+              category: _category,
+              type: _type,
+              showCategories: _showCategories,
+              onCategoryChanged: (c) => setState(() => _category = c),
+              onTypeChanged: (t) => setState(() {
+                _type = t;
+                // Reset category when leaving "Simple"
+                if (_type != 'simple') _category = 'all';
+              }),
+            ),
+
+            /// LIST SECTION
+            AgendaListSection(filteredItems: filtered),
+          ],
+        ),
+      );
+    }
 
     return MainScaffold(
       showAppBar: false,
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text(_error!))
-              : RefreshIndicator(
-                  onRefresh: _loadAgenda,
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      /// HEADER SECTION (use filtered so it matches chips)
-                      AgendaHeaderSection(
-                        items: filtered,
-                        daysRange: _daysRange,
-                        onToggleDays: () {
-                          setState(() {
-                            _daysRange = _daysRange >= 30 ? 14 : 30;
-                            _loading = true;
-                          });
-                          _loadAgenda();
-                        },
-                        onRefresh: () {
-                          setState(() => _loading = true);
-                          _loadAgenda();
-                        },
-                      ),
-
-                      /// FILTERS SECTION
-                      AgendaFiltersSection(
-                        category: _category,
-                        type: _type,
-                        showCategories: _showCategories,
-                        onCategoryChanged: (c) => setState(() => _category = c),
-                        onTypeChanged: (t) => setState(() {
-                          _type = t;
-                          // Reset category when leaving "Simple"
-                          if (_type != 'simple') _category = 'all';
-                        }),
-                      ),
-
-                      /// LIST SECTION
-                      AgendaListSection(filteredItems: filtered),
-                    ],
-                  ),
-                ),
+      body: body,
     );
   }
 }

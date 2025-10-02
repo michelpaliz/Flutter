@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/api/client/client_api.dart';
+import 'package:hexora/b-backend/api/service/service_api.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/enum/insights_types.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/bar/insights_bar_section.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/filter/insights_filter_section.dart';
@@ -25,6 +27,9 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
   RangePreset _preset = RangePreset.m3;
   DateTimeRange? _customRange;
 
+  Map<String, String> _clientNames = {};
+  Map<String, String> _serviceNames = {};
+
   // Only “Clientes / Servicios” for this screen
   Dimension _dimension = Dimension.clients;
 
@@ -36,6 +41,84 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
     _load();
   }
 
+  Map<String, int> _applyLabels(Map<String, int> minutesById) {
+    if (_dimension == Dimension.clients) {
+      return {
+        for (final e in minutesById.entries)
+          (_clientNames[e.key] ?? e.key): e.value,
+      };
+    } else {
+      return {
+        for (final e in minutesById.entries)
+          (_serviceNames[e.key] ?? e.key): e.value,
+      };
+    }
+  }
+
+  // Future<void> _load() async {
+  //   setState(() {
+  //     _loading = true;
+  //     _error = null;
+  //   });
+
+  //   try {
+  //     final userMgmt = context.read<UserManagement>();
+  //     final range = _resolveRange(DateTime.now());
+
+  //     // 1) Fetch events from the new agenda endpoint
+  //     final eventsFuture = userMgmt.fetchWorkInRange(
+  //       groupId: widget.group.id,
+  //       from: range.start,
+  //       to: range.end,
+  //       types: const ['work_visit', 'work_service'],
+  //     );
+
+  //     // 2) In parallel, fetch catalogs for names (nice labels)
+  //     final clientsApi = ClientsApi();
+  //     final servicesApi = ServiceApi();
+  //     final clientsFuture =
+  //         clientsApi.list(groupId: widget.group.id, active: null);
+  //     final servicesFuture =
+  //         servicesApi.list(groupId: widget.group.id, active: null);
+
+  //     final results =
+  //         await Future.wait([eventsFuture, clientsFuture, servicesFuture]);
+
+  //     final events = results[0] as List<Event>;
+  //     final clients = results[1] as List<dynamic>; // Client
+  //     final services = results[2] as List<dynamic>; // Service
+
+  //     // (Optional) guard if backend ever returns other groups by mistake
+  //     final onlyThisGroup =
+  //         events.where((e) => e.groupId == widget.group.id).toList();
+
+  //     // Build ID → name maps
+  //     final clientNames = <String, String>{
+  //       for (final c in clients)
+  //         c.id: (c.name?.trim().isNotEmpty == true ? c.name!.trim() : c.id),
+  //     };
+  //     final serviceNames = <String, String>{
+  //       for (final s in services)
+  //         s.id: (s.name?.trim().isNotEmpty == true ? s.name!.trim() : s.id),
+  //     };
+
+  //     setState(() {
+  //       _events = onlyThisGroup;
+  //       _clientNames = clientNames;
+  //       _serviceNames = serviceNames;
+  //       _loading = false;
+  //     });
+  //   } catch (e) {
+  //     setState(() {
+  //       _error = e.toString();
+  //       _loading = false;
+  //     });
+  //   }
+  // }
+
+  DateTime _endExclusive(DateTime d) =>
+      DateTime(d.year, d.month, d.day).add(const Duration(days: 1));
+
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -46,24 +129,50 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
       final userMgmt = context.read<UserManagement>();
       final range = _resolveRange(DateTime.now());
 
-      // TODO: replace with server-side range query (start..end)
-      final upcoming = await userMgmt.fetchAgendaUpcoming(days: 365, limit: 5000);
+      // ⚠️ Use end-exclusive to include the whole last day in the backend query
+      final endExclusive = _endExclusive(range.end);
 
-      final filtered = upcoming.where((e) {
-        if (e.groupId != widget.group.id) return false;
+      // 1) Fetch events from the unified agenda endpoint
+      final eventsFuture = userMgmt.fetchWorkItems(
+        groupId: widget.group.id,
+        from: range.start,
+        to: endExclusive, // ← end-exclusive
+        types: const ['work_visit', 'work_service'],
+      );
 
-        final s = e.startDate.toLocal();
-        final en = (e.endDate ?? e.startDate).toLocal();
-        final inRange = !en.isBefore(range.start) && !s.isAfter(range.end);
-        if (!inRange) return false;
+      // 2) In parallel, fetch catalogs for names (nice labels)
+      final clientsApi = ClientsApi();
+      final servicesApi = ServiceApi();
+      final clientsFuture =
+          clientsApi.list(groupId: widget.group.id, active: null);
+      final servicesFuture =
+          servicesApi.list(groupId: widget.group.id, active: null);
 
-        // Hard filter to “work” types for group insights
-        final t = (e.type ?? '').toLowerCase();
-        return t == 'work_service' || t == 'work_visit';
-      }).toList();
+      final results =
+          await Future.wait([eventsFuture, clientsFuture, servicesFuture]);
+
+      final events = results[0] as List<Event>;
+      final clients = results[1] as List<dynamic>;
+      final services = results[2] as List<dynamic>;
+
+      // (Optional) guard if backend ever returns other groups by mistake
+      final onlyThisGroup =
+          events.where((e) => e.groupId == widget.group.id).toList();
+
+      // Build ID → name maps
+      final clientNames = <String, String>{
+        for (final c in clients)
+          c.id: (c.name?.trim().isNotEmpty == true ? c.name!.trim() : c.id),
+      };
+      final serviceNames = <String, String>{
+        for (final s in services)
+          s.id: (s.name?.trim().isNotEmpty == true ? s.name!.trim() : s.id),
+      };
 
       setState(() {
-        _events = filtered;
+        _events = onlyThisGroup;
+        _clientNames = clientNames;
+        _serviceNames = serviceNames;
         _loading = false;
       });
     } catch (e) {
@@ -78,22 +187,33 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
     final today = DateTime(now.year, now.month, now.day);
     switch (_preset) {
       case RangePreset.d7:
-        return DateTimeRange(start: today.subtract(const Duration(days: 6)), end: today);
+        return DateTimeRange(
+            start: today.subtract(const Duration(days: 6)), end: today);
       case RangePreset.d30:
-        return DateTimeRange(start: today.subtract(const Duration(days: 29)), end: today);
+        return DateTimeRange(
+            start: today.subtract(const Duration(days: 29)), end: today);
       case RangePreset.m3:
-        return DateTimeRange(start: DateTime(today.year, today.month - 3, today.day), end: today);
+        return DateTimeRange(
+            start: DateTime(today.year, today.month - 3, today.day),
+            end: today);
       case RangePreset.m4:
-        return DateTimeRange(start: DateTime(today.year, today.month - 4, today.day), end: today);
+        return DateTimeRange(
+            start: DateTime(today.year, today.month - 4, today.day),
+            end: today);
       case RangePreset.m6:
-        return DateTimeRange(start: DateTime(today.year, today.month - 6, today.day), end: today);
+        return DateTimeRange(
+            start: DateTime(today.year, today.month - 6, today.day),
+            end: today);
       case RangePreset.y1:
-        return DateTimeRange(start: DateTime(today.year - 1, today.month, today.day), end: today);
+        return DateTimeRange(
+            start: DateTime(today.year - 1, today.month, today.day),
+            end: today);
       case RangePreset.ytd:
         return DateTimeRange(start: DateTime(today.year, 1, 1), end: today);
       case RangePreset.custom:
         return _customRange ??
-            DateTimeRange(start: today.subtract(const Duration(days: 29)), end: today);
+            DateTimeRange(
+                start: today.subtract(const Duration(days: 29)), end: today);
     }
   }
 
@@ -101,7 +221,7 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
     final out = <String, int>{};
     for (final e in _events) {
       final start = e.startDate.toLocal();
-      final end = (e.endDate ?? e.startDate).toLocal();
+      final end = (e.endDate).toLocal();
 
       final s = start.isBefore(range.start) ? range.start : start;
       final en = end.isAfter(range.end) ? range.end : end;
@@ -135,11 +255,18 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
     }
   }
 
+  Map<String, int> _sortDesc(Map<String, int> m) {
+    final entries = m.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return {for (final e in entries) e.key: e.value};
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final range = _resolveRange(DateTime.now());
-    final minutesMap = _aggregateMinutes(_dimension, range);
+    final minutesById = _aggregateMinutes(_dimension, range);
+    final minutesLabeled = _sortDesc(_applyLabels(minutesById));
     final df = DateFormat.yMMMd(l.localeName);
     final rangeText = '${df.format(range.start)} – ${df.format(range.end)}';
 
@@ -186,13 +313,16 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
                       title: _dimension == Dimension.clients
                           ? l.timeByClient
                           : l.timeByService,
-                      minutesByKey: minutesMap,
+                      minutesByKey:
+                          minutesLabeled, // 👈 human-readable names now
                     ),
 
                     const SizedBox(height: 24),
 
                     if (_preset != RangePreset.custom &&
-                        _resolveRange(DateTime.now()).start.isBefore(DateTime.now()) &&
+                        _resolveRange(DateTime.now())
+                            .start
+                            .isBefore(DateTime.now()) &&
                         _events.isEmpty)
                       const InsightsPastDataHint(),
                   ],

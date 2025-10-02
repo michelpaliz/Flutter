@@ -59,43 +59,6 @@ class CalendarUIController {
 
     _eventDataSource = EventDataSource([]); // start empty
 
-    // _eventDataManager.eventsStream.listen((updatedEvents) {
-    //   debugPrint(
-    //       "[CalendarUI] Received ${updatedEvents.length} events from stream");
-
-    //   // 👇 Re-create the data source completely
-    //   final newDataSource = EventDataSource(List<Event>.from(updatedEvents));
-    //   calendarDataSourceNotifier.value = newDataSource;
-
-    //   allEvents.value = List<Event>.from(updatedEvents);
-
-    //   if (_selectedDate != null) {
-    //     dailyEvents.value = _eventDataManager.getEventsForDate(_selectedDate!);
-    //   }
-
-    //   triggerCalendarHardRefresh();
-    // });
-
-    // _eventDataManager.eventsStream.listen((updatedEvents) {
-    //   debugPrint("[CalendarUI] 📥 ${updatedEvents.length} events from stream");
-
-    //   // ✅ REUSE the same dataSource instance
-    //   calendarDataSourceNotifier.value.updateEvents(updatedEvents);
-
-    //   allEvents.value = List<Event>.from(updatedEvents);
-
-    //   if (_selectedDate != null) {
-    //     dailyEvents.value = _eventDataManager.getEventsForDate(_selectedDate!);
-    //   }
-
-    //   // ❌ REMOVE this unless absolutely needed
-    //   triggerCalendarHardRefresh();
-    // });
-
-    // _eventDataManager.onExternalEventUpdate = () {
-    //   // notifyCalendarToRedraw();
-    //   triggerCalendarHardRefresh();
-    // };
 
     _eventDataManager.eventsStream.listen((updatedEvents) {
       debugPrint("[CalendarUI] 📥 ${updatedEvents.length} events from stream");

@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
-import 'package:flutter/material.dart';
 
 import '../sheets/event_actions_sheet.dart';
 
@@ -21,4 +21,9 @@ void showEventActionsSheet({
       actionManager: actionManager,
     ),
   );
+}
+
+/// Returns true if the user can edit or delete events.
+bool canEdit(String userRole) {
+  return userRole == 'Administrator' || userRole == 'Co-Administrator';
 }
