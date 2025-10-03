@@ -3,23 +3,55 @@ import 'package:flutter/material.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
-  const SectionHeader({super.key, required this.title});
+  final TextStyle? textStyle;
+  final double dividerSpacing;
+  final double dividerHeight;
+  final double dividerThickness;
+  final Color? dividerColor;
+  final CrossAxisAlignment crossAxisAlignment;
+  final bool showDivider;
+
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.textStyle,
+    this.dividerSpacing = 8,
+    this.dividerHeight = 1,
+    this.dividerThickness = 1,
+    this.dividerColor,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+    this.showDivider = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final defaultTextStyle = theme.textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+    );
+
+    final effectiveTextStyle = textStyle ?? defaultTextStyle;
+    final effectiveDividerColor =
+        dividerColor ?? colors.onSurface.withOpacity(0.08);
+
     return Row(
+      crossAxisAlignment: crossAxisAlignment,
       children: [
-        Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: cs.onSurface.withOpacity(0.08),
-          ),
+        Text(
+          title,
+          style: effectiveTextStyle,
         ),
+        if (showDivider) ...[
+          SizedBox(width: dividerSpacing),
+          Expanded(
+            child: Divider(
+              height: dividerHeight,
+              thickness: dividerThickness,
+              color: effectiveDividerColor,
+            ),
+          ),
+        ],
       ],
     );
   }

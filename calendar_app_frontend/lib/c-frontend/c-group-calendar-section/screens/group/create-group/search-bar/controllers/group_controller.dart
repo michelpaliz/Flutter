@@ -2,9 +2,9 @@ import 'dart:convert'; // ✅ NEW
 import 'dart:developer' as devtools show log;
 import 'dart:io'; // ✅ NEW
 
+import 'package:flutter/material.dart';
 import 'package:hexora/b-backend/api/blobUploader/blob_uploader.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // ✅ NEW
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart'; // ✅ NEW
@@ -154,6 +154,7 @@ class GroupController extends ChangeNotifier {
       }
     }
   }
+
 
   // ✅ Create group first, then (optionally) upload image and commit { blobName }.
   Future<bool> _createGroupAndMaybeUploadPhoto() async {

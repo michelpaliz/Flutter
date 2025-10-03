@@ -6,6 +6,7 @@ import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
 import 'package:hexora/b-backend/api/config/api_constants.dart';
 import 'package:hexora/b-backend/api/group/error_classes/error_classes.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:http/http.dart' as http;
 
 class GroupService {
@@ -181,5 +182,36 @@ class GroupService {
         '❌ Failed to respond to invite: ${response.reasonPhrase}',
       );
     }
+  }
+
+  // Inside GroupService
+  Future<MembersCount> getMembersCount(
+    String groupId, {
+    String?
+        mode, // optional: 'accepted' | 'union' (if your backend supports it)
+  }) async {
+    final query = mode == null ? '' : '?mode=$mode';
+    final res = await http.get(
+      Uri.parse('$baseUrl/$groupId/members/count$query'),
+      headers: await _authHeaders(),
+    );
+
+    devtools
+        .log('📥 GET /groups/$groupId/members/count$query → ${res.statusCode}');
+    devtools.log('📦 Body: ${res.body}');
+
+    if (res.statusCode == 200) {
+      final json = jsonDecode(res.body) as Map<String, dynamic>;
+      return MembersCount.fromJson(json);
+    }
+
+    if (res.statusCode == 404) {
+      throw NotFoundException('Group $groupId not found');
+    }
+
+    throw HttpFailure(
+      res.statusCode,
+      res.body.isEmpty ? 'Unknown error' : res.body,
+    );
   }
 }

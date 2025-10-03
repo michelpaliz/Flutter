@@ -1,16 +1,27 @@
 // c-frontend/b-calendar-section/screens/group-screen/members/widgets/members_row_widgets/parent/members_row.dart
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
-
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/badge_icon.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/role_chip.dart';
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/status_dot.dart';
 import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+// Import your reusable widgets
 
 class MemberRow extends StatelessWidget {
   final MemberRef ref;
   final String ownerId;
-  const MemberRow({super.key, required this.ref, required this.ownerId});
+  final bool showRoleChip; // New parameter to control role chip visibility
+
+  const MemberRow({
+    super.key,
+    required this.ref,
+    required this.ownerId,
+    this.showRoleChip = true,
+  });
 
   bool _isOwnerRole(String? raw) {
     final s = raw?.trim().toLowerCase() ?? '';
@@ -26,6 +37,11 @@ class MemberRow extends StatelessWidget {
         s == 'administrator' ||
         s == 'manager' ||
         s == 'moderator';
+  }
+
+  bool _isMemberRole(String? raw) {
+    final s = raw?.trim().toLowerCase() ?? '';
+    return s == 'member' || s.isEmpty;
   }
 
   @override
@@ -67,6 +83,7 @@ class MemberRow extends StatelessWidget {
 
         final isOwner = (user.id == ownerId) || _isOwnerRole(ref.role);
         final isAdmin = !isOwner && _isAdminRole(ref.role);
+        final isMember = !isOwner && !isAdmin && _isMemberRole(ref.role);
         final titleText = (user.name.isNotEmpty ? user.name : user.userName);
 
         return ListTile(
@@ -109,30 +126,42 @@ class MemberRow extends StatelessWidget {
                   style: isOwner
                       ? theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.w700)
-                      : null,
+                      : theme.textTheme.titleMedium,
                 ),
               ),
               const SizedBox(width: 8),
-              if (isOwner)
-                _RoleChip(label: l.roleOwner, color: cs.primary)
-              else if (isAdmin)
-                _RoleChip(label: l.roleAdmin, color: cs.secondary),
+              // Show role chip for members and other roles when enabled
+              if (showRoleChip && !isOwner && !isAdmin)
+                RoleChip(
+                  label: _isMemberRole(ref.role) ? l.roleMember : ref.role,
+                  color: _isMemberRole(ref.role)
+                      ? Colors.grey[800]! // Black color for member role
+                      : cs.tertiary,
+                ),
             ],
           ),
 
-          // SUBTITLE: status chip (owners hide it)
+          // SUBTITLE: status dot
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 4,
+            child: Row(
               children: [
-                if (!isOwner) _StatusChip(token: ref.statusToken),
-                if (!isOwner &&
-                    !isAdmin &&
-                    ref.role.trim().isNotEmpty &&
-                    ref.role.toLowerCase() != 'member')
-                  _RoleChip(label: ref.role, color: cs.tertiary),
+                if (!isOwner)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: StatusDot(token: ref.statusToken),
+                  ),
+                if (!isOwner)
+                  Expanded(
+                    child: Text(
+                      _getStatusText(ref.statusToken, l),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -143,7 +172,6 @@ class MemberRow extends StatelessWidget {
     );
   }
 
-  // ---------- Bottom sheet updated: title row includes role chip ----------
   void _showMemberSheet(
     BuildContext context,
     User user,
@@ -196,21 +224,34 @@ class MemberRow extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   if (isOwnerRowUser)
-                    _RoleChip(label: l.roleOwner, color: cs.primary)
+                    RoleChip(label: l.roleOwner, color: cs.primary)
                   else if (isAdminRowUser)
-                    _RoleChip(label: l.roleAdmin, color: cs.secondary)
-                  else if (ref.role.trim().isNotEmpty &&
-                      ref.role.toLowerCase() != 'member')
-                    _RoleChip(label: ref.role, color: cs.tertiary),
+                    RoleChip(label: l.roleAdmin, color: cs.secondary)
+                  else
+                    RoleChip(
+                      label: _isMemberRole(ref.role) ? l.roleMember : ref.role,
+                      color: _isMemberRole(ref.role)
+                          ? Colors.grey[800]! // Black color for member role
+                          : cs.tertiary,
+                    ),
                 ],
               ),
 
-              // STATUS chip below (skip for owner)
+              // STATUS below (skip for owner)
               if (!isOwnerRowUser) ...[
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: _StatusChip(token: ref.statusToken),
+                  child: Row(
+                    children: [
+                      StatusDot(token: ref.statusToken),
+                      const SizedBox(width: 8),
+                      Text(
+                        _getStatusText(ref.statusToken, l),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
                 ),
               ],
 
@@ -278,109 +319,22 @@ class MemberRow extends StatelessWidget {
     );
   }
 
+  String _getStatusText(String token, AppLocalizations l) {
+    switch (token) {
+      case 'Accepted':
+        return l.statusAccepted;
+      case 'Pending':
+        return l.statusPending;
+      default:
+        return l.statusNotAccepted;
+    }
+  }
+
   String _initials(String text) {
     final t = text.trim();
     if (t.isEmpty) return '?';
     final parts = t.split(RegExp(r'\s+'));
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts.first[0] + parts.last[0]).toUpperCase();
-  }
-}
-
-// ---- small helpers ---------------------------------------------------------
-
-class _StatusChip extends StatelessWidget {
-  final String token; // 'Accepted' | 'Pending' | 'NotAccepted'
-  const _StatusChip({required this.token});
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    late final String label;
-    late final Color color;
-
-    switch (token) {
-      case 'Accepted':
-        label = l.statusAccepted;
-        color = const Color(0xFF16A34A); // green-600
-        break;
-      case 'Pending':
-        label = l.statusPending;
-        color = const Color(0xFFF59E0B); // amber-600
-        break;
-      default:
-        label = l.statusNotAccepted;
-        color = const Color(0xFFDC2626); // red-600
-        break;
-    }
-
-    final on = ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration:
-          BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
-      child: Text(label,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: on, fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-class _RoleChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _RoleChip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final on = ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration:
-          BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
-      child: Text(label,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: on, fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-class BadgeIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final double size;
-  const BadgeIcon(
-      {super.key,
-      required this.icon,
-      required this.color,
-      required this.label,
-      this.size = 14});
-
-  @override
-  Widget build(BuildContext context) {
-    final on = ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
-    final child = Container(
-      padding: const EdgeInsets.all(2),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 2, offset: Offset(0, 1))
-        ],
-      ).copyWith(color: color),
-      child: Icon(icon, size: size, color: on),
-    );
-    return Tooltip(
-        message: label, child: Semantics(label: label, child: child));
   }
 }

@@ -1,19 +1,62 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+// NEW: backend counts
+import 'package:hexora/b-backend/api/group/group_services.dart'; // adjust path
+import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/upcoming_events/group_upcoming_events.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/e-drawer-style-menu/contextual_fab.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/f-themes/utilities/utilities.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class GroupDashboard extends StatelessWidget {
+class GroupDashboard extends StatefulWidget {
   final Group group;
   const GroupDashboard({super.key, required this.group});
 
   @override
+  State<GroupDashboard> createState() => _GroupDashboardState();
+}
+
+class _GroupDashboardState extends State<GroupDashboard> {
+  final _svc = GroupService();
+  MembersCount? _counts;
+  bool _loadingCounts = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    setState(() => _loadingCounts = true);
+    try {
+      final c = await _svc.getMembersCount(widget.group.id,
+          mode: 'union'); // or 'accepted'
+      if (!mounted) return;
+      setState(() => _counts = c);
+    } catch (_) {
+      // fallback UI will still show local numbers
+    } finally {
+      if (mounted) setState(() => _loadingCounts = false);
+    }
+  }
+
+  // helpers
+  String _norm(dynamic v) => v?.toString().toLowerCase().trim() ?? '';
+
+  bool _inviteIsAccepted(UserInviteStatus? inv) {
+    if (inv == null) return false;
+    final status = (inv.informationStatus ?? '').toLowerCase();
+    return inv.invitationAnswer == true || status == 'accepted';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final group = widget.group;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final tt = theme.textTheme;
@@ -21,122 +64,195 @@ class GroupDashboard extends StatelessWidget {
 
     final createdStr = DateFormat.yMMMd(l.localeName).format(group.createdTime);
 
+    // ---- LOCAL FALLBACK COUNTS (userIds ∪ accepted-invites) ----
+    final invitedRaw = group.invitedUsers ?? const <String, UserInviteStatus>{};
+    final invitedByUser = <String, UserInviteStatus>{
+      for (final e in invitedRaw.entries) _norm(e.key): e.value,
+    };
+
+    final acceptedByUserIds = (group.userIds ?? const <dynamic>[])
+        .map((id) => _norm(id))
+        .where((s) => s.isNotEmpty)
+        .toSet();
+
+    final acceptedByInvites = <String>{
+      for (final e in invitedByUser.entries)
+        if (_inviteIsAccepted(e.value)) e.key,
+    };
+
+    final membersKeys = <String>{}
+      ..addAll(acceptedByUserIds)
+      ..addAll(acceptedByInvites);
+
+    final fallbackMembers = membersKeys.length;
+    final fallbackPending = invitedByUser.entries
+        .where((e) =>
+            !_inviteIsAccepted(e.value) &&
+            !acceptedByUserIds.contains(_norm(e.key)))
+        .length;
+    final fallbackTotal = fallbackMembers + fallbackPending;
+
+    // ---- SERVER-FIRST DISPLAY ----
+    final showMembers = _counts?.accepted ?? fallbackMembers;
+    final showPending = _counts?.pending ?? fallbackPending;
+    final showTotal = _counts?.union ?? fallbackTotal;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l.dashboardTitle),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // ---- Overview ----
-          _SectionHeader(title: l.sectionOverview),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundImage: Utilities.buildProfileImage(group.photoUrl),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(group.name,
+      body: RefreshIndicator(
+        onRefresh: _loadCounts,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // ---- Overview ----
+            _SectionHeader(title: l.sectionOverview),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundImage: Utilities.buildProfileImage(group.photoUrl),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        group.name,
                         style: tt.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    Text(
-                      l.createdOnDay(createdStr),
-                      style: tt.bodySmall?.copyWith(
-                        color: cs.onSurface.withOpacity(0.7),
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        l.createdOnDay(createdStr),
+                        style: tt.bodySmall?.copyWith(
+                          color: cs.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Members / Pending / Total pills (server-first)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _InfoPill(
+                            icon: Icons.group_outlined,
+                            // Avoid l.membersSubtitle() inconsistencies; show number explicitly
+                            label:
+                                '${NumberFormat.decimalPattern(l.localeName).format(showMembers)} ${l.membersTitle.toLowerCase()}',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.groupMembers,
+                                arguments: group,
+                              );
+                            },
+                          ),
+                          _InfoPill(
+                            icon: Icons.hourglass_top_outlined,
+                            label:
+                                '${NumberFormat.decimalPattern(l.localeName).format(showPending)} ${l.statusPending.toLowerCase()}',
+                          ),
+                          _InfoPill(
+                            icon: Icons.all_inbox_outlined,
+                            label:
+                                '${NumberFormat.decimalPattern(l.localeName).format(showTotal)} total',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // ---- Upcoming ----
+            _SectionHeader(title: l.sectionUpcoming),
+            GroupUpcomingEventsCard(groupId: group.id),
+
+            const SizedBox(height: 20),
+
+            // ---- Manage ----
+            _SectionHeader(title: l.sectionManage),
+            Card(
+              color: ThemeColors.getListTileBackgroundColor(context),
+              child: ListTile(
+                leading: const Icon(Icons.group_outlined),
+                title: Text(l.membersTitle),
+                // Use explicit number text; don't rely on ARB '#'
+                subtitle: Text(
+                    '${NumberFormat.decimalPattern(l.localeName).format(showMembers)} ${l.membersTitle.toLowerCase()}'),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.groupMembers,
+                    arguments: group,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              color: ThemeColors.getListTileBackgroundColor(context),
+              child: ListTile(
+                leading: const Icon(Icons.design_services_outlined),
+                title: Text(l.servicesClientsTitle),
+                subtitle: Text(l.servicesClientsSubtitle),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.groupServicesClients,
+                    arguments: group,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // ---- Insights / Graphs ----
+            _SectionHeader(title: l.sectionInsights),
+            Card(
+              color: ThemeColors.getListTileBackgroundColor(context),
+              child: ListTile(
+                leading: const Icon(Icons.insights_outlined),
+                title: Text(l.insightsTitle),
+                subtitle: Text(l.insightsSubtitle),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.groupInsights,
+                    arguments: group,
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ---- Status (only if missing calendar) ----
+            if (!group.hasCalendar) ...[
+              _SectionHeader(title: l.sectionStatus),
+              Card(
+                color: cs.errorContainer.withOpacity(0.15),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    l.noCalendarWarning,
+                    style: tt.bodyMedium?.copyWith(color: cs.error),
+                  ),
                 ),
               ),
             ],
-          ),
 
-          const SizedBox(height: 20),
-
-          // ---- Upcoming ----
-          _SectionHeader(title: l.sectionUpcoming),
-          GroupUpcomingEventsCard(groupId: group.id),
-
-          const SizedBox(height: 20),
-
-          // ---- Manage ----
-          _SectionHeader(title: l.sectionManage),
-          Card(
-            color: ThemeColors.getListTileBackgroundColor(context),
-            child: ListTile(
-              leading: const Icon(Icons.group_outlined),
-              title: Text(l.membersTitle),
-              subtitle: Text(l.membersSubtitle(group.userIds.length)),
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.groupMembers,
-                  arguments: group,
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            color: ThemeColors.getListTileBackgroundColor(context),
-            child: ListTile(
-              leading: const Icon(Icons.design_services_outlined),
-              title: Text(l.servicesClientsTitle),
-              subtitle: Text(l.servicesClientsSubtitle),
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.groupServicesClients,
-                  arguments: group,
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          // ---- Insights / Graphs ----
-          _SectionHeader(title: l.sectionInsights),
-          Card(
-            color: ThemeColors.getListTileBackgroundColor(context),
-            child: ListTile(
-              leading: const Icon(Icons.insights_outlined),
-              title: Text(l.insightsTitle),
-              subtitle: Text(l.insightsSubtitle),
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.groupInsights,
-                  arguments: group,
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ---- Status (only if missing calendar) ----
-          if (!group.hasCalendar) ...[
-            _SectionHeader(title: l.sectionStatus),
-            Card(
-              color: cs.errorContainer.withOpacity(0.15),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  l.noCalendarWarning,
-                  style: tt.bodyMedium?.copyWith(color: cs.error),
-                ),
-              ),
-            ),
+            const SizedBox(height: 96),
           ],
-
-          const SizedBox(height: 96),
-        ],
+        ),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -184,6 +300,54 @@ class _SectionHeader extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Small clickable pill used to surface quick stats (e.g., members total).
+class _InfoPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _InfoPill({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final bg = cs.surfaceVariant.withOpacity(0.6);
+    final fg = cs.onSurface.withOpacity(0.8);
+
+    final pill = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // ← fixed
+        children: [
+          Icon(icon, size: 16, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 12.5, color: fg, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+
+    if (onTap == null) return pill;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: pill,
     );
   }
 }
