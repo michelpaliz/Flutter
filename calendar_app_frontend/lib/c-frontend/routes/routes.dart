@@ -1,5 +1,6 @@
 // routes.dart
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
@@ -27,8 +28,7 @@ import 'package:hexora/c-frontend/h-profile-section/edit/profile_edit_screen.dar
 import 'package:hexora/c-frontend/h-profile-section/view/profile_view_screen.dart';
 import 'package:hexora/c-frontend/i-settings-section/screens/settings.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:provider/provider.dart';
 
 final Map<String, WidgetBuilder> routes = {
@@ -61,28 +61,55 @@ final Map<String, WidgetBuilder> routes = {
   },
   AppRoutes.groupCalendar: (context) {
     final args = ModalRoute.of(context)?.settings.arguments;
+    final gm = context.read<GroupDomain>();
 
-    // If a full Group was passed, use it directly
-    if (args is Group) return MainCalendarView(group: args);
+    // 1) Full Group passed in → use immediately
+    if (args is Group) {
+      gm.currentGroup = args;
+      return MainCalendarView(group: args);
+    }
 
-    // If a groupId was passed, load it first
+    // 2) groupId (String) passed in → try cache, else fetch via repository
     if (args is String && args.isNotEmpty) {
+      // Try cached group first
+      Group? cached;
+      try {
+        cached = gm.groups.firstWhere((g) => g.id == args);
+      } catch (_) {
+        cached = null;
+      }
+
+      if (cached != null) {
+        gm.currentGroup = cached;
+        return MainCalendarView(group: cached);
+      }
+
+      // Not cached → fetch
       return FutureBuilder<Group>(
-        future: context.read<GroupManagement>().groupService.getGroupById(args),
+        future: gm.groupRepository.getGroupById(args),
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           }
           if (snap.hasError || !snap.hasData) {
-            return const Center(child: Text('Could not load group'));
+            return const Scaffold(
+              body: Center(child: Text('Could not load group')),
+            );
           }
-          return MainCalendarView(group: snap.data!);
+
+          final group = snap.data!;
+          gm.currentGroup = group;
+          return MainCalendarView(group: group);
         },
       );
     }
 
-    // Fallback for bad arguments
-    return const Center(child: Text('Invalid group argument'));
+    // 3) Fallback for bad arguments
+    return const Scaffold(
+      body: Center(child: Text('Invalid group argument')),
+    );
   },
 
   AppRoutes.addEvent: (context) {

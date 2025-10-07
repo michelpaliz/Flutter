@@ -1,16 +1,15 @@
 // lib/.../edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
-
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/admin_filter_sections.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 import '../../user_list_section.dart';
 
@@ -21,17 +20,17 @@ enum InviteFilter { accepted, pending, notAccepted, newUsers, expired }
 class EditGroupPeople extends StatefulWidget {
   final Group group;
   final List<User> initialUsers; // incoming snapshot
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
-  final NotificationManagement notificationManagement;
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
+  final NotificationDomain notificationDomain;
 
   const EditGroupPeople({
     Key? key,
     required this.group,
     required this.initialUsers,
-    required this.userManagement,
-    required this.groupManagement,
-    required this.notificationManagement,
+    required this.userDomain,
+    required this.groupDomain,
+    required this.notificationDomain,
   }) : super(key: key);
 
   @override
@@ -40,7 +39,7 @@ class EditGroupPeople extends StatefulWidget {
 
 class EditGroupPeopleState extends State<EditGroupPeople> {
   // Controller only for AddUser dialog search/flow
-  late GroupController _controller;
+  late GroupViewModel _controller;
 
   // Local, temporary state (NOT persisted until Save)
   late List<User> _localUsers; // working members
@@ -61,9 +60,9 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
   @override
   void initState() {
     super.initState();
-    _controller = GroupController();
+    _controller = GroupViewModel();
 
-    _currentUser = widget.userManagement.user;
+    _currentUser = widget.userDomain.user;
 
     // Clone incoming data into local working copies
     _localUsers = List<User>.from(widget.initialUsers);
@@ -73,9 +72,9 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
 
     _controller.initialize(
       user: _currentUser!,
-      userManagement: widget.userManagement,
-      groupManagement: widget.groupManagement,
-      notificationManagement: widget.notificationManagement,
+      userDomain: widget.userDomain,
+      groupDomain: widget.groupDomain,
+      notificationDomain: widget.notificationDomain,
       context: context,
     );
   }
@@ -138,12 +137,14 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
 
     final f = norm(filter);
 
-    if (f == norm(loc.accepted) || f == 'accepted') return InviteFilter.accepted;
+    if (f == norm(loc.accepted) || f == 'accepted')
+      return InviteFilter.accepted;
     if (f == norm(loc.pending) || f == 'pending') return InviteFilter.pending;
     if (f == norm(loc.notAccepted) || f == 'notaccepted' || f == 'declined') {
       return InviteFilter.notAccepted;
     }
-    if (f == norm(loc.newUsers) || f == 'newusers') return InviteFilter.newUsers;
+    if (f == norm(loc.newUsers) || f == 'newusers')
+      return InviteFilter.newUsers;
     if (f == norm(loc.expired) || f == 'expired') return InviteFilter.expired;
 
     return null;
@@ -158,7 +159,7 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
     return Column(
       children: [
         AddUserButtonDialog(
-          currentUser: widget.userManagement.user,
+          currentUser: widget.userDomain.user,
           group: widget.group,
           controller: _controller,
           onUserAdded: _onNewUserAdded,
@@ -214,9 +215,9 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
           usersInvitationAtFirst: widget.group.invitedUsers ?? {},
           group: widget.group,
           usersInGroup: _localUsers,
-          userManagement: widget.userManagement,
-          groupManagement: widget.groupManagement,
-          notificationManagement: widget.notificationManagement,
+          userDomain: widget.userDomain,
+          groupDomain: widget.groupDomain,
+          notificationDomain: widget.notificationDomain,
           showPending: showPending,
           showAccepted: showAccepted,
           showNotWantedToJoin: showNotWantedToJoin,

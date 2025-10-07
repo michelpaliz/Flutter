@@ -1,11 +1,11 @@
 import 'dart:developer' as devtools show log;
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
 import 'package:hexora/a-models/group_model/recurrenceRule/utils_recurrence_rule/recurrence_rule_utils.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/loading/loading_dialog.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:flutter/material.dart';
 
 bool validateTitle(
     BuildContext context, TextEditingController titleController) {
@@ -104,7 +104,7 @@ Event buildNewEvent({
 }
 
 Future<LegacyRecurrenceRule?> hydrateRecurrenceRuleIfNeeded({
-  required GroupManagement groupManagement,
+  required GroupDomain groupDomain,
   required String? rawRuleId,
 }) async {
   if (rawRuleId == null) return null;
@@ -114,9 +114,9 @@ Future<LegacyRecurrenceRule?> hydrateRecurrenceRuleIfNeeded({
 
   while (retries < maxRetries) {
     try {
-      // final rule = await groupManagement.groupEventResolver.ruleService
+      // final rule = await groupDomain.groupEventResolver.ruleService
       //     .getRuleById(rawRuleId);
-      final rule = await groupManagement.groupEventResolver.ruleService
+      final rule = await groupDomain.groupEventResolver.ruleService
           .getRuleById(rawRuleId);
 
       devtools.log("✅ Recurrence rule hydrated after $retries retries");

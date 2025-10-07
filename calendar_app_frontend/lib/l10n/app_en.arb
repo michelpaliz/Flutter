@@ -994,5 +994,6 @@
     "logoutConfirmMessage": "Are you sure you want to log out?",
     "accountSectionTitle": "Account",
     "preferencesSectionTitle": "Preferences",
-    "appVersionLabel": "App version"
+    "appVersionLabel": "App version",
+    "roleCoAdmin":"Co-Administrator"
 }

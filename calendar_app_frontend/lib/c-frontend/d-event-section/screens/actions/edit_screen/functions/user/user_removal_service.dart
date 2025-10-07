@@ -1,19 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 
 class UserRemovalService {
   final BuildContext context;
   final List<User> usersInGroup;
   final Map<String, UserInviteStatus> usersInvitations;
   final Map<String, String> usersRoles;
-  final GroupManagement groupManagement;
-  final UserManagement userManagement;
-  final NotificationManagement notificationManagement;
+  final GroupDomain groupDomain;
+  final UserDomain userDomain;
+  final NotificationDomain notificationDomain;
   final Group group;
 
   UserRemovalService({
@@ -21,9 +21,9 @@ class UserRemovalService {
     required this.usersInGroup,
     required this.usersInvitations,
     required this.usersRoles,
-    required this.groupManagement,
-    required this.userManagement,
-    required this.notificationManagement,
+    required this.groupDomain,
+    required this.userDomain,
+    required this.notificationDomain,
     required this.group,
   });
 
@@ -45,7 +45,7 @@ class UserRemovalService {
         return await _handleExistingUserRemoval(fetchedUser, invitationStatus);
       }
     } catch (e) {
-      print("Error removing user: $e");
+      debugPrint("Error removing user: $e");
       return false;
     }
   }
@@ -58,10 +58,8 @@ class UserRemovalService {
     usersRoles.remove(fetchedUserName);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'User $fetchedUserName removed before sending any invitation.',
-        ),
+      const SnackBar(
+        content: Text('User removed before sending any invitation.'),
         duration: Duration(seconds: 5),
       ),
     );
@@ -71,67 +69,61 @@ class UserRemovalService {
     User fetchedUser,
     bool? invitationStatus,
   ) async {
-    // Check if the invitation is pending or denied
+    // Pending invite cannot be removed yet
     if (invitationStatus == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'User ${fetchedUser.userName} has a pending invitation and cannot be removed until the invitation is answered.',
+            'User ${fetchedUser.userName} has a pending invitation and cannot be removed until it is answered.',
           ),
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
         ),
       );
       return false;
     }
 
+    // Declined: keep record, nothing to remove
     if (invitationStatus == false) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'User ${fetchedUser.userName} declined the invitation. Record retained.',
           ),
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
         ),
       );
       return true;
     }
 
     try {
-      // ✅ Call backend to remove user (backend handles group update + notifications)
-      final success = await groupManagement.groupService.removeUserInGroup(
+      // ✅ Use repository (throws on failure)
+      await groupDomain.groupRepository.leaveGroup(
         fetchedUser.id,
         group.id,
       );
 
-      if (success) {
-        // ✅ Refresh group state from backend
-        final updatedGroup = await groupManagement.groupService.getGroupById(
-          group.id,
-        );
-        groupManagement.currentGroup = updatedGroup;
+      // ✅ Refresh group via repository
+      final updatedGroup =
+          await groupDomain.groupRepository.getGroupById(group.id);
+      groupDomain.currentGroup = updatedGroup;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'User ${fetchedUser.userName} removed from the group.',
-            ),
-            duration: Duration(seconds: 5),
-          ),
-        );
-        return true;
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to remove user ${fetchedUser.userName} from the server.',
-            ),
-            duration: Duration(seconds: 5),
-          ),
-        );
-        return false;
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User ${fetchedUser.userName} removed from the group.'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+      return true;
     } catch (e) {
-      print("❌ Exception removing user: $e");
+      debugPrint("❌ Exception removing user: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to remove user ${fetchedUser.userName} from the server.',
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
       return false;
     }
   }

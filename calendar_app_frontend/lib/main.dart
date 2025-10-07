@@ -1,25 +1,25 @@
 // main.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hexora/a-models/group_model/event/event_group_resolver.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/helper/auht_gate.dart';
-import 'package:hexora/b-backend/api/event/event_services.dart';
-import 'package:hexora/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
+import 'package:hexora/b-backend/core/event/api/event_api_client.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/core/recurrenceRule/recurrence_rule_api_client.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/helper/auht_gate.dart';
+import 'package:hexora/b-backend/login_user/user/domain/presence_manager.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/f-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:hexora/c-frontend/routes/routes.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/local/LocaleProvider.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/theme/theme_management.dart';
-import 'package:hexora/d-stateManagement/theme/theme_preference_provider.dart';
-import 'package:hexora/d-stateManagement/user/presence_manager.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/d-local-stateManagement/local/LocaleProvider.dart';
+import 'package:hexora/d-local-stateManagement/theme/theme_management.dart';
+import 'package:hexora/d-local-stateManagement/theme/theme_preference_provider.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:hexora/l10n/l10n.dart';
 import 'package:hexora/utils/init_main.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -41,57 +41,57 @@ void main() async {
         ),
 
         // 3) Shared API services (single instances for the whole app)
-        Provider<RecurrenceRuleService>(
-          create: (_) => RecurrenceRuleService(),
+        Provider<RecurrenceRuleApiClient>(
+          create: (_) => RecurrenceRuleApiClient(),
         ),
-        Provider<EventService>(
-          create: (ctx) => EventService(
-            ruleService: ctx.read<RecurrenceRuleService>(),
+        Provider<EventApiClient>(
+          create: (ctx) => EventApiClient(
+            ruleService: ctx.read<RecurrenceRuleApiClient>(),
           ),
         ),
         Provider<GroupEventResolver>(
           create: (ctx) => GroupEventResolver(
-            eventService: ctx.read<EventService>(),
-            ruleService: ctx.read<RecurrenceRuleService>(),
+            eventService: ctx.read<EventApiClient>(),
+            ruleService: ctx.read<RecurrenceRuleApiClient>(),
           ),
         ),
 
         // 4) App state
         ChangeNotifierProvider(
-          create: (_) => UserManagement(
+          create: (_) => UserDomain(
             user: null,
-            notificationManagement: NotificationManagement(),
+            notificationDomain: NotificationDomain(),
           ),
         ),
         ChangeNotifierProvider(
-          create: (ctx) => GroupManagement(
+          create: (ctx) => GroupDomain(
             groupEventResolver: ctx.read<GroupEventResolver>(),
             user: null,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => NotificationManagement()),
+        ChangeNotifierProvider(create: (_) => NotificationDomain()),
         ChangeNotifierProvider(create: (_) => ThemeManagement()),
         ChangeNotifierProvider(create: (_) => ThemePreferenceProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => PresenceManager()),
 
         // 5) EventDataManager (ensure currentGroup exists before creating)
-        ProxyProvider3<GroupManagement, EventService, GroupEventResolver,
-            EventDataManager>(
+        ProxyProvider3<GroupDomain, EventApiClient, GroupEventResolver,
+            EventDomain>(
           create: (ctx) {
-            final groupMgmt = ctx.read<GroupManagement>();
+            final groupMgmt = ctx.read<GroupDomain>();
             final currentGroup = groupMgmt.currentGroup;
             if (currentGroup == null) {
               throw UnimplementedError(
                 'EventDataManager should not be created until currentGroup is available.',
               );
             }
-            final edm = EventDataManager(
+            final edm = EventDomain(
               [],
               context: ctx,
               group: currentGroup,
-              eventService: ctx.read<EventService>(),
-              groupManagement: groupMgmt,
+              eventService: ctx.read<EventApiClient>(),
+              groupDomain: groupMgmt,
               resolver: ctx.read<GroupEventResolver>(),
             );
             edm.onExternalEventUpdate = () {
@@ -102,12 +102,12 @@ void main() async {
           update: (ctx, groupMgmt, eventSvc, resolver, previous) {
             final current = groupMgmt.currentGroup;
             if (current == null) return previous!;
-            final edm = EventDataManager(
+            final edm = EventDomain(
               previous?.baseEvents ?? [],
               context: ctx,
               group: current,
               eventService: eventSvc,
-              groupManagement: groupMgmt,
+              groupDomain: groupMgmt,
               resolver: resolver,
             );
             edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??

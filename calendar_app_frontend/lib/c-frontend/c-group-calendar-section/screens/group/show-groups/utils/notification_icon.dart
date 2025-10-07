@@ -1,8 +1,8 @@
-import 'package:hexora/a-models/notification_model/notification_user.dart';
-import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/a-models/notification_model/notification_user.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
 
 // This widget plugs into the AppBar and manages:
 //     Live unread notification badge
@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 
 Widget buildNotificationIcon({
   required BuildContext context,
-  required UserManagement userManagement,
-  required NotificationManagement notificationManagement,
+  required UserDomain userDomain,
+  required NotificationDomain notificationDomain,
 }) {
-  final currentUser = userManagement.user;
+  final currentUser = userDomain.user;
 
   if (currentUser == null) {
     return IconButton(
@@ -26,7 +26,7 @@ Widget buildNotificationIcon({
   }
 
   return StreamBuilder<List<NotificationUser>>(
-    stream: notificationManagement.notificationStream,
+    stream: notificationDomain.notificationStream,
     builder: (context, snapshot) {
       final notifications = snapshot.data ?? [];
       final unread = notifications.where((n) => !n.isRead).toList();
@@ -50,7 +50,7 @@ Widget buildNotificationIcon({
             AppRoutes.showNotifications,
             arguments: currentUser,
           );
-          notificationManagement.markAllNotificationsAsRead(userManagement);
+          notificationDomain.markAllNotificationsAsRead(userDomain);
         },
       );
     },

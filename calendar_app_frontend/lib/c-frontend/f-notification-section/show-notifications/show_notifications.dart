@@ -1,14 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/notification_model/notification_user.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/notification/notification_services.dart';
-import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
+import 'package:hexora/b-backend/notification/notification_api_client.dart';
 import 'package:hexora/c-frontend/f-notification-section/enum/broad_category.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/notification_controller.dart';
@@ -34,17 +33,15 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final userMgmt = Provider.of<UserManagement>(context, listen: false);
-    final groupMgmt = Provider.of<GroupManagement>(context, listen: false);
-    final notifMgmt =
-        Provider.of<NotificationManagement>(context, listen: false);
+    final userMgmt = Provider.of<UserDomain>(context, listen: false);
+    final groupMgmt = Provider.of<GroupDomain>(context, listen: false);
+    final notifMgmt = Provider.of<NotificationDomain>(context, listen: false);
 
     _notificationController = NotificationController(
-      userManagement: userMgmt,
-      groupManagement: groupMgmt,
-      notificationManagement: notifMgmt,
-      userService: UserService(),
-      notificationService: NotificationService(),
+      userDomain: userMgmt,
+      groupDomain: groupMgmt,
+      notificationDomain: notifMgmt,
+      notificationService: NotificationApiClient(),
     );
 
     _notificationsStream = notifMgmt.notificationStream;

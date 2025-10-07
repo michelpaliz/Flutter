@@ -1,23 +1,23 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/event/event_services.dart';
-import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/b-backend/core/event/api/event_api_client.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart'; // ⬅️ use repo, not service
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 abstract class EditEventLogic<T extends StatefulWidget>
     extends BaseEventLogic<T> {
   // Services
-  late final EventService _eventService;
-  final UserService _userService = UserService();
-  late final GroupManagement _groupMgmt;
-  late final UserManagement _userMgmt;
+  late final EventApiClient _eventService;
+  late final GroupDomain _groupMgmt;
+  late final UserDomain _userMgmt;
+  late final UserRepository _userRepo; // ⬅️ repository handles token
   bool isLoading = true;
 
   // Models
@@ -27,17 +27,18 @@ abstract class EditEventLogic<T extends StatefulWidget>
   @override
   void initState() {
     super.initState();
-    initializeBaseDefaults(); // ← must be called before using dates
+    initializeBaseDefaults();
   }
 
   Future<void> initLogic({
     required Event event,
-    required GroupManagement gm,
-    required UserManagement um,
+    required GroupDomain gm,
+    required UserDomain um,
   }) async {
-    _eventService = EventService();
+    _eventService = EventApiClient();
     _groupMgmt = gm;
     _userMgmt = um;
+    _userRepo = _userMgmt.userRepository; // ⬅️ grab repo from management
     _event = event;
     _group = gm.currentGroup!;
 
@@ -53,21 +54,24 @@ abstract class EditEventLogic<T extends StatefulWidget>
     noteController.text = event.note ?? '';
     locationController.text = event.localization ?? '';
 
-    // 🔄 Fetch users from group userIds
+    // 🔄 Fetch users from group userIds (via repo → token handled)
     final List<User> fetchedUsers = [];
-    for (var id in _group.userIds) {
+    for (final id in _group.userIds) {
       try {
-        final user = await _userService.getUserById(id);
-        fetchedUsers.add(user!);
-      } catch (_) {}
+        final user = await _userRepo.getUserById(id);
+        fetchedUsers.add(user);
+      } catch (_) {
+        // ignore failures for individual users
+      }
     }
 
     // Set available users and selected recipients
     setSelectedUsers(
       fetchedUsers.where((u) => event.recipients.contains(u.id)).toList(),
     );
-    users.clear();
-    users.addAll(fetchedUsers);
+    users
+      ..clear()
+      ..addAll(fetchedUsers);
 
     if (mounted) {
       isLoading = false;
@@ -76,42 +80,39 @@ abstract class EditEventLogic<T extends StatefulWidget>
   }
 
   void disposeLogic() {
-    disposeBaseControllers(); // 🧼 from BaseEventLogic
+    disposeBaseControllers();
   }
 
-  Future<void> saveEditedEvent(EventDataManager read) async {
+  Future<void> saveEditedEvent(EventDomain read) async {
     final loc = AppLocalizations.of(context)!;
     final eventDataManager = read;
 
-    // 🔒 Validate required title
+    // Required title
     if (titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loc.requiredTextFields),
-          backgroundColor: Colors.redAccent,
-        ),
+            content: Text(loc.requiredTextFields),
+            backgroundColor: Colors.redAccent),
       );
       return;
     }
 
-    // 🔒 Validate at least one participant
+    // At least one participant
     if (selectedUsers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loc.pleaseSelectAtLeastOneUser),
-          backgroundColor: Colors.redAccent,
-        ),
+            content: Text(loc.pleaseSelectAtLeastOneUser),
+            backgroundColor: Colors.redAccent),
       );
       return;
     }
 
-    // 🔒 Validate start and end date
+    // Start before end
     if (selectedEndDate.isBefore(selectedStartDate)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loc.endDateMustBeAfterStartDate),
-          backgroundColor: Colors.redAccent,
-        ),
+            content: Text(loc.endDateMustBeAfterStartDate),
+            backgroundColor: Colors.redAccent),
       );
       return;
     }
@@ -148,11 +149,8 @@ abstract class EditEventLogic<T extends StatefulWidget>
     Navigator.of(context).pop(true);
   }
 
-  // No-op in edit mode
   @override
-  Future<bool> addEvent(BuildContext context) async {
-    return false; // or throw UnimplementedError() if you want to enforce that
-  }
+  Future<bool> addEvent(BuildContext context) async => false;
 
   @override
   bool get isRepetitive => recurrenceRule != null;

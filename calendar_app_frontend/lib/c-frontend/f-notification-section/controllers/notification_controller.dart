@@ -2,25 +2,25 @@ import 'dart:developer' as devtools show log;
 
 import 'package:hexora/a-models/notification_model/notification_user.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/notification/notification_services.dart';
-import 'package:hexora/b-backend/api/user/user_services.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
+// ⛔ remove: import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/b-backend/notification/notification_api_client.dart';
 
 class NotificationController {
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
-  final NotificationManagement notificationManagement;
-  final UserService userService;
-  final NotificationService notificationService; // 👈 New dependency
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
+  final NotificationDomain notificationDomain;
+
+  // If your notification layer was also split, prefer NotificationRepository.
+  final NotificationApiClient notificationService;
 
   NotificationController({
-    required this.userManagement,
-    required this.groupManagement,
-    required this.notificationManagement,
-    required this.userService,
-    required this.notificationService, // 👈 Inject the service
+    required this.userDomain,
+    required this.groupDomain,
+    required this.notificationDomain,
+    required this.notificationService,
   });
 
   /// ✅ Fetch notifications for a user and update stream
@@ -30,7 +30,7 @@ class NotificationController {
         user.userName,
       );
       fetched.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      notificationManagement.updateNotificationStream(fetched);
+      notificationDomain.updateNotificationStream(fetched);
     } catch (e) {
       devtools.log('❌ Error fetching notifications: $e');
     }
@@ -39,32 +39,32 @@ class NotificationController {
   /// ✅ Handle "Accept" response to a group invite
   Future<void> handleConfirmation(NotificationUser notification) async {
     try {
-      final group = await groupManagement.groupService.getGroupById(
-        notification.groupId,
-      );
-      final user = await userService.getUserById(notification.recipientId);
+      // 🔄 Fetch via repository (token handled inside)
+      final group =
+          await groupDomain.groupRepository.getGroupById(notification.groupId);
 
-      // Notify backend (accept)
-      await groupManagement.groupService.respondToInvite(
+      // Prefer a UM helper; otherwise use UM.userRepository.getUserById(...)
+      final user = await userDomain.getUserById(notification.recipientId);
+
+      // 🔔 Notify backend (accept)
+      await groupDomain.groupRepository.respondToInvite(
         groupId: group.id,
-        username: user.userName,
+        userId: user.id,
         accepted: true,
       );
 
-      // Refresh state
-      final freshUser = await userManagement.getUser();
+      // 🔁 Refresh state
+      final freshUser = await userDomain.getUser();
       if (freshUser != null) {
-        userManagement.setCurrentUser(freshUser);
-        await groupManagement.fetchAndInitializeGroups(freshUser.groupIds);
+        userDomain.setCurrentUser(freshUser);
+        await groupDomain.fetchAndInitializeGroups(freshUser.groupIds);
       }
 
-      // Remove notification from backend
-      await notificationService.deleteNotification(
+      // 🧹 Remove notification (backend + local)
+      await notificationService.deleteNotification(notification.id);
+      await notificationDomain.removeNotificationById(
         notification.id,
-      ); // 👈 Backend cleanup
-      await notificationManagement.removeNotificationById(
-        notification.id,
-        userManagement,
+        userDomain,
       );
     } catch (e) {
       devtools.log('❌ Error confirming invitation: $e');
@@ -74,32 +74,29 @@ class NotificationController {
   /// ✅ Handle "Decline" response to a group invite
   Future<void> handleNegation(NotificationUser notification) async {
     try {
-      final group = await groupManagement.groupService.getGroupById(
-        notification.groupId,
-      );
-      final user = await userService.getUserById(notification.recipientId);
+      final group =
+          await groupDomain.groupRepository.getGroupById(notification.groupId);
+      final user = await userDomain.getUserById(notification.recipientId);
 
-      // Notify backend (decline)
-      await groupManagement.groupService.respondToInvite(
+      // 🔔 Notify backend (decline)
+      await groupDomain.groupRepository.respondToInvite(
         groupId: group.id,
-        username: user.userName,
+        userId: user.id,
         accepted: false,
       );
 
-      // Refresh state
-      final freshUser = await userManagement.getUser();
+      // 🔁 Refresh state
+      final freshUser = await userDomain.getUser();
       if (freshUser != null) {
-        userManagement.setCurrentUser(freshUser);
-        await groupManagement.fetchAndInitializeGroups(freshUser.groupIds);
+        userDomain.setCurrentUser(freshUser);
+        await groupDomain.fetchAndInitializeGroups(freshUser.groupIds);
       }
 
-      // Remove notification from backend
-      await notificationService.deleteNotification(
+      // 🧹 Remove notification (backend + local)
+      await notificationService.deleteNotification(notification.id);
+      await notificationDomain.removeNotificationById(
         notification.id,
-      ); // 👈 Backend cleanup
-      await notificationManagement.removeNotificationById(
-        notification.id,
-        userManagement,
+        userDomain,
       );
     } catch (e) {
       devtools.log('❌ Error declining invitation: $e');
@@ -108,25 +105,17 @@ class NotificationController {
 
   /// ✅ Remove a notification by its index in the local list
   Future<void> removeNotificationByIndex(int index) async {
-    final notification = notificationManagement.notifications[index];
-
-    // Remove from backend
-    await notificationService.deleteNotification(
-      notification.id,
-    ); // 👈 Optional
-    await notificationManagement.removeNotificationByIndex(
-      index,
-      userManagement,
-    );
+    final notification = notificationDomain.notifications[index];
+    await notificationService.deleteNotification(notification.id);
+    await notificationDomain.removeNotificationByIndex(index, userDomain);
   }
 
-  /// Remove all notifications for the current user (DB + local)
+  /// ✅ Remove all notifications for the current user (DB + local)
   Future<void> removeAllNotifications(User user) async {
     try {
-      await notificationService.deleteAllMine(); // <-- one backend call
-      notificationManagement.clearNotifications(); // local state
-      // No need to mutate user.notifications or push a user update here.
-      // If you want, you can refresh from backend:
+      await notificationService.deleteAllMine(); // backend
+      notificationDomain.clearNotifications(); // local
+      // Optional: re-fetch to ensure sync
       await fetchAndUpdateNotifications(user);
     } catch (e) {
       devtools.log('❌ Error removing all notifications: $e');

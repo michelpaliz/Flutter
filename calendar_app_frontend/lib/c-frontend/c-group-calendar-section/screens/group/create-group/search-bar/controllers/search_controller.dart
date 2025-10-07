@@ -1,130 +1,162 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
-import 'package:flutter/material.dart';
 
 class GroupSearchController extends ChangeNotifier {
   final User? currentUser;
   final Group? group;
+  final UserRepository _userRepo;
 
-  final UserService _userService = UserService();
-
-  List<User> usersInGroup = [];
-  Map<String, String> userRoles = {};
-  List<String> searchResults = [];
-
-  GroupSearchController({required this.currentUser, required this.group}) {
+  GroupSearchController({
+    required this.currentUser,
+    required this.group,
+    required UserRepository userRepository,
+  }) : _userRepo = userRepository {
     if (currentUser != null) {
-      usersInGroup = [
-        currentUser!,
-      ]; // Add the current user (creator) by default
-      userRoles[currentUser!.userName] = 'Administrator'; // Mark as Admin
+      usersInGroup = [currentUser!]; // creator by default
+      userRoles[currentUser!.id] = 'owner'; // 🔑 key by userId, role lowercase
     }
 
     if (group != null) {
-      _loadGroupUsers(); // Load existing group users
-      _loadInvitedUsers(); // Load invited users
+      _loadGroupUsers();
+      _loadInvitedUsers();
     }
   }
 
-  // Load users in the group
+  // Local state
+  List<User> usersInGroup = [];
+
+  /// 🔑 role map: userId -> role (lowercase: 'owner' | 'co-admin' | 'member')
+  Map<String, String> userRoles = {};
+
+  /// We keep results as simple usernames for the search UI
+  List<String> searchResults = [];
+
+  // ---------- Loaders ----------
   Future<void> _loadGroupUsers() async {
     if (group == null) return;
-
-    // Get users from group based on user IDs
-    for (var id in group!.userIds) {
-      final user = await _userService.getUserById(id);
-      if (!usersInGroup.any((u) => u.id == user.id)) {
-        usersInGroup.add(user); // Add user if not already in the list
-      }
-    }
-    notifyListeners();
-  }
-
-  // Load invited users and set roles if they accepted the invitation
-  void _loadInvitedUsers() {
-    if (group?.invitedUsers != null) {
-      group!.invitedUsers!.forEach((username, status) {
-        if (status.invitationAnswer == true) {
-          userRoles[username] = status.role;
-        }
-      });
-    }
-  }
-
-  // Search users by username
-  Future<void> searchUser(String query, BuildContext context) async {
     try {
-      final result = await _userService.searchUsers(query.toLowerCase());
-      if (result is List<String>) {
-        // Filter out users already in the group
-        searchResults = result.where((username) {
-          return !usersInGroup.any((u) => u.userName == username) &&
-              !userRoles.containsKey(username);
-        }).toList();
-        notifyListeners();
+      for (final id in group!.userIds) {
+        final u = await _userRepo.getUserById(id);
+        if (!usersInGroup.any((x) => x.id == u.id)) {
+          usersInGroup.add(u);
+        }
       }
+      notifyListeners();
+    } catch (_) {
+      // swallow; UI can still function with partial data
+    }
+  }
+
+  void _loadInvitedUsers() {
+    if (group?.invitedUsers == null) return;
+
+    // invitedUsers is Map<String /*userId*/, UserInviteStatus>
+    group!.invitedUsers!.forEach((userId, status) {
+      if (status.invitationAnswer == true ||
+          (status.informationStatus).toLowerCase() == 'accepted') {
+        userRoles[userId] = (status.role).toLowerCase(); // normalize
+      }
+    });
+  }
+
+  // ---------- Search / Add / Remove ----------
+  Future<void> searchUser(String query, BuildContext context) async {
+    final q = query.trim();
+    if (q.length < 3) {
+      clearResults();
+      return;
+    }
+    try {
+      final results = await _userRepo.searchUsernames(q.toLowerCase());
+      // Filter out already-added usernames
+      final existingUsernames = usersInGroup.map((u) => u.userName).toSet();
+      searchResults =
+          results.where((name) => !existingUsernames.contains(name)).toList();
+      notifyListeners();
     } catch (e) {
-      print('Search error: $e');
       searchResults = [];
       notifyListeners();
       _showSnackBar(context, 'Error searching user');
     }
   }
 
-  // Add a user to the group
-  Future<void> addUser(String username, BuildContext context) async {
+  Future<User?> addUser(String username, BuildContext context) async {
     try {
-      final user = await _userService.getUserByUsername(username);
+      final user = await _userRepo.getUserByUsername(username);
 
-      // Don't add if the user is already in the group
-      if (usersInGroup.any((u) => u.userName == username)) return;
+      // prevent duplicates by id or username
+      if (usersInGroup.any((u) => u.id == user.id || u.userName == username)) {
+        return null;
+      }
 
-      // Add the new user to the group
       usersInGroup.add(user);
-      userRoles[user.userName] = 'Member'; // Default role for new users
-
-      // Remove from the search results as the user is now added
+      // default role for new users
+      userRoles[user.id] = 'member'; // 🔑 keyed by userId
+      // remove from results
       searchResults.remove(username);
 
-      // Notify listeners to update the UI
       notifyListeners();
+      return user;
     } catch (e) {
-      print('Add user error: $e');
       _showSnackBar(context, 'Error adding user');
+      return null;
     }
   }
 
   void removeUser(String username) {
-    usersInGroup.removeWhere((u) => u.userName == username);
-    userRoles.remove(username);
+    final removed = usersInGroup.firstWhere(
+      (u) => u.userName == username,
+      orElse: () => User.empty(),
+    );
+    // If found, remove and clear role by id
+    if (removed.id.isNotEmpty) {
+      usersInGroup.removeWhere((u) => u.id == removed.id);
+      userRoles.remove(removed.id);
+    } else {
+      // fallback by username-only removal (shouldn’t normally happen)
+      usersInGroup.removeWhere((u) => u.userName == username);
+      userRoles.remove(username); // legacy safety
+    }
     notifyListeners();
   }
 
   void changeRole(String username, String newRole) {
-    userRoles[username] = newRole;
+    // find that user's id
+    final u = usersInGroup.firstWhere(
+      (x) => x.userName == username,
+      orElse: () => User.empty(),
+    );
+    if (u.id.isNotEmpty) {
+      userRoles[u.id] = newRole.toLowerCase();
+    } else {
+      // legacy fallback if only username is known
+      userRoles[username] = newRole.toLowerCase();
+    }
     notifyListeners();
   }
 
-  // Helper method to show SnackBar messages
+  void clearResults() {
+    if (searchResults.isEmpty) return;
+    searchResults.clear();
+    notifyListeners();
+  }
+
+  // ---------- UI helper ----------
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: ThemeColors.getContainerBackgroundColor(
-          context,
-        ), // ✅ Dynamic background
+        backgroundColor: ThemeColors.getContainerBackgroundColor(context),
         content: Text(
           message,
           style: TextStyle(
-            color: ThemeColors.getTextColor(context), // ✅ Dynamic text color
-            fontWeight:
-                FontWeight.bold, // (optional) make snackbar text more visible
+            color: ThemeColors.getTextColor(context),
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
-
-  // Other methods for removing and changing roles remain the same
 }

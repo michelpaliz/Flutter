@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
-// NEW: backend counts
-import 'package:hexora/b-backend/api/group/group_services.dart'; // adjust path
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/upcoming_events/group_upcoming_events.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/e-drawer-style-menu/contextual_fab.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/f-themes/utilities/utilities.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class GroupDashboard extends StatefulWidget {
   final Group group;
@@ -21,21 +21,24 @@ class GroupDashboard extends StatefulWidget {
 }
 
 class _GroupDashboardState extends State<GroupDashboard> {
-  final _svc = GroupService();
+  late GroupDomain _gm;
   MembersCount? _counts;
   bool _loadingCounts = false;
 
   @override
   void initState() {
     super.initState();
+    _gm = context.read<GroupDomain>(); // ✅ use management → repository
     _loadCounts();
   }
 
   Future<void> _loadCounts() async {
     setState(() => _loadingCounts = true);
     try {
-      final c = await _svc.getMembersCount(widget.group.id,
-          mode: 'union'); // or 'accepted'
+      final c = await _gm.groupRepository.getMembersCount(
+        widget.group.id,
+        mode: 'union', // or 'accepted'
+      );
       if (!mounted) return;
       setState(() => _counts = c);
     } catch (_) {
@@ -141,7 +144,6 @@ class _GroupDashboardState extends State<GroupDashboard> {
                         children: [
                           _InfoPill(
                             icon: Icons.group_outlined,
-                            // Avoid l.membersSubtitle() inconsistencies; show number explicitly
                             label:
                                 '${NumberFormat.decimalPattern(l.localeName).format(showMembers)} ${l.membersTitle.toLowerCase()}',
                             onTap: () {
@@ -185,7 +187,6 @@ class _GroupDashboardState extends State<GroupDashboard> {
               child: ListTile(
                 leading: const Icon(Icons.group_outlined),
                 title: Text(l.membersTitle),
-                // Use explicit number text; don't rely on ARB '#'
                 subtitle: Text(
                     '${NumberFormat.decimalPattern(l.localeName).format(showMembers)} ${l.membersTitle.toLowerCase()}'),
                 onTap: () {
@@ -329,7 +330,7 @@ class _InfoPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min, // ← fixed
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: fg),
           const SizedBox(width: 6),

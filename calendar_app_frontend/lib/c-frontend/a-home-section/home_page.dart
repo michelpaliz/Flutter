@@ -1,18 +1,18 @@
 // home_page.dart
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/socket_notification_listener.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_screen/group_section.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/motivational_phrase/motivation_banner.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/c-frontend/utils/user_avatar.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/socket_notification_listener.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -33,13 +33,13 @@ class _HomePageState extends State<HomePage> {
       _lastUser = user;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final userMgmt = context.read<UserManagement>();
-        final groupMgmt = context.read<GroupManagement>();
+        final userMgmt = context.read<UserDomain>();
+        final groupMgmt = context.read<GroupDomain>();
 
         userMgmt.setCurrentUser(user);
         groupMgmt.setCurrentUser(user);
         initializeNotificationSocket(user.id);
-        GroupController.fetchGroups(user, groupMgmt);
+        GroupViewModel.fetchGroups(user, groupMgmt);
       });
     }
   }

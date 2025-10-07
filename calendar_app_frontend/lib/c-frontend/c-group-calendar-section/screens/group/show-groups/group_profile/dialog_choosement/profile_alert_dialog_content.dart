@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
 import 'package:hexora/f-themes/utilities/utilities.dart';
 import 'package:hexora/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 /// Builds the content of a profile alert dialog for a group.
@@ -51,11 +51,11 @@ Widget buildProfileDialogContent(BuildContext context, Group group) {
       // 📆 Go to calendar button
       TextButton(
         onPressed: () {
-          final groupManagement = Provider.of<GroupManagement>(
+          final groupDomain = Provider.of<GroupDomain>(
             context,
             listen: false,
           );
-          groupManagement.currentGroup = group;
+          groupDomain.currentGroup = group;
 
           Navigator.pushNamed(
             context,

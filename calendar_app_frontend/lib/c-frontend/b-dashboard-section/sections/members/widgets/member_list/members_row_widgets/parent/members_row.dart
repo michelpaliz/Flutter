@@ -1,20 +1,19 @@
 // c-frontend/b-calendar-section/screens/group-screen/members/widgets/members_row_widgets/parent/members_row.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/badge_icon.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/role_chip.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/status_dot.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-
-// Import your reusable widgets
 
 class MemberRow extends StatelessWidget {
   final MemberRef ref;
   final String ownerId;
-  final bool showRoleChip; // New parameter to control role chip visibility
+  final bool showRoleChip;
 
   const MemberRow({
     super.key,
@@ -46,15 +45,17 @@ class MemberRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userMgmt = context.read<UserManagement>();
+    context.read<UserDomain>();
+    final userRepo = context.read<UserRepository>(); // 🔁 use repository
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    return FutureBuilder<User?>(
-      future: userMgmt.userService.getUserBySelector(ref.username),
+    return FutureBuilder<User>(
+      // /users/by/:selector — accepts id/username depending on backend
+      future: userRepo.getUserBySelector(ref.username),
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
+        if (snap.connectionState != ConnectionState.done) {
           return const ListTile(
             leading: CircleAvatar(
               child: SizedBox(
@@ -65,25 +66,18 @@ class MemberRow extends StatelessWidget {
             title: SizedBox(height: 14, child: LinearProgressIndicator()),
           );
         }
-        if (snap.hasError) {
+        if (snap.hasError || !snap.hasData) {
           return ListTile(
             leading: const Icon(Icons.error_outline),
             title: Text(ref.username),
-            subtitle: Text(l.errorLoadingUser('${snap.error}')),
-          );
-        }
-        final user = snap.data;
-        if (user == null) {
-          return ListTile(
-            leading: const Icon(Icons.person_off_outlined),
-            title: Text(ref.username),
-            subtitle: Text(l.userNotFound),
+            subtitle:
+                Text(l.errorLoadingUser('${snap.error ?? 'Unknown error'}')),
           );
         }
 
+        final user = snap.data!;
         final isOwner = (user.id == ownerId) || _isOwnerRole(ref.role);
         final isAdmin = !isOwner && _isAdminRole(ref.role);
-        final isMember = !isOwner && !isAdmin && _isMemberRole(ref.role);
         final titleText = (user.name.isNotEmpty ? user.name : user.userName);
 
         return ListTile(
@@ -114,8 +108,6 @@ class MemberRow extends StatelessWidget {
                 ),
             ],
           ),
-
-          // TITLE: name + role chip inline
           title: Row(
             children: [
               Expanded(
@@ -130,42 +122,36 @@ class MemberRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // Show role chip for members and other roles when enabled
               if (showRoleChip && !isOwner && !isAdmin)
                 RoleChip(
                   label: _isMemberRole(ref.role) ? l.roleMember : ref.role,
-                  color: _isMemberRole(ref.role)
-                      ? Colors.grey[800]! // Black color for member role
-                      : cs.tertiary,
+                  color:
+                      _isMemberRole(ref.role) ? Colors.grey[800]! : cs.tertiary,
                 ),
             ],
           ),
-
-          // SUBTITLE: status dot
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Row(
               children: [
-                if (!isOwner)
+                if (!isOwner) ...[
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: StatusDot(token: ref.statusToken),
                   ),
-                if (!isOwner)
                   Expanded(
                     child: Text(
                       _getStatusText(ref.statusToken, l),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: cs.onSurfaceVariant),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                ],
               ],
             ),
           ),
-
           trailing: const Icon(Icons.chevron_right),
         );
       },
@@ -183,10 +169,9 @@ class MemberRow extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    final userMgmt = context.read<UserManagement>();
+    final userMgmt = context.read<UserDomain>();
     final currentUserId = userMgmt.user?.id;
     final isSelf = (currentUserId != null && user.id == currentUserId);
-
     final titleText = (user.name.isNotEmpty ? user.name : user.userName);
 
     showModalBottomSheet(
@@ -198,7 +183,6 @@ class MemberRow extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // TITLE ROW with inline role chip
               Row(
                 children: [
                   CircleAvatar(
@@ -231,13 +215,11 @@ class MemberRow extends StatelessWidget {
                     RoleChip(
                       label: _isMemberRole(ref.role) ? l.roleMember : ref.role,
                       color: _isMemberRole(ref.role)
-                          ? Colors.grey[800]! // Black color for member role
+                          ? Colors.grey[800]!
                           : cs.tertiary,
                     ),
                 ],
               ),
-
-              // STATUS below (skip for owner)
               if (!isOwnerRowUser) ...[
                 const SizedBox(height: 8),
                 Align(
@@ -246,15 +228,12 @@ class MemberRow extends StatelessWidget {
                     children: [
                       StatusDot(token: ref.statusToken),
                       const SizedBox(width: 8),
-                      Text(
-                        _getStatusText(ref.statusToken, l),
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                      Text(_getStatusText(ref.statusToken, l),
+                          style: theme.textTheme.bodyMedium),
                     ],
                   ),
                 ),
               ],
-
               if (user.email.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Align(
@@ -262,7 +241,6 @@ class MemberRow extends StatelessWidget {
                   child: Text(user.email, style: theme.textTheme.bodySmall),
                 ),
               ],
-
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -272,7 +250,7 @@ class MemberRow extends StatelessWidget {
                       label: Text(l.viewProfile),
                       onPressed: () {
                         Navigator.pop(context);
-                        // TODO: navigate to profile route
+                        // TODO: navigate to profile
                       },
                     ),
                   ),
@@ -284,13 +262,12 @@ class MemberRow extends StatelessWidget {
                         label: Text(l.message),
                         onPressed: () {
                           Navigator.pop(context);
-                          // TODO: messaging flow
+                          // TODO: message flow
                         },
                       ),
                     ),
                 ],
               ),
-
               const SizedBox(height: 12),
               if (!isOwnerRowUser) ...[
                 ListTile(
@@ -298,7 +275,7 @@ class MemberRow extends StatelessWidget {
                   title: Text(l.changeRole),
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: show role picker & persist
+                    // TODO
                   },
                 ),
                 ListTile(
@@ -308,7 +285,7 @@ class MemberRow extends StatelessWidget {
                   iconColor: theme.colorScheme.error,
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: confirm & remove
+                    // TODO
                   },
                 ),
               ],

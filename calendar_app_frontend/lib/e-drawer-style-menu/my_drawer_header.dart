@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/api/blobUploader/blob_uploader.dart';
-import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/blobUploader/blobServer.dart';
+import 'package:hexora/b-backend/config/api_constants.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/utils/user_avatar.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/f-themes/palette/app_colors.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -24,13 +24,13 @@ class MyHeaderDrawer extends StatefulWidget {
 class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   XFile? _selectedImage;
   User? _currentUser = User.empty();
-  late UserManagement _userManagement;
+  late UserDomain _userDomain;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _userManagement = Provider.of<UserManagement>(context);
-    _currentUser = _userManagement.user;
+    _userDomain = Provider.of<UserDomain>(context);
+    _currentUser = _userDomain.user;
   }
 
   /// Fetch a read SAS URL for a given blob name (used only when avatarsArePublic == false)
@@ -113,7 +113,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
           photoBlobName: committedBlobName,
         );
       });
-      _userManagement.setCurrentUser(_currentUser!);
+      _userDomain.setCurrentUser(_currentUser!);
     } catch (e) {
       if (!mounted) return;
       debugPrint('❌ Error uploading image: $e');

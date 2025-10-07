@@ -1,21 +1,22 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 Future<void> saveEditedEvent({
   required BuildContext context,
-  required EventDataManager eventDataManager,
+  required EventDomain eventDataManager,
   required Event updatedData,
   required List<Event> eventList,
   required Group group,
-  required GroupManagement groupManagement,
-  required String? currentUserName,
+  required GroupDomain groupDomain,
+  required String?
+      currentUserName, // (unused; keep if needed for logging/audit)
   required bool startDateChanged,
 }) async {
-  final bool allowRepetitiveHours = true;
+  const bool allowRepetitiveHours = true;
 
   bool isStartHourUnique = true;
 
@@ -46,12 +47,12 @@ Future<void> saveEditedEvent({
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
       );
 
-      final updatedGroup = await groupManagement.groupService.getGroupById(
-        group.id,
-      );
-      groupManagement.currentGroup = updatedGroup;
+      // ✅ Use repository (handles token) instead of service
+      final updatedGroup =
+          await groupDomain.groupRepository.getGroupById(group.id);
+      groupDomain.currentGroup = updatedGroup;
 
-      // ✅ Optional: Sync local events with updated group (if needed)
+      // Optional: refresh calendar data
       await eventDataManager.manualRefresh(context);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(

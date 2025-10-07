@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/f-themes/utilities/view-item-styles/button/button_styles.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../a-models/group_model/group/group.dart';
@@ -13,7 +13,7 @@ import '../../../../a-models/user_model/user.dart';
 class AddUserButtonDialog extends StatelessWidget {
   final User? currentUser;
   final Group? group;
-  final GroupController controller;
+  final GroupViewModel controller;
   final void Function(User)? onUserAdded;
 
   const AddUserButtonDialog({
@@ -124,7 +124,7 @@ class _AddPeopleSheetState extends State<_AddPeopleSheet> {
     setState(() => _loading = true);
     try {
       // use your controller’s search; provide a method if you don’t have one
-      final ctrl = context.read<GroupController>();
+      final ctrl = context.read<GroupViewModel>();
       final users = await ctrl.searchUsers(_query); // implement in controller
       setState(() => _results = users);
     } finally {

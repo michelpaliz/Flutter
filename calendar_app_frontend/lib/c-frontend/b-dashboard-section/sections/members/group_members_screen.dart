@@ -1,8 +1,6 @@
 // group_members_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
-import 'package:hexora/b-backend/api/group/group_services.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/utils/member_derivation.dart';
@@ -10,7 +8,9 @@ import 'package:hexora/c-frontend/b-dashboard-section/sections/members/utils/mem
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/count_pills.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/member_list.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/filter_chips.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 
 import 'widgets/section_header.dart';
 
@@ -27,20 +27,25 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
   bool showPending = true;
   bool showNotAccepted = true;
 
-  final _svc = GroupService();
   MembersCount? _counts;
   bool _loadingCounts = false;
+
+  late GroupDomain _gm;
 
   @override
   void initState() {
     super.initState();
+    _gm = context.read<GroupDomain>(); // ✅ use Management → Repository
     _loadCounts();
   }
 
   Future<void> _loadCounts() async {
     setState(() => _loadingCounts = true);
     try {
-      final c = await _svc.getMembersCount(widget.group.id, mode: 'union'); // or 'accepted'
+      final c = await _gm.groupRepository.getMembersCount(
+        widget.group.id,
+        mode: 'union', // or 'accepted'
+      );
       if (!mounted) return;
       setState(() => _counts = c);
     } catch (_) {
@@ -68,7 +73,7 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
       ..addAll(deriv.pending.keys);
 
     // map to MemberRef (ownerId is needed by MemberRow—pass it as needed)
-    List<MemberRef> members = allKeys.map((k) {
+    final members = allKeys.map((k) {
       final inv = deriv.pending[k]; // null if accepted
       final statusToken = statusFor(k, inv, deriv.accepted);
       final role = (widget.group.userRoles)[k] ?? inv?.role ?? 'member';
@@ -76,34 +81,42 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
         username: k,
         role: role,
         statusToken: statusToken,
-        ownerId: widget.group.ownerId, // handy for MemberRow
+        ownerId: widget.group.ownerId,
       );
     }).toList()
-      ..sort((a, b) => a.username.toLowerCase().compareTo(b.username.toLowerCase()));
+      ..sort((a, b) =>
+          a.username.toLowerCase().compareTo(b.username.toLowerCase()));
 
     // filters
     final filtered = members.where((m) {
       switch (m.statusToken) {
-        case 'Accepted':   return showAccepted;
-        case 'Pending':    return showPending;
-        case 'NotAccepted':return showNotAccepted;
-        default:           return true;
+        case 'Accepted':
+          return showAccepted;
+        case 'Pending':
+          return showPending;
+        case 'NotAccepted':
+          return showNotAccepted;
+        default:
+          return true;
       }
     }).toList();
 
-    final accepted   = filtered.where((m) => m.statusToken == 'Accepted').toList();
-    final pending    = filtered.where((m) => m.statusToken == 'Pending').toList();
-    final notAccepted= filtered.where((m) => m.statusToken == 'NotAccepted').toList();
+    final accepted =
+        filtered.where((m) => m.statusToken == 'Accepted').toList();
+    final pending = filtered.where((m) => m.statusToken == 'Pending').toList();
+    final notAccepted =
+        filtered.where((m) => m.statusToken == 'NotAccepted').toList();
 
-    final membersLabel     = l.membersTitle;
-    final pendingLabel     = l.statusPending;
+    final membersLabel = l.membersTitle;
+    final pendingLabel = l.statusPending;
     final notAcceptedLabel = l.statusNotAccepted;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           l.membersTitle,
-          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
         backgroundColor: colors.surface,
         elevation: 0.5,
@@ -158,8 +171,8 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                     showAccepted: showAccepted,
                     showPending: showPending,
                     showNotWantedToJoin: showNotAccepted,
-                    acceptedText: membersLabel,   // renaming “Accepted” → “Members”
-                    pendingText:  pendingLabel,
+                    acceptedText: membersLabel, // “Accepted” → “Members”
+                    pendingText: pendingLabel,
                     notAcceptedText: notAcceptedLabel,
                     onFilterChange: (token, selected) {
                       setState(() {
@@ -184,7 +197,6 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                 acceptedLabel: membersLabel,
                 pendingLabel: pendingLabel,
                 notAcceptedLabel: notAcceptedLabel,
-                
               ),
             ),
           ],

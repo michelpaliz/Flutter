@@ -1676,4 +1676,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appVersionLabel => 'App version';
+
+  @override
+  String get roleCoAdmin => 'Co-Administrator';
 }

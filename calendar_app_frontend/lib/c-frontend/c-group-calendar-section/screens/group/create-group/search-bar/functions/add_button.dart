@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
 import '../../../../../../../a-models/user_model/user.dart';
-import '../controllers/group_controller.dart';
+import '../../../../../../../b-backend/core/group/view_model/group_view_model.dart';
 import '../widgets/create_group_search_bar.dart';
 
 class GroupAddUserButton extends StatelessWidget {
-  final GroupController controller;
+  final GroupViewModel controller;
 
   const GroupAddUserButton({super.key, required this.controller});
 

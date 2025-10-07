@@ -2,16 +2,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/api/blobUploader/blob_uploader.dart';
-import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/blobUploader/blobServer.dart';
+import 'package:hexora/b-backend/config/api_constants.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/utils/user_avatar.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:hexora/f-themes/palette/app_colors.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +30,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final user = context.read<UserManagement>().user;
+    final user = context.read<UserDomain>().user;
     if (user != null) {
       _nameCtrl.text = user.name;
       _usernameCtrl.text = user.userName;
@@ -52,7 +52,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     try {
       final auth = context.read<AuthProvider>();
       final token = auth.lastToken;
-      final userMgmt = context.read<UserManagement>();
+      final userMgmt = context.read<UserDomain>();
       final user = userMgmt.user;
 
       if (token == null || user == null) {
@@ -110,7 +110,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _saveProfile() async {
     final loc = AppLocalizations.of(context)!;
-    final userMgmt = context.read<UserManagement>();
+    final userMgmt = context.read<UserDomain>();
     final user = userMgmt.user;
     if (user == null) return;
 
@@ -144,7 +144,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final user = context.watch<UserManagement>().user;
+    final user = context.watch<UserDomain>().user;
     final textColor = ThemeColors.getTextColor(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg =

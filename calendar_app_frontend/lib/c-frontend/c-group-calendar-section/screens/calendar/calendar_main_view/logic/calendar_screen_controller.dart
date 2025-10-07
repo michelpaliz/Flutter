@@ -1,9 +1,14 @@
-// lib/.../calendar/controller/calendar_screen_controller.dart
 import 'dart:developer' as devtools show log;
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:hexora/b-backend/api/socket/socket_manager.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/login_user/user/domain/presence_manager.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
+import 'package:hexora/b-backend/socket/socket_manager.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/app_screen_manager.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_ui_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
@@ -11,12 +16,6 @@ import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/even
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_content_builder.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/presence_manager.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class CalendarScreenController {
@@ -57,31 +56,32 @@ class CalendarScreenController {
     }
   }
 
+  /// Initialize calendar view, group context, and events
   Future<void> loadData({Group? initialGroup}) async {
-    final groupManagement = context.read<GroupManagement>();
-    final userManagement = context.read<UserManagement>();
-    final notifMgmt = context.read<NotificationManagement>();
-    final eventData = context.read<EventDataManager>();
+    final groupDomain = context.read<GroupDomain>();
+    final userDomain = context.read<UserDomain>();
+    final notifMgmt = context.read<NotificationDomain>();
+    final eventData = context.read<EventDomain>();
 
     try {
       _setLoading(true);
 
-      // current group selection
+      // 1️⃣ Set or confirm current group
       if (initialGroup != null) {
-        groupManagement.currentGroup = initialGroup;
-      } else if (groupManagement.currentGroup == null) {
+        groupDomain.currentGroup = initialGroup;
+      } else if (groupDomain.currentGroup == null) {
         devtools.log("⚠️ No group provided and no currentGroup in manager.");
         _setLoading(false);
         return;
       }
 
-      // refresh group from API
-      final updatedGroup = await groupManagement.groupService
-          .getGroupById(groupManagement.currentGroup!.id);
-      groupManagement.currentGroup = updatedGroup;
+      // 2️⃣ Refresh group from API (via repository)
+      final updatedGroup = await groupDomain.groupRepository
+          .getGroupById(groupDomain.currentGroup!.id);
+      groupDomain.currentGroup = updatedGroup;
 
-      // emit presence (join)
-      final me = userManagement.user;
+      // 3️⃣ Presence join emit
+      final me = userDomain.user;
       if (me != null) {
         SocketManager().emitUserJoin(
           userId: me.id,
@@ -91,35 +91,33 @@ class CalendarScreenController {
         );
       }
 
-      // preload users for presence (offline known users)
-      final allUsers = await userManagement.getUsersForGroup(updatedGroup);
+      // 4️⃣ Load known users for presence
+      final allUsers = await userDomain.getUsersForGroup(updatedGroup);
       _presenceManager.setKnownUsers(allUsers);
 
-      // role
-      final userRole =
-          updatedGroup.userRoles[userManagement.user?.userName ?? ''] ??
-              'Member';
+      // 5️⃣ Determine role
+      final userRole = updatedGroup.userRoles[me?.id] ?? 'member';
 
-      // calendar controller + event actions
+      // 6️⃣ Initialize calendar + event display + actions
       calendarUI = CalendarUIController(
         eventDataManager: eventData,
         eventDisplayManager: _displayManager,
         userRole: userRole,
-        groupManagement: groupManagement,
+        groupDomain: groupDomain,
       );
 
       eventData.onExternalEventUpdate = calendarUI!.triggerCalendarHardRefresh;
 
       _eventActionManager = EventActionManager(
-        groupManagement,
-        userManagement,
+        groupDomain,
+        userDomain,
         notifMgmt,
         eventDataManager: eventData,
       );
 
       _displayManager.setEventActionManager(_eventActionManager!);
 
-      // initial events refresh
+      // 7️⃣ Refresh events initially
       await calendarUI!.eventDataManager.manualRefresh(context);
     } catch (e, s) {
       devtools.log("❌ Error initializing calendar: $e\n$s");
@@ -128,6 +126,7 @@ class CalendarScreenController {
     }
   }
 
+  /// Handle new event creation flow
   Future<void> handleAddEventPressed(BuildContext context, Group group) async {
     final added = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => AddEventScreen(group: group)),
@@ -138,7 +137,7 @@ class CalendarScreenController {
     }
   }
 
-  // Presence consumer for widget
+  /// Presence consumer for widget
   List<UserPresence> buildPresenceFor(Group group) {
     final roleMap = {
       ...group.userRoles,
@@ -152,7 +151,7 @@ class CalendarScreenController {
 
   void _setLoading(bool v) {
     _isLoading = v;
-    // Up to the screen to call setState; or you can convert this to ChangeNotifier.
+    // UI widget can rebuild by calling setState
   }
 
   void dispose() {

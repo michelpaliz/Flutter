@@ -1,22 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/api/blobUploader/blob_uploader.dart';
-import 'package:hexora/b-backend/api/config/api_constants.dart';
+import 'package:hexora/b-backend/blobUploader/blobServer.dart';
+import 'package:hexora/b-backend/config/api_constants.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/controllers/group_update_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/controllers/image_picker_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/services/group_init_service.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/edit_group_bottom_nav.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/edit_group_header.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -24,17 +24,17 @@ import 'package:provider/provider.dart';
 class EditGroupBody extends StatefulWidget {
   final Group group;
   final List<User> users;
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
-  final NotificationManagement notificationManagement;
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
+  final NotificationDomain notificationDomain;
 
   const EditGroupBody({
     Key? key,
     required this.group,
     required this.users,
-    required this.userManagement,
-    required this.groupManagement,
-    required this.notificationManagement,
+    required this.userDomain,
+    required this.groupDomain,
+    required this.notificationDomain,
   }) : super(key: key);
 
   @override
@@ -58,7 +58,7 @@ class _EditGroupBodyState extends State<EditGroupBody> {
   void initState() {
     super.initState();
 
-    _currentUser = widget.userManagement.user;
+    _currentUser = widget.userDomain.user;
 
     final initService = GroupInitializationService(
       group: widget.group,
@@ -115,7 +115,7 @@ class _EditGroupBodyState extends State<EditGroupBody> {
         _photoBlobName = result.blobName;
       });
 
-      widget.groupManagement.updateGroupPhoto(
+      widget.groupDomain.updateGroupPhoto(
         groupId: widget.group.id,
         photoUrl: _imageURL,
         photoBlobName: result.blobName,
@@ -153,9 +153,9 @@ class _EditGroupBodyState extends State<EditGroupBody> {
       currentUser: _currentUser!,
       userRoles: finalRoles,
       usersInvitations: finalInvites,
-      // removed: usersInvitationAtFirst / addingNewUser / notificationManagement
-      userManagement: widget.userManagement,
-      groupManagement: widget.groupManagement,
+      // removed: usersInvitationAtFirst / addingNewUser / notificationDomain
+      userDomain: widget.userDomain,
+      groupDomain: widget.groupDomain,
     );
 
     await controller.performGroupUpdate();
@@ -193,9 +193,9 @@ class _EditGroupBodyState extends State<EditGroupBody> {
               key: _peopleKey,
               group: widget.group,
               initialUsers: widget.users,
-              userManagement: widget.userManagement,
-              groupManagement: widget.groupManagement,
-              notificationManagement: widget.notificationManagement,
+              userDomain: widget.userDomain,
+              groupDomain: widget.groupDomain,
+              notificationDomain: widget.notificationDomain,
             ),
           ],
         ),

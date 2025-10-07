@@ -1,17 +1,16 @@
 import 'dart:async';
 
-import 'package:hexora/a-models/group_model/event/event.dart';
-import 'package:hexora/a-models/group_model/event/event_data_source.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/cells_widgets/calendar_mont_cell.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/month_schedule_img/calendar_styles.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
-
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
-import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/event_data_source.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/cells_widgets/calendar_mont_cell.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/month_schedule_img/calendar_styles.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/bridge/event_display_manager.dart';
+import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../widgets/cells_widgets/calendar_styles.dart';
@@ -19,8 +18,8 @@ import '../widgets/cells_widgets/calendar_styles.dart';
 class CalendarUIController {
   final CalendarController _controller = CalendarController();
   final EventDisplayManager _eventDisplayManager;
-  final EventDataManager _eventDataManager;
-  final GroupManagement groupManagement;
+  final EventDomain _eventDataManager;
+  final GroupDomain groupDomain;
   final String userRole;
   List<Event> _lastEventsSnapshot = [];
 
@@ -29,7 +28,7 @@ class CalendarUIController {
   Timer? _refreshDebounce;
 
   /// 👇 Public getter for external access if needed
-  EventDataManager get eventDataManager => _eventDataManager;
+  EventDomain get eventDataManager => _eventDataManager;
 
   /// 👇 Holds events for the selected day
   final ValueNotifier<List<Event>> dailyEvents = ValueNotifier([]);
@@ -46,9 +45,9 @@ class CalendarUIController {
   DateTime? _selectedDate;
 
   CalendarUIController({
-    required EventDataManager eventDataManager,
+    required EventDomain eventDataManager,
     required EventDisplayManager eventDisplayManager,
-    required this.groupManagement,
+    required this.groupDomain,
     required this.userRole,
   })  : _eventDataManager = eventDataManager,
         _eventDisplayManager = eventDisplayManager {
@@ -58,7 +57,6 @@ class CalendarUIController {
     );
 
     _eventDataSource = EventDataSource([]); // start empty
-
 
     _eventDataManager.eventsStream.listen((updatedEvents) {
       debugPrint("[CalendarUI] 📥 ${updatedEvents.length} events from stream");
@@ -117,10 +115,9 @@ class CalendarUIController {
   }
 
   Future<void> reloadGroup({required String groupId}) async {
-    final updatedGroup = await groupManagement.groupService.getGroupById(
-      groupId,
-    );
-    groupManagement.currentGroup = updatedGroup;
+    final updatedGroup =
+        await groupDomain.groupRepository.getGroupById(groupId);
+    groupDomain.currentGroup = updatedGroup;
     debugPrint("📦 Group fetched: ${updatedGroup.id}");
   }
 

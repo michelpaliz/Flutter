@@ -1,9 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/edit_group_body/edit_group_body.dart';
@@ -13,23 +13,23 @@ class EditGroupData extends StatefulWidget {
   final List<User> users;
 
   const EditGroupData({required this.group, required this.users, Key? key})
-    : super(key: key);
+      : super(key: key);
 
   @override
   _EditGroupDataState createState() => _EditGroupDataState();
 }
 
 class _EditGroupDataState extends State<EditGroupData> {
-  late UserManagement? _userManagement;
-  late GroupManagement _groupManagement;
-  late NotificationManagement _notificationManagement;
+  late UserDomain? _userDomain;
+  late GroupDomain _groupDomain;
+  late NotificationDomain _notificationDomain;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _userManagement = Provider.of<UserManagement>(context, listen: false);
-    _groupManagement = Provider.of<GroupManagement>(context, listen: false);
-    _notificationManagement = Provider.of<NotificationManagement>(
+    _userDomain = Provider.of<UserDomain>(context, listen: false);
+    _groupDomain = Provider.of<GroupDomain>(context, listen: false);
+    _notificationDomain = Provider.of<NotificationDomain>(
       context,
       listen: false,
     );
@@ -40,9 +40,9 @@ class _EditGroupDataState extends State<EditGroupData> {
     return EditGroupBody(
       group: widget.group,
       users: widget.users,
-      userManagement: _userManagement!,
-      groupManagement: _groupManagement,
-      notificationManagement: _notificationManagement,
+      userDomain: _userDomain!,
+      groupDomain: _groupDomain,
+      notificationDomain: _notificationDomain,
     );
   }
 }

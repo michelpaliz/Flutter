@@ -1,13 +1,13 @@
-import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 
-import '../controllers/group_controller.dart';
+import '../../../../../../../b-backend/core/group/view_model/group_view_model.dart';
 
 // lib/.../widgets/group_text_fields.dart
 // …imports unchanged…
 
 class GroupTextFields extends StatelessWidget {
-  final GroupController controller;
+  final GroupViewModel controller;
   const GroupTextFields({Key? key, required this.controller}) : super(key: key);
 
   @override

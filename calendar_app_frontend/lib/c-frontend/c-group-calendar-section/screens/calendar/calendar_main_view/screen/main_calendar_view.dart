@@ -1,15 +1,13 @@
 // lib/.../calendar/main_calendar_view.dart
+import 'package:flutter/material.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/logic/calendar_screen_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/add_event_cta.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/presence_status_strip.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/group_permissions_helper.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_main_view/utils/presence_status_strip.dart';
+import 'package:provider/provider.dart';
 
 class MainCalendarView extends StatefulWidget {
   final Group? group;
@@ -35,8 +33,8 @@ class _MainCalendarViewState extends State<MainCalendarView> {
 
   @override
   Widget build(BuildContext context) {
-    final groupMgmt = context.watch<GroupManagement>();
-    final userMgmt = context.watch<UserManagement>();
+    final groupMgmt = context.watch<GroupDomain>();
+    final userMgmt = context.watch<UserDomain>();
     final currentUser = userMgmt.user;
     final currentGroup = groupMgmt.currentGroup;
 
@@ -62,11 +60,13 @@ class _MainCalendarViewState extends State<MainCalendarView> {
               PresenceStatusStrip(group: currentGroup, controller: _c),
               const SizedBox(height: 10),
               Expanded(
-                child: _c.calendarUI?.buildCalendar(context) ?? const SizedBox(),
+                child:
+                    _c.calendarUI?.buildCalendar(context) ?? const SizedBox(),
               ),
               if (canAddEvents)
                 AddEventCta(
-                  onPressed: () => _c.handleAddEventPressed(context, currentGroup),
+                  onPressed: () =>
+                      _c.handleAddEventPressed(context, currentGroup),
                 ),
             ],
           ),

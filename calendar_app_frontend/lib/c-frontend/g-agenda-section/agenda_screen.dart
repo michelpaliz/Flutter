@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/agenda/agenda_model.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart'; // ⬅️ for currentGroup fallback
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/g-agenda-section/sections/agenda_filters_section.dart';
 import 'package:hexora/c-frontend/g-agenda-section/sections/agenda_header_section.dart';
 import 'package:hexora/c-frontend/g-agenda-section/sections/agenda_list_section.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart'; // ⬅️ for navigation to groups
-import 'package:hexora/d-stateManagement/group/group_management.dart'; // ⬅️ for currentGroup fallback
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:provider/provider.dart';
 
@@ -55,12 +55,12 @@ class _AgendaScreenState extends State<AgendaScreen> {
 
   /// Resolve the group id to use:
   /// 1) explicit widget.groupId
-  /// 2) fallback to GroupManagement.currentGroup?.id
+  /// 2) fallback to groupDomain.currentGroup?.id
   String? _resolveGroupId() {
     final explicit = widget.groupId;
     if (explicit != null && explicit.isNotEmpty) return explicit;
     try {
-      final gm = context.read<GroupManagement>();
+      final gm = context.read<GroupDomain>();
       final fallback = gm.currentGroup?.id;
       if (fallback != null && fallback.isNotEmpty) return fallback;
     } catch (_) {}
@@ -86,7 +86,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
     try {
       setState(() => _loading = true);
 
-      final userMgmt = context.read<UserManagement>();
+      final userMgmt = context.read<UserDomain>();
 
       final List<Event> events = await userMgmt.fetchAgendaUpcoming(
         groupId: gid,

@@ -1,23 +1,23 @@
 // group_event_resolver.dart
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/api/event/event_services.dart';
-import 'package:hexora/b-backend/api/recurrenceRule/recurrence_rule_services.dart';
-import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/core/event/api/event_api_client.dart';
+import 'package:hexora/b-backend/core/recurrenceRule/recurrence_rule_api_client.dart';
 
 class GroupEventResolver {
-  final EventService _eventService;
-  final RecurrenceRuleService _ruleService;
+  final EventApiClient _eventService;
+  final RecurrenceRuleApiClient _ruleService;
 
   GroupEventResolver({
-    required EventService eventService,
-    required RecurrenceRuleService ruleService,
+    required EventApiClient eventService,
+    required RecurrenceRuleApiClient ruleService,
   })  : _eventService = eventService,
         _ruleService = ruleService;
 
   final Map<String, List<Event>> _cache = {};
 
-  RecurrenceRuleService get ruleService => _ruleService;
+  RecurrenceRuleApiClient get ruleService => _ruleService;
 
   Future<List<Event>> getEventsForGroup(Group group) async {
     final gid = group.id;

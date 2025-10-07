@@ -1,10 +1,10 @@
 // lib/c-frontend/b-calendar-section/screens/profile/profile_view_screen.dart
-import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:hexora/f-themes/palette/app_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/profile_details_card.dart';
@@ -16,7 +16,7 @@ class ProfileViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final user = context.watch<UserManagement>().user;
+    final user = context.watch<UserDomain>().user;
     if (user == null) {
       return MainScaffold(
           showAppBar: false, body: Center(child: Text(loc.noUserLoaded)));

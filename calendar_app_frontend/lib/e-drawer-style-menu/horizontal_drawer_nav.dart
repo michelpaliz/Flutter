@@ -1,6 +1,6 @@
 import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/f-themes/palette/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
@@ -68,7 +68,7 @@ class _HorizontalDrawerNavState extends State<HorizontalDrawerNav> {
     final route = _items[index].route;
 
     if (route == AppRoutes.showNotifications) {
-      final user = context.read<UserManagement>().user;
+      final user = context.read<UserDomain>().user;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No user available for notifications')),
@@ -89,7 +89,7 @@ class _HorizontalDrawerNavState extends State<HorizontalDrawerNav> {
     final inactiveColor =
         isDark ? AppDarkColors.textSecondary : AppColors.textSecondary;
 
-    final user = context.watch<UserManagement>().user;
+    final user = context.watch<UserDomain>().user;
     final mid = (_items.length / 2).floor();
 
     // Get bottom safe area padding

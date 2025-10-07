@@ -1,21 +1,21 @@
 // edit_event_screen.dart
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/api/category/category_services.dart';
-import 'package:hexora/b-backend/api/client/client_api.dart';
-import 'package:hexora/b-backend/api/config/api_constants.dart';
-import 'package:hexora/b-backend/api/service/service_api.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/core/category/category_api_client.dart';
+import 'package:hexora/b-backend/services/client/client_api.dart';
+import 'package:hexora/b-backend/config/api_constants.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/services/service/service_api_client.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/functions/edit/edit_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/repetition_dialog/dialog/repetition_dialog.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class EditEventScreen extends StatefulWidget {
@@ -47,12 +47,12 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
     // 1) hydrate base edit logic (fills controllers, dates, etc.)
     await initLogic(
       event: widget.event,
-      gm: context.read<GroupManagement>(),
-      um: context.read<UserManagement>(),
+      gm: context.read<GroupDomain>(),
+      um: context.read<UserDomain>(),
     );
 
     // 2) populate clients/services for the work-visit form (safe even if type=simple)
-    final group = context.read<GroupManagement>().currentGroup;
+    final group = context.read<GroupDomain>().currentGroup;
     if (group != null) {
       try {
         final clients = await _clientsApi.list(groupId: group.id);
@@ -106,9 +106,8 @@ class _EditEventScreenState extends EditEventLogic<EditEventScreen>
               padding: const EdgeInsets.all(16),
               child: EventFormRouter(
                 logic: this, // <- same state (EditEventLogic)
-                onSubmit: () =>
-                    saveEditedEvent(context.read<EventDataManager>()),
-                ownerUserId: context.read<UserManagement>().user!.id,
+                onSubmit: () => saveEditedEvent(context.read<EventDomain>()),
+                ownerUserId: context.read<UserDomain>().user!.id,
                 categoryApi: categoryApi,
                 isEditing: true, dialogs: this,
                 // dialogs: this,                    // <- enables repetition dialog for simple type

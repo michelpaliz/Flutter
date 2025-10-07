@@ -1,22 +1,31 @@
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/user/user_services.dart';
+import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
 
-Future<void> fetchUserData(
-  context,
-  Group group,
-  UserService userService,
-  List<String> recipientIds,
-  List<User> users,
-  Function(User) onUserFound,
-) async {
-  if (group.userIds.isNotEmpty) {
-    for (var userId in group.userIds) {
-      User user = await userService.getUserById(userId);
-      users.add(user);
-      if (recipientIds.contains(user.id)) {
-        onUserFound(user);
+Future<void> fetchUserData({
+  required Group group,
+  required UserRepository userRepository,
+  required List<String> recipientIds,
+  required List<User> users,
+  required void Function(User) onUserFound,
+}) async {
+  if (group.userIds.isEmpty) return;
+
+  // Deduplicate against what's already in `users`
+  final seen = <String>{for (final u in users) u.id};
+
+  for (final rawId in group.userIds) {
+    final id = rawId.toString();
+    try {
+      final u = await userRepository.getUserById(id);
+      if (seen.add(u.id)) {
+        users.add(u);
       }
+      if (recipientIds.contains(u.id)) {
+        onUserFound(u);
+      }
+    } catch (_) {
+      // ignore individual fetch errors; continue
     }
   }
 }

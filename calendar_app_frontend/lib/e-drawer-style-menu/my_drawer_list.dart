@@ -1,4 +1,4 @@
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';

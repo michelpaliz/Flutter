@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/api/client/client_api.dart';
-import 'package:hexora/b-backend/api/service/service_api.dart';
+import 'package:hexora/b-backend/services/client/client_api.dart';
+import 'package:hexora/b-backend/services/service/service_api_client.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/enum/insights_types.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/bar/insights_bar_section.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/filter/insights_filter_section.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/past_hint/insights_past_hint.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -62,7 +62,7 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
   //   });
 
   //   try {
-  //     final userMgmt = context.read<UserManagement>();
+  //     final userMgmt = context.read<userDomain>();
   //     final range = _resolveRange(DateTime.now());
 
   //     // 1) Fetch events from the new agenda endpoint
@@ -126,7 +126,7 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
     });
 
     try {
-      final userMgmt = context.read<UserManagement>();
+      final userMgmt = context.read<UserDomain>();
       final range = _resolveRange(DateTime.now());
 
       // ⚠️ Use end-exclusive to include the whole last day in the backend query

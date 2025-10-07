@@ -1,12 +1,12 @@
-import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart';
-import 'package:hexora/b-backend/api/auth/auth_database/token_storage.dart';
-import 'package:hexora/b-backend/api/socket/socket_manager.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/socket_notification_listener.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/socket_notification_listener.dart';
+import 'package:hexora/b-backend/socket/socket_manager.dart';
 
 // Import or replace with your actual constants location
 class ApiConstants {
@@ -17,15 +17,15 @@ class ApiConstants {
 
 class LoginInitializer {
   final AuthService authService;
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
 
   User? _user;
 
   LoginInitializer({
     required this.authService,
-    required this.userManagement,
-    required this.groupManagement,
+    required this.userDomain,
+    required this.groupDomain,
   });
 
   Future<void> initializeUserAndServices(String email, String password) async {
@@ -50,8 +50,10 @@ class LoginInitializer {
       final token = await TokenStorage.loadToken();
 
       // ✅ Pass normalized user to state management
-      userManagement.setCurrentUser(normalizedUser, authToken: token);
-      groupManagement.setCurrentUser(normalizedUser);
+      userDomain.setCurrentUser(
+        normalizedUser,
+      );
+      groupDomain.setCurrentUser(normalizedUser);
 
       debugPrint('✅ setCurrentUser called with: ${normalizedUser.userName}');
 

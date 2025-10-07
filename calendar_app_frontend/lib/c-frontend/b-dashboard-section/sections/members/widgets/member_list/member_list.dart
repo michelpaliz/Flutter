@@ -25,16 +25,32 @@ class MembersList extends StatelessWidget {
     required this.notAcceptedLabel,
   });
 
+  // --- Role helpers ----------------------------------------------------------
+
+  String _norm(String role) =>
+      role.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+  bool _isCoAdminRole(String role) {
+    final s = _norm(role);
+    // handles: "co-admin", "coadmin", "co administrator", "co administrator (something)"
+    return s.contains('co-admin') ||
+        s.contains('coadmin') ||
+        s.contains('co administrator');
+  }
+
   bool _isAdminRole(String role) {
-    final s = role.trim().toLowerCase();
+    final s = _norm(role);
+    // treat "owner" and "administrator" as admin; exclude co-admins here so they get their own bucket
+    if (_isCoAdminRole(role)) return false;
     return s == 'admin' ||
-        s == 'administrator' ||
+        s.contains('administrator') ||
+        s.contains('owner') || // e.g. "administrator (owner)"
         s == 'manager' ||
         s == 'moderator';
   }
 
   bool _isMemberRole(String role) {
-    final s = role.trim().toLowerCase();
+    final s = _norm(role);
     return s == 'member' || s.isEmpty;
   }
 
@@ -57,17 +73,23 @@ class MembersList extends StatelessWidget {
       );
     }
 
-    // Split accepted members into admins and regular members
-    final adminMembers =
-        accepted.where((ref) => _isAdminRole(ref.role)).toList();
+    // --- Split accepted users: Admin -> Co-Admin -> Member -------------------
+    final adminMembers = accepted.where((r) => _isAdminRole(r.role)).toList();
+    final coAdminMembers =
+        accepted.where((r) => _isCoAdminRole(r.role)).toList();
     final regularMembers =
-        accepted.where((ref) => _isMemberRole(ref.role)).toList();
-    final otherRoleMembers = accepted
-        .where((ref) => !_isAdminRole(ref.role) && !_isMemberRole(ref.role))
-        .toList();
+        accepted.where((r) => _isMemberRole(r.role)).toList();
+    // (optional) anything else (custom roles) could be bucketed here if needed:
+    // final otherRoleMembers = accepted.where((r) =>
+    //   !_isAdminRole(r.role) && !_isCoAdminRole(r.role) && !_isMemberRole(r.role)
+    // ).toList();
 
-    List<Widget> buildSection(String title, List<MemberRef> refs,
-        {Color? color, String? sectionType}) {
+    List<Widget> buildSection(
+      String title,
+      List<MemberRef> refs, {
+      Color? color,
+      String? sectionType,
+    }) {
       if (refs.isEmpty) return const [];
       return [
         Padding(
@@ -94,14 +116,12 @@ class MembersList extends StatelessWidget {
                 ),
               ),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minHeight: 68,
-                ),
+                constraints: const BoxConstraints(minHeight: 68),
                 child: MemberRow(
                   ref: ref,
                   ownerId: ref.ownerId,
-                  showRoleChip: sectionType !=
-                      'admins', // Don't show role chip for admins section since they're already identified as admins
+                  // SHOW the role chip for *all* sections so Admins/Co-Admins are labeled
+                  showRoleChip: true,
                 ),
               ),
             ),
@@ -113,24 +133,37 @@ class MembersList extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       children: [
-        // Admins section first
-        ...buildSection(l.roleAdmin, adminMembers,
-            color: colors.secondary, sectionType: 'admins'),
+        // 1) Admins
+        ...buildSection(
+          l.roleAdmin, // make sure you have this key localized (e.g., "Administrador")
+          adminMembers,
+          color: colors.secondary,
+          sectionType: 'admins',
+        ),
 
-        // Regular members section
-        ...buildSection(acceptedLabel, regularMembers,
-            color: colors.primary, sectionType: 'members'),
+        // 2) Co-Admins
+        ...buildSection(
+          l.roleCoAdmin, // add localization key (e.g., "Co-administrador")
+          coAdminMembers,
+          color: colors.tertiary,
+          sectionType: 'coadmins',
+        ),
 
-//TODO ADD CO-ADMIN ROLE HERE
-        // Other roles section (if any)
+        // 3) Members
+        ...buildSection(
+          acceptedLabel, // typically something like l.members
+          regularMembers,
+          color: colors.primary,
+          sectionType: 'members',
+        ),
+
+        // (Optional) Other roles if you decide to surface them:
         // if (otherRoleMembers.isNotEmpty)
         //   ...buildSection(l.otherRoles, otherRoleMembers,
-        //       color: colors.tertiary, sectionType: 'other'),
+        //       color: colors.onTertiaryContainer, sectionType: 'other'),
 
-        // Pending section
+        // Pending / Not accepted (kept unsplit by role on purpose)
         ...buildSection(pendingLabel, pending, color: colors.onSurfaceVariant),
-
-        // Not accepted section
         ...buildSection(notAcceptedLabel, notAccepted,
             color: colors.onSurfaceVariant),
 

@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 import 'confirmation_dialog.dart';
 
@@ -15,14 +15,13 @@ List<Widget> buildProfileDialogActions(
   User user,
   bool hasPermission,
   String role,
-  UserManagement userManagement,
-  GroupManagement groupManagement,
+  UserDomain userDomain,
+  GroupDomain groupDomain,
 ) {
   final loc = AppLocalizations.of(context)!;
   final roleDisplay = role[0].toUpperCase() + role.substring(1);
   final colorScheme = Theme.of(context).colorScheme;
 
-  // ➕ Shared padding between action buttons
   const actionSpacing = SizedBox(height: 8);
 
   if (hasPermission) {
@@ -43,20 +42,23 @@ List<Widget> buildProfileDialogActions(
           );
 
           try {
+            // 🔄 Fetch fresh group via repository (no direct service)
             final selectedGroup =
-                await groupManagement.groupService.getGroupById(group.id);
-            final users = await Future.wait(
-              selectedGroup.userIds.map(
-                (id) => userManagement.userService.getUserById(id),
-              ),
-            );
+                await groupDomain.groupRepository.getGroupById(group.id);
+
+            // 👥 Load users for that group via userDomain helper
+            // (avoid direct user service here)
+            final users = await userDomain.getUsersForGroup(selectedGroup);
 
             if (overlayContext.mounted) Navigator.of(overlayContext).pop();
 
             Navigator.pushNamed(
               overlayContext,
               AppRoutes.editGroupData,
-              arguments: EditGroupArguments(group: selectedGroup, users: users),
+              arguments: EditGroupArguments(
+                group: selectedGroup,
+                users: users,
+              ),
             );
           } catch (e) {
             if (overlayContext.mounted) Navigator.of(overlayContext).pop();
@@ -90,17 +92,27 @@ List<Widget> buildProfileDialogActions(
             loc.questionDeleteGroup,
           );
 
-          if (confirm) {
-            if (group.ownerId == user.id) {
-              try {
-                await groupManagement.groupService.deleteGroup(group.id);
-                if (context.mounted) Navigator.pop(context);
-              } catch (e) {
+          if (!confirm) return;
+
+          if (group.ownerId == user.id) {
+            try {
+              // ✅ Use domain method (Management) which calls Repository internally
+              final ok = await groupDomain.removeGroup(group, userDomain);
+              if (ok && context.mounted) Navigator.pop(context);
+              if (!ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(loc.failedToEditGroup)),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('${loc.failedToEditGroup} $e')),
                 );
               }
-            } else {
+            }
+          } else {
+            if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(loc.permissionDeniedInf)),
               );
@@ -144,9 +156,19 @@ List<Widget> buildProfileDialogActions(
                 ? loc.questionDeleteGroup
                 : loc.removeGroup,
           );
-          if (confirm) {
-            await groupManagement.groupService.leaveGroup(user.id, group.id);
+          if (!confirm) return;
+
+          try {
+            // Prefer a management wrapper if you create one; otherwise call repository
+            await groupDomain.groupRepository.leaveGroup(user.id, group.id);
+
             if (context.mounted) Navigator.pop(context);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${loc.failedToEditGroup} $e')),
+              );
+            }
           }
         },
         style: TextButton.styleFrom(

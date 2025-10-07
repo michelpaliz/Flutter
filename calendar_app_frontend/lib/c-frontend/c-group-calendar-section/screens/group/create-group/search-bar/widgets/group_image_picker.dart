@@ -1,11 +1,11 @@
 // lib/.../widgets/group_image_picker.dart
 import 'dart:io';
 
-import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../controllers/group_controller.dart';
+import '../../../../../../../b-backend/core/group/view_model/group_view_model.dart';
 
 class GroupImagePicker extends StatelessWidget {
   const GroupImagePicker({super.key});
@@ -14,7 +14,7 @@ class GroupImagePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    return Consumer<GroupController>(
+    return Consumer<GroupViewModel>(
       builder: (context, controller, _) {
         final hasImage = controller.selectedImage != null;
         final size =

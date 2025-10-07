@@ -2,30 +2,30 @@ import 'dart:developer' as devtools show log;
 
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/event/event.dart';
-import 'package:hexora/b-backend/api/client/client_api.dart';
-import 'package:hexora/b-backend/api/service/service_api.dart';
+import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/services/client/client_api.dart';
+import 'package:hexora/b-backend/services/service/service_api_client.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:hexora/d-stateManagement/event/event_data_manager.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../../../a-models/user_model/user.dart';
-import '../../../../../../../../../b-backend/api/user/user_services.dart';
-import '../../../../../../../../../d-stateManagement/group/group_management.dart';
-import '../../../../../../../../../d-stateManagement/notification/notification_management.dart';
-import '../../../../../../../../../d-stateManagement/user/user_management.dart';
 import '../../../../../../../../../f-themes/utilities/utilities.dart';
+import '../../../../../../../../b-backend/core/group/domain/group_domain.dart';
+import '../../../../../../../../b-backend/login_user/user/api/user_api_client.dart';
+import '../../../../../../../../b-backend/notification/domain/notification_domain.dart';
 
 abstract class AddEventLogic<T extends StatefulWidget>
     extends BaseEventLogic<T> {
   // Services
-  late EventDataManager _eventDataManager;
-  late UserManagement userManagement;
-  late GroupManagement groupManagement;
-  late NotificationManagement notificationManagement;
-  final UserService _userService = UserService();
+  late EventDomain _eventDataManager;
+  late UserDomain userDomain;
+  late GroupDomain groupDomain;
+  late NotificationDomain notificationDomain;
+  final UserApiClient _userService = UserApiClient();
   final _clientsApi = ClientsApi();
   final _servicesApi = ServiceApi();
 
@@ -43,16 +43,17 @@ abstract class AddEventLogic<T extends StatefulWidget>
   }
 
   void injectDependencies({
-    required GroupManagement groupMgmt,
-    required UserManagement userMgmt,
-    required NotificationManagement notifMgmt,
+    required GroupDomain groupMgmt,
+    required UserDomain userMgmt,
+    required NotificationDomain notifMgmt,
   }) {
-    groupManagement = groupMgmt;
-    userManagement = userMgmt;
-    notificationManagement = notifMgmt;
-    user = userManagement.user!;
+    groupDomain = groupMgmt;
+    userDomain = userMgmt;
+    notificationDomain = notifMgmt;
+    user = userDomain.user!;
   }
 
+// ───────── initializeLogic ─────────
   Future<void> initializeLogic(Group group, BuildContext context) async {
     _group = group;
 
@@ -62,26 +63,22 @@ abstract class AddEventLogic<T extends StatefulWidget>
     setStartDate(now);
     setEndDate(now.add(const Duration(hours: 1)));
 
-    _eventDataManager = Provider.of<EventDataManager>(context, listen: false);
+    _eventDataManager = Provider.of<EventDomain>(context, listen: false);
 
-    // preload users for invite UI
-    if (_group.userIds.isNotEmpty) {
-      for (final userId in _group.userIds) {
-        final fetchedUser = await _userService.getUserById(userId);
-        users.add(fetchedUser);
-      }
+    // ✅ Preload users via userDomain (no direct service calls)
+    try {
+      final groupUsers = await userDomain.getUsersForGroup(_group);
+      users.addAll(
+          groupUsers.where((u) => users.indexWhere((x) => x.id == u.id) == -1));
+    } catch (e) {
+      devtools.log('⚠️ preload users failed: $e');
     }
 
-    // ✅ Load clients/services and push to logic without using displayName
+    // ✅ Load clients/services stays as-is if those APIs already encapsulate token
     try {
       final clients = await _clientsApi.list(groupId: _group.id);
       setAvailableClients(
-        clients
-            .map((c) => ClientLite(
-                  id: c.id,
-                  name: c.name, // <-- no displayName here
-                ))
-            .toList(),
+        clients.map((c) => ClientLite(id: c.id, name: c.name)).toList(),
       );
     } catch (e) {
       devtools.log('⚠️ clients fetch failed: $e');
@@ -91,12 +88,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
     try {
       final services = await _servicesApi.list(groupId: _group.id);
       setAvailableServices(
-        services
-            .map((s) => ServiceLite(
-                  id: s.id,
-                  name: s.name,
-                ))
-            .toList(),
+        services.map((s) => ServiceLite(id: s.id, name: s.name)).toList(),
       );
     } catch (e) {
       devtools.log('⚠️ services fetch failed: $e');
@@ -110,18 +102,20 @@ abstract class AddEventLogic<T extends StatefulWidget>
     disposeBaseControllers(); // 🧼 from BaseEventLogic
   }
 
+// ───────── _postCreationActions ─────────
   Future<void> _postCreationActions(Event createdEvent) async {
-    await userManagement.updateUser(user);
+    await userDomain.updateUser(user);
     devtools.log("👤 [addEvent] User updated");
 
+    // ✅ Fetch updated group via repository (no direct service)
     fetchedUpdatedGroup =
-        await groupManagement.groupService.getGroupById(_group.id);
+        await groupDomain.groupRepository.getGroupById(_group.id);
     if (fetchedUpdatedGroup == null) {
       devtools.log("❌ [addEvent] Failed to fetch updated group");
       return;
     }
 
-    groupManagement.currentGroup = fetchedUpdatedGroup!;
+    groupDomain.currentGroup = fetchedUpdatedGroup!;
     devtools.log(
         "🧹 [addEvent] GROUP FETCHED: ${fetchedUpdatedGroup!.name} (${fetchedUpdatedGroup!.id})");
 
@@ -168,11 +162,13 @@ abstract class AddEventLogic<T extends StatefulWidget>
       }
     }
 
-    // ---- ensure calendarId (with refresh fallback) ----
+    // ───────── ensure calendarId (with refresh fallback) ─────────
     String? calId = _group.calendarId;
     if (calId == null) {
+      // ✅ Use repository to re-fetch (handles token)
       final refreshed =
-          await groupManagement.groupService.getGroupById(_group.id);
+          await groupDomain.groupRepository.getGroupById(_group.id);
+
       calId = refreshed.defaultCalendarId ?? refreshed.defaultCalendar?.id;
       if (calId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -246,7 +242,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       final created = await _eventDataManager.createEvent(context, newEvent);
 
       await hydrateRecurrenceRuleIfNeeded(
-        groupManagement: groupManagement,
+        groupDomain: groupDomain,
         rawRuleId: created.rawRuleId,
       );
 

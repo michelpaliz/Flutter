@@ -1,17 +1,17 @@
-import 'package:hexora/b-backend/api/auth/auth_database/auth_service.dart'; // ✅ New import
-import 'package:hexora/b-backend/api/auth/exceptions/auth_exceptions.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart'; // ✅ New import
+import 'package:hexora/b-backend/login_user/auth/exceptions/auth_exceptions.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/show_error_dialog.dart';
 import 'package:hexora/c-frontend/e-log-user-section/login/login_init.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/f-themes/palette/color_properties.dart';
 import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
 import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
     show TextFieldStyles;
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../register_controller.dart';
@@ -110,8 +110,8 @@ Widget buildRegisterButton(
 
           final loginInit = LoginInitializer(
             authService: authService, // ✅ Changed
-            userManagement: Provider.of<UserManagement>(context, listen: false),
-            groupManagement: Provider.of<GroupManagement>(
+            userDomain: Provider.of<UserDomain>(context, listen: false),
+            groupDomain: Provider.of<GroupDomain>(
               context,
               listen: false,
             ),

@@ -1,6 +1,6 @@
 // event_form_simple.dart
 import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:hexora/b-backend/api/category/category_services.dart';
+import 'package:hexora/b-backend/core/category/category_api_client.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/widgets/repetition_toggle_widget.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/dialog/user_expandable_card.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/utils/form/color_picker_widget.dart';

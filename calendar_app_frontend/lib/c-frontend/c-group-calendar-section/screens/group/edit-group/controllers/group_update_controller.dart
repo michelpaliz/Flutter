@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 class GroupUpdateController {
   final BuildContext context;
@@ -16,8 +16,8 @@ class GroupUpdateController {
   final Map<String, String> userRoles;
   final Map<String, UserInviteStatus> usersInvitations;
 
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
 
   GroupUpdateController({
     required this.context,
@@ -28,8 +28,8 @@ class GroupUpdateController {
     required this.currentUser,
     required this.userRoles,
     required this.usersInvitations,
-    required this.userManagement,
-    required this.groupManagement,
+    required this.userDomain,
+    required this.groupDomain,
   });
 
   Future<bool> performGroupUpdate() async {
@@ -43,16 +43,16 @@ class GroupUpdateController {
       final updatedGroup = Group(
         id: originalGroup.id,
         name: groupName,
-        ownerId: originalGroup.ownerId,          // preserve owner
-        userRoles: userRoles,                    // roles from UI
-        invitedUsers: usersInvitations,          // <-- persist invites
-        userIds: originalGroup.userIds,          // members unchanged here
-        createdTime: originalGroup.createdTime,  // preserve creation time
+        ownerId: originalGroup.ownerId, // preserve owner
+        userRoles: userRoles, // roles from UI
+        invitedUsers: usersInvitations, // <-- persist invites
+        userIds: originalGroup.userIds, // members unchanged here
+        createdTime: originalGroup.createdTime, // preserve creation time
         description: groupDescription,
         photoUrl: imageUrl,
       );
 
-      await groupManagement.updateGroup(updatedGroup, userManagement);
+      await groupDomain.updateGroup(updatedGroup, userDomain);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.groupEdited)),
@@ -75,7 +75,8 @@ class GroupUpdateController {
         title: const Text('Error'),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
         ],
       ),
     );

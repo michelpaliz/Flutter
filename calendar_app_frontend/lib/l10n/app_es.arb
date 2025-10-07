@@ -999,5 +999,6 @@
   "logoutConfirmMessage": "¿Seguro que quieres cerrar sesión?",
   "accountSectionTitle": "Cuenta",
   "preferencesSectionTitle": "Preferencias",
-  "appVersionLabel": "Versión de la app"
+  "appVersionLabel": "Versión de la app",
+      "roleCoAdmin":"Co-Administrador"
 }

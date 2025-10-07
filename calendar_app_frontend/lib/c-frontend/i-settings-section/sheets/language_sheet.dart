@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hexora/d-stateManagement/local/LocaleProvider.dart';
+import 'package:hexora/d-local-stateManagement/local/LocaleProvider.dart';
 import 'package:provider/provider.dart';
 
 void showLanguageSheet(BuildContext context) {

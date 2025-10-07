@@ -1,19 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
+import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/search_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/group_selected_user_list.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/search_bar/custome_search_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../controllers/search_controller.dart';
 
 class CreateGroupSearchBar extends StatefulWidget {
   final User? user;
   final Group? group;
-  final GroupController controller;
+  final GroupViewModel controller;
 
-  /// NEW: called as soon as a user gets picked (for instant preview in parent)
+  /// Callback triggered when a user is added (for parent preview updates)
   final void Function(User)? onUserPicked;
 
   const CreateGroupSearchBar({
@@ -35,19 +35,34 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
   @override
   void initState() {
     super.initState();
-    _controller = GroupSearchController(
-      currentUser: widget.user,
-      group: widget.group,
-    );
+
+    // delay until context is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final repo = context.read<UserRepository>();
+
+      setState(() {
+        _controller = GroupSearchController(
+          currentUser: widget.user,
+          group: widget.group,
+          userRepository: repo, // ← required
+        );
+      });
+    });
   }
 
-  // Local-only confirm (does not hit backend)
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Apply local changes (does not persist to backend yet)
   void _onConfirmChanges() {
     widget.controller.onDataChanged(
       _controller.usersInGroup,
       _controller.userRoles,
     );
-    _showSnackBar("Changes confirmed (not sent to backend yet).");
+    _showSnackBar("✅ Local changes applied.");
   }
 
   @override
@@ -65,7 +80,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                   if (query.length >= 3) {
                     ctrl.searchUser(query, context);
                   } else {
-                    ctrl.searchResults.clear();
+                    ctrl.clearResults();
                   }
                 },
                 onSearch: () {
@@ -75,36 +90,26 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                 },
                 onClear: () {
                   _searchController.clear();
-                  ctrl.searchResults.clear();
+                  ctrl.clearResults();
                 },
               ),
               const SizedBox(height: 10),
 
-              // Results list
+              // Search results
               ...ctrl.searchResults.map((username) {
                 return ListTile(
                   title: Text(username),
                   trailing: IconButton(
                     icon: const Icon(Icons.add, color: Colors.green),
                     onPressed: () async {
-                      // Add to the local controller (search controller)
-                      final addResult = await ctrl.addUser(username, context);
-                      // Clear search box and notify
+                      final addedUser = await ctrl.addUser(username, context);
                       _searchController.clear();
-                      _showSnackBar('User added: $username');
 
-                      // Try to find the concrete User we just added
-                      User? picked;
-                      try {
-                        picked = ctrl.usersInGroup
-                            .firstWhere((u) => u.userName == username);
-                      } catch (_) {
-                        picked = null;
-                      }
-
-                      // Bubble up to parent (EditGroupPeople) for instant preview
-                      if (picked != null) {
-                        widget.onUserPicked?.call(picked);
+                      if (addedUser != null) {
+                        _showSnackBar('User added: $username');
+                        widget.onUserPicked?.call(addedUser);
+                      } else {
+                        _showSnackBar('⚠️ Failed to add user: $username');
                       }
                     },
                   ),
@@ -113,7 +118,7 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
 
               const SizedBox(height: 10),
 
-              // Local selected users list (still local until saved)
+              // Selected users
               GroupSelectedUsersList(
                 currentUser: widget.user!,
                 usersInGroup: ctrl.usersInGroup,
@@ -124,9 +129,9 @@ class _CreateGroupSearchBarState extends State<CreateGroupSearchBar> {
                 },
                 onRoleChanged: (username, newRole) {
                   ctrl.changeRole(username, newRole);
-                  _showSnackBar('Role updated: $username is now $newRole');
+                  _showSnackBar('Role updated: $username → $newRole');
                 },
-                onConfirmChanges: _onConfirmChanges, // local confirm only
+                onConfirmChanges: _onConfirmChanges,
               ),
             ],
           );

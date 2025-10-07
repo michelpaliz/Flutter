@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/invited-user/group_role_extension.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_profile/dialog_choosement/profile_alert_dialog.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Renders a tappable group card with theme-aware styling.
@@ -13,11 +13,13 @@ Widget buildGroupCard(
   BuildContext context,
   Group group,
   User? currentUser,
-  UserManagement userManagement,
-  GroupManagement groupManagement,
+  UserDomain userDomain,
+  GroupDomain groupDomain,
   void Function(String?) updateRole,
 ) {
-  final role = group.getRoleForUser(currentUser!);
+  final role =
+      (currentUser != null) ? group.getRoleForUser(currentUser) : 'Member';
+
   final canEdit =
       role == 'Owner' || role == 'Administrator' || role == 'Co-Administrator';
 
@@ -27,18 +29,30 @@ Widget buildGroupCard(
 
       return InkWell(
         onTap: () async {
-          User groupOwner =
-              await userManagement.userService.getUserById(group.ownerId);
-          showProfileAlertDialog(
-            context,
-            group,
-            groupOwner,
-            currentUser,
-            userManagement,
-            groupManagement,
-            updateRole,
-            canEdit,
-          );
+          try {
+            // ✅ Use the repository (handles token) instead of service
+            final groupOwner =
+                await userDomain.userRepository.getUserById(group.ownerId);
+
+            // Open the profile dialog
+            // (use groupOwner fetched via repository)
+            // ignore: use_build_context_synchronously
+            showProfileAlertDialog(
+              context,
+              group,
+              groupOwner,
+              currentUser,
+              userDomain,
+              groupDomain,
+              updateRole,
+              canEdit,
+            );
+          } catch (e) {
+            // Optional: show a toast/snackbar on error
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to load group owner: $e')),
+            );
+          }
         },
         onHover: (hovering) => setState(() => isHovered = hovering),
         child: MouseRegion(
@@ -84,11 +98,11 @@ Widget buildCard(Group group, BuildContext context, bool isHovered) {
                 borderRadius: BorderRadius.circular(8),
                 child: (group.photoUrl != null && group.photoUrl!.isNotEmpty)
                     ? Image.network(
-                        group.photoUrl!, // ✅ use non-nullable with "!"
+                        group.photoUrl!,
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(
+                        errorBuilder: (_, __, ___) => Icon(
                           Icons.group,
                           size: 48,
                           color: theme.colorScheme.primary,

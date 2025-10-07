@@ -1,11 +1,11 @@
 // group_list_section.dart
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_card_widget/group_card_widget.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class GroupListSection extends StatefulWidget {
@@ -22,8 +22,8 @@ class _GroupListSectionState extends State<GroupListSection> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final userMgmt = context.watch<UserManagement>();
-    final groupMgmt = context.watch<GroupManagement>();
+    final userMgmt = context.watch<UserDomain>();
+    final groupMgmt = context.watch<GroupDomain>();
     final ValueNotifier<User?> currentUserNotifier =
         userMgmt.currentUserNotifier;
 
@@ -59,8 +59,8 @@ class _GroupListSectionState extends State<GroupListSection> {
                       groups: groups,
                       axis: axis,
                       currentUser: user,
-                      userManagement: userMgmt,
-                      groupManagement: groupMgmt,
+                      userDomain: userMgmt,
+                      groupDomain: groupMgmt,
                       updateRole: (String? role) {},
                     ),
                   );
@@ -100,16 +100,16 @@ class _GroupListView extends StatelessWidget {
   final List<Group> groups;
   final Axis axis;
   final User currentUser;
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
   final void Function(String?) updateRole;
 
   const _GroupListView({
     required this.groups,
     required this.axis,
     required this.currentUser,
-    required this.userManagement,
-    required this.groupManagement,
+    required this.userDomain,
+    required this.groupDomain,
     required this.updateRole,
   });
 
@@ -126,8 +126,8 @@ class _GroupListView extends StatelessWidget {
           context,
           groups[index],
           currentUser,
-          userManagement,
-          groupManagement,
+          userDomain,
+          groupDomain,
           updateRole,
         );
       },

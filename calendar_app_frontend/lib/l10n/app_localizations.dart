@@ -2996,6 +2996,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App version'**
   String get appVersionLabel;
+
+  /// No description provided for @roleCoAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Administrator'**
+  String get roleCoAdmin;
 }
 
 class _AppLocalizationsDelegate

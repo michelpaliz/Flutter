@@ -1,15 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/invitation_functions/dismiss_user_dialog.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/group_user_card.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/functions/user/user_removal_service.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
 import 'package:hexora/f-themes/shape/rounded/rounded_section_card.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 
 class UserListSection extends StatelessWidget {
   final Map<String, User> newUsers;
@@ -18,9 +18,9 @@ class UserListSection extends StatelessWidget {
   final Map<String, UserInviteStatus> usersInvitationAtFirst;
   final Group group;
   final List<User> usersInGroup;
-  final UserManagement userManagement;
-  final GroupManagement groupManagement;
-  final NotificationManagement notificationManagement;
+  final UserDomain userDomain;
+  final GroupDomain groupDomain;
+  final NotificationDomain notificationDomain;
   final Function(String userName, String newRole) onChangeRole;
   final Function(String userName) onUserRemoved;
   final bool showPending;
@@ -37,9 +37,9 @@ class UserListSection extends StatelessWidget {
     required this.usersInvitationAtFirst,
     required this.group,
     required this.usersInGroup,
-    required this.userManagement,
-    required this.groupManagement,
-    required this.notificationManagement,
+    required this.userDomain,
+    required this.groupDomain,
+    required this.notificationDomain,
     required this.onChangeRole,
     required this.onUserRemoved,
     required this.showPending,
@@ -172,10 +172,10 @@ class UserListSection extends StatelessWidget {
             usersInGroup: usersInGroup,
             usersInvitations: usersInvitations,
             usersRoles: usersRoles,
-            groupManagement: groupManagement,
-            userManagement: userManagement,
+            groupDomain: groupDomain,
+            userDomain: userDomain,
             group: group,
-            notificationManagement: notificationManagement,
+            notificationDomain: notificationDomain,
           );
 
           final bool? invitationStatus =

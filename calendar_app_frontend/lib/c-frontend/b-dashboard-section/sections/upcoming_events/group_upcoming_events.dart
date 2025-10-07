@@ -1,8 +1,8 @@
-import 'package:hexora/a-models/group_model/event/event.dart';
-import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class GroupUpcomingEventsCard extends StatefulWidget {
@@ -21,6 +21,7 @@ class GroupUpcomingEventsCard extends StatefulWidget {
   State<GroupUpcomingEventsCard> createState() =>
       _GroupUpcomingEventsCardState();
 }
+
 class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
   late Future<List<Event>> _future;
 
@@ -31,7 +32,7 @@ class _GroupUpcomingEventsCardState extends State<GroupUpcomingEventsCard> {
   }
 
   Future<List<Event>> _load() async {
-    final userMgmt = context.read<UserManagement>();
+    final userMgmt = context.read<UserDomain>();
 
     // 🔧 New AgendaService signature requires groupId
     final events = await userMgmt.fetchAgendaUpcoming(

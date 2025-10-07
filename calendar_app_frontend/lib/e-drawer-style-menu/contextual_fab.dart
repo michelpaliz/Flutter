@@ -1,15 +1,14 @@
-import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/api/notification/notification_services.dart';
-import 'package:hexora/b-backend/api/user/user_services.dart';
-import 'package:hexora/c-frontend/f-notification-section/controllers/notification_controller.dart';
-import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/d-stateManagement/group/group_management.dart';
-import 'package:hexora/d-stateManagement/notification/notification_management.dart';
-import 'package:hexora/d-stateManagement/user/user_management.dart';
-import 'package:hexora/f-themes/palette/app_colors.dart';
-import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
+import 'package:hexora/b-backend/notification/notification_api_client.dart';
+import 'package:hexora/c-frontend/f-notification-section/controllers/notification_controller.dart';
+import 'package:hexora/c-frontend/routes/appRoutes.dart';
+import 'package:hexora/f-themes/palette/app_colors.dart';
+import 'package:hexora/l10n/app_localizations.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
@@ -89,7 +88,7 @@ class ContextualFab extends StatelessWidget {
   // --- NEW: Profile actions sheet ---
   Future<void> _openProfileActions(BuildContext context, Color accent) async {
     final loc = AppLocalizations.of(context)!;
-    final user = context.read<UserManagement>().user;
+    final user = context.read<UserDomain>().user;
     if (user == null) return;
 
     void copyToClipboard(String text, String toast) {
@@ -146,7 +145,7 @@ class ContextualFab extends StatelessWidget {
 
   Future<void> _confirmAndClearAllNotifications(BuildContext context) async {
     final loc = AppLocalizations.of(context)!;
-    final user = context.read<UserManagement>().user;
+    final user = context.read<UserDomain>().user;
 
     if (user == null) {
       if (context.mounted) {
@@ -180,11 +179,10 @@ class ContextualFab extends StatelessWidget {
     if (!confirmed) return;
 
     final controller = NotificationController(
-      userManagement: context.read<UserManagement>(),
-      groupManagement: context.read<GroupManagement>(),
-      notificationManagement: context.read<NotificationManagement>(),
-      userService: UserService(),
-      notificationService: NotificationService(),
+      userDomain: context.read<UserDomain>(),
+      groupDomain: context.read<GroupDomain>(),
+      notificationDomain: context.read<NotificationDomain>(),
+      notificationService: NotificationApiClient(),
     );
 
     await controller.removeAllNotifications(user);
@@ -197,7 +195,7 @@ class ContextualFab extends StatelessWidget {
   }
 
   Future<void> _pickGroupAndAddEvent(BuildContext context) async {
-    final gm = context.read<GroupManagement>();
+    final gm = context.read<GroupDomain>();
     final groups = gm.groups;
 
     if (groups.isEmpty) {

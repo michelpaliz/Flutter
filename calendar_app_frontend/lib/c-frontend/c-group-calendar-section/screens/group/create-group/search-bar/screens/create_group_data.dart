@@ -1,16 +1,16 @@
-import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/group_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/screens/page_group_role_list.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/save_group_button.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
 import 'package:hexora/f-themes/shape/solid/solid_header.dart';
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../../../d-stateManagement/group/group_management.dart';
-import '../../../../../../../d-stateManagement/notification/notification_management.dart';
-import '../../../../../../../d-stateManagement/user/user_management.dart';
+import '../../../../../../../b-backend/core/group/domain/group_domain.dart';
+import '../../../../../../../b-backend/notification/domain/notification_domain.dart';
 import '../widgets/group_image_picker.dart';
 import '../widgets/group_text_fields.dart';
 
@@ -23,25 +23,24 @@ class CreateGroupData extends StatefulWidget {
 
 class _CreateGroupDataState extends State<CreateGroupData> {
   final ImagePicker _imagePicker = ImagePicker();
-  final GroupController _controller = GroupController();
+  final GroupViewModel _controller = GroupViewModel();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final userManagement = Provider.of<UserManagement>(context, listen: false);
-    final groupManagement =
-        Provider.of<GroupManagement>(context, listen: false);
-    final notificationManagement =
-        Provider.of<NotificationManagement>(context, listen: false);
-    final currentUser = userManagement.user;
+    final userDomain = Provider.of<UserDomain>(context, listen: false);
+    final groupDomain = Provider.of<GroupDomain>(context, listen: false);
+    final notificationDomain =
+        Provider.of<NotificationDomain>(context, listen: false);
+    final currentUser = userDomain.user;
 
     if (currentUser != null) {
       _controller.initialize(
         user: currentUser,
-        userManagement: userManagement,
-        groupManagement: groupManagement,
-        notificationManagement: notificationManagement,
+        userDomain: userDomain,
+        groupDomain: groupDomain,
+        notificationDomain: notificationDomain,
         context: context,
       );
     }
@@ -49,7 +48,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<GroupController>.value(
+    return ChangeNotifierProvider<GroupViewModel>.value(
       value: _controller,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -82,11 +81,10 @@ class _CreateGroupDataState extends State<CreateGroupData> {
                   const SizedBox(height: 10),
 
                   // ⬇️ Rebuild this section when the controller notifies
-                  Consumer<GroupController>(
+                  Consumer<GroupViewModel>(
                     builder: (_, ctrl, __) => PagedGroupRoleList(
                       userRoles: ctrl.userRoles,
-                      membersByUsername: ctrl
-                          .membersByUsername, // fill this when adding members
+                      membersById: ctrl.membersById, // <-- ✅ updated
                       assignableRoles: ctrl.assignableRoles,
                       canEditRole: ctrl.canEditRole,
                       setRole: ctrl.setRole,
