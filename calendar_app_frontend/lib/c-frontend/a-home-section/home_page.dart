@@ -1,10 +1,10 @@
 // home_page.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+// ❌ removed: group_view_model import
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/socket_notification_listener.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_screen/group_section.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/motivational_phrase/motivation_banner.dart';
@@ -32,14 +32,19 @@ class _HomePageState extends State<HomePage> {
     if (user != null && user != _lastUser) {
       _lastUser = user;
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final userMgmt = context.read<UserDomain>();
-        final groupMgmt = context.read<GroupDomain>();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final userDomain = context.read<UserDomain>();
+        final groupDomain = context.read<GroupDomain>();
 
-        userMgmt.setCurrentUser(user);
-        groupMgmt.setCurrentUser(user);
+        // seed domains with the new user
+        userDomain.setCurrentUser(user);
+        groupDomain.setCurrentUser(user);
+
+        // sockets for notifications
         initializeNotificationSocket(user.id);
-        GroupViewModel.fetchGroups(user, groupMgmt);
+
+        // 🔄 refresh the repo-backed groups stream for this user
+        await groupDomain.refreshGroupsForCurrentUser(userDomain);
       });
     }
   }
@@ -65,40 +70,26 @@ class _HomePageState extends State<HomePage> {
       ],
       body: CustomScrollView(
         slivers: [
-          // Greeting
           SliverToBoxAdapter(child: _GreetingCard(user: user)),
-
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-          // Motivation
           SliverToBoxAdapter(
-            child: _SectionHeader(title: loc.motivationSectionTitle),
-          ),
+              child: _SectionHeader(title: loc.motivationSectionTitle)),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          // keep your existing banner widget
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: MotivationBanner(dailyRotate: true),
             ),
           ),
-
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          // Groups header + toggle row
           SliverToBoxAdapter(
-            child: _SectionHeader(title: loc.groupSectionTitle),
-          ),
+              child: _SectionHeader(title: loc.groupSectionTitle)),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          SliverToBoxAdapter(
-            child: _ChangeViewRow(), // manages a ValueNotifier internally
-          ),
-
-          // Groups list (pure)`
+          const SliverToBoxAdapter(child: _ChangeViewRow()),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 24),
-              child: GroupListSection(), // << only renders groups
+              child: GroupListSection(),
             ),
           ),
         ],
@@ -243,7 +234,6 @@ class _ChangeViewRowState extends State<_ChangeViewRow> {
               _axis.value = _axis.value == Axis.vertical
                   ? Axis.horizontal
                   : Axis.vertical;
-              // Broadcast the choice to GroupListSection quickly via static notifier.
               GroupListSection.axisOverride.value = _axis.value;
             },
             child: const Icon(Icons.dashboard),

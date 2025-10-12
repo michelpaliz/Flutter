@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/token_storage.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/socket_notification_listener.dart';
-import 'package:hexora/b-backend/socket/socket_manager.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/socket/socket_manager.dart';
 
 // Import or replace with your actual constants location
 class ApiConstants {

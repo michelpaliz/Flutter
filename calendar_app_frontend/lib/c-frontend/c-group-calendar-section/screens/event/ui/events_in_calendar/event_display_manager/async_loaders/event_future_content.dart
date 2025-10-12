@@ -1,7 +1,7 @@
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:flutter/material.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../widgets/event_details_card.dart';
@@ -32,7 +32,7 @@ class EventFutureContentWidget extends StatelessWidget {
       width: details.bounds.width,
       height: details.bounds.height,
       child: FutureBuilder<Event?>(
-        future: actionManager!.eventDataManager.fetchEvent(event.id),
+        future: actionManager!.eventDomain.fetchEvent(event.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator.adaptive());

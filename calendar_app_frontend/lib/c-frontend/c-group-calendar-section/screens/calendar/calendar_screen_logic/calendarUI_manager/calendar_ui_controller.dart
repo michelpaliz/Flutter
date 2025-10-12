@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
 import 'package:hexora/a-models/group_model/event/event_data_source.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/cells_widgets/calendar_mont_cell.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/month_schedule_img/calendar_styles.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/widget_appointment/appointment_builder.dart';
@@ -18,25 +19,26 @@ import '../widgets/cells_widgets/calendar_styles.dart';
 class CalendarUIController {
   final CalendarController _controller = CalendarController();
   final EventDisplayManager _eventDisplayManager;
-  final EventDomain _eventDataManager;
+  final EventDomain _eventDomain;
   final GroupDomain groupDomain;
   final String userRole;
+
   List<Event> _lastEventsSnapshot = [];
 
-  late final EventDataSource _eventDataSource; // here we displayed the events
+  late final EventDataSource _eventDataSource;
   final ValueNotifier<int> calendarRefreshKey = ValueNotifier(0);
   Timer? _refreshDebounce;
 
-  /// 👇 Public getter for external access if needed
-  EventDomain get eventDataManager => _eventDataManager;
+  /// 👇 Public getter if needed
+  EventDomain get eventDomain => _eventDomain;
 
-  /// 👇 Holds events for the selected day
+  /// 👇 Selected-day events
   final ValueNotifier<List<Event>> dailyEvents = ValueNotifier([]);
 
-  /// 👇 Holds all current events (used by monthCellBuilder)
+  /// 👇 All visible events (expanded) for current range
   final ValueNotifier<List<Event>> allEvents = ValueNotifier([]);
 
-  // 👇 ADD THIS LINE:
+  /// 👇 DataSource notifier → refresh SfCalendar without rebuilding whole tree
   final ValueNotifier<EventDataSource> calendarDataSourceNotifier =
       ValueNotifier(EventDataSource([]));
 
@@ -44,41 +46,47 @@ class CalendarUIController {
   CalendarView _selectedView = CalendarView.month;
   DateTime? _selectedDate;
 
+  StreamSubscription<List<Event>>? _eventsSub;
+
   CalendarUIController({
-    required EventDomain eventDataManager,
+    required EventDomain eventDomain,
     required EventDisplayManager eventDisplayManager,
     required this.groupDomain,
     required this.userRole,
-  })  : _eventDataManager = eventDataManager,
+  })  : _eventDomain = eventDomain,
         _eventDisplayManager = eventDisplayManager {
     _calendarAppointmentBuilder = CalendarAppointmentBuild(
-      _eventDataManager,
+      _eventDomain,
       _eventDisplayManager,
     );
 
-    _eventDataSource = EventDataSource([]); // start empty
+    _eventDataSource = EventDataSource([]);
 
-    _eventDataManager.eventsStream.listen((updatedEvents) {
+    // ✅ Listen to repo-owned stream exposed by EventDomain
+    _eventsSub = _eventDomain.watchEvents().listen((updatedEvents) {
       debugPrint("[CalendarUI] 📥 ${updatedEvents.length} events from stream");
 
-      // Only update and trigger if the data has changed
       if (!_areEventsEqual(updatedEvents, _lastEventsSnapshot)) {
         _lastEventsSnapshot = List<Event>.from(updatedEvents);
 
+        // update calendar datasource + notifiers
         calendarDataSourceNotifier.value.updateEvents(updatedEvents);
         allEvents.value = List<Event>.from(updatedEvents);
 
         if (_selectedDate != null) {
-          dailyEvents.value =
-              _eventDataManager.getEventsForDate(_selectedDate!);
+          dailyEvents.value = _eventsForDate(_selectedDate!, updatedEvents);
         }
 
-        triggerCalendarHardRefresh();
+        // Just visually refresh; do not talk back to EventDomain here.
+        _triggerCalendarHardRefreshSafe();
       } else {
         debugPrint("✅ Events are the same — skipping calendar refresh.");
       }
     });
   }
+
+  // --- Helpers ---------------------------------------------------------------
+
   bool _areEventsEqual(List<Event> a, List<Event> b) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
@@ -87,21 +95,63 @@ class CalendarUIController {
     return true;
   }
 
-  // void triggerCalendarHardRefresh() {
-  //   debugPrint("🔁 Triggering calendar hard refresh...");
-  //   _refreshDebounce?.cancel();
-  //   _refreshDebounce = Timer(const Duration(milliseconds: 100), () {
-  //     calendarRefreshKey.value++;
-  //   });
-  // }
+  List<Event> _eventsForDate(DateTime date, List<Event> source) {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    return source
+        .where((e) => e.startDate.isBefore(end) && e.endDate.isAfter(start))
+        .toList();
+  }
 
-  void triggerCalendarHardRefresh() {
-    debugPrint("🔁 Triggering calendar hard refresh...");
-    debugPrintStack(label: '🔍 Stack trace for calendar refresh', maxFrames: 5);
-    _refreshDebounce?.cancel();
-    _refreshDebounce = Timer(const Duration(milliseconds: 100), () {
-      calendarRefreshKey.value++;
-    });
+  /// Safe hard refresh that won’t run during build/layout/paint phases.
+  void _triggerCalendarHardRefreshSafe() {
+    Future<void> run() async {
+      debugPrint("🔁 Triggering calendar hard refresh...");
+      debugPrintStack(
+          label: '🔍 Stack trace for calendar refresh', maxFrames: 5);
+
+      _refreshDebounce?.cancel();
+      _refreshDebounce = Timer(const Duration(milliseconds: 100), () {
+        calendarRefreshKey.value++;
+      });
+    }
+
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    final inBuild = phase == SchedulerPhase.transientCallbacks ||
+        phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.postFrameCallbacks;
+
+    if (inBuild) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        run();
+      });
+    } else {
+      run();
+    }
+  }
+
+  /// Manual “force fetch” from repo via EventDomain, then UI refresh.
+  Future<void> requestHardDataRefresh({
+    required BuildContext context,
+    required String groupId,
+    required DateTime visibleStart,
+    required DateTime visibleEnd,
+  }) async {
+    Future<void> run() async {
+      await _eventDomain.manualRefresh(context);
+      _triggerCalendarHardRefreshSafe();
+    }
+
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    final inBuild = phase == SchedulerPhase.transientCallbacks ||
+        phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.postFrameCallbacks;
+
+    if (inBuild) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => run());
+    } else {
+      await run();
+    }
   }
 
   void notifyCalendarToRedraw() {
@@ -117,16 +167,25 @@ class CalendarUIController {
   Future<void> reloadGroup({required String groupId}) async {
     final updatedGroup =
         await groupDomain.groupRepository.getGroupById(groupId);
-    groupDomain.currentGroup = updatedGroup;
+
+    // Defer setting currentGroup to avoid “markNeedsBuild during build”
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      groupDomain.currentGroup = updatedGroup;
+    });
+
     debugPrint("📦 Group fetched: ${updatedGroup.id}");
   }
 
   void dispose() {
-    _eventDataManager.dispose();
+    _refreshDebounce?.cancel();
+    _eventsSub?.cancel(); // ✅ close subscription
+    _eventDomain.dispose();
     dailyEvents.dispose();
     allEvents.dispose();
     calendarRefreshKey.dispose();
   }
+
+  // --- Calendar widget -------------------------------------------------------
 
   Widget buildCalendar(BuildContext context, {double? height, double? width}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -144,7 +203,6 @@ class CalendarUIController {
           child: SfCalendar(
             key: ValueKey(refreshKey),
             controller: _controller,
-            // dataSource: _eventDataSource,
             dataSource: calendarDataSourceNotifier.value,
             view: _selectedView,
             allowedViews: CalendarView.values,
@@ -153,20 +211,22 @@ class CalendarUIController {
               if (details.date != null) {
                 _selectedDate = details.date!;
                 _controller.selectedDate = _selectedDate;
-                dailyEvents.value = _eventDataManager.getEventsForDate(
+
+                // Compute from current snapshot (no domain call)
+                dailyEvents.value = _eventsForDate(
                   _selectedDate!,
+                  allEvents.value,
                 );
               }
             },
             scheduleViewMonthHeaderBuilder: (context, details) =>
                 buildScheduleMonthHeader(details),
-
             monthCellBuilder: (context, details) => buildMonthCell(
-                context: context,
-                details: details,
-                selectedDate: _selectedDate,
-                // events: _eventDataManager.baseEvents,
-                events: allEvents.value),
+              context: context,
+              details: details,
+              selectedDate: _selectedDate,
+              events: allEvents.value,
+            ),
             appointmentBuilder: (context, details) {
               try {
                 final appt = details.appointments.first;
@@ -181,6 +241,7 @@ class CalendarUIController {
                 final cardColor = ColorManager().getColor(
                   event.eventColorIndex,
                 );
+
                 switch (_selectedView) {
                   case CalendarView.schedule:
                     return _calendarAppointmentBuilder.buildScheduleAppointment(
@@ -191,7 +252,6 @@ class CalendarUIController {
                       userRole,
                       cardColor,
                     );
-
                   case CalendarView.week:
                   case CalendarView.workWeek:
                   case CalendarView.day:
@@ -201,7 +261,6 @@ class CalendarUIController {
                       event,
                       userRole,
                     );
-
                   case CalendarView.timelineDay:
                     return _calendarAppointmentBuilder
                         .buildTimelineDayAppointment(
@@ -210,7 +269,6 @@ class CalendarUIController {
                       event,
                       userRole,
                     );
-
                   case CalendarView.timelineWeek:
                     return _calendarAppointmentBuilder
                         .buildTimelineWeekAppointment(
@@ -219,7 +277,6 @@ class CalendarUIController {
                       event,
                       userRole,
                     );
-
                   case CalendarView.timelineMonth:
                     return _calendarAppointmentBuilder
                         .buildTimelineMonthAppointment(
@@ -228,7 +285,6 @@ class CalendarUIController {
                       event,
                       userRole,
                     );
-
                   default:
                     if (_selectedView == CalendarView.week ||
                         _selectedView == CalendarView.workWeek ||
@@ -240,8 +296,7 @@ class CalendarUIController {
                         userRole,
                       );
                     } else {
-                      return _calendarAppointmentBuilder
-                          .defaultBuildAppointment(
+                      return _calendarAppointmentBuilder.defaultBuildAppointment(
                         details,
                         textColor,
                         context,

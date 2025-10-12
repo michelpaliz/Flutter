@@ -1,10 +1,10 @@
 // add_event_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart'; // ⬅️ needed for the hook signature
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/core/category/category_api_client.dart';
 import 'package:hexora/b-backend/config/api_constants.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/category/category_api_client.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_dialogs.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/form/event_form_route.dart';
@@ -13,7 +13,7 @@ import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../../../a-models/group_model/group/group.dart';
-import '../../../../../../../b-backend/core/group/domain/group_domain.dart';
+import '../../../../../../../b-backend/group_mng_flow/group/domain/group_domain.dart';
 import '../../../../../../../b-backend/notification/domain/notification_domain.dart';
 import '../functions/addEvent/add_event_dialogs.dart';
 import '../functions/logic/add_event_logic.dart';
@@ -39,8 +39,8 @@ class _AddEventScreenState extends AddEventLogic<AddEventScreen>
 
     if (!_initialized) {
       injectDependencies(
-        groupMgmt: context.read<GroupDomain>(),
-        userMgmt: context.read<UserDomain>(),
+        groupDomain: context.read<GroupDomain>(),
+        userDomain: context.read<UserDomain>(),
         notifMgmt: context.read<NotificationDomain>(),
       );
       _initialized = true;

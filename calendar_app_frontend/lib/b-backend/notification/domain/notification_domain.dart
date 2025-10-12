@@ -3,18 +3,18 @@ import 'dart:developer' as devtools show log;
 
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/notification_model/notification_user.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/notification_api_client.dart';
 
 class NotificationDomain extends ChangeNotifier {
   List<NotificationUser> _notifications = [];
   List<String> _notificationIds = []; // Store IDs only
   final NotificationApiClient notificationService = NotificationApiClient();
-  final _notificationController =
+  final _notificationViewModel =
       StreamController<List<NotificationUser>>.broadcast();
 
   Stream<List<NotificationUser>> get notificationStream =>
-      _notificationController.stream;
+      _notificationViewModel.stream;
 
   List<NotificationUser> get notifications => _notifications;
   List<String> get notificationIds => _notificationIds;
@@ -24,12 +24,10 @@ class NotificationDomain extends ChangeNotifier {
     _notificationIds = notificationIds;
     _notifications = await _fetchNotificationsByIds(notificationIds);
     _notifications = _sortNotificationsByDate(_notifications);
-    _notificationController.add(_notifications);
+    _notificationViewModel.add(_notifications);
     notifyListeners();
   }
 
-  //TODO ERROR WHEN A NOTIFICATION IS ACCEPTED, NOTIFICATION NOT FOUND
-  // Fetch full NotificationUser objects based on IDs
   Future<List<NotificationUser>> _fetchNotificationsByIds(
       List<String> ids) async {
     // Run requests in parallel
@@ -55,7 +53,7 @@ class NotificationDomain extends ChangeNotifier {
     List<NotificationUser> notifications,
   ) async {
     _notifications = _sortNotificationsByDate(notifications);
-    _notificationController.add(_notifications);
+    _notificationViewModel.add(_notifications);
     notifyListeners();
   }
 
@@ -84,7 +82,7 @@ class NotificationDomain extends ChangeNotifier {
           _notificationIds; // Store IDs in user object
       await userDomain.updateUser(userDomain.user!);
 
-      _notificationController.add(_notifications);
+      _notificationViewModel.add(_notifications);
       notifyListeners();
     } catch (e) {
       print('Failed to mark notifications as read: $e');
@@ -108,7 +106,7 @@ class NotificationDomain extends ChangeNotifier {
       userDomain.user?.notifications = _notificationIds;
       await userDomain.updateUser(userDomain.user!);
 
-      _notificationController.add(_notifications);
+      _notificationViewModel.add(_notifications);
       notifyListeners();
 
       return true;
@@ -132,7 +130,7 @@ class NotificationDomain extends ChangeNotifier {
       userDomain.user?.notifications = _notificationIds;
       await userDomain.updateUser(userDomain.user!);
 
-      _notificationController.add(_notifications);
+      _notificationViewModel.add(_notifications);
       notifyListeners();
 
       return true;
@@ -164,7 +162,7 @@ class NotificationDomain extends ChangeNotifier {
       await userDomain.updateUser(userDomain.user!);
 
       // Update the notification stream with the new notifications
-      _notificationController.add(_notifications);
+      _notificationViewModel.add(_notifications);
 
       // Notify listeners to refresh the UI
       notifyListeners();
@@ -176,13 +174,13 @@ class NotificationDomain extends ChangeNotifier {
   void clearNotifications() {
     _notifications.clear();
     _notificationIds.clear();
-    _notificationController.add(_notifications);
+    _notificationViewModel.add(_notifications);
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _notificationController.close();
+    _notificationViewModel.close();
     super.dispose();
   }
 }

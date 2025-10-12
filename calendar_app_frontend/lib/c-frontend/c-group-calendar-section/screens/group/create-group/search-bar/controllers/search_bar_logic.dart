@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/repository/user_repository.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
 mixin SearchBarLogic<T extends StatefulWidget> on State<T> {
@@ -14,7 +13,6 @@ mixin SearchBarLogic<T extends StatefulWidget> on State<T> {
   Map<String, String> userRoles = {};
 
   List<User> usersInGroup = [];
-  Map<String, UserInviteStatus>? invitedUsers;
 
   // Deps
   late UserRepository userRepository;
@@ -32,11 +30,11 @@ mixin SearchBarLogic<T extends StatefulWidget> on State<T> {
     required User? user,
     required Group? groupPassed,
     required UserRepository repo,
-    required UserDomain userMgmt,
+    required UserDomain userDomain,
     required void Function(List<User>, Map<String, String>) onChange,
   }) {
     userRepository = repo;
-    userDomain = userMgmt;
+    userDomain = userDomain;
     currentUser = user;
     group = groupPassed;
     notifyParent = onChange;
@@ -46,8 +44,6 @@ mixin SearchBarLogic<T extends StatefulWidget> on State<T> {
       usersInGroup.add(currentUser!);
       userRoles[currentUser!.id] = 'owner'; // 🔑 key by userId; role lowercase
     }
-
-    invitedUsers = group?.invitedUsers;
   }
 
   // -------- Search ----------
@@ -60,7 +56,6 @@ mixin SearchBarLogic<T extends StatefulWidget> on State<T> {
 
     try {
       final results = await userRepository.searchUsernames(q);
-
       if (!mounted) return;
 
       final existingUsernames = usersInGroup.map((u) => u.userName).toSet();

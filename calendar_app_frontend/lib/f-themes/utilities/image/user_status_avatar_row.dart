@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:hexora/b-backend/login_user/user/domain/presence_manager.dart';
+import 'package:hexora/b-backend/auth_user/user/presence_domain.dart';
 
 class UserStatusRow extends StatelessWidget {
   final List<UserPresence> userList;

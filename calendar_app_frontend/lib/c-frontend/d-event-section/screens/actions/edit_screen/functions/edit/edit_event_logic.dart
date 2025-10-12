@@ -1,28 +1,26 @@
+// lib/c-frontend/d-event-section/screens/actions/shared/edit_event_logic.dart
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/event/api/event_api_client.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart'; // ⬅️ use repo, not service
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
+/// Base logic for editing an existing event.
 abstract class EditEventLogic<T extends StatefulWidget>
     extends BaseEventLogic<T> {
-  // Services
-  late final EventApiClient _eventService;
-  late final GroupDomain _groupMgmt;
-  late final UserDomain _userMgmt;
-  late final UserRepository _userRepo; // ⬅️ repository handles token
-  bool isLoading = true;
+  // Domains
+
+  late final UserDomain _userDomain;
 
   // Models
   late final Group _group;
   late Event _event;
+
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -35,14 +33,11 @@ abstract class EditEventLogic<T extends StatefulWidget>
     required GroupDomain gm,
     required UserDomain um,
   }) async {
-    _eventService = EventApiClient();
-    _groupMgmt = gm;
-    _userMgmt = um;
-    _userRepo = _userMgmt.userRepository; // ⬅️ grab repo from management
+    _userDomain = um;
     _event = event;
     _group = gm.currentGroup!;
 
-    // Base state setup
+    // Base state setup from the existing event
     setReminderMinutes(event.reminderTime ?? 10);
     setSelectedColor(ColorManager.eventColors[event.eventColorIndex].value);
     setRecurrenceRule(event.recurrenceRule);
@@ -54,21 +49,15 @@ abstract class EditEventLogic<T extends StatefulWidget>
     noteController.text = event.note ?? '';
     locationController.text = event.localization ?? '';
 
-    // 🔄 Fetch users from group userIds (via repo → token handled)
-    final List<User> fetchedUsers = [];
-    for (final id in _group.userIds) {
-      try {
-        final user = await _userRepo.getUserById(id);
-        fetchedUsers.add(user);
-      } catch (_) {
-        // ignore failures for individual users
-      }
-    }
+    // Fetch users for this group through the repository (token handled inside)
+    final fetchedUsers =
+        await _userDomain.userRepository.getUsersForGroup(_group);
 
-    // Set available users and selected recipients
+    // Preselect recipients that are on the event already
     setSelectedUsers(
       fetchedUsers.where((u) => event.recipients.contains(u.id)).toList(),
     );
+
     users
       ..clear()
       ..addAll(fetchedUsers);
@@ -85,7 +74,7 @@ abstract class EditEventLogic<T extends StatefulWidget>
 
   Future<void> saveEditedEvent(EventDomain read) async {
     final loc = AppLocalizations.of(context)!;
-    final eventDataManager = read;
+    final eventDomain = read;
 
     // Required title
     if (titleController.text.trim().isEmpty) {
@@ -132,17 +121,25 @@ abstract class EditEventLogic<T extends StatefulWidget>
       updateHistory: _event.updateHistory,
       ownerId: _event.ownerId,
       reminderTime: reminderMinutes,
+      calendarId: _event.calendarId,
+      // keep other custom fields if your model has them
+      type: _event.type,
+      clientId: _event.clientId,
+      primaryServiceId: _event.primaryServiceId,
+      categoryId: _event.categoryId,
+      subcategoryId: _event.subcategoryId,
+      visitServices: _event.visitServices,
+      rawRuleId: _event.rawRuleId,
+      // rule: _event.rule,
     );
 
-    await eventDataManager.updateEvent(context, updated);
+    await eventDomain.updateEvent(context, updated);
 
-    if (eventDataManager.onExternalEventUpdate != null) {
-      debugPrint("🔁 Triggering calendar refresh from EditEventLogic...");
-      eventDataManager.onExternalEventUpdate!.call();
+    // Nudge calendar/UI
+    if (eventDomain.onExternalEventUpdate != null) {
+      eventDomain.onExternalEventUpdate!.call();
     } else {
-      debugPrint(
-          "⚠️ onExternalEventUpdate is null — triggering manual refresh.");
-      await eventDataManager.manualRefresh(context);
+      await eventDomain.manualRefresh(context);
     }
 
     if (!mounted) return;

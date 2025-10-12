@@ -1,4 +1,4 @@
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:flutter/material.dart';
 import 'package:rrule/rrule.dart' as rrule;
 

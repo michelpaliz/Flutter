@@ -1,14 +1,15 @@
+// calendar_screen_controller.dart
 import 'dart:developer' as devtools show log;
 
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
-import 'package:hexora/b-backend/login_user/user/domain/presence_manager.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/socket/socket_manager.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/auth_user/user/presence_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
-import 'package:hexora/b-backend/socket/socket_manager.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/app_screen_manager.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/calendarUI_manager/calendar_ui_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
@@ -25,7 +26,7 @@ class CalendarScreenController {
   final AppScreenManager _screenManager = AppScreenManager();
 
   // Presence
-  late PresenceManager _presenceManager;
+  late PresenceDomain _presenceManager;
 
   // Calendar wiring
   CalendarUIController? calendarUI;
@@ -46,7 +47,7 @@ class CalendarScreenController {
   }
 
   Future<void> initSockets() async {
-    _presenceManager = context.read<PresenceManager>();
+    _presenceManager = context.read<PresenceDomain>();
     final token = await context.read<AuthService>().getToken();
     if (token != null) {
       SocketManager().connect(token);
@@ -61,26 +62,27 @@ class CalendarScreenController {
     final groupDomain = context.read<GroupDomain>();
     final userDomain = context.read<UserDomain>();
     final notifMgmt = context.read<NotificationDomain>();
-    final eventData = context.read<EventDomain>();
+    final eventDomain = context.read<EventDomain>();
 
     try {
       _setLoading(true);
 
-      // 1️⃣ Set or confirm current group
+      // 1) Set or confirm current group
       if (initialGroup != null) {
-        groupDomain.currentGroup = initialGroup;
+        groupDomain.currentGroup =
+            initialGroup; // safe setter (defers notify if needed)
       } else if (groupDomain.currentGroup == null) {
         devtools.log("⚠️ No group provided and no currentGroup in manager.");
         _setLoading(false);
         return;
       }
 
-      // 2️⃣ Refresh group from API (via repository)
+      // 2) Refresh group from API (via repository)
       final updatedGroup = await groupDomain.groupRepository
           .getGroupById(groupDomain.currentGroup!.id);
       groupDomain.currentGroup = updatedGroup;
 
-      // 3️⃣ Presence join emit
+      // 3) Presence join emit
       final me = userDomain.user;
       if (me != null) {
         SocketManager().emitUserJoin(
@@ -91,34 +93,33 @@ class CalendarScreenController {
         );
       }
 
-      // 4️⃣ Load known users for presence
+      // 4) Load known users for presence
       final allUsers = await userDomain.getUsersForGroup(updatedGroup);
       _presenceManager.setKnownUsers(allUsers);
 
-      // 5️⃣ Determine role
+      // 5) Determine role
       final userRole = updatedGroup.userRoles[me?.id] ?? 'member';
 
-      // 6️⃣ Initialize calendar + event display + actions
+      // 6) Initialize calendar + event display + actions
       calendarUI = CalendarUIController(
-        eventDataManager: eventData,
+        eventDomain: eventDomain, // ✔ matches new ctor param name
         eventDisplayManager: _displayManager,
         userRole: userRole,
         groupDomain: groupDomain,
       );
 
-      eventData.onExternalEventUpdate = calendarUI!.triggerCalendarHardRefresh;
-
+      // Keep the UI’s action manager in sync with the same EventDomain instance
       _eventActionManager = EventActionManager(
         groupDomain,
         userDomain,
         notifMgmt,
-        eventDataManager: eventData,
+        eventDomain: eventDomain,
       );
-
       _displayManager.setEventActionManager(_eventActionManager!);
 
-      // 7️⃣ Refresh events initially
-      await calendarUI!.eventDataManager.manualRefresh(context);
+      // 7) Initial event refresh through the domain (named arg + no "hard" param)
+      await calendarUI!.eventDomain.manualRefresh(context);
+      // UI refresh is handled in CalendarUIController’s stream listener; no direct “hard refresh” call here.
     } catch (e, s) {
       devtools.log("❌ Error initializing calendar: $e\n$s");
     } finally {
@@ -139,10 +140,7 @@ class CalendarScreenController {
 
   /// Presence consumer for widget
   List<UserPresence> buildPresenceFor(Group group) {
-    final roleMap = {
-      ...group.userRoles,
-      ...?group.invitedUsers?.map((k, v) => MapEntry(k, v.role)),
-    };
+    final roleMap = {...group.userRoles};
     return _presenceManager.getPresenceForGroup(group.userIds, roleMap);
   }
 
@@ -151,7 +149,7 @@ class CalendarScreenController {
 
   void _setLoading(bool v) {
     _isLoading = v;
-    // UI widget can rebuild by calling setState
+    // UI widget can rebuild by calling setState in the widget layer
   }
 
   void dispose() {

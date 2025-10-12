@@ -1,5 +1,5 @@
 import 'package:hexora/a-models/group_model/service/service.dart';
-import 'package:hexora/b-backend/services/service/service_api_client.dart';
+import 'package:hexora/b-backend/business_logic/service/service_api_client.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
 import 'package:hexora/b-backend/blobUploader/blobServer.dart';
 import 'package:hexora/b-backend/config/api_constants.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/utils/user_avatar.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:hexora/f-themes/palette/app_colors.dart';
@@ -52,8 +52,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     try {
       final auth = context.read<AuthProvider>();
       final token = auth.lastToken;
-      final userMgmt = context.read<UserDomain>();
-      final user = userMgmt.user;
+      final userDomain = context.read<UserDomain>();
+      final user = userDomain.user;
 
       if (token == null || user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +95,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         photoBlobName: updatedUserJson['photoBlobName'] ?? result.blobName,
       );
 
-      userMgmt.updateCurrentUser(updated);
+      userDomain.updateCurrentUser(updated);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.photoUpdated)),
       );
@@ -110,8 +110,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _saveProfile() async {
     final loc = AppLocalizations.of(context)!;
-    final userMgmt = context.read<UserDomain>();
-    final user = userMgmt.user;
+    final userDomain = context.read<UserDomain>();
+    final user = userDomain.user;
     if (user == null) return;
 
     setState(() => _saving = true);
@@ -120,7 +120,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         name: _nameCtrl.text.trim(),
         userName: _usernameCtrl.text.trim(),
       );
-      final ok = await userMgmt.updateUser(updated);
+      final ok = await userDomain.updateUser(updated);
       if (!mounted) return;
       if (ok) {
         ScaffoldMessenger.of(context).showSnackBar(

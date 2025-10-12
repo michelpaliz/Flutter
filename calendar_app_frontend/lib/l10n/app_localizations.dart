@@ -3002,6 +3002,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Co-Administrator'**
   String get roleCoAdmin;
+
+  /// No description provided for @leaveGroupQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this group?'**
+  String get leaveGroupQuestion;
+
+  /// No description provided for @removeMembersFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please remove all members before deleting the group.'**
+  String get removeMembersFirst;
+
+  /// Snackbar text shown when the calendar finishes refreshing successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar refreshed'**
+  String get refreshSuccess;
+
+  /// Snackbar text shown when the calendar refresh fails
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh failed'**
+  String get refreshFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/calendar/calendar_screen_logic/widgets/cells_widgets/calendar_mont_cell.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -19,10 +19,10 @@ class ReactiveMonthCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final eventDataManager = context.watch<EventDomain>();
+    final eventDomain = context.watch<EventDomain>();
 
     return ValueListenableBuilder<List<Event>>(
-      valueListenable: eventDataManager.eventsNotifier,
+      valueListenable: eventDomain.eventsNotifier,
       builder: (context, events, _) {
         return buildMonthCell(
           context: context,

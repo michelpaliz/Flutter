@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_card_widget/group_card_widget.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -22,10 +22,10 @@ class _GroupListSectionState extends State<GroupListSection> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final userMgmt = context.watch<UserDomain>();
-    final groupMgmt = context.watch<GroupDomain>();
+    final userDomain = context.watch<UserDomain>();
+    final groupDomain = context.watch<GroupDomain>();
     final ValueNotifier<User?> currentUserNotifier =
-        userMgmt.currentUserNotifier;
+        userDomain.currentUserNotifier;
 
     return ValueListenableBuilder<User?>(
       valueListenable: currentUserNotifier,
@@ -35,7 +35,9 @@ class _GroupListSectionState extends State<GroupListSection> {
         }
 
         return StreamBuilder<List<Group>>(
-          stream: groupMgmt.groupStream,
+          key: ValueKey('groups-${user.id}'), // forces rebuild on user change
+          stream:
+              groupDomain.watchGroupsForUser(user.id), // ⬅️ user-scoped stream
           builder: (context, snapshot) {
             // devtools.log('StreamBuilder state: ${snapshot.connectionState}');
             // devtools.log('StreamBuilder data: ${snapshot.data}');
@@ -59,8 +61,8 @@ class _GroupListSectionState extends State<GroupListSection> {
                       groups: groups,
                       axis: axis,
                       currentUser: user,
-                      userDomain: userMgmt,
-                      groupDomain: groupMgmt,
+                      userDomain: userDomain,
+                      groupDomain: groupDomain,
                       updateRole: (String? role) {},
                     ),
                   );

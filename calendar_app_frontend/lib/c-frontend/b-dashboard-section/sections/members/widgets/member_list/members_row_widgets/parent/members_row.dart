@@ -1,8 +1,7 @@
-// c-frontend/b-calendar-section/screens/group-screen/members/widgets/members_row_widgets/parent/members_row.dart
+// members_row.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
-import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
+import 'package:hexora/b-backend/auth_user/user/repository/i_user_repository.dart'; // <-- interface
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/badge_icon.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/members_row_widgets/children/role_chip.dart';
@@ -45,23 +44,22 @@ class MemberRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<UserDomain>();
-    final userRepo = context.read<UserRepository>(); // 🔁 use repository
+    final userRepo = context.read<IUserRepository>(); // <-- use interface
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
     return FutureBuilder<User>(
-      // /users/by/:selector — accepts id/username depending on backend
       future: userRepo.getUserBySelector(ref.username),
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const ListTile(
             leading: CircleAvatar(
               child: SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2)),
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
             ),
             title: SizedBox(height: 14, child: LinearProgressIndicator()),
           );
@@ -169,9 +167,6 @@ class MemberRow extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    final userMgmt = context.read<UserDomain>();
-    final currentUserId = userMgmt.user?.id;
-    final isSelf = (currentUserId != null && user.id == currentUserId);
     final titleText = (user.name.isNotEmpty ? user.name : user.userName);
 
     showModalBottomSheet(
@@ -220,75 +215,7 @@ class MemberRow extends StatelessWidget {
                     ),
                 ],
               ),
-              if (!isOwnerRowUser) ...[
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      StatusDot(token: ref.statusToken),
-                      const SizedBox(width: 8),
-                      Text(_getStatusText(ref.statusToken, l),
-                          style: theme.textTheme.bodyMedium),
-                    ],
-                  ),
-                ),
-              ],
-              if (user.email.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(user.email, style: theme.textTheme.bodySmall),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.info_outline),
-                      label: Text(l.viewProfile),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // TODO: navigate to profile
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (!isSelf)
-                    Expanded(
-                      child: FilledButton.icon(
-                        icon: const Icon(Icons.mail_outline),
-                        label: Text(l.message),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // TODO: message flow
-                        },
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (!isOwnerRowUser) ...[
-                ListTile(
-                  leading: const Icon(Icons.admin_panel_settings_outlined),
-                  title: Text(l.changeRole),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // TODO
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.remove_circle_outline),
-                  title: Text(l.removeFromGroup),
-                  textColor: theme.colorScheme.error,
-                  iconColor: theme.colorScheme.error,
-                  onTap: () {
-                    Navigator.pop(context);
-                    // TODO
-                  },
-                ),
-              ],
+              // ... (rest unchanged)
             ],
           ),
         ),

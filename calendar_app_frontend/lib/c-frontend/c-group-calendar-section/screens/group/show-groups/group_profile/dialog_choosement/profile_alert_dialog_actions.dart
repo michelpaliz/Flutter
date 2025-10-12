@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/l10n/app_localizations.dart';
@@ -47,7 +47,6 @@ List<Widget> buildProfileDialogActions(
                 await groupDomain.groupRepository.getGroupById(group.id);
 
             // 👥 Load users for that group via userDomain helper
-            // (avoid direct user service here)
             final users = await userDomain.getUsersForGroup(selectedGroup);
 
             if (overlayContext.mounted) Navigator.of(overlayContext).pop();
@@ -85,19 +84,66 @@ List<Widget> buildProfileDialogActions(
       actionSpacing,
 
       // 🗑️ Remove Group Button (destructive)
+      // NEW: Owner can delete only if all other members were removed first.
       TextButton(
         onPressed: () async {
-          final confirm = await showConfirmationDialog(
-            context,
-            loc.questionDeleteGroup,
-          );
+          try {
+            final overlayContext =
+                Navigator.of(context, rootNavigator: true).context;
 
-          if (!confirm) return;
+            showDialog(
+              context: overlayContext,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
+            );
 
-          if (group.ownerId == user.id) {
+            // 1) Get the latest group snapshot
+            final freshGroup =
+                await groupDomain.groupRepository.getGroupById(group.id);
+
+            // 2) Get current members
+            final members = await userDomain.getUsersForGroup(freshGroup);
+
+            if (overlayContext.mounted) Navigator.of(overlayContext).pop();
+
+            // Must be owner to delete
+            if (freshGroup.ownerId != user.id) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(loc.permissionDeniedInf)),
+                );
+              }
+              return;
+            }
+
+            // Rule: owner can delete the group only if ALL other members were removed
+            final nonOwnerMembers =
+                members.where((m) => m.id != freshGroup.ownerId).toList();
+
+            if (nonOwnerMembers.isNotEmpty) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      // Prefer localization key if exists; fallback text otherwise.
+                      (loc.removeMembersFirst),
+                    ),
+                  ),
+                );
+              }
+              return;
+            }
+
+            // Confirm deletion now that only the owner remains
+            final confirm = await showConfirmationDialog(
+              context,
+              loc.questionDeleteGroup,
+            );
+            if (!confirm) return;
+
+            // Proceed with delete via domain
             try {
-              // ✅ Use domain method (Management) which calls Repository internally
-              final ok = await groupDomain.removeGroup(group, userDomain);
+              final ok = await groupDomain.removeGroup(freshGroup, userDomain);
               if (ok && context.mounted) Navigator.pop(context);
               if (!ok && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -111,10 +157,11 @@ List<Widget> buildProfileDialogActions(
                 );
               }
             }
-          } else {
+          } catch (e) {
+            // Fetch/members load failed
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(loc.permissionDeniedInf)),
+                SnackBar(content: Text('${loc.failedToEditGroup} $e')),
               );
             }
           }
@@ -148,20 +195,18 @@ List<Widget> buildProfileDialogActions(
       actionSpacing,
 
       // 🚪 Leave Group Button
+      // NEW: Any non-owner member can leave anytime.
       TextButton(
         onPressed: () async {
           final confirm = await showConfirmationDialog(
             context,
-            user.id == group.ownerId
-                ? loc.questionDeleteGroup
-                : loc.removeGroup,
+            // Use a specific "leave group" prompt if available; fallback to clear text.
+            (loc.leaveGroupQuestion),
           );
           if (!confirm) return;
 
           try {
-            // Prefer a management wrapper if you create one; otherwise call repository
             await groupDomain.groupRepository.leaveGroup(user.id, group.id);
-
             if (context.mounted) Navigator.pop(context);
           } catch (e) {
             if (context.mounted) {

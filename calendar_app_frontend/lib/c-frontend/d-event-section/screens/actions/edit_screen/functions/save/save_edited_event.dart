@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
 Future<void> saveEditedEvent({
   required BuildContext context,
-  required EventDomain eventDataManager,
+  required EventDomain eventDomain,
   required Event updatedData,
   required List<Event> eventList,
   required Group group,
@@ -41,7 +41,7 @@ Future<void> saveEditedEvent({
 
   if (isStartHourUnique || !allowRepetitiveHours) {
     try {
-      await eventDataManager.updateEvent(context, updatedData);
+      await eventDomain.updateEvent(context, updatedData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEdited)),
@@ -53,7 +53,7 @@ Future<void> saveEditedEvent({
       groupDomain.currentGroup = updatedGroup;
 
       // Optional: refresh calendar data
-      await eventDataManager.manualRefresh(context);
+      await eventDomain.manualRefresh(context);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.eventEditFailed)),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/notification_model/notification_user.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/b-backend/notification/notification_api_client.dart';
 import 'package:hexora/c-frontend/f-notification-section/enum/broad_category.dart';
@@ -10,7 +10,7 @@ import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../controllers/notification_controller.dart';
+import '../../../b-backend/notification/view_model/notification_view_model.dart';
 import 'utils/notification_grouping.dart';
 import 'widgets/notification_card.dart';
 import 'widgets/notification_filter_bar.dart';
@@ -24,7 +24,7 @@ class ShowNotifications extends StatefulWidget {
 }
 
 class _ShowNotificationsState extends State<ShowNotifications> {
-  late NotificationController _notificationController;
+  late NotificationViewModel _notificationViewModel;
   late Stream<List<NotificationUser>> _notificationsStream;
   BroadCategory? _selectedCategory;
 
@@ -33,13 +33,13 @@ class _ShowNotificationsState extends State<ShowNotifications> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final userMgmt = Provider.of<UserDomain>(context, listen: false);
-    final groupMgmt = Provider.of<GroupDomain>(context, listen: false);
+    final userDomain = Provider.of<UserDomain>(context, listen: false);
+    final groupDomain = Provider.of<GroupDomain>(context, listen: false);
     final notifMgmt = Provider.of<NotificationDomain>(context, listen: false);
 
-    _notificationController = NotificationController(
-      userDomain: userMgmt,
-      groupDomain: groupMgmt,
+    _notificationViewModel = NotificationViewModel(
+      userDomain: userDomain,
+      groupDomain: groupDomain,
       notificationDomain: notifMgmt,
       notificationService: NotificationApiClient(),
     );
@@ -47,7 +47,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     _notificationsStream = notifMgmt.notificationStream;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _notificationController.fetchAndUpdateNotifications(widget.user);
+      _notificationViewModel.fetchAndUpdateNotifications(widget.user);
     });
   }
 
@@ -74,7 +74,7 @@ class _ShowNotificationsState extends State<ShowNotifications> {
     if (confirm == true) {
       setState(() => _clearing = true);
       try {
-        await _notificationController.removeAllNotifications(widget.user);
+        await _notificationViewModel.removeAllNotifications(widget.user);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(loc.clearedAllNotifications)),
@@ -164,12 +164,12 @@ class _ShowNotificationsState extends State<ShowNotifications> {
                         final ntf = e.value;
                         return NotificationCard(
                           notification: ntf,
-                          onDelete: () => _notificationController
+                          onDelete: () => _notificationViewModel
                               .removeNotificationByIndex(e.key),
                           onConfirm: () =>
-                              _notificationController.handleConfirmation(ntf),
+                              _notificationViewModel.handleConfirmation(ntf),
                           onNegate: () =>
-                              _notificationController.handleNegation(ntf),
+                              _notificationViewModel.handleNegation(ntf),
                         );
                       }),
                     ];

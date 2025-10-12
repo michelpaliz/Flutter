@@ -1,6 +1,6 @@
 // agenda_model.dart
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 
 /// A lightweight view-model for the Agenda UI.
 class AgendaItem {

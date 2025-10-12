@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
-import '../../../../../../../b-backend/core/group/view_model/group_view_model.dart';
+import '../../../../../../../b-backend/group_mng_flow/group/view_model/group_view_model.dart';
 
 // lib/.../widgets/group_text_fields.dart
 // …imports unchanged…

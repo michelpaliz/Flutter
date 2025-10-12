@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/f-themes/utilities/utilities.dart';
 import 'package:hexora/f-themes/utilities/view-item-styles/button/button_styles.dart';

@@ -1000,5 +1000,21 @@
   "accountSectionTitle": "Cuenta",
   "preferencesSectionTitle": "Preferencias",
   "appVersionLabel": "Versión de la app",
-      "roleCoAdmin":"Co-Administrador"
+      "roleCoAdmin":"Co-Administrador",
+  "leaveGroupQuestion": "¿Seguro que deseas salir de este grupo?",
+  "removeMembersFirst": "Debes eliminar a todos los miembros antes de borrar el grupo.",
+
+
+  "refreshSuccess": "Calendario actualizado",
+  "@refreshSuccess": {
+    "description": "Mensaje de aviso cuando el calendario se actualiza correctamente"
+  },
+
+  "refreshFailed": "Error al actualizar",
+  "@refreshFailed": {
+    "description": "Mensaje de aviso cuando falla la actualización del calendario"
+  }
+
+
+
 }

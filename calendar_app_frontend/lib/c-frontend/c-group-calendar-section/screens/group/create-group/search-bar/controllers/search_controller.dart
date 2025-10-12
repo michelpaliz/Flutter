@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
+import 'package:hexora/b-backend/auth_user/user/repository/user_repository.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 
 class GroupSearchController extends ChangeNotifier {
@@ -14,27 +14,37 @@ class GroupSearchController extends ChangeNotifier {
     required this.group,
     required UserRepository userRepository,
   }) : _userRepo = userRepository {
+    // Seed creator as default member list + role (owner)
     if (currentUser != null) {
-      usersInGroup = [currentUser!]; // creator by default
-      userRoles[currentUser!.id] = 'owner'; // 🔑 key by userId, role lowercase
+      usersInGroup = [currentUser!];
+      userRoles[currentUser!.id] = 'owner'; // keyed by userId
     }
 
     if (group != null) {
-      _loadGroupUsers();
-      _loadInvitedUsers();
+      _seedRolesFromGroup(); // NEW: seed from group.userRoles
+      _loadGroupUsers(); // fetch User profiles for group.userIds
     }
   }
 
   // Local state
   List<User> usersInGroup = [];
 
-  /// 🔑 role map: userId -> role (lowercase: 'owner' | 'co-admin' | 'member')
+  /// 🔑 role map: userId -> role (lowercase: 'owner' | 'admin' | 'co-admin' | 'member')
   Map<String, String> userRoles = {};
 
   /// We keep results as simple usernames for the search UI
   List<String> searchResults = [];
 
-  // ---------- Loaders ----------
+  // ---------- Seeders / Loaders ----------
+  void _seedRolesFromGroup() {
+    // Copy roles from the group doc (already keyed by userId)
+    if (group?.userRoles != null) {
+      userRoles.addAll(group!.userRoles.map(
+        (k, v) => MapEntry(k, (v).toLowerCase()),
+      ));
+    }
+  }
+
   Future<void> _loadGroupUsers() async {
     if (group == null) return;
     try {
@@ -44,22 +54,14 @@ class GroupSearchController extends ChangeNotifier {
           usersInGroup.add(u);
         }
       }
+      // Ensure owner role is set even if not present in userRoles
+      if (group!.ownerId.isNotEmpty) {
+        userRoles[group!.ownerId] = 'owner';
+      }
       notifyListeners();
     } catch (_) {
       // swallow; UI can still function with partial data
     }
-  }
-
-  void _loadInvitedUsers() {
-    if (group?.invitedUsers == null) return;
-
-    // invitedUsers is Map<String /*userId*/, UserInviteStatus>
-    group!.invitedUsers!.forEach((userId, status) {
-      if (status.invitationAnswer == true ||
-          (status.informationStatus).toLowerCase() == 'accepted') {
-        userRoles[userId] = (status.role).toLowerCase(); // normalize
-      }
-    });
   }
 
   // ---------- Search / Add / Remove ----------

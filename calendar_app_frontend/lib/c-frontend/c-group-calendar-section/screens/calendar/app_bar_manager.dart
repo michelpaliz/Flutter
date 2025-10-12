@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
 class AppBarManager {
   AppBar buildAppBar(
     BuildContext context,
-    EventDomain eventDataManager,
+    EventDomain eventDomain,
     Group group,
   ) {
+    final loc = AppLocalizations.of(context)!;
+
     return AppBar(
-      title: Text(AppLocalizations.of(context)!.calendar.toUpperCase()),
+      title: Text(loc.calendar.toUpperCase()),
       actions: [
         IconButton(
-          icon: Icon(Icons.settings),
+          icon: const Icon(Icons.settings),
           onPressed: () {
             Navigator.pushNamed(
               context,
@@ -24,16 +26,16 @@ class AppBarManager {
           },
         ),
         IconButton(
-          icon: Icon(Icons.refresh),
+          icon: const Icon(Icons.refresh),
           onPressed: () async {
             try {
-              await eventDataManager.manualRefresh(context);
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Calendar refreshed')));
+              await eventDomain.manualRefresh(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(loc.refreshSuccess)),
+              );
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Refresh failed: ${e.toString()}')),
+                SnackBar(content: Text('${loc.refreshFailed}: $e')),
               );
             }
           },

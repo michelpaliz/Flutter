@@ -995,5 +995,19 @@
     "accountSectionTitle": "Account",
     "preferencesSectionTitle": "Preferences",
     "appVersionLabel": "App version",
-    "roleCoAdmin":"Co-Administrator"
+    "roleCoAdmin":"Co-Administrator",
+  "leaveGroupQuestion": "Are you sure you want to leave this group?",
+  "removeMembersFirst": "Please remove all members before deleting the group.",
+  "refreshSuccess": "Calendar refreshed",
+  "@refreshSuccess": {
+    "description": "Snackbar text shown when the calendar finishes refreshing successfully"
+  },
+
+  "refreshFailed": "Refresh failed",
+  "@refreshFailed": {
+    "description": "Snackbar text shown when the calendar refresh fails"
+  }
+
+
+
 }

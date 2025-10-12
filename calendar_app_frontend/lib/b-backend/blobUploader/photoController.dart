@@ -2,22 +2,22 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hexora/b-backend/blobUploader/blobRepository.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PhotoController extends ChangeNotifier {
   final BlobRepository _repo;
-  final UserDomain _userMgmt;
-  final GroupDomain _groupMgmt;
+  final UserDomain _userDomain;
+  final GroupDomain _groupDomain;
 
   PhotoController({
     required BlobRepository repo,
     required UserDomain userDomain,
     required GroupDomain groupDomain,
   })  : _repo = repo,
-        _userMgmt = userDomain,
-        _groupMgmt = groupDomain;
+        _userDomain = userDomain,
+        _groupDomain = groupDomain;
 
   bool busy = false;
   XFile? pickedImage;
@@ -36,35 +36,37 @@ class PhotoController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Upload avatar and update userDomain.
+  /// Upload avatar and refresh the user from the backend (server truth).
   Future<bool> uploadUserAvatar(BuildContext context) async {
     if (pickedImage == null) return false;
-    final u = _userMgmt.user;
+    final u = _userDomain.user;
     if (u == null) return false;
 
     busy = true;
     notifyListeners();
     try {
-      final committed =
-          await _repo.uploadUserAvatar(file: File(pickedImage!.path));
+      // This should upload to blob storage and commit on your backend.
+      await _repo.uploadUserAvatar(file: File(pickedImage!.path));
 
-      // Update local user model & notify
-      final updated = u.copyWith(
-        photoUrl: committed.photoUrl,
-        // If your User model has `photoBlobName`, include it:
-        // photoBlobName: committed.blobName,
-      );
-      _userMgmt.updateCurrentUser(updated);
+      // Refresh the signed-in user so UI gets the canonical URL.
+      final fresh = await _userDomain.getUser();
+      if (fresh != null) {
+        _userDomain.setCurrentUser(fresh);
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Avatar updated')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Avatar updated')),
+        );
+      }
       clear();
       return true;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update avatar: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update avatar: $e')),
+        );
+      }
       return false;
     } finally {
       busy = false;
@@ -72,35 +74,38 @@ class PhotoController extends ChangeNotifier {
     }
   }
 
-  /// Upload group photo and update groupDomain.
-  Future<bool> uploadGroupPhoto(BuildContext context,
-      {required String groupId}) async {
+  /// Upload group photo and refresh the repo-backed groups stream.
+  Future<bool> uploadGroupPhoto(
+    BuildContext context, {
+    required String groupId,
+  }) async {
     if (pickedImage == null) return false;
 
     busy = true;
     notifyListeners();
     try {
-      final committed = await _repo.uploadGroupPhoto(
+      // Upload + commit (BlobRepository should handle both steps)
+      await _repo.uploadGroupPhoto(
         groupId: groupId,
         file: File(pickedImage!.path),
       );
 
-      // Push to groupDomain (keeps currentGroup + list in sync)
-      _groupMgmt.updateGroupPhoto(
-        groupId: groupId,
-        photoUrl: committed.photoUrl,
-        photoBlobName: committed.blobName,
-      );
+      // Pull server truth so subscribers (e.g., lists/calendars) update.
+      await _groupDomain.refreshGroupsForCurrentUser(_userDomain);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group photo updated')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group photo updated')),
+        );
+      }
       clear();
       return true;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update group photo: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update group photo: $e')),
+        );
+      }
       return false;
     } finally {
       busy = false;

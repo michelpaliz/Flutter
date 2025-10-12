@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+// REMOVED: userInvitation_status import
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/upcoming_events/group_upcoming_events.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/e-drawer-style-menu/contextual_fab.dart';
 import 'package:hexora/f-themes/themes/theme_colors.dart';
 import 'package:hexora/f-themes/utilities/utilities.dart';
@@ -48,15 +48,6 @@ class _GroupDashboardState extends State<GroupDashboard> {
     }
   }
 
-  // helpers
-  String _norm(dynamic v) => v?.toString().toLowerCase().trim() ?? '';
-
-  bool _inviteIsAccepted(UserInviteStatus? inv) {
-    if (inv == null) return false;
-    final status = (inv.informationStatus ?? '').toLowerCase();
-    return inv.invitationAnswer == true || status == 'accepted';
-  }
-
   @override
   Widget build(BuildContext context) {
     final group = widget.group;
@@ -67,32 +58,11 @@ class _GroupDashboardState extends State<GroupDashboard> {
 
     final createdStr = DateFormat.yMMMd(l.localeName).format(group.createdTime);
 
-    // ---- LOCAL FALLBACK COUNTS (userIds ∪ accepted-invites) ----
-    final invitedRaw = group.invitedUsers ?? const <String, UserInviteStatus>{};
-    final invitedByUser = <String, UserInviteStatus>{
-      for (final e in invitedRaw.entries) _norm(e.key): e.value,
-    };
-
-    final acceptedByUserIds = (group.userIds ?? const <dynamic>[])
-        .map((id) => _norm(id))
-        .where((s) => s.isNotEmpty)
-        .toSet();
-
-    final acceptedByInvites = <String>{
-      for (final e in invitedByUser.entries)
-        if (_inviteIsAccepted(e.value)) e.key,
-    };
-
-    final membersKeys = <String>{}
-      ..addAll(acceptedByUserIds)
-      ..addAll(acceptedByInvites);
-
-    final fallbackMembers = membersKeys.length;
-    final fallbackPending = invitedByUser.entries
-        .where((e) =>
-            !_inviteIsAccepted(e.value) &&
-            !acceptedByUserIds.contains(_norm(e.key)))
-        .length;
+    // ---- SIMPLE LOCAL FALLBACK COUNTS ----
+    // Since invites are now a separate collection, we can’t infer pending locally.
+    // We show members from local group doc and rely on server counts when available.
+    final fallbackMembers = group.userIds.length;
+    const fallbackPending = 0; // unknown locally without querying invitations
     final fallbackTotal = fallbackMembers + fallbackPending;
 
     // ---- SERVER-FIRST DISPLAY ----

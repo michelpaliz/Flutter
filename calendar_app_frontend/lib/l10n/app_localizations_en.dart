@@ -1679,4 +1679,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleCoAdmin => 'Co-Administrator';
+
+  @override
+  String get leaveGroupQuestion => 'Are you sure you want to leave this group?';
+
+  @override
+  String get removeMembersFirst =>
+      'Please remove all members before deleting the group.';
+
+  @override
+  String get refreshSuccess => 'Calendar refreshed';
+
+  @override
+  String get refreshFailed => 'Refresh failed';
 }

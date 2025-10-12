@@ -1,20 +1,21 @@
 // lib/.../edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
+import 'package:hexora/a-models/notification_model/userInvitation_status.dart'; // kept only for downstream widget compatibility
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/group_mng_flow/invite/repository/invite_repository.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/admin_filter_sections.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
 import 'package:hexora/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 
 import '../../user_list_section.dart';
 
-/// Stable keys for the filter chips. AdminWithFiltersSection can later emit these directly.
-/// For now we also adapt from localized String labels → enum in _resolveFilter().
+/// Stable keys for the filter chips.
 enum InviteFilter { accepted, pending, notAccepted, newUsers, expired }
 
 class EditGroupPeople extends StatefulWidget {
@@ -43,9 +44,13 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
 
   // Local, temporary state (NOT persisted until Save)
   late List<User> _localUsers; // working members
-  late Map<String, String> _localRoles; // username -> role
-  late Map<String, UserInviteStatus> _localInvitedUsers; // working invites
+  late Map<String, String> _localRoles; // 🔑 userId -> role (lowercase)
   final Map<String, User> _newUsers = {}; // added in this session
+
+  // We keep invites maps only to satisfy downstream widget params for now.
+  // They are intentionally EMPTY because invites are now a separate collection.
+  Map<String, UserInviteStatus> _localInvitedUsers = const {};
+  Map<String, UserInviteStatus> _invitesAtOpen = const {};
 
   // Filters
   bool showAccepted = true;
@@ -55,7 +60,7 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
   bool showExpired = true;
 
   late User? _currentUser;
-  late String _currentUserRoleValue;
+  late String _currentUserRawRole; // 'owner' | 'admin' | 'co-admin' | 'member'
 
   @override
   void initState() {
@@ -66,55 +71,58 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
 
     // Clone incoming data into local working copies
     _localUsers = List<User>.from(widget.initialUsers);
-    _localRoles = Map<String, String>.from(widget.group.userRoles);
-    _localInvitedUsers =
-        Map<String, UserInviteStatus>.from(widget.group.invitedUsers ?? {});
 
-    _controller.initialize(
-      user: _currentUser!,
-      userDomain: widget.userDomain,
-      groupDomain: widget.groupDomain,
-      notificationDomain: widget.notificationDomain,
-      context: context,
+    // 🔑 copy roles by userId and normalize to lowercase
+    _localRoles = Map<String, String>.fromEntries(
+      widget.group.userRoles.entries.map(
+        (e) => MapEntry(e.key, e.value.toLowerCase()),
+      ),
     );
+    // Ensure owner is marked
+    _localRoles[widget.group.ownerId] = 'owner';
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final loc = AppLocalizations.of(context)!;
-    _currentUserRoleValue = _currentUser!.id == widget.group.ownerId
-        ? loc.administrator
-        : widget.group.userRoles[_currentUser!.userName] ?? loc.member;
+
+    // ✅ Initialize GroupViewModel *here* so Provider lookups are safe.
+    if (_currentUser != null) {
+      final invitationRepo =
+          Provider.of<InvitationRepository>(context, listen: false);
+      _controller.initialize(
+        user: _currentUser!,
+        userDomain: widget.userDomain,
+        groupDomain: widget.groupDomain,
+        notificationDomain: widget.notificationDomain,
+        invitationRepository: invitationRepo, // 🔑 REQUIRED now
+        context: context,
+      );
+    }
+
+    // Compute raw role (by id) for admin gating
+    final uid = _currentUser?.id ?? '';
+    _currentUserRawRole = (uid == widget.group.ownerId)
+        ? 'owner'
+        : (widget.group.userRoles[uid]?.toLowerCase() ?? 'member');
   }
 
   // Called by AddUser dialog
   void _onNewUserAdded(User user) {
     setState(() {
-      final uname = user.userName;
-      final existsInMembers = _localUsers.any((u) => u.userName == uname);
-      final existsInInvites = _localInvitedUsers.containsKey(uname);
-      if (existsInMembers || existsInInvites) return;
+      final exists = _localUsers.any((u) => u.id == user.id) ||
+          _newUsers.containsKey(user.userName);
+      if (exists) return;
 
-      // Generate a stable local id. Use your backend id if you have one.
-      final inviteId =
-          'grp:${widget.group.id}|user:$uname|ts:${DateTime.now().millisecondsSinceEpoch}';
+      // Mark as "new user" for this edit session
+      _newUsers[user.userName] = user;
 
-      _localInvitedUsers[uname] = UserInviteStatus(
-        id: inviteId,
-        invitationAnswer: null, // no answer yet
-        role: 'Member',
-        sendingDate: DateTime.now(), // must be DateTime
-        informationStatus: 'pending', // normalized for filtering
-        attempts: 0, // first attempt
-        status: 'Unresolved', // initial business status
-      );
+      // Default role for newly added (to be invited later by update flow)
+      _localRoles[user.id] = _localRoles[user.id] ?? 'member';
 
-      // Optional: if you also want a “New users” chip/card, uncomment:
-      // _newUsers[uname] = user;
-
-      // Do NOT add to _localUsers — not a member until accepted.
-      // Do NOT touch _localRoles here.
+      // NOTE: We no longer create embedded invitation objects here.
+      // Invitations are now a separate collection and should be created
+      // by the update flow using InvitationDomain after saving the group.
     });
   }
 
@@ -122,7 +130,11 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
 
   // ✅ Expose final values to parent (EditGroupBody reads these on Save)
   List<User> getFinalUsers() => List<User>.from(_localUsers);
+
+  /// Returns roles keyed by **userId**.
   Map<String, String> getFinalRoles() => Map<String, String>.from(_localRoles);
+
+  /// Kept only for backwards compatibility with downstream widget signature.
   Map<String, UserInviteStatus> getFinalInvites() =>
       Map<String, UserInviteStatus>.from(_localInvitedUsers);
 
@@ -152,9 +164,9 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    final isAdmin = _currentUser!.id == widget.group.ownerId ||
-        _currentUserRoleValue == loc.administrator;
+    final isAdmin = _currentUserRawRole == 'owner' ||
+        _currentUserRawRole == 'admin' ||
+        _currentUserRawRole == 'co-admin';
 
     return Column(
       children: [
@@ -174,13 +186,9 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
             showNotWantedToJoin: showNotWantedToJoin,
             showNewUsers: showNewUsers,
             showExpired: showExpired,
-            // Accepts either InviteFilter (preferred) or String label (legacy)
             onFilterChange: (filter, isSelected) {
               final resolved = _resolveFilter(filter);
-              if (resolved == null) {
-                // print('⚠️ Unknown filter: $filter');
-                return;
-              }
+              if (resolved == null) return;
               setState(() {
                 switch (resolved) {
                   case InviteFilter.accepted:
@@ -200,8 +208,6 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
                     break;
                 }
               });
-              // Debug:
-              // print('🎛 Filters → A:$showAccepted P:$showPending D:$showNotWantedToJoin N:$showNewUsers X:$showExpired');
             },
           ),
 
@@ -210,9 +216,9 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
         // Render from LOCAL working copies
         UserListSection(
           newUsers: _filteredNewUsers,
-          usersRoles: _localRoles,
-          usersInvitations: _localInvitedUsers,
-          usersInvitationAtFirst: widget.group.invitedUsers ?? {},
+          usersRoles: _localRoles, // 🔑 userId -> role
+          usersInvitations: _localInvitedUsers, // kept empty
+          usersInvitationAtFirst: _invitesAtOpen, // kept empty
           group: widget.group,
           usersInGroup: _localUsers,
           userDomain: widget.userDomain,
@@ -223,15 +229,19 @@ class EditGroupPeopleState extends State<EditGroupPeople> {
           showNotWantedToJoin: showNotWantedToJoin,
           showNewUsers: showNewUsers,
           showExpired: showExpired,
-          onChangeRole: (userName, newRole) {
-            setState(() => _localRoles[userName] = newRole);
+          // role changes are now keyed by **userId**
+          onChangeRole: (userIdOrName, newRole) {
+            setState(() => _localRoles[userIdOrName] = newRole.toLowerCase());
           },
-          onUserRemoved: (userName) {
+          onUserRemoved: (userIdOrName) {
             setState(() {
-              _newUsers.remove(userName);
-              _localUsers.removeWhere((u) => u.userName == userName);
-              _localRoles.remove(userName);
-              _localInvitedUsers.remove(userName);
+              _newUsers.removeWhere(
+                  (k, v) => v.id == userIdOrName || k == userIdOrName);
+              _localUsers.removeWhere(
+                  (u) => u.id == userIdOrName || u.userName == userIdOrName);
+              _localRoles.remove(userIdOrName);
+              // invites are separate now; local invite maps remain empty
+              _localInvitedUsers = _localInvitedUsers; // no-op
             });
           },
         ),

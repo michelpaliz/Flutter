@@ -1,15 +1,17 @@
 // group_members_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
+import 'package:hexora/a-models/group_model/invite/invite.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/invite/repository/invite_repository.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/members_ref.dart';
-import 'package:hexora/c-frontend/b-dashboard-section/sections/members/utils/member_derivation.dart';
-import 'package:hexora/c-frontend/b-dashboard-section/sections/members/utils/member_status.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/count_pills.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/widgets/member_list/member_list.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/selected_users/filter_chips.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
 import 'package:hexora/l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/section_header.dart';
@@ -32,11 +34,16 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
 
   late GroupDomain _gm;
 
+  // Invitations
+  List<Invitation> _invitations = const [];
+  bool _loadingInvitations = false;
+
   @override
   void initState() {
     super.initState();
-    _gm = context.read<GroupDomain>(); // ✅ use Management → Repository
+    _gm = context.read<GroupDomain>(); // ✅ Management → Repository
     _loadCounts();
+    _loadInvitations();
   }
 
   Future<void> _loadCounts() async {
@@ -55,61 +62,98 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
     }
   }
 
+  Future<void> _loadInvitations() async {
+    setState(() => _loadingInvitations = true);
+    try {
+      final token = context.read<AuthProvider>().lastToken;
+      if (token == null) return;
+      final repo = context.read<InvitationRepository>();
+      final res =
+          await repo.listGroupInvitations(widget.group.id, token: token);
+      if (!mounted) return;
+      if (res is RepoSuccess<List<Invitation>>) {
+        setState(() => _invitations = res.data);
+      } else if (res is RepoFailure<List<Invitation>>) {
+        // keep empty fallback silently
+      }
+    } catch (_) {
+      // ignore for now
+    } finally {
+      if (mounted) setState(() => _loadingInvitations = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    // --- derive local sets (accepted/pending) ---
-    final deriv = deriveAcceptedAndPending(
-      userIds: widget.group.userIds,
-      invitedUsers: widget.group.invitedUsers,
-    );
+    // ---- Build Accepted / Pending / NotAccepted sets ----
+    final acceptedIds = widget.group.userIds.toSet();
 
-    // union for list building
-    final allKeys = <String>{}
-      ..addAll(deriv.accepted)
-      ..addAll(deriv.pending.keys);
+    final pendingInvites = _invitations
+        .where((i) => i.status == InvitationStatus.pending)
+        .toList();
 
-    // map to MemberRef (ownerId is needed by MemberRow—pass it as needed)
-    final members = allKeys.map((k) {
-      final inv = deriv.pending[k]; // null if accepted
-      final statusToken = statusFor(k, inv, deriv.accepted);
-      final role = (widget.group.userRoles)[k] ?? inv?.role ?? 'member';
-      return MemberRef(
-        username: k,
-        role: role,
-        statusToken: statusToken,
-        ownerId: widget.group.ownerId,
-      );
-    }).toList()
-      ..sort((a, b) =>
-          a.username.toLowerCase().compareTo(b.username.toLowerCase()));
-
-    // filters
-    final filtered = members.where((m) {
-      switch (m.statusToken) {
-        case 'Accepted':
-          return showAccepted;
-        case 'Pending':
-          return showPending;
-        case 'NotAccepted':
-          return showNotAccepted;
-        default:
-          return true;
-      }
+    final notAcceptedInvites = _invitations.where((i) {
+      return i.status == InvitationStatus.declined ||
+          i.status == InvitationStatus.revoked ||
+          i.status == InvitationStatus.expired;
     }).toList();
 
-    final accepted =
-        filtered.where((m) => m.statusToken == 'Accepted').toList();
-    final pending = filtered.where((m) => m.statusToken == 'Pending').toList();
-    final notAccepted =
-        filtered.where((m) => m.statusToken == 'NotAccepted').toList();
+    // Convert to MemberRef for the list widget
+    // Accepted (members from group.userIds)
+    final accepted = acceptedIds.map((userId) {
+      final role = widget.group.userRoles[userId] ?? 'member';
+      return MemberRef(
+        username: userId, // if you want names, resolve user profile upstream
+        role: role,
+        statusToken: 'Accepted',
+        ownerId: widget.group.ownerId,
+      );
+    }).toList();
 
-    final membersLabel = l.membersTitle;
-    final pendingLabel = l.statusPending;
-    final notAcceptedLabel = l.statusNotAccepted;
+    // Pending (from invitations)
+    final pending = pendingInvites.map((inv) {
+      final display = inv.email ?? inv.userId ?? 'unknown';
+      final role = switch (inv.role) {
+        GroupRole.admin => 'admin',
+        GroupRole.coAdmin => 'co-admin',
+        GroupRole.member => 'member',
+      };
+      return MemberRef(
+        username: display,
+        role: role,
+        statusToken: 'Pending',
+        ownerId: widget.group.ownerId,
+      );
+    }).toList();
+
+    // NotAccepted (declined/revoked/expired)
+    final notAccepted = notAcceptedInvites.map((inv) {
+      final display = inv.email ?? inv.userId ?? 'unknown';
+      final role = switch (inv.role) {
+        GroupRole.admin => 'admin',
+        GroupRole.coAdmin => 'co-admin',
+        GroupRole.member => 'member',
+      };
+      return MemberRef(
+        username: display,
+        role: role,
+        statusToken: 'NotAccepted',
+        ownerId: widget.group.ownerId,
+      );
+    }).toList();
+
+    // Apply the filters
+    final filteredAccepted = showAccepted ? accepted : <MemberRef>[];
+    final filteredPending = showPending ? pending : <MemberRef>[];
+    final filteredNotAccepted = showNotAccepted ? notAccepted : <MemberRef>[];
+
+    // ---- Counts (server-first, local fallback) ----
+    final fallbackMembers = accepted.length;
+    final fallbackPending = pending.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -125,7 +169,10 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
       body: RefreshIndicator(
         color: colors.primary,
         backgroundColor: colors.surface,
-        onRefresh: _loadCounts,
+        onRefresh: () async {
+          await _loadCounts();
+          await _loadInvitations();
+        },
         child: Column(
           children: [
             const SizedBox(height: 20),
@@ -134,14 +181,14 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: CountsPills(
-                loading: _loadingCounts,
+                loading: _loadingCounts || _loadingInvitations,
                 members: _counts?.accepted,
                 pending: _counts?.pending,
                 total: _counts?.union,
-                fallbackMembers: deriv.accepted.length,
-                fallbackPending: deriv.pending.length,
-                membersLabel: membersLabel,
-                pendingLabel: pendingLabel,
+                fallbackMembers: fallbackMembers,
+                fallbackPending: fallbackPending,
+                membersLabel: l.membersTitle,
+                pendingLabel: l.statusPending,
                 totalLabel: 'Total', // localize if desired
               ),
             ),
@@ -171,9 +218,9 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                     showAccepted: showAccepted,
                     showPending: showPending,
                     showNotWantedToJoin: showNotAccepted,
-                    acceptedText: membersLabel, // “Accepted” → “Members”
-                    pendingText: pendingLabel,
-                    notAcceptedText: notAcceptedLabel,
+                    acceptedText: l.membersTitle, // “Accepted” → “Members”
+                    pendingText: l.statusPending,
+                    notAcceptedText: l.statusNotAccepted,
                     onFilterChange: (token, selected) {
                       setState(() {
                         if (token == 'Accepted') showAccepted = selected;
@@ -191,12 +238,21 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
             // LIST
             Expanded(
               child: MembersList(
-                accepted: accepted,
-                pending: pending,
-                notAccepted: notAccepted,
-                acceptedLabel: membersLabel,
-                pendingLabel: pendingLabel,
-                notAcceptedLabel: notAcceptedLabel,
+                accepted: filteredAccepted
+                  ..sort((a, b) => a.username
+                      .toLowerCase()
+                      .compareTo(b.username.toLowerCase())),
+                pending: filteredPending
+                  ..sort((a, b) => a.username
+                      .toLowerCase()
+                      .compareTo(b.username.toLowerCase())),
+                notAccepted: filteredNotAccepted
+                  ..sort((a, b) => a.username
+                      .toLowerCase()
+                      .compareTo(b.username.toLowerCase())),
+                acceptedLabel: l.membersTitle,
+                pendingLabel: l.statusPending,
+                notAcceptedLabel: l.statusNotAccepted,
               ),
             ),
           ],

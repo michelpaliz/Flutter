@@ -1,6 +1,6 @@
 // lib/c-frontend/shared/widgets/category_picker.dart
 import 'package:hexora/a-models/group_model/category/event_category.dart';
-import 'package:hexora/b-backend/core/category/category_api_client.dart';
+import 'package:hexora/b-backend/group_mng_flow/category/category_api_client.dart';
 import 'package:flutter/material.dart';
 
 class CategoryPicker extends StatefulWidget {

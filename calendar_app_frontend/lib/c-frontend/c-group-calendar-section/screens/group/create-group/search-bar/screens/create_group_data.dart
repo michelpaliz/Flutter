@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/group_mng_flow/invite/repository/invite_repository.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/screens/page_group_role_list.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/save_group_button.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/shared/add_user_button.dart';
@@ -9,7 +10,7 @@ import 'package:hexora/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../../../b-backend/core/group/domain/group_domain.dart';
+import '../../../../../../../b-backend/group_mng_flow/group/domain/group_domain.dart';
 import '../../../../../../../b-backend/notification/domain/notification_domain.dart';
 import '../widgets/group_image_picker.dart';
 import '../widgets/group_text_fields.dart';
@@ -25,7 +26,6 @@ class _CreateGroupDataState extends State<CreateGroupData> {
   final ImagePicker _imagePicker = ImagePicker();
   final GroupViewModel _controller = GroupViewModel();
 
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -33,6 +33,8 @@ class _CreateGroupDataState extends State<CreateGroupData> {
     final groupDomain = Provider.of<GroupDomain>(context, listen: false);
     final notificationDomain =
         Provider.of<NotificationDomain>(context, listen: false);
+    final invitationRepo =
+        Provider.of<InvitationRepository>(context, listen: false); // <-- NEW
     final currentUser = userDomain.user;
 
     if (currentUser != null) {
@@ -41,6 +43,7 @@ class _CreateGroupDataState extends State<CreateGroupData> {
         userDomain: userDomain,
         groupDomain: groupDomain,
         notificationDomain: notificationDomain,
+        invitationRepository: invitationRepo, // <-- NEW
         context: context,
       );
     }

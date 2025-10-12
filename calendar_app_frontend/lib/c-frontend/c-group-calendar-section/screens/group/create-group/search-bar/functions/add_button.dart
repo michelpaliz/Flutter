@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
 import '../../../../../../../a-models/user_model/user.dart';
-import '../../../../../../../b-backend/core/group/view_model/group_view_model.dart';
+import '../../../../../../../b-backend/group_mng_flow/group/view_model/group_view_model.dart';
 import '../widgets/create_group_search_bar.dart';
 
 class GroupAddUserButton extends StatelessWidget {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart'; // ✅ New import
-import 'package:hexora/b-backend/login_user/auth/exceptions/auth_exceptions.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart'; // ✅ New import
+import 'package:hexora/b-backend/auth_user/auth/exceptions/auth_exceptions.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/show_error_dialog.dart';
 import 'package:hexora/c-frontend/e-log-user-section/login/login_init.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';

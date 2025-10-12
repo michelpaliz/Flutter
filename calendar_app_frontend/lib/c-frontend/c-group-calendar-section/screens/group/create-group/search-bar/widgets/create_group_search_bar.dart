@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/core/group/view_model/group_view_model.dart';
-import 'package:hexora/b-backend/login_user/user/repository/user_repository.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/view_model/group_view_model.dart';
+import 'package:hexora/b-backend/auth_user/user/repository/user_repository.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/controllers/search_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/create-group/search-bar/widgets/group_selected_user_list.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/utils/search_bar/custome_search_bar.dart';

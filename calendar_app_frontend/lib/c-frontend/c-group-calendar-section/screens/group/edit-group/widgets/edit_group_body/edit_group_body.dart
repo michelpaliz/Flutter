@@ -1,15 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/blobUploader/blobServer.dart';
-import 'package:hexora/b-backend/config/api_constants.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_provider.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/invite/domain/invite_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/controllers/group_update_controller.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/controllers/image_picker_controller.dart';
@@ -17,7 +13,6 @@ import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-gr
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/edit_group_bottom_nav.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/edit_group_header.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/edit_group_body/functions/edit_group_ppl.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -80,46 +75,29 @@ class _EditGroupBodyState extends State<EditGroupBody> {
     if (pickedImage == null) return;
 
     setState(() {
-      _selectedImage = pickedImage;
+      _selectedImage = pickedImage; // shows instant preview in header
       _isUploading = true;
     });
 
     try {
-      final auth = context.read<AuthProvider>();
-      final token = auth.lastToken;
-      if (token == null) throw Exception('Not authenticated');
-
-      final result = await uploadImageToAzure(
-        scope: 'groups',
-        resourceId: widget.group.id,
+      // Upload + commit via repository (handles token + PATCH internally)
+      await widget.groupDomain.groupRepository.uploadAndCommitGroupPhoto(
+        groupId: widget.group.id,
         file: File(pickedImage.path),
-        accessToken: token,
       );
 
-      final resp = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/groups/${widget.group.id}/photo'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'blobName': result.blobName}),
-      );
-      if (resp.statusCode != 200) {
-        throw Exception(
-            'Commit group photo failed: ${resp.statusCode} ${resp.body}');
-      }
+      // Refresh server truth globally (repo will emit to all listeners)
+      await widget.groupDomain.refreshGroupsForCurrentUser(widget.userDomain);
+
+      // Also fetch the fresh group to update local preview URL (optional nicety)
+      final fresh = await widget.groupDomain.groupRepository
+          .getGroupById(widget.group.id);
 
       if (!mounted) return;
       setState(() {
-        _imageURL = result.photoUrl;
-        _photoBlobName = result.blobName;
+        _imageURL = fresh.photoUrl ?? _imageURL;
+        _photoBlobName = fresh.photoBlobName ?? _photoBlobName;
       });
-
-      widget.groupDomain.updateGroupPhoto(
-        groupId: widget.group.id,
-        photoUrl: _imageURL,
-        photoBlobName: result.blobName,
-      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -140,9 +118,16 @@ class _EditGroupBodyState extends State<EditGroupBody> {
       return;
     }
 
+    // Final roles are keyed by **userId**
     final Map<String, String> finalRoles = peopleState.getFinalRoles();
-    final Map<String, UserInviteStatus> finalInvites =
-        peopleState.getFinalInvites();
+
+    // Compute newly invited userIds = roles not in current member set
+    final currentMembers = widget.group.userIds.toSet()
+      ..add(widget.group.ownerId);
+    final newlyInvitedUserIds =
+        finalRoles.keys.where((uid) => !currentMembers.contains(uid)).toList();
+
+    final invitationDomain = context.read<InvitationDomain>();
 
     final controller = GroupUpdateController(
       context: context,
@@ -152,10 +137,10 @@ class _EditGroupBodyState extends State<EditGroupBody> {
       imageUrl: _imageURL,
       currentUser: _currentUser!,
       userRoles: finalRoles,
-      usersInvitations: finalInvites,
-      // removed: usersInvitationAtFirst / addingNewUser / notificationDomain
+      newlyInvitedUserIds: newlyInvitedUserIds, // ✅ NEW
       userDomain: widget.userDomain,
       groupDomain: widget.groupDomain,
+      invitationDomain: invitationDomain, // ✅ NEW
     );
 
     await controller.performGroupUpdate();

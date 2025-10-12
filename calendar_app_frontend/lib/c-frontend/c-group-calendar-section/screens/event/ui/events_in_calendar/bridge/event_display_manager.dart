@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/logic/actions/event_actions_manager.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/widgets/event_content_builder.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/event/ui/events_in_calendar/event_display_manager/async_loaders/event_future_content.dart';

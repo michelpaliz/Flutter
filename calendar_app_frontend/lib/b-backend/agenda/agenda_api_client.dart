@@ -2,10 +2,10 @@
 import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/b-backend/agenda/query_knobs/client_rollup.dart';
 import 'package:hexora/b-backend/agenda/query_knobs/work_summary.dart';
-import 'package:hexora/b-backend/login_user/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/token_storage.dart';
 import 'package:hexora/b-backend/config/api_constants.dart';
 import 'package:http/http.dart' as http;
 

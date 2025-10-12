@@ -1,4 +1,4 @@
-import 'package:hexora/b-backend/login_user/auth/auth_database/auth_service.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart';
 import 'package:hexora/c-frontend/e-log-user-section/register/form/button_style_helper.dart';
 import 'package:hexora/c-frontend/e-log-user-section/register/utils/legal_text_helper.dart';
 import 'package:hexora/c-frontend/e-log-user-section/register/utils/password_utils.dart';

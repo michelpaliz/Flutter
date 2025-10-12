@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/notification_model/userInvitation_status.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:provider/provider.dart';
 
 class EventActionManager {
-  final EventDomain eventDataManager;
+  final EventDomain eventDomain;
   final GroupDomain groupDomain;
   final UserDomain userDomain;
   final NotificationDomain notificationDomain;
@@ -21,7 +21,7 @@ class EventActionManager {
     this.groupDomain,
     this.userDomain,
     this.notificationDomain, {
-    required this.eventDataManager,
+    required this.eventDomain,
   });
 
   // Build the add event button
@@ -54,7 +54,7 @@ class EventActionManager {
                 await groupDomain.updateGroup(refreshedGroup, userDomain);
 
                 // 🔁 Refresh calendar events
-                await eventDataManager.manualRefresh(context);
+                await eventDomain.manualRefresh(context);
               }
             },
           ),
@@ -64,12 +64,12 @@ class EventActionManager {
   }
 
   void editEvent(Event event, BuildContext context) {
-    final sharedEventDataManager = eventDataManager;
+    final sharedeventDomain = eventDomain;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Provider<EventDomain>.value(
-          value: sharedEventDataManager,
+          value: sharedeventDomain,
           child: EditEventScreen(event: event),
         ),
       ),
@@ -86,7 +86,7 @@ class EventActionManager {
     debugPrint('🗑️  [UI] removeEvent for ${ev.id}  →  $mongoId');
 
     try {
-      await eventDataManager.deleteEvent(mongoId);
+      await eventDomain.deleteEvent(mongoId);
       debugPrint('✅  [UI] deleteEvent completed for $mongoId');
       return true;
     } catch (e, st) {

@@ -1,11 +1,11 @@
 import 'dart:developer' as devtools show log;
 
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
-import 'package:hexora/b-backend/core/event/domain/event_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
-import 'package:hexora/b-backend/services/client/client_api.dart';
-import 'package:hexora/b-backend/services/service/service_api_client.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
+import 'package:hexora/b-backend/group_mng_flow/event/domain/event_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/business_logic/client/client_api.dart';
+import 'package:hexora/b-backend/business_logic/service/service_api_client.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/functions/helper/add_event_helpers.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/actions/shared/base/base_event_logic.dart';
 import 'package:hexora/c-frontend/d-event-section/utils/color_manager.dart';
@@ -14,14 +14,14 @@ import 'package:provider/provider.dart';
 import '../../../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../../../a-models/user_model/user.dart';
 import '../../../../../../../../../f-themes/utilities/utilities.dart';
-import '../../../../../../../../b-backend/core/group/domain/group_domain.dart';
-import '../../../../../../../../b-backend/login_user/user/api/user_api_client.dart';
+import '../../../../../../../../b-backend/group_mng_flow/group/domain/group_domain.dart';
+import '../../../../../../../../b-backend/auth_user/user/api/user_api_client.dart';
 import '../../../../../../../../b-backend/notification/domain/notification_domain.dart';
 
 abstract class AddEventLogic<T extends StatefulWidget>
     extends BaseEventLogic<T> {
   // Services
-  late EventDomain _eventDataManager;
+  late EventDomain _eventDomain;
   late UserDomain userDomain;
   late GroupDomain groupDomain;
   late NotificationDomain notificationDomain;
@@ -43,12 +43,12 @@ abstract class AddEventLogic<T extends StatefulWidget>
   }
 
   void injectDependencies({
-    required GroupDomain groupMgmt,
-    required UserDomain userMgmt,
+    required GroupDomain groupDomain,
+    required UserDomain userDomain,
     required NotificationDomain notifMgmt,
   }) {
-    groupDomain = groupMgmt;
-    userDomain = userMgmt;
+    groupDomain = groupDomain;
+    userDomain = userDomain;
     notificationDomain = notifMgmt;
     user = userDomain.user!;
   }
@@ -63,7 +63,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
     setStartDate(now);
     setEndDate(now.add(const Duration(hours: 1)));
 
-    _eventDataManager = Provider.of<EventDomain>(context, listen: false);
+    _eventDomain = Provider.of<EventDomain>(context, listen: false);
 
     // ✅ Preload users via userDomain (no direct service calls)
     try {
@@ -119,14 +119,14 @@ abstract class AddEventLogic<T extends StatefulWidget>
     devtools.log(
         "🧹 [addEvent] GROUP FETCHED: ${fetchedUpdatedGroup!.name} (${fetchedUpdatedGroup!.id})");
 
-    if (_eventDataManager.onExternalEventUpdate != null) {
+    if (_eventDomain.onExternalEventUpdate != null) {
       devtools.log("🔁 Triggering external calendar refresh...");
-      _eventDataManager.onExternalEventUpdate!.call();
+      _eventDomain.onExternalEventUpdate!.call();
     } else {
       devtools.log("⚠️ No external calendar update hook found");
     }
 
-    await _eventDataManager.manualRefresh(context);
+    await _eventDomain.manualRefresh(context);
     devtools.log("♻️ Manual refresh complete");
 
     clearFormFields();
@@ -239,7 +239,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
       // optional: log the exact backend body
       devtools.log('📤 [addEvent] toBackendJson: ${newEvent.toBackendJson()}');
 
-      final created = await _eventDataManager.createEvent(context, newEvent);
+      final created = await _eventDomain.createEvent(context, newEvent);
 
       await hydrateRecurrenceRuleIfNeeded(
         groupDomain: groupDomain,

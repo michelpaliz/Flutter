@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/core/group/domain/group_domain.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/b-backend/notification/notification_api_client.dart';
-import 'package:hexora/c-frontend/f-notification-section/controllers/notification_controller.dart';
+import 'package:hexora/b-backend/notification/view_model/notification_view_model.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/f-themes/palette/app_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
@@ -178,7 +178,7 @@ class ContextualFab extends StatelessWidget {
 
     if (!confirmed) return;
 
-    final controller = NotificationController(
+    final controller = NotificationViewModel(
       userDomain: context.read<UserDomain>(),
       groupDomain: context.read<GroupDomain>(),
       notificationDomain: context.read<NotificationDomain>(),
@@ -196,12 +196,29 @@ class ContextualFab extends StatelessWidget {
 
   Future<void> _pickGroupAndAddEvent(BuildContext context) async {
     final gm = context.read<GroupDomain>();
-    final groups = gm.groups;
+    final ud = context.read<UserDomain>();
+    final user = ud.user;
+
+    if (user == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You must be signed in')),
+        );
+      }
+      return;
+    }
+
+    // Make sure the repo stream is up to date
+    await gm.refreshGroupsForCurrentUser(ud);
+
+    // Take a one-time snapshot from the user-scoped stream
+    final List<Group> groups = await gm.watchGroupsForUser(user.id).first;
 
     if (groups.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No groups available')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No groups available')),
+        );
       }
       return;
     }

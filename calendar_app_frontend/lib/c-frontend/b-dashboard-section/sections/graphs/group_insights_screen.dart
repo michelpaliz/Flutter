@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hexora/a-models/group_model/event/event.dart';
+import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
-import 'package:hexora/b-backend/services/client/client_api.dart';
-import 'package:hexora/b-backend/services/service/service_api_client.dart';
-import 'package:hexora/b-backend/login_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/business_logic/client/client_api.dart';
+import 'package:hexora/b-backend/business_logic/service/service_api_client.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/enum/insights_types.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/bar/insights_bar_section.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/graphs/sections/filter/insights_filter_section.dart';
@@ -62,11 +62,11 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
   //   });
 
   //   try {
-  //     final userMgmt = context.read<userDomain>();
+  //     final userDomain = context.read<userDomain>();
   //     final range = _resolveRange(DateTime.now());
 
   //     // 1) Fetch events from the new agenda endpoint
-  //     final eventsFuture = userMgmt.fetchWorkInRange(
+  //     final eventsFuture = userDomain.fetchWorkInRange(
   //       groupId: widget.group.id,
   //       from: range.start,
   //       to: range.end,
@@ -126,14 +126,14 @@ class _GroupInsightsScreenState extends State<GroupInsightsScreen> {
     });
 
     try {
-      final userMgmt = context.read<UserDomain>();
+      final userDomain = context.read<UserDomain>();
       final range = _resolveRange(DateTime.now());
 
       // ⚠️ Use end-exclusive to include the whole last day in the backend query
       final endExclusive = _endExclusive(range.end);
 
       // 1) Fetch events from the unified agenda endpoint
-      final eventsFuture = userMgmt.fetchWorkItems(
+      final eventsFuture = userDomain.fetchWorkItems(
         groupId: widget.group.id,
         from: range.start,
         to: endExclusive, // ← end-exclusive

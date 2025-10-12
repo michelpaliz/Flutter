@@ -1,41 +1,26 @@
-You’re 95% there — you already fetch the catalogs and built `_applyLabels(...)`. You just aren’t using it in `build()`. Do this tiny change:
+// lib/b-backend/api/invitations_api_client.dart +
+// lib/c-repository/invitations_repository.dart +
+// lib/d-viewmodels/invitations_view_model.dart
+// -----------------------------------------------------------------------------
+// This single file shows all three layers together for clarity. In your app,
+// split them into the paths above. It uses ApiConstants.baseUrl and your
+// Invitation model from: lib/a-models/invitation/invitation.dart
+// -----------------------------------------------------------------------------
 
-### Replace this in `build()`
 
-```dart
-final minutesMap = _aggregateMinutes(_dimension, range);
-...
-InsightsBarsCard(
-  title: _dimension == Dimension.clients ? l.timeByClient : l.timeByService,
-  minutesByKey: minutesMap,
-),
-```
+// -----------------------------------------------------------------------------
+// REPOSITORY (app-facing API; easy to mock/test)
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// VIEW MODEL (ChangeNotifier; plug into Provider/Riverpod etc.)
+// -----------------------------------------------------------------------------
 
-### With this (apply labels before rendering)
 
-```dart
-final minutesById = _aggregateMinutes(_dimension, range);
-final minutesLabeled = _applyLabels(minutesById);
-...
-InsightsBarsCard(
-  title: _dimension == Dimension.clients ? l.timeByClient : l.timeByService,
-  minutesByKey: minutesLabeled, // 👈 human-readable names now
-),
-```
-
-That’s it — your bars will show **client/service names** instead of IDs.
-
-#### (Optional niceties)
-
-* If you want stable ordering (e.g., highest first), sort before passing:
-
-  ```dart
-  Map<String, int> _sortDesc(Map<String, int> m) {
-    final entries = m.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return { for (final e in entries) e.key: e.value };
-  }
-  // then:
-  final minutesLabeled = _sortDesc(_applyLabels(minutesById));
-  ```
-* If some events reference deleted clients/services, your fallback `?? e.key` will keep the ID label, which is fine.
+// -----------------------------------------------------------------------------
+// QUICK USAGE
+// -----------------------------------------------------------------------------
+// final api = InvitationApiClient();
+// final repo = HttpInvitationRepository(api);
+// final vm = InvitationViewModel(repo, token: authToken);
+// await vm.loadGroupInvitations(groupId);
+// ... bind vm to UI with ChangeNotifierProvider / ListenableBuilder
