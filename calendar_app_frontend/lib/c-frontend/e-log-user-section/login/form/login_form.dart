@@ -1,15 +1,16 @@
+import 'package:flutter/material.dart';
 import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart';
 import 'package:hexora/c-frontend/a-home-section/home_page.dart';
-import 'package:hexora/c-frontend/e-log-user-section/register/form/button_style_helper.dart';
-import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/text_field_widget.dart';
-import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/textfield_styles.dart'
+import 'package:hexora/c-frontend/e-log-user-section/register/ui/form/button_style_helper.dart';
+import 'package:hexora/f-themes/app_colors/themes/text_styles/typography_extension.dart';
+import 'package:hexora/f-themes/app_utilities/view-item-styles/text_field/static/text_field_widget.dart';
+import 'package:hexora/f-themes/app_utilities/view-item-styles/text_field/static/textfield_styles.dart'
     show TextFieldStyles;
 import 'package:hexora/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class LoginForm extends StatefulWidget {
-  final VoidCallback? onForgotPassword; // 👈 new
+  final VoidCallback? onForgotPassword;
 
   const LoginForm({super.key, this.onForgotPassword});
 
@@ -54,6 +55,7 @@ class _LoginFormState extends State<LoginForm> {
     final authService = Provider.of<AuthService>(context, listen: false);
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
+    final t = AppTypography.of(context); // ✅ grab themed text styles
 
     return Form(
       key: _formKey,
@@ -63,17 +65,12 @@ class _LoginFormState extends State<LoginForm> {
           // 👋 Welcome
           Text(
             l10n.loginWelcomeTitle,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: cs.primary,
-                ),
+            style: t.displayMedium.copyWith(color: cs.primary),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.loginWelcomeSubtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: cs.onSurface.withOpacity(0.7),
-                ),
+            style: t.bodyMedium.copyWith(color: cs.onSurface.withOpacity(0.7)),
           ),
           const SizedBox(height: 28),
 
@@ -143,7 +140,7 @@ class _LoginFormState extends State<LoginForm> {
                       }
                     }
                   : null,
-              child: Text(l10n.login),
+              child: Text(l10n.login, style: t.buttonText), // ✅ use themed text
             ),
           ),
 
@@ -154,10 +151,8 @@ class _LoginFormState extends State<LoginForm> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: widget.onForgotPassword,
-              child: Text(
-                l10n.forgotPassword,
-                style: TextStyle(color: cs.primary),
-              ),
+              child: Text(l10n.forgotPassword,
+                  style: t.bodyMedium.copyWith(color: cs.primary)),
             ),
           ),
         ],

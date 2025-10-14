@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
-// REMOVED: userInvitation_status import
 import 'package:hexora/c-frontend/b-dashboard-section/sections/members/models/Members_count.dart';
 import 'package:hexora/c-frontend/b-dashboard-section/sections/upcoming_events/group_upcoming_events.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/e-drawer-style-menu/contextual_fab.dart';
-import 'package:hexora/f-themes/themes/theme_colors.dart';
-import 'package:hexora/f-themes/utilities/utilities.dart';
+import 'package:hexora/f-themes/app_colors/themes/text_styles/typography_extension.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
+import 'package:hexora/f-themes/app_utilities/image/avatar_utils.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +28,7 @@ class _GroupDashboardState extends State<GroupDashboard> {
   @override
   void initState() {
     super.initState();
-    _gm = context.read<GroupDomain>(); // ✅ use management → repository
+    _gm = context.read<GroupDomain>();
     _loadCounts();
   }
 
@@ -37,12 +37,10 @@ class _GroupDashboardState extends State<GroupDashboard> {
     try {
       final c = await _gm.groupRepository.getMembersCount(
         widget.group.id,
-        mode: 'union', // or 'accepted'
+        mode: 'union',
       );
       if (!mounted) return;
       setState(() => _counts = c);
-    } catch (_) {
-      // fallback UI will still show local numbers
     } finally {
       if (mounted) setState(() => _loadingCounts = false);
     }
@@ -51,63 +49,58 @@ class _GroupDashboardState extends State<GroupDashboard> {
   @override
   Widget build(BuildContext context) {
     final group = widget.group;
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final tt = theme.textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final t = AppTypography.of(context);
     final l = AppLocalizations.of(context)!;
+
+    // typography hierarchy (one place to tweak if needed)
+    final sectionTitleStyle = t.bodyLarge.copyWith(fontWeight: FontWeight.w800);
+    final tileTitleStyle = t.accentText.copyWith(fontWeight: FontWeight.w600);
+    final tileSubtitleStyle = t.bodySmall;
 
     final createdStr = DateFormat.yMMMd(l.localeName).format(group.createdTime);
 
-    // ---- SIMPLE LOCAL FALLBACK COUNTS ----
-    // Since invites are now a separate collection, we can’t infer pending locally.
-    // We show members from local group doc and rely on server counts when available.
+    // Fallbacks
     final fallbackMembers = group.userIds.length;
-    const fallbackPending = 0; // unknown locally without querying invitations
+    const fallbackPending = 0;
     final fallbackTotal = fallbackMembers + fallbackPending;
 
-    // ---- SERVER-FIRST DISPLAY ----
+    // Server-first
     final showMembers = _counts?.accepted ?? fallbackMembers;
     final showPending = _counts?.pending ?? fallbackPending;
     final showTotal = _counts?.union ?? fallbackTotal;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.dashboardTitle),
+        // Keep app bar prominent
+        title: Text(l.dashboardTitle, style: t.titleLarge),
       ),
       body: RefreshIndicator(
         onRefresh: _loadCounts,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // ---- Overview ----
-            _SectionHeader(title: l.sectionOverview),
+            _SectionHeader(title: l.sectionOverview, style: sectionTitleStyle),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundImage: Utilities.buildProfileImage(group.photoUrl),
-                ),
+                AvatarUtils.groupAvatar(context, group.photoUrl, radius: 30),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        group.name,
-                        style: tt.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
+                      Text(group.name,
+                          style: t.titleLarge
+                              .copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
                       Text(
                         l.createdOnDay(createdStr),
-                        style: tt.bodySmall?.copyWith(
+                        style: t.bodySmall.copyWith(
                           color: cs.onSurface.withOpacity(0.7),
                         ),
                       ),
                       const SizedBox(height: 8),
-
-                      // Members / Pending / Total pills (server-first)
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -141,24 +134,21 @@ class _GroupDashboardState extends State<GroupDashboard> {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // ---- Upcoming ----
-            _SectionHeader(title: l.sectionUpcoming),
+            _SectionHeader(title: l.sectionUpcoming, style: sectionTitleStyle),
             GroupUpcomingEventsCard(groupId: group.id),
-
             const SizedBox(height: 20),
-
-            // ---- Manage ----
-            _SectionHeader(title: l.sectionManage),
+            _SectionHeader(title: l.sectionManage, style: sectionTitleStyle),
             Card(
               color: ThemeColors.getListTileBackgroundColor(context),
               child: ListTile(
                 leading: const Icon(Icons.group_outlined),
-                title: Text(l.membersTitle),
+                // ↓ inner tile titles are now smaller
+                title: Text(l.membersTitle, style: tileTitleStyle),
                 subtitle: Text(
-                    '${NumberFormat.decimalPattern(l.localeName).format(showMembers)} ${l.membersTitle.toLowerCase()}'),
+                  '${NumberFormat.decimalPattern(l.localeName).format(showMembers)} ${l.membersTitle.toLowerCase()}',
+                  style: tileSubtitleStyle,
+                ),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -173,8 +163,9 @@ class _GroupDashboardState extends State<GroupDashboard> {
               color: ThemeColors.getListTileBackgroundColor(context),
               child: ListTile(
                 leading: const Icon(Icons.design_services_outlined),
-                title: Text(l.servicesClientsTitle),
-                subtitle: Text(l.servicesClientsSubtitle),
+                title: Text(l.servicesClientsTitle, style: tileTitleStyle),
+                subtitle:
+                    Text(l.servicesClientsSubtitle, style: tileSubtitleStyle),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -185,15 +176,13 @@ class _GroupDashboardState extends State<GroupDashboard> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // ---- Insights / Graphs ----
-            _SectionHeader(title: l.sectionInsights),
+            _SectionHeader(title: l.sectionInsights, style: sectionTitleStyle),
             Card(
               color: ThemeColors.getListTileBackgroundColor(context),
               child: ListTile(
                 leading: const Icon(Icons.insights_outlined),
-                title: Text(l.insightsTitle),
-                subtitle: Text(l.insightsSubtitle),
+                title: Text(l.insightsTitle, style: tileTitleStyle),
+                subtitle: Text(l.insightsSubtitle, style: tileSubtitleStyle),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -203,24 +192,20 @@ class _GroupDashboardState extends State<GroupDashboard> {
                 },
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // ---- Status (only if missing calendar) ----
             if (!group.hasCalendar) ...[
-              _SectionHeader(title: l.sectionStatus),
+              _SectionHeader(title: l.sectionStatus, style: sectionTitleStyle),
               Card(
                 color: cs.errorContainer.withOpacity(0.15),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     l.noCalendarWarning,
-                    style: tt.bodyMedium?.copyWith(color: cs.error),
+                    style: t.bodyMedium.copyWith(color: cs.error),
                   ),
                 ),
               ),
             ],
-
             const SizedBox(height: 96),
           ],
         ),
@@ -231,7 +216,7 @@ class _GroupDashboardState extends State<GroupDashboard> {
           height: 56,
           child: FilledButton.icon(
             icon: const Icon(Icons.calendar_month_rounded),
-            label: Text(l.goToCalendar),
+            label: Text(l.goToCalendar, style: t.buttonText),
             onPressed: () {
               Navigator.pushNamed(
                 context,
@@ -249,18 +234,24 @@ class _GroupDashboardState extends State<GroupDashboard> {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  const _SectionHeader({required this.title});
+  final TextStyle? style;
+  const _SectionHeader({required this.title, this.style});
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
+    final t = AppTypography.of(context);
     final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Text(title,
-              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            title,
+            // keep sections clearly above inner tiles
+            style:
+                (style ?? t.titleLarge).copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Divider(
@@ -275,7 +266,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Small clickable pill used to surface quick stats (e.g., members total).
 class _InfoPill extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -292,6 +282,7 @@ class _InfoPill extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final bg = cs.surfaceVariant.withOpacity(0.6);
     final fg = cs.onSurface.withOpacity(0.8);
+    final t = AppTypography.of(context);
 
     final pill = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -306,8 +297,7 @@ class _InfoPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(
-                fontSize: 12.5, color: fg, fontWeight: FontWeight.w600),
+            style: t.bodySmall.copyWith(color: fg, fontWeight: FontWeight.w600),
           ),
         ],
       ),

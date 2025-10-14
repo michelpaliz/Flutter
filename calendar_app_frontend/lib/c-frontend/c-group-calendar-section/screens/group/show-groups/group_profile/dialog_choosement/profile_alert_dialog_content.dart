@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
-import 'package:hexora/f-themes/utilities/utilities.dart';
-import 'package:hexora/f-themes/utilities/view-item-styles/button/button_styles.dart';
+import 'package:hexora/f-themes/app_utilities/image/avatar_utils.dart';
+import 'package:hexora/f-themes/app_utilities/view-item-styles/button/button_styles.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -22,10 +22,8 @@ Widget buildProfileDialogContent(BuildContext context, Group group) {
     mainAxisSize: MainAxisSize.min,
     children: [
       // 🖼️ Group image
-      CircleAvatar(
-        radius: 30,
-        backgroundImage: Utilities.buildProfileImage(group.photoUrl),
-      ),
+      AvatarUtils.groupAvatar(context, group.photoUrl, radius: 30),
+
       const SizedBox(height: 8),
 
       // 📛 Group name

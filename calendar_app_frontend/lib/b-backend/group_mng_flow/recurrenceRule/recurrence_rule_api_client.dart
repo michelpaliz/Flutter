@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as devtools show log;
 
 import 'package:hexora/a-models/group_model/recurrenceRule/recurrence_rule/legacy_recurrence_rule.dart';
-import 'package:hexora/b-backend/auth_user/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/token/token_storage.dart';
 import 'package:hexora/b-backend/config/api_constants.dart';
 import 'package:http/http.dart' as http;
 

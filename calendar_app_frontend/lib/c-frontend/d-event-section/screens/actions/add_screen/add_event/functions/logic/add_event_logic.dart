@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../../../../../../a-models/group_model/group/group.dart';
 import '../../../../../../../../../a-models/user_model/user.dart';
-import '../../../../../../../../../f-themes/utilities/utilities.dart';
+import '../../../../../../../../f-themes/app_utilities/app_utils.dart';
 import '../../../../../../../../b-backend/group_mng_flow/group/domain/group_domain.dart';
 import '../../../../../../../../b-backend/auth_user/user/api/user_api_client.dart';
 import '../../../../../../../../b-backend/notification/domain/notification_domain.dart';
@@ -209,7 +209,7 @@ abstract class AddEventLogic<T extends StatefulWidget>
 
     // ---- build the event payload (derive type from selections) ----
     final newEvent = buildNewEvent(
-      id: Utilities.generateRandomId(10),
+      id: AppUtils.generateRandomId(10),
       startDate: selectedStartDate,
       endDate: selectedEndDate,
       title: title,

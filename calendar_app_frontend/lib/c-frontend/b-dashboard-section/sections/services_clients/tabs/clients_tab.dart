@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/client/client.dart';
-import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 
 import '../widgets/common_views.dart';

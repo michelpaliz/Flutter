@@ -11,9 +11,8 @@ import 'package:hexora/c-frontend/i-settings-section/sheets/language_sheet.dart'
 import 'package:hexora/c-frontend/i-settings-section/widgets/section_card.dart';
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/d-local-stateManagement/local/LocaleProvider.dart';
-import 'package:hexora/d-local-stateManagement/theme/theme_preference_provider.dart';
-import 'package:hexora/f-themes/palette/app_colors.dart';
-import 'package:hexora/f-themes/themes/define_colors/theme_data.dart';
+import 'package:hexora/d-local-stateManagement/theme/theme_provider.dart';
+import 'package:hexora/f-themes/app_colors/palette/app_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -124,7 +123,7 @@ class _SettingsState extends State<Settings> {
   Future<void> _logout() async {
     final auth = context.read<AuthProvider>();
     try {
-      await auth.logOut(); // or logout()
+      await auth.logOut();
     } catch (_) {}
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil(
@@ -147,8 +146,9 @@ class _SettingsState extends State<Settings> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? AppDarkColors.background : AppColors.background;
 
-    return Consumer<ThemePreferenceProvider>(
-      builder: (_, themeProv, __) => Scaffold(
+    return Consumer<ThemeModeProvider>(
+      // ⬅️ changed type
+      builder: (_, themeModeProv, __) => Scaffold(
         appBar: AppBar(title: Text(loc.settings)),
         backgroundColor: bg,
         body: ListView(
@@ -178,8 +178,9 @@ class _SettingsState extends State<Settings> {
             SectionHeader(title: loc.preferencesSectionTitle),
             SectionCard(
               child: PreferencesSection(
-                isDark: themeProv.themeData == darkTheme,
-                onToggleDark: () => themeProv.toggleTheme(),
+                // ⬇️ now reads ThemeMode instead of ThemeData
+                isDark: themeModeProv.mode == ThemeMode.dark,
+                onToggleDark: () => themeModeProv.toggleLightDark(),
                 languageName: _languageName(context),
                 onChangeLanguage: _openLanguageSheet,
               ),

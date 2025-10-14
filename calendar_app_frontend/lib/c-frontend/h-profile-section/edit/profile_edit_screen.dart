@@ -9,8 +9,8 @@ import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart
 import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
 import 'package:hexora/c-frontend/utils/user_avatar.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
-import 'package:hexora/f-themes/palette/app_colors.dart';
-import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/app_colors/palette/app_colors.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';

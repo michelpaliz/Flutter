@@ -1,4 +1,4 @@
-import 'package:hexora/f-themes/utilities/utilities.dart';
+import 'package:hexora/f-themes/app_utilities/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -25,7 +25,7 @@ class LocationInput extends StatelessWidget {
       },
       suggestionsCallback: (pattern) async {
         try {
-          return await Utilities.getAddressSuggestions(pattern);
+          return await AppUtils.getAddressSuggestions(pattern);
         } catch (e) {
           debugPrint('Error getting suggestions: $e');
           return [];

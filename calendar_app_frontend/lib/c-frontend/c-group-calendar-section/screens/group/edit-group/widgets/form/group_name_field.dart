@@ -1,5 +1,5 @@
-import 'package:hexora/f-themes/themes/theme_colors.dart';
-import 'package:hexora/f-themes/utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
+import 'package:hexora/f-themes/app_utilities/view-item-styles/text_field/flexible/custom_editable_text_field.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 

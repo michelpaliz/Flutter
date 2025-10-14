@@ -6,7 +6,7 @@ import 'package:hexora/b-backend/auth_user/auth/auth_database/api/i_auth_api_cli
 import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart';
 import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_service.dart';
 import 'package:hexora/b-backend/auth_user/auth/auth_database/helper/auht_gate.dart';
-import 'package:hexora/b-backend/auth_user/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/token/token_storage.dart';
 import 'package:hexora/b-backend/auth_user/user/api/i_user_api_client.dart';
 import 'package:hexora/b-backend/auth_user/user/api/user_api_client.dart';
 import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
@@ -37,8 +37,8 @@ import 'package:hexora/b-backend/notification/domain/notification_domain.dart';
 import 'package:hexora/c-frontend/f-notification-section/show-notifications/notify_phone/local_notification_helper.dart';
 import 'package:hexora/c-frontend/routes/routes.dart';
 import 'package:hexora/d-local-stateManagement/local/LocaleProvider.dart';
-import 'package:hexora/d-local-stateManagement/theme/theme_management.dart';
-import 'package:hexora/d-local-stateManagement/theme/theme_preference_provider.dart';
+import 'package:hexora/d-local-stateManagement/theme/theme_provider.dart';
+import 'package:hexora/f-themes/app_colors/themes/context_colors/theme_data.dart';
 // ---- i18n + boot ------------------------------------------------------------
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:hexora/l10n/l10n.dart';
@@ -148,10 +148,9 @@ void main() async {
           ),
         ),
 
-        ChangeNotifierProvider(create: (_) => ThemeManagement()),
-        ChangeNotifierProvider(create: (_) => ThemePreferenceProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => PresenceDomain()),
+        ChangeNotifierProvider(create: (_) => ThemeModeProvider()),
 
         // 9) EventDomain (depends on IEventRepository + GroupDomain)
         ProxyProvider2<GroupDomain, IEventRepository, EventDomain?>(
@@ -184,11 +183,16 @@ class MyMaterialApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemePreferenceProvider, LocaleProvider>(
-      builder: (context, themeProvider, localeProvider, _) {
+    // ⬇️ now consume ThemeModeProvider + LocaleProvider
+    return Consumer2<ThemeModeProvider, LocaleProvider>(
+      builder: (context, themeModeProvider, localeProvider, _) {
         return MaterialApp(
           locale: localeProvider.locale,
-          theme: themeProvider.themeData,
+          // ⬇️ provide both themes + the mode
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeModeProvider.mode,
+
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

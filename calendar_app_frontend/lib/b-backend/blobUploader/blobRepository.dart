@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:hexora/b-backend/auth_user/auth/auth_database/token_storage.dart';
+import 'package:hexora/b-backend/auth_user/auth/auth_database/token/token_storage.dart';
 import 'package:hexora/b-backend/blobUploader/blobServer.dart';
 import 'package:hexora/b-backend/config/api_constants.dart';
 import 'package:http/http.dart' as http;

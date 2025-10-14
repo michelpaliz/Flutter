@@ -1,5 +1,5 @@
 import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_provider.dart';
-import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

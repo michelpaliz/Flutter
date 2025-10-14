@@ -1,6 +1,7 @@
-import 'package:hexora/f-themes/themes/theme_colors.dart';
-import 'package:hexora/f-themes/utilities/utilities.dart';
 import 'package:flutter/material.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
+import 'package:hexora/f-themes/app_utilities/image/avatar_utils.dart';
+import 'package:hexora/f-themes/app_utilities/app_utils.dart';
 
 class GroupUserCard extends StatelessWidget {
   final String userName;
@@ -72,10 +73,8 @@ class GroupUserCard extends StatelessWidget {
       elevation: 0,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-        leading: CircleAvatar(
-          radius: 22,
-          backgroundImage: Utilities.buildProfileImage(photoUrl ?? ''),
-        ),
+        leading: // group
+            AvatarUtils.groupAvatar(context, photoUrl, radius: 30),
         title: Row(
           children: [
             Expanded(
@@ -108,7 +107,7 @@ class GroupUserCard extends StatelessWidget {
             if (sendingDate != null) ...[
               const SizedBox(width: 10),
               Text(
-                '• ${Utilities.formatDate(sendingDate!)}',
+                '• ${AppUtils.formatDate(sendingDate!)}',
                 style: TextStyle(
                   color: ThemeColors.getTextColor(context).withOpacity(0.5),
                   fontSize: 11,
@@ -120,15 +119,15 @@ class GroupUserCard extends StatelessWidget {
         trailing: isAdmin
             ? const Icon(Icons.verified_user, color: Colors.green, size: 18)
             : (onRemove != null
-                  ? IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                        size: 20,
-                      ),
-                      onPressed: onRemove,
-                    )
-                  : null),
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
+                    onPressed: onRemove,
+                  )
+                : null),
       ),
     );
   }

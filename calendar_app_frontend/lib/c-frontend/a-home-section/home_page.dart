@@ -11,7 +11,7 @@ import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-gr
 import 'package:hexora/c-frontend/routes/appRoutes.dart';
 import 'package:hexora/c-frontend/utils/user_avatar.dart';
 import 'package:hexora/e-drawer-style-menu/main_scaffold.dart';
-import 'package:hexora/f-themes/themes/theme_colors.dart';
+import 'package:hexora/f-themes/app_colors/tools_colors/theme_colors.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 

@@ -18,7 +18,7 @@ import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add
 import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/event_screen/event_detail.dart';
 import 'package:hexora/c-frontend/e-log-user-section/forgot_password.dart';
-import 'package:hexora/c-frontend/e-log-user-section/login/login_view.dart';
+import 'package:hexora/c-frontend/e-log-user-section/login/form/login_view.dart';
 import 'package:hexora/c-frontend/e-log-user-section/register/ui/register_view.dart';
 import 'package:hexora/c-frontend/e-log-user-section/verify_email_view.dart';
 import 'package:hexora/c-frontend/f-notification-section/show-notifications/show_notifications.dart';

@@ -1,5 +1,5 @@
 import 'package:hexora/a-models/group_model/event/model/event.dart';
-import 'package:hexora/f-themes/utilities/view-item-styles/text_field/static/custom_text_field.dart';
+import 'package:hexora/f-themes/app_utilities/view-item-styles/text_field/static/custom_text_field.dart';
 import 'package:hexora/l10n/app_localizations.dart'; // ✅ Add this
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

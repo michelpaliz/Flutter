@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hexora/a-models/user_model/user.dart';
 import 'package:hexora/b-backend/auth_user/auth/auth_database/api/i_auth_api_client.dart';
 import 'package:hexora/b-backend/auth_user/auth/auth_database/auth_repository.dart';
-import 'package:hexora/b-backend/auth_user/auth/auth_database/token_storage.dart';
+// NOTE: keep this import matching your project structure:
+import 'package:hexora/b-backend/auth_user/auth/auth_database/token/token_storage.dart';
 import 'package:hexora/b-backend/auth_user/auth/exceptions/auth_exceptions.dart';
 import 'package:hexora/b-backend/auth_user/user/repository/i_user_repository.dart';
 
@@ -20,9 +21,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
   AuthProvider({
     required IUserRepository userRepository,
-    required IAuthApiClient authApi, // ← ctor param
+    required IAuthApiClient authApi,
   })  : _userRepo = userRepository,
-        _authApi = authApi; // ← assign
+        _authApi = authApi;
 
   @override
   User? get currentUser => _user;
@@ -62,6 +63,9 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     throw GenericAuthException();
   }
 
+  // --------------------------------------------------------------------------
+  // LOGIN: accept both camelCase and snake_case keys from the backend
+  // --------------------------------------------------------------------------
   @override
   Future<User?> logIn({required String email, required String password}) async {
     final data = await _authApi.login(email: email, password: password);
@@ -72,9 +76,12 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
       throw Exception(msg);
     }
 
-    final accessToken = data['accessToken'] as String?;
-    final refreshToken = data['refreshToken'] as String?;
-    final userId = data['userId'] as String?;
+    // Accept both camelCase and snake_case
+    final String? accessToken =
+        (data['accessToken'] ?? data['access_token']) as String?;
+    final String? refreshToken =
+        (data['refreshToken'] ?? data['refresh_token']) as String?;
+    final String? userId = (data['userId'] ?? data['id']) as String?;
 
     if (accessToken == null || refreshToken == null || userId == null) {
       throw FormatException('Missing required fields in login response');
@@ -105,9 +112,14 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     throw UnimplementedError('Handled by backend or removed entirely.');
   }
 
+  // --------------------------------------------------------------------------
+  // STARTUP: try to restore session from stored access token; refresh if 401
+  // --------------------------------------------------------------------------
   @override
   Future<void> initialize() async {
     _authToken = await TokenStorage.loadToken();
+    // debugPrint('Init: token loaded? ${_authToken != null}');
+
     if (_authToken == null) {
       notifyListeners();
       return;
@@ -115,6 +127,7 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
 
     final prof = await _authApi.profile(accessToken: _authToken!);
     final status = prof['_status'] as int? ?? 200;
+    // debugPrint('Init: /profile _status=$status');
 
     if (status == 200) {
       _user = User.fromJson(prof);
@@ -157,21 +170,31 @@ class AuthProvider extends ChangeNotifier implements AuthRepository {
     return null;
   }
 
-  // --- internals ---
+  // --------------------------------------------------------------------------
+  // REFRESH: accept both camelCase and snake_case from refresh endpoint too
+  // --------------------------------------------------------------------------
   Future<bool> _tryRefreshToken() async {
     final refreshToken = await TokenStorage.loadRefreshToken();
     if (refreshToken == null) return false;
 
+    // debugPrint('Refresh: trying with saved refresh token...');
     final data = await _authApi.refresh(refreshToken: refreshToken);
     final status = data['_status'] as int? ?? 200;
+    // debugPrint('Refresh: _status=$status');
     if (status != 200) return false;
 
-    _authToken = data['accessToken'] as String?;
+    // accept both accessToken and access_token
+    _authToken = ((data['accessToken'] ?? data['access_token']) as String?);
     if (_authToken == null) return false;
+
+    // If your backend also rotates refresh token, accept both casings:
+    final rotatedRefresh =
+        (data['refreshToken'] ?? data['refresh_token']) as String? ??
+            refreshToken;
 
     await TokenStorage.saveTokens(
       accessToken: _authToken!,
-      refreshToken: refreshToken,
+      refreshToken: rotatedRefresh,
     );
 
     final prof = await _authApi.profile(accessToken: _authToken!);

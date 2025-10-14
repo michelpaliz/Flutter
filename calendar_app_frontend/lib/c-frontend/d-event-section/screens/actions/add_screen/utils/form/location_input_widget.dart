@@ -1,4 +1,4 @@
-import 'package:hexora/f-themes/utilities/utilities.dart';
+import 'package:hexora/f-themes/app_utilities/app_utils.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -22,7 +22,7 @@ class LocationInputWidget extends StatelessWidget {
         );
       },
       suggestionsCallback: (pattern) async {
-        return await Utilities.getAddressSuggestions(pattern);
+        return await AppUtils.getAddressSuggestions(pattern);
       },
       itemBuilder: (context, suggestion) {
         return ListTile(title: Text(suggestion));
