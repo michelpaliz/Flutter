@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/a-models/user_model/user.dart';
-import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/b-backend/auth_user/user/domain/user_domain.dart';
+import 'package:hexora/b-backend/group_mng_flow/group/domain/group_domain.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_card_widget/group_card_widget.dart';
 import 'package:hexora/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -115,14 +115,21 @@ class _GroupListView extends StatelessWidget {
     required this.updateRole,
   });
 
+  static const double _kHorizontalRowHeight =
+      220; // <- tune to your card height
+
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    final isHorizontal = axis == Axis.horizontal;
+
+    final list = ListView.separated(
+      // when nested (you are), keep inner list non-scrollable + shrink-wrapped
       physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      shrinkWrap: !isHorizontal, // horizontal must be height-bounded instead
       scrollDirection: axis,
       itemCount: groups.length,
+      separatorBuilder: (_, __) =>
+          isHorizontal ? const SizedBox(width: 10) : const SizedBox(height: 10),
       itemBuilder: (_, index) {
         return buildGroupCard(
           context,
@@ -134,5 +141,12 @@ class _GroupListView extends StatelessWidget {
         );
       },
     );
+
+    // ✅ Bound the cross-axis when horizontal (height)
+    if (isHorizontal) {
+      return SizedBox(height: _kHorizontalRowHeight, child: list);
+    }
+    // vertical path is already width-bounded by the parent Padding/constraints
+    return list;
   }
 }

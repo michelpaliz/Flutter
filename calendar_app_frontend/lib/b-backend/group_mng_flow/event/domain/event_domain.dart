@@ -1,8 +1,8 @@
 // lib/b-backend/core/event/domain/event_domain.dart
 import 'dart:async';
+import 'dart:developer' as devtools show log;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:hexora/a-models/group_model/event/model/event.dart';
 import 'package:hexora/a-models/group_model/group/group.dart';
 import 'package:hexora/b-backend/group_mng_flow/event/repository/i_event_repository.dart';
@@ -16,13 +16,25 @@ import 'package:hexora/c-frontend/f-notification-section/event_notification_help
 class EventDomain {
   final Group _group;
   final IEventRepository _repo;
-  final GroupDomain _groupDomain;
+
+  String get groupId => _group.id; // add this
 
   final ValueNotifier<List<Event>> eventsNotifier =
       ValueNotifier<List<Event>>([]);
 
   void Function()? onExternalEventUpdate;
+
   bool _disposed = false;
+
+  // ── refresh/loader guards ────────────────────────────────────────────────
+  bool _isRefreshing = false;
+  bool _isLoading = false; // if you bind this to UI elsewhere
+  bool get isLoading => _isLoading;
+  void _setLoading(bool v) {
+    if (_isLoading == v) return;
+    _isLoading = v;
+    // If this class ever extends ChangeNotifier, call notifyListeners() here.
+  }
 
   EventDomain(
     List<Event> initialEvents, {
@@ -31,8 +43,7 @@ class EventDomain {
     required IEventRepository repository,
     required GroupDomain groupDomain,
   })  : _group = group,
-        _repo = repository,
-        _groupDomain = groupDomain {
+        _repo = repository {
     _bootstrap(context, initialEvents);
     _setupSocketForwarding();
   }
@@ -53,11 +64,36 @@ class EventDomain {
       } catch (_) {}
     }));
 
-    _recomputeVisibleWindow();
+    // Internal bootstrap refresh — don't ping external hook
+    await _recomputeVisibleWindow(/*notifyExternal:*/ false);
   }
 
-  void _recomputeVisibleWindow() async {
+  // Add this field to your EventDomain class (top with other fields)
+  int? _lastExpandedSig;
+
+// Paste this helper anywhere inside EventDomain (e.g., below _dedupe)
+  int _computeSignature(List<Event> list) {
+    // Stable “meaningful change” hash (order-insensitive)
+    final parts = list.map((e) => Object.hash(
+          e.id,
+          e.rawRuleId,
+          e.startDate.millisecondsSinceEpoch,
+          e.endDate.millisecondsSinceEpoch,
+          e.title.hashCode,
+          e.recurrenceRule?.hashCode ?? e.rule?.hashCode ?? 0,
+          e.eventColorIndex,
+          e.allDay ? 1 : 0,
+        ));
+    return Object.hashAllUnordered(parts);
+  }
+
+// Replace your _recomputeVisibleWindow with this version
+  Future<void> _recomputeVisibleWindow([bool notifyExternal = false]) async {
     if (_disposed) return;
+
+    final t0 = DateTime.now();
+    devtools
+        .log('[EventDomain] ▸ recompute start notifyExternal=$notifyExternal');
 
     final now = DateTime.now();
     final range = DateTimeRange(
@@ -65,8 +101,11 @@ class EventDomain {
       end: now.add(const Duration(days: 365)),
     );
 
+    // 1) Pull base events
     final base = await _repo.getEventsByGroupId(_group.id);
+    devtools.log('[EventDomain]   base=${base.length}');
 
+    // 2) Expand recurrences for visible window
     final expanded = <Event>[];
     for (final e in base) {
       final hasStringRule = e.rule != null && e.rule!.isNotEmpty;
@@ -75,51 +114,99 @@ class EventDomain {
       if (!hasStringRule && !hasObjRule) {
         if (_overlapsRange(e.startDate, e.endDate, range)) expanded.add(e);
       } else {
-        expanded.addAll(
-            expandRecurringEventForRange(e, range, maxOccurrences: 1000));
+        final ex = expandRecurringEventForRange(
+          e,
+          range,
+          maxOccurrences: 1000,
+        );
+        expanded.addAll(ex);
       }
     }
 
-    eventsNotifier.value = _dedupe(expanded);
+    // 3) Dedupe + compute signature to avoid no-op emits
+    final deduped = _dedupe(expanded);
+    final sig = _computeSignature(deduped);
+    final changed = _lastExpandedSig != sig;
 
-    void setCurrentGroup() => _groupDomain.currentGroup = _group;
-    final phase = SchedulerBinding.instance.schedulerPhase;
-    final inBuild = phase == SchedulerPhase.transientCallbacks ||
-        phase == SchedulerPhase.persistentCallbacks ||
-        phase == SchedulerPhase.postFrameCallbacks;
-    if (inBuild) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => setCurrentGroup());
-    } else {
-      setCurrentGroup();
+    devtools.log('[EventDomain]   expanded=${expanded.length} '
+        'deduped=${deduped.length} changed=$changed '
+        'elapsed=${DateTime.now().difference(t0).inMilliseconds}ms');
+
+    if (!changed) {
+      devtools.log('[EventDomain] ◂ recompute NO-OP (same signature)');
+      return;
+    }
+    _lastExpandedSig = sig;
+
+    // 4) Push to notifier (this is what UI listens to)
+    eventsNotifier.value = deduped;
+    devtools.log('[EventDomain]   notifier <- ${deduped.length} events');
+
+    // 5) (Optional) Update currentGroup — WARNING: this can trigger rebuild storms.
+    //    Keep disabled during debugging; re-enable only if absolutely needed.
+    // void setCurrentGroup() => _groupDomain.currentGroup = _group;
+    // final phase = SchedulerBinding.instance.schedulerPhase;
+    // final inBuild = phase == SchedulerPhase.transientCallbacks ||
+    //     phase == SchedulerPhase.persistentCallbacks ||
+    //     phase == SchedulerPhase.postFrameCallbacks;
+    // if (inBuild) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) => setCurrentGroup());
+    // } else {
+    //   setCurrentGroup();
+    // }
+
+    // 6) Only notify external listeners when triggered by sockets
+    if (notifyExternal) {
+      devtools.log('[EventDomain]   notifyExternal hook');
+      onExternalEventUpdate?.call();
     }
 
-    onExternalEventUpdate?.call();
+    devtools.log('[EventDomain] ◂ recompute done '
+        'total=${deduped.length} '
+        'elapsed=${DateTime.now().difference(t0).inMilliseconds}ms');
   }
 
   void _setupSocketForwarding() {
     final socket = SocketManager();
+
     socket.on(SocketEvents.created, (data) {
       if (_disposed) return;
       _repo.onSocketCreated(_group.id, data);
-      _recomputeVisibleWindow();
+      // External origin → notify external listeners
+      _recomputeVisibleWindow(true);
     });
     socket.on(SocketEvents.updated, (data) {
       if (_disposed) return;
       _repo.onSocketUpdated(_group.id, data);
-      _recomputeVisibleWindow();
+      _recomputeVisibleWindow(true);
     });
     socket.on(SocketEvents.deleted, (data) {
       if (_disposed) return;
       _repo.onSocketDeleted(_group.id, data);
-      _recomputeVisibleWindow();
+      _recomputeVisibleWindow(true);
     });
   }
 
   Stream<List<Event>> watchEvents() => _repo.events$(_group.id);
 
-  Future<void> manualRefresh(BuildContext context) async {
-    await _repo.refreshGroup(_group.id);
-    _recomputeVisibleWindow();
+  /// Idempotent manual refresh; won’t re-enter and always clears loading.
+  Future<void> manualRefresh(BuildContext context,
+      {bool silent = false}) async {
+    if (_isRefreshing) {
+      devtools.log('↻ [EventDomain] manualRefresh already running — skip');
+      return;
+    }
+    _isRefreshing = true;
+    if (!silent) _setLoading(true);
+    try {
+      await _repo.refreshGroup(_group.id);
+      await _recomputeVisibleWindow(/*notifyExternal:*/ false);
+    } catch (e, st) {
+      devtools.log('💥 [EventDomain] manualRefresh error: $e\n$st');
+    } finally {
+      if (!silent) _setLoading(false);
+      _isRefreshing = false;
+    }
   }
 
   Future<Event> createEvent(BuildContext context, Event event) async {
@@ -127,7 +214,8 @@ class EventDomain {
     try {
       await syncReminderFor(context, created);
     } catch (_) {}
-    _recomputeVisibleWindow();
+    // Local mutation — don't notify external
+    await _recomputeVisibleWindow(false);
     return created;
   }
 
@@ -136,7 +224,7 @@ class EventDomain {
     try {
       await syncReminderFor(context, updated);
     } catch (_) {}
-    _recomputeVisibleWindow();
+    await _recomputeVisibleWindow(false);
     return updated;
   }
 
@@ -150,7 +238,7 @@ class EventDomain {
         } catch (_) {}
       }
     }
-    _recomputeVisibleWindow();
+    await _recomputeVisibleWindow(false);
   }
 
   Future<Event?> fetchEvent(String id, {String? fallbackId}) async {

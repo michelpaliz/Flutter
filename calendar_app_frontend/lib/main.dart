@@ -153,11 +153,39 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeModeProvider()),
 
         // 9) EventDomain (depends on IEventRepository + GroupDomain)
+        // ProxyProvider2<GroupDomain, IEventRepository, EventDomain?>(
+        //   create: (_) => null,
+        //   update: (ctx, groupDomain, eventRepo, previous) {
+        //     final current = groupDomain.currentGroup;
+        //     if (current == null) return null;
+
+        //     final edm = EventDomain(
+        //       const [],
+        //       context: ctx,
+        //       group: current,
+        //       repository: eventRepo,
+        //       groupDomain: groupDomain,
+        //     );
+        //     edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??
+        //         () => debugPrint(
+        //             '⚠️ Default fallback: no calendar UI registered.');
+        //     return edm;
+        //   },
+        // ),
+
         ProxyProvider2<GroupDomain, IEventRepository, EventDomain?>(
           create: (_) => null,
           update: (ctx, groupDomain, eventRepo, previous) {
             final current = groupDomain.currentGroup;
             if (current == null) return null;
+
+            // ✅ Reuse the previous EventDomain if group is the same.
+            if (previous != null && previous.groupId == current.id) {
+              return previous;
+            }
+
+            // IMPORTANT: Do NOT manually dispose `previous` here.
+            // Provider will dispose the old value automatically when a new one is returned.
 
             final edm = EventDomain(
               const [],
@@ -166,12 +194,13 @@ void main() async {
               repository: eventRepo,
               groupDomain: groupDomain,
             );
+
+            // keep any hook if you were relying on it
             edm.onExternalEventUpdate = previous?.onExternalEventUpdate ??
-                () => debugPrint(
-                    '⚠️ Default fallback: no calendar UI registered.');
+                () => debugPrint('⚠️ No calendar UI registered.');
             return edm;
           },
-        ),
+        )
       ],
       child: const MyMaterialApp(),
     ),

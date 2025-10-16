@@ -14,8 +14,8 @@ import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-gr
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/edit-group/widgets/utils/edit_group_arg.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/group-settings/group_settings.dart';
 import 'package:hexora/c-frontend/c-group-calendar-section/screens/group/show-groups/group_screen/group_section.dart';
-import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/add_event/UI/add_event_screen.dart';
-import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/UI/edit_event_screen.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/add_screen/screen/add_event_screen.dart';
+import 'package:hexora/c-frontend/d-event-section/screens/actions/edit_screen/screen/edit_event_screen.dart';
 import 'package:hexora/c-frontend/d-event-section/screens/event_screen/event_detail.dart';
 import 'package:hexora/c-frontend/e-log-user-section/forgot_password.dart';
 import 'package:hexora/c-frontend/e-log-user-section/login/form/login_view.dart';
